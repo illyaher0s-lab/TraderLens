@@ -1,0 +1,49 @@
+# TraderLens Requirements
+
+# ============ Agent 框架 ============
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-openai>=0.2.0
+langchain-anthropic>=0.2.0
+
+# ============ 数据源 ============
+akshare>=1.14.0
+tushare>=1.4.0
+baostock>=0.8.9
+
+# ============ 数据处理 ============
+pandas>=2.1.0
+numpy>=1.24.0
+
+# ============ 可视化 ============
+streamlit>=1.32.0
+plotly>=5.18.0
+
+# ============ 数据库 ============
+sqlalchemy>=2.0.0
+
+# ============ 配置管理 ============
+pyyaml>=6.0
+python-dotenv>=1.0.0
+
+# ============ 工具 ============
+python-dateutil>=2.8.0
+pytz>=2023.3
+
+# ============ 测试 ============
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# ============ 开发工具 ============
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+
+# ============ 后续迭代依赖（第二阶段，暂不安装）============
+# RAG 相关
+# chromadb>=0.4.0
+# sentence-transformers>=2.2.0
+# langchain-chroma>=0.1.0
+# openai>=1.0.0
+# transformers>=4.35.0
