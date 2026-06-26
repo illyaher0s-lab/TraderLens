@@ -38,6 +38,7 @@ class TestStrategyTemplateLibrary(unittest.TestCase):
         self.assertFalse(hasattr(self.library, "add_template"))
         self.assertFalse(hasattr(self.library, "create_template"))
         self.assertFalse(hasattr(self.library, "register_template"))
+        self.assertFalse(hasattr(self.library, "update_template"))
 
     def test_templates_convert_to_b1_template_definition(self):
         from contracts.strategy import StrategyTemplateDefinition
