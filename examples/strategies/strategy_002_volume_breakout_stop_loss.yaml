@@ -1,0 +1,117 @@
+# Strategy 002: Volume Breakout + Stop Loss
+#
+# Hypothesis: Price breakout with volume surge signals strong momentum
+# Exit: Stop loss at -8% or breakdown below 20-day low
+#
+# Data source: mock (for toolchain validation only)
+# Result usage: toolchain_validation_only
+#
+# ⚠️ VALIDATION NOTE:
+# This strategy fails Prototype Gate on Mock v2.1 data (win_rate 0%, 18/18 losing round trips).
+# Root cause: Entry rules (3d breakthrough + 1.5x volume surge) + wide stop loss (-8%)
+#             produce long holding periods (avg 158 days) that capture full downtrend
+#             in Mock v2.1's synthetic mean_reversion/trend_down stocks.
+# This is NOT an engine bug. It demonstrates:
+# - Prototype Gate correctly rejects strategies with 0% win rate
+# - Mock v2.1 successfully exercises entry/exit/round-trip paths (30 signals → 24 buys → 8 sells → 18 completed round trips)
+# - Exit diagnostics (stop_loss_pct) trigger correctly at -8% threshold
+# Do NOT use this strategy on real data without re-tuning parameters.
+
+strategy_name: strategy_002_volume_breakout_stop_loss
+version: v1
+status: draft
+
+hypothesis_source_snapshot:
+  source_type: manual
+  source_run_id: sprint_validation_002
+  evidence_pack_ids: []
+  generated_at: "2026-06-22T00:00:00"
+  data_range_used_for_generation:
+    start: "2023-01-01"
+    end: "2024-12-31"
+
+universe:
+  type: static_list
+  symbols:
+    - "000001.SZ"
+    - "600519.SH"
+    - "300750.SZ"
+    - "002475.SZ"
+    - "601318.SH"
+
+entry_conditions:
+  logic: AND
+  rules:
+    - type: breakthrough
+      field: close
+      benchmark: high_3d
+      operator: ">="
+    - type: volume_surge
+      field: volume
+      benchmark: ma_volume_5d
+      multiplier: 1.5
+      operator: ">="
+
+exit_conditions:
+  logic: OR
+  rules:
+    - type: stop_loss_pct
+      threshold: -0.08
+      price_field: close
+    - type: breakthrough
+      direction: breakdown
+      field: close
+      benchmark: low_20d
+      operator: "<"
+
+risk_filters:
+  max_position_per_stock: 0.25
+  max_total_position: 0.80
+  restrict_limit_up_buy: true
+  restrict_limit_down_sell: true
+  restrict_suspended: true
+  min_liquidity_for_trade: 10000000
+
+rebalance:
+  frequency: daily
+  check_time: close
+
+fill_model:
+  signal_to_execution: T+1
+  execution_price: open
+  commission: 0.0003
+  stamp_tax: 0.001
+  slippage: 0.0
+  lot_size: 100
+  lot_rounding: floor
+  handling:
+    limit_up_buy: skip
+    limit_down_sell: defer_next_day
+    suspended: skip
+
+backtest_config:
+  initial_capital: 100000.0
+  start_date: "2023-01-03"
+  end_date: "2024-12-31"
+  sample_split:
+    in_sample_end: "2023-12-31"
+    out_of_sample_start: "2024-01-01"
+  benchmark:
+    type: index
+    code: "000905.SH"
+    name: "CSI 500"
+  data_source: fixed_fixture
+  include_delisted: partial
+
+prototype_gate:
+  enabled: true
+  min_trades: 5
+  # max_trade_density (removed): 0.5
+  min_closed_lot_win_rate: 0.3
+  # max_single_loss (removed): 0.15
+
+audit:
+  created_at: "2026-06-22T00:00:00"
+  created_by: "sprint_validation"
+  last_modified_at: "2026-06-22T00:00:00"
+  config_hash: "strategy_002_v1"

@@ -1,0 +1,22 @@
+[
+  {
+    "code": "000300.SH",
+    "name": "沪深300",
+    "name_en": "CSI 300",
+    "exchange": "CSI",
+    "index_type": "broad_market",
+    "base_date": "2004-12-31",
+    "base_value": 1000.0,
+    "description": "沪深两市规模大、流动性好的300只股票"
+  },
+  {
+    "code": "000905.SH",
+    "name": "中证500",
+    "name_en": "CSI 500",
+    "exchange": "CSI",
+    "index_type": "mid_cap",
+    "base_date": "2004-12-31",
+    "base_value": 1000.0,
+    "description": "沪深两市中小市值代表性500只股票"
+  }
+]

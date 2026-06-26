@@ -1,0 +1,37 @@
+{
+  "generated_at": "2026-06-22T12:27:43.392753",
+  "fixture_path": "tests\\fixed_fixture",
+  "strategies_dir": "examples\\strategies_diagnostic",
+  "output_dir": "suite_results\\sprint_004_diagnostic",
+  "strategy_count": 2,
+  "success_count": 1,
+  "failed_count": 1,
+  "data_source": "mock",
+  "result_usage": "toolchain_validation_only",
+  "results": [
+    {
+      "strategy_name": "diagnostic_always_buy_holding_exit",
+      "strategy_file": "examples\\strategies_diagnostic\\diagnostic_always_buy_holding_exit.yaml",
+      "status": "success",
+      "export_dir": "suite_results\\sprint_004_diagnostic\\diagnostic_always_buy_holding_exit",
+      "total_return": 0.13282165494106593,
+      "total_return_pct": 13.282165494106593,
+      "trade_count": 13,
+      "round_trips": 0,
+      "prototype_gate_status": "failed",
+      "t1_blocked_exit_count": 0,
+      "partial_exit_due_to_t1_count": 0
+    },
+    {
+      "strategy_name": "diagnostic_stop_loss_validation",
+      "strategy_file": "examples\\strategies_diagnostic\\diagnostic_stop_loss_validation.yaml",
+      "status": "failed",
+      "error": "'quantity'"
+    }
+  ],
+  "warnings": [
+    "Data source is 'mock' - not real market data",
+    "Results are for toolchain validation only",
+    "Do not interpret strategy performance as real-world viability"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "report_id": "golden_m0_fixture_report",
+  "task_id": "golden_m0_fixture_task",
+  "strategy_name": "golden-breakout",
+  "status": "fixture_only",
+  "generated_at": "2026-06-21T00:00:00",
+  "metrics": {},
+  "admission_gate": {
+    "status": "not_run_in_m0",
+    "reason": "strategy_core and backtest engine are M1 scope"
+  },
+  "m0_scope_note": "M0 validates contracts and data loading only; strategy_core runs in M1."
+}

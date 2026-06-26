@@ -1,0 +1,7 @@
+[
+  {"symbol": "000001.SZ", "name": "Ping An Bank", "exchange": "SZSE"},
+  {"symbol": "600000.SH", "name": "SPDB", "exchange": "SSE"},
+  {"symbol": "000002.SZ", "name": "Vanke A", "exchange": "SZSE"},
+  {"symbol": "600519.SH", "name": "Kweichow Moutai", "exchange": "SSE"},
+  {"symbol": "300750.SZ", "name": "CATL", "exchange": "SZSE"}
+]

@@ -1,0 +1,7 @@
+{
+  "case_id": "limit_up_buy_unavailable",
+  "symbol": "600519.SH",
+  "date": "2024-01-03",
+  "expected_constraint": "buy skipped when is_limit_up is true",
+  "scope": "fixture_only_m0"
+}

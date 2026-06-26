@@ -1,0 +1,90 @@
+{
+  "generated_at": "2026-06-22T15:24:07.978767",
+  "fixture_path": "tests\\fixed_fixture",
+  "strategies_dir": "tests\\diagnostic_strategies",
+  "output_dir": "suite_results\\exit_diagnostic_check",
+  "strategy_count": 3,
+  "success_count": 3,
+  "failed_count": 0,
+  "data_source": "mock",
+  "result_usage": "toolchain_validation_only",
+  "results": [
+    {
+      "strategy_name": "holding_days_exit",
+      "strategy_file": "tests\\diagnostic_strategies\\holding_days_exit.yaml",
+      "status": "success",
+      "export_dir": "suite_results\\exit_diagnostic_check\\holding_days_exit",
+      "total_return": -0.0027983111875932083,
+      "total_return_pct": -0.2798311187593208,
+      "trade_count": 31,
+      "round_trips": 20,
+      "prototype_gate_status": "passed",
+      "entry_signal_count": 25,
+      "exit_signal_count": 10,
+      "buy_order_count": 21,
+      "sell_order_count": 10,
+      "buy_fill_count": 21,
+      "sell_fill_count": 10,
+      "exit_rejected_count": 0,
+      "completed_round_trips": 20,
+      "exit_triggered_rules": [
+        "holding_days >= 5"
+      ],
+      "t1_blocked_exit_count": 0,
+      "partial_exit_due_to_t1_count": 3
+    },
+    {
+      "strategy_name": "ma_condition_exit",
+      "strategy_file": "tests\\diagnostic_strategies\\ma_condition_exit.yaml",
+      "status": "success",
+      "export_dir": "suite_results\\exit_diagnostic_check\\ma_condition_exit",
+      "total_return": -0.006524783058287285,
+      "total_return_pct": -0.6524783058287285,
+      "trade_count": 90,
+      "round_trips": 58,
+      "prototype_gate_status": "passed",
+      "entry_signal_count": 64,
+      "exit_signal_count": 29,
+      "buy_order_count": 63,
+      "sell_order_count": 27,
+      "buy_fill_count": 63,
+      "sell_fill_count": 27,
+      "exit_rejected_count": 0,
+      "completed_round_trips": 58,
+      "exit_triggered_rules": [
+        "ma_condition:close<ma_5"
+      ],
+      "t1_blocked_exit_count": 2,
+      "partial_exit_due_to_t1_count": 15
+    },
+    {
+      "strategy_name": "stop_loss_exit",
+      "strategy_file": "tests\\diagnostic_strategies\\stop_loss_exit.yaml",
+      "status": "success",
+      "export_dir": "suite_results\\exit_diagnostic_check\\stop_loss_exit",
+      "total_return": 0.024113160739799498,
+      "total_return_pct": 2.41131607397995,
+      "trade_count": 32,
+      "round_trips": 14,
+      "prototype_gate_status": "passed",
+      "entry_signal_count": 64,
+      "exit_signal_count": 2,
+      "buy_order_count": 30,
+      "sell_order_count": 2,
+      "buy_fill_count": 30,
+      "sell_fill_count": 2,
+      "exit_rejected_count": 0,
+      "completed_round_trips": 14,
+      "exit_triggered_rules": [
+        "stop_loss:-2.0%"
+      ],
+      "t1_blocked_exit_count": 0,
+      "partial_exit_due_to_t1_count": 0
+    }
+  ],
+  "warnings": [
+    "Data source is 'mock' - not real market data",
+    "Results are for toolchain validation only",
+    "Do not interpret strategy performance as real-world viability"
+  ]
+}

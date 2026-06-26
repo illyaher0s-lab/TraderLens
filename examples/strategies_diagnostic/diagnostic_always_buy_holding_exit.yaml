@@ -1,0 +1,97 @@
+# Diagnostic Strategy A: Always Buy with Holding Days Exit
+#
+# Purpose: Validate full backtest pipeline (entry → order → fill → position → exit → round_trip)
+# Expected: Must generate trades, must trigger holding_days exit
+#
+# Data source: mock v2.1 (for engine validation only)
+# Result usage: toolchain_validation_only
+
+strategy_name: diagnostic_always_buy_holding_exit
+version: v1
+status: draft
+
+hypothesis_source_snapshot:
+  source_type: manual
+  source_run_id: engine_validation_001
+  evidence_pack_ids: []
+  generated_at: "2026-06-22T00:00:00"
+  data_range_used_for_generation:
+    start: "2023-01-01"
+    end: "2024-12-31"
+
+universe:
+  type: static_list
+  symbols:
+    - "000001.SZ"  # trend_up
+    - "000002.SZ"  # trend_up
+    - "600000.SH"  # mean_reversion
+
+entry_conditions:
+  logic: AND
+  rules:
+    # Always true: close > 0 (price always positive)
+    # Using MA condition with period=1 means current close > current close, which is false
+    # So we use a simple condition that's always true after MA warmup
+    - type: ma_condition
+      field: close
+      ma_period: 5
+      operator: ">"
+      benchmark_value: 0.0
+
+exit_conditions:
+  logic: OR
+  rules:
+    - type: holding_days
+      max_holding_days: 5
+
+risk_filters:
+  max_position_per_stock: 0.30
+  max_total_position: 0.90
+  restrict_limit_up_buy: true
+  restrict_limit_down_sell: true
+  restrict_suspended: true
+  min_liquidity_for_trade: 5000000
+
+rebalance:
+  frequency: daily
+  check_time: close
+
+fill_model:
+  signal_to_execution: T+1
+  execution_price: open
+  commission: 0.0003
+  stamp_tax: 0.001
+  slippage: 0.0
+  lot_size: 100
+  lot_rounding: floor
+  handling:
+    limit_up_buy: skip
+    limit_down_sell: defer_next_day
+    suspended: skip
+
+backtest_config:
+  initial_capital: 100000.0
+  start_date: "2023-01-10"  # Start after MA warmup
+  end_date: "2024-11-30"  # End before calendar boundary
+  sample_split:
+    in_sample_end: "2023-12-31"
+    out_of_sample_start: "2024-01-01"
+  benchmark:
+    type: index
+    code: "000300.SH"
+    name: "CSI 300"
+  data_source: fixed_fixture
+  include_delisted: partial
+
+prototype_gate:
+  enabled: true
+  min_trades: 5
+  # max_trade_density (removed)
+  min_closed_lot_win_rate: 0.3
+  # max_single_loss (removed)
+
+audit:
+  created_at: "2026-06-22T00:00:00"
+  created_by: "diagnostic_validation"
+  last_modified_at: "2026-06-22T00:00:00"
+  config_hash: "diagnostic_always_buy_v1"

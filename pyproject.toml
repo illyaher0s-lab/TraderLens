@@ -1,0 +1,22 @@
+[project]
+name = "traderlens"
+version = "0.1.0"
+description = "TraderLens MVP V1 research and execution decision workspace"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "pydantic>=2.0",
+    "pyarrow>=15.0",
+    "PyYAML>=6.0",
+    "pandas>=2.0",
+    "matplotlib>=3.7",
+    "tushare>=1.2.0",
+]
+
+[tool.unittest]
+start-directory = "tests"
+
+[tool.setuptools.packages.find]
+include = ["backend*", "strategy_core*"]
+exclude = ["data*", "docs*", "frontend*", "node_modules*", "tests*"]

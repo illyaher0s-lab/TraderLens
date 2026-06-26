@@ -1,0 +1,1 @@
+trade_id,order_id,symbol,direction,quantity,price,trade_date,gross_amount,commission,stamp_duty,transfer_fee,total_fee,net_cash_flow

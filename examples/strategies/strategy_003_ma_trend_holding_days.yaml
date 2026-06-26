@@ -1,0 +1,101 @@
+# Strategy 003: MA Trend + Holding Days Limit
+#
+# Hypothesis: Price above MA signals uptrend, exit after 15 trading days
+# Exit: Either price falls below MA or holding period reaches 15 days
+#
+# Data source: mock (for toolchain validation only)
+# Result usage: toolchain_validation_only
+
+strategy_name: strategy_003_ma_trend_holding_days
+version: v1
+status: draft
+
+hypothesis_source_snapshot:
+  source_type: manual
+  source_run_id: sprint_validation_003
+  evidence_pack_ids: []
+  generated_at: "2026-06-22T00:00:00"
+  data_range_used_for_generation:
+    start: "2023-01-01"
+    end: "2024-12-31"
+
+universe:
+  type: static_list
+  symbols:
+    - "000001.SZ"
+    - "000002.SZ"
+    - "600519.SH"
+    - "600036.SH"
+    - "300750.SZ"
+    - "601318.SH"
+    - "002475.SZ"
+
+entry_conditions:
+  logic: AND
+  rules:
+    - type: ma_condition
+      field: close
+      ma_period: 20
+      operator: ">"
+
+exit_conditions:
+  logic: OR
+  rules:
+    - type: ma_condition
+      field: close
+      ma_period: 20
+      operator: "<"
+    - type: holding_days
+      max_holding_days: 15
+
+risk_filters:
+  max_position_per_stock: 0.15
+  max_total_position: 0.80
+  restrict_limit_up_buy: true
+  restrict_limit_down_sell: true
+  restrict_suspended: true
+  min_liquidity_for_trade: 10000000
+
+rebalance:
+  frequency: daily
+  check_time: close
+
+fill_model:
+  signal_to_execution: T+1
+  execution_price: open
+  commission: 0.0003
+  stamp_tax: 0.001
+  slippage: 0.0
+  lot_size: 100
+  lot_rounding: floor
+  handling:
+    limit_up_buy: skip
+    limit_down_sell: defer_next_day
+    suspended: skip
+
+backtest_config:
+  initial_capital: 100000.0
+  start_date: "2023-01-03"
+  end_date: "2024-12-31"
+  sample_split:
+    in_sample_end: "2023-12-31"
+    out_of_sample_start: "2024-01-01"
+  benchmark:
+    type: index
+    code: "000300.SH"
+    name: "CSI 300"
+  data_source: fixed_fixture
+  include_delisted: partial
+
+prototype_gate:
+  enabled: true
+  min_trades: 5
+  # max_trade_density (removed): 0.5
+  min_closed_lot_win_rate: 0.3
+  # max_single_loss (removed): 0.15
+
+audit:
+  created_at: "2026-06-22T00:00:00"
+  created_by: "sprint_validation"
+  last_modified_at: "2026-06-22T00:00:00"
+  config_hash: "strategy_003_v1"

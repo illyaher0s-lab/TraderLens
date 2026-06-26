@@ -1,0 +1,7 @@
+{
+  "case_id": "oos_failed",
+  "strategy_name": "golden-breakout",
+  "expected_admission_gate_status": "not_run_in_m0",
+  "m1_expected_status": "failed",
+  "scope": "fixture_only_m0"
+}

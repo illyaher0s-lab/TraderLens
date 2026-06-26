@@ -1,0 +1,4733 @@
+{
+  "strategy_id": "strategy_001_breakout_ma_exit",
+  "strategy_version": "v1",
+  "initial_capital": 100000.0,
+  "final_capital": 102573.68682521312,
+  "total_return": 0.025736868252131243,
+  "trades": [
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-02-28:entry:2023-03-01",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-02-28:entry:2023-03-01",
+      "symbol": "000001.SZ",
+      "direction": "buy",
+      "quantity": 1800,
+      "price": 9.88268865284899,
+      "trade_date": "2023-03-01",
+      "gross_amount": 17788.839575128182,
+      "commission": 5.336651872538455,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.336651872538455,
+      "net_cash_flow": -17794.17622700072,
+      "cost": -17794.17622700072
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-02-28:entry:2023-03-01",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-02-28:entry:2023-03-01",
+      "symbol": "000002.SZ",
+      "direction": "buy",
+      "quantity": 1800,
+      "price": 10.523836294229447,
+      "trade_date": "2023-03-01",
+      "gross_amount": 18942.905329613004,
+      "commission": 5.682871598883901,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.682871598883901,
+      "net_cash_flow": -18948.58820121189,
+      "cost": -18948.58820121189
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-02-28:entry:2023-03-01",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-02-28:entry:2023-03-01",
+      "symbol": "600519.SH",
+      "direction": "buy",
+      "quantity": 1400,
+      "price": 13.095232764805948,
+      "trade_date": "2023-03-01",
+      "gross_amount": 18333.325870728328,
+      "commission": 5.499997761218498,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.499997761218498,
+      "net_cash_flow": -18338.825868489545,
+      "cost": -18338.825868489545
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-02-28:entry:2023-03-01",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-02-28:entry:2023-03-01",
+      "symbol": "600036.SH",
+      "direction": "buy",
+      "quantity": 1400,
+      "price": 13.175127153257497,
+      "trade_date": "2023-03-01",
+      "gross_amount": 18445.178014560497,
+      "commission": 5.533553404368148,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.533553404368148,
+      "net_cash_flow": -18450.711567964867,
+      "cost": -18450.711567964867
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-02-28:entry:2023-03-01",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-02-28:entry:2023-03-01",
+      "symbol": "300750.SZ",
+      "direction": "buy",
+      "quantity": 1200,
+      "price": 14.693892753483432,
+      "trade_date": "2023-03-01",
+      "gross_amount": 17632.67130418012,
+      "commission": 5.289801391254035,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.289801391254035,
+      "net_cash_flow": -17637.961105571372,
+      "cost": -17637.961105571372
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-03-02:exit:2023-03-03",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-03-02:exit:2023-03-03",
+      "symbol": "000001.SZ",
+      "direction": "sell",
+      "quantity": 1800,
+      "price": 9.755667938738739,
+      "trade_date": "2023-03-03",
+      "gross_amount": 17560.202289729732,
+      "commission": 5.268060686918919,
+      "stamp_duty": 17.560202289729734,
+      "transfer_fee": 0.0,
+      "total_fee": 22.828262976648652,
+      "net_cash_flow": 17537.374026753085,
+      "cost": 17537.374026753085
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-03-02:exit:2023-03-03",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-03-02:exit:2023-03-03",
+      "symbol": "600036.SH",
+      "direction": "sell",
+      "quantity": 1400,
+      "price": 13.271808140225772,
+      "trade_date": "2023-03-03",
+      "gross_amount": 18580.53139631608,
+      "commission": 5.574159418894824,
+      "stamp_duty": 18.580531396316083,
+      "transfer_fee": 0.0,
+      "total_fee": 24.154690815210905,
+      "net_cash_flow": 18556.37670550087,
+      "cost": 18556.37670550087
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-03-02:exit:2023-03-03",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-03-02:exit:2023-03-03",
+      "symbol": "300750.SZ",
+      "direction": "sell",
+      "quantity": 1200,
+      "price": 14.499741602453497,
+      "trade_date": "2023-03-03",
+      "gross_amount": 17399.689922944195,
+      "commission": 5.219906976883258,
+      "stamp_duty": 17.399689922944194,
+      "transfer_fee": 0.0,
+      "total_fee": 22.619596899827453,
+      "net_cash_flow": 17377.070326044366,
+      "cost": 17377.070326044366
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-03-06:exit:2023-03-07",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-03-06:exit:2023-03-07",
+      "symbol": "600519.SH",
+      "direction": "sell",
+      "quantity": 1400,
+      "price": 13.040963562106132,
+      "trade_date": "2023-03-07",
+      "gross_amount": 18257.348986948586,
+      "commission": 5.477204696084575,
+      "stamp_duty": 18.257348986948585,
+      "transfer_fee": 0.0,
+      "total_fee": 23.734553683033162,
+      "net_cash_flow": 18233.614433265553,
+      "cost": 18233.614433265553
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-03-10:exit:2023-03-13",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-03-10:exit:2023-03-13",
+      "symbol": "000002.SZ",
+      "direction": "sell",
+      "quantity": 1800,
+      "price": 10.594127016584357,
+      "trade_date": "2023-03-13",
+      "gross_amount": 19069.428629851842,
+      "commission": 5.720828588955552,
+      "stamp_duty": 19.069428629851842,
+      "transfer_fee": 0.0,
+      "total_fee": 24.790257218807394,
+      "net_cash_flow": 19044.638372633035,
+      "cost": 19044.638372633035
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-05-09:entry:2023-05-10",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-05-09:entry:2023-05-10",
+      "symbol": "000001.SZ",
+      "direction": "buy",
+      "quantity": 1800,
+      "price": 10.197457400600491,
+      "trade_date": "2023-05-10",
+      "gross_amount": 18355.423321080885,
+      "commission": 5.506626996324265,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.506626996324265,
+      "net_cash_flow": -18360.92994807721,
+      "cost": -18360.92994807721
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-05-09:entry:2023-05-10",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-05-09:entry:2023-05-10",
+      "symbol": "000002.SZ",
+      "direction": "buy",
+      "quantity": 1700,
+      "price": 10.737392491288382,
+      "trade_date": "2023-05-10",
+      "gross_amount": 18253.56723519025,
+      "commission": 5.476070170557074,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.476070170557074,
+      "net_cash_flow": -18259.043305360807,
+      "cost": -18259.043305360807
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-05-09:entry:2023-05-10",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-05-09:entry:2023-05-10",
+      "symbol": "600519.SH",
+      "direction": "buy",
+      "quantity": 1400,
+      "price": 11.987930320796034,
+      "trade_date": "2023-05-10",
+      "gross_amount": 16783.10244911445,
+      "commission": 5.034930734734334,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.034930734734334,
+      "net_cash_flow": -16788.137379849184,
+      "cost": -16788.137379849184
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-05-09:entry:2023-05-10",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-05-09:entry:2023-05-10",
+      "symbol": "600036.SH",
+      "direction": "buy",
+      "quantity": 1400,
+      "price": 12.394227798340967,
+      "trade_date": "2023-05-10",
+      "gross_amount": 17351.918917677354,
+      "commission": 5.205575675303206,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.205575675303206,
+      "net_cash_flow": -17357.124493352658,
+      "cost": -17357.124493352658
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-05-09:entry:2023-05-10",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-05-09:entry:2023-05-10",
+      "symbol": "300750.SZ",
+      "direction": "buy",
+      "quantity": 1200,
+      "price": 14.528435857449054,
+      "trade_date": "2023-05-10",
+      "gross_amount": 17434.123028938866,
+      "commission": 5.230236908681659,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.230236908681659,
+      "net_cash_flow": -17439.35326584755,
+      "cost": -17439.35326584755
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-05-11:exit:2023-05-12",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-05-11:exit:2023-05-12",
+      "symbol": "000001.SZ",
+      "direction": "sell",
+      "quantity": 1800,
+      "price": 9.99399556966016,
+      "trade_date": "2023-05-12",
+      "gross_amount": 17989.19202538829,
+      "commission": 5.396757607616486,
+      "stamp_duty": 17.989192025388288,
+      "transfer_fee": 0.0,
+      "total_fee": 23.385949633004774,
+      "net_cash_flow": 17965.806075755285,
+      "cost": 17965.806075755285
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-05-11:exit:2023-05-12",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-05-11:exit:2023-05-12",
+      "symbol": "000002.SZ",
+      "direction": "sell",
+      "quantity": 1700,
+      "price": 10.834267868131173,
+      "trade_date": "2023-05-12",
+      "gross_amount": 18418.255375822995,
+      "commission": 5.525476612746898,
+      "stamp_duty": 18.418255375822994,
+      "transfer_fee": 0.0,
+      "total_fee": 23.943731988569894,
+      "net_cash_flow": 18394.311643834426,
+      "cost": 18394.311643834426
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-05-11:exit:2023-05-12",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-05-11:exit:2023-05-12",
+      "symbol": "600519.SH",
+      "direction": "sell",
+      "quantity": 1400,
+      "price": 11.97606385165043,
+      "trade_date": "2023-05-12",
+      "gross_amount": 16766.489392310603,
+      "commission": 5.0299468176931805,
+      "stamp_duty": 16.766489392310604,
+      "transfer_fee": 0.0,
+      "total_fee": 21.796436210003783,
+      "net_cash_flow": 16744.6929561006,
+      "cost": 16744.6929561006
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-05-11:exit:2023-05-12",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-05-11:exit:2023-05-12",
+      "symbol": "600036.SH",
+      "direction": "sell",
+      "quantity": 1400,
+      "price": 12.223003332323918,
+      "trade_date": "2023-05-12",
+      "gross_amount": 17112.204665253485,
+      "commission": 5.133661399576045,
+      "stamp_duty": 17.112204665253486,
+      "transfer_fee": 0.0,
+      "total_fee": 22.24586606482953,
+      "net_cash_flow": 17089.958799188655,
+      "cost": 17089.958799188655
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-05-11:exit:2023-05-12",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-05-11:exit:2023-05-12",
+      "symbol": "300750.SZ",
+      "direction": "sell",
+      "quantity": 1200,
+      "price": 14.587738011932085,
+      "trade_date": "2023-05-12",
+      "gross_amount": 17505.2856143185,
+      "commission": 5.25158568429555,
+      "stamp_duty": 17.505285614318502,
+      "transfer_fee": 0.0,
+      "total_fee": 22.75687129861405,
+      "net_cash_flow": 17482.528743019888,
+      "cost": 17482.528743019888
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-08-01:entry:2023-08-02",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-08-01:entry:2023-08-02",
+      "symbol": "000001.SZ",
+      "direction": "buy",
+      "quantity": 1800,
+      "price": 10.305821825576164,
+      "trade_date": "2023-08-02",
+      "gross_amount": 18550.479286037094,
+      "commission": 5.565143785811128,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.565143785811128,
+      "net_cash_flow": -18556.044429822905,
+      "cost": -18556.044429822905
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-08-01:entry:2023-08-02",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-08-01:entry:2023-08-02",
+      "symbol": "000002.SZ",
+      "direction": "buy",
+      "quantity": 1700,
+      "price": 10.792882283515093,
+      "trade_date": "2023-08-02",
+      "gross_amount": 18347.899881975656,
+      "commission": 5.504369964592696,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.504369964592696,
+      "net_cash_flow": -18353.40425194025,
+      "cost": -18353.40425194025
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-08-01:entry:2023-08-02",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-08-01:entry:2023-08-02",
+      "symbol": "600519.SH",
+      "direction": "buy",
+      "quantity": 1500,
+      "price": 11.813463338582073,
+      "trade_date": "2023-08-02",
+      "gross_amount": 17720.19500787311,
+      "commission": 5.3160585023619324,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.3160585023619324,
+      "net_cash_flow": -17725.51106637547,
+      "cost": -17725.51106637547
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-08-01:entry:2023-08-02",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-08-01:entry:2023-08-02",
+      "symbol": "600036.SH",
+      "direction": "buy",
+      "quantity": 1500,
+      "price": 12.189910395922606,
+      "trade_date": "2023-08-02",
+      "gross_amount": 18284.865593883907,
+      "commission": 5.485459678165172,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.485459678165172,
+      "net_cash_flow": -18290.351053562074,
+      "cost": -18290.351053562074
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-08-01:entry:2023-08-02",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-08-01:entry:2023-08-02",
+      "symbol": "300750.SZ",
+      "direction": "buy",
+      "quantity": 1200,
+      "price": 14.534613073790931,
+      "trade_date": "2023-08-02",
+      "gross_amount": 17441.535688549116,
+      "commission": 5.232460706564734,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.232460706564734,
+      "net_cash_flow": -17446.76814925568,
+      "cost": -17446.76814925568
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-08-03:exit:2023-08-04",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-08-03:exit:2023-08-04",
+      "symbol": "000001.SZ",
+      "direction": "sell",
+      "quantity": 1800,
+      "price": 10.178724946034354,
+      "trade_date": "2023-08-04",
+      "gross_amount": 18321.70490286184,
+      "commission": 5.496511470858551,
+      "stamp_duty": 18.32170490286184,
+      "transfer_fee": 0.0,
+      "total_fee": 23.81821637372039,
+      "net_cash_flow": 18297.886686488117,
+      "cost": 18297.886686488117
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-08-03:exit:2023-08-04",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-08-03:exit:2023-08-04",
+      "symbol": "600519.SH",
+      "direction": "sell",
+      "quantity": 1500,
+      "price": 11.608066565669425,
+      "trade_date": "2023-08-04",
+      "gross_amount": 17412.09984850414,
+      "commission": 5.223629954551241,
+      "stamp_duty": 17.412099848504138,
+      "transfer_fee": 0.0,
+      "total_fee": 22.635729803055376,
+      "net_cash_flow": 17389.464118701082,
+      "cost": 17389.464118701082
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-08-03:exit:2023-08-04",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-08-03:exit:2023-08-04",
+      "symbol": "600036.SH",
+      "direction": "sell",
+      "quantity": 1500,
+      "price": 12.091508535969828,
+      "trade_date": "2023-08-04",
+      "gross_amount": 18137.26280395474,
+      "commission": 5.441178841186422,
+      "stamp_duty": 18.13726280395474,
+      "transfer_fee": 0.0,
+      "total_fee": 23.57844164514116,
+      "net_cash_flow": 18113.6843623096,
+      "cost": 18113.6843623096
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-08-03:exit:2023-08-04",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-08-03:exit:2023-08-04",
+      "symbol": "300750.SZ",
+      "direction": "sell",
+      "quantity": 1200,
+      "price": 14.364911995040375,
+      "trade_date": "2023-08-04",
+      "gross_amount": 17237.89439404845,
+      "commission": 5.171368318214534,
+      "stamp_duty": 17.23789439404845,
+      "transfer_fee": 0.0,
+      "total_fee": 22.409262712262983,
+      "net_cash_flow": 17215.485131336187,
+      "cost": 17215.485131336187
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-08-07:exit:2023-08-08",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-08-07:exit:2023-08-08",
+      "symbol": "000002.SZ",
+      "direction": "sell",
+      "quantity": 1700,
+      "price": 10.683533549119772,
+      "trade_date": "2023-08-08",
+      "gross_amount": 18162.007033503614,
+      "commission": 5.448602110051084,
+      "stamp_duty": 18.162007033503613,
+      "transfer_fee": 0.0,
+      "total_fee": 23.610609143554697,
+      "net_cash_flow": 18138.39642436006,
+      "cost": 18138.39642436006
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-11-21:entry:2023-11-22",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-11-21:entry:2023-11-22",
+      "symbol": "000001.SZ",
+      "direction": "buy",
+      "quantity": 1600,
+      "price": 11.121653763620682,
+      "trade_date": "2023-11-22",
+      "gross_amount": 17794.64602179309,
+      "commission": 5.338393806537927,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.338393806537927,
+      "net_cash_flow": -17799.98441559963,
+      "cost": -17799.98441559963
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-11-21:entry:2023-11-22",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-11-21:entry:2023-11-22",
+      "symbol": "000002.SZ",
+      "direction": "buy",
+      "quantity": 1500,
+      "price": 11.535265434209524,
+      "trade_date": "2023-11-22",
+      "gross_amount": 17302.898151314286,
+      "commission": 5.190869445394285,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.190869445394285,
+      "net_cash_flow": -17308.089020759682,
+      "cost": -17308.089020759682
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-11-21:entry:2023-11-22",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-11-21:entry:2023-11-22",
+      "symbol": "600519.SH",
+      "direction": "buy",
+      "quantity": 1600,
+      "price": 11.425993270418333,
+      "trade_date": "2023-11-22",
+      "gross_amount": 18281.589232669332,
+      "commission": 5.484476769800799,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.484476769800799,
+      "net_cash_flow": -18287.073709439133,
+      "cost": -18287.073709439133
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-11-21:entry:2023-11-22",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-11-21:entry:2023-11-22",
+      "symbol": "600036.SH",
+      "direction": "buy",
+      "quantity": 1600,
+      "price": 11.633095523493775,
+      "trade_date": "2023-11-22",
+      "gross_amount": 18612.95283759004,
+      "commission": 5.583885851277012,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.583885851277012,
+      "net_cash_flow": -18618.536723441317,
+      "cost": -18618.536723441317
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-11-21:entry:2023-11-22",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-11-21:entry:2023-11-22",
+      "symbol": "300750.SZ",
+      "direction": "buy",
+      "quantity": 1300,
+      "price": 13.39571382848176,
+      "trade_date": "2023-11-22",
+      "gross_amount": 17414.427977026287,
+      "commission": 5.224328393107886,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.224328393107886,
+      "net_cash_flow": -17419.652305419397,
+      "cost": -17419.652305419397
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-11-23:exit:2023-11-24",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-11-23:exit:2023-11-24",
+      "symbol": "000001.SZ",
+      "direction": "sell",
+      "quantity": 1600,
+      "price": 11.226100182142172,
+      "trade_date": "2023-11-24",
+      "gross_amount": 17961.760291427476,
+      "commission": 5.388528087428242,
+      "stamp_duty": 17.961760291427478,
+      "transfer_fee": 0.0,
+      "total_fee": 23.35028837885572,
+      "net_cash_flow": 17938.41000304862,
+      "cost": 17938.41000304862
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-11-23:exit:2023-11-24",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-11-23:exit:2023-11-24",
+      "symbol": "000002.SZ",
+      "direction": "sell",
+      "quantity": 1500,
+      "price": 11.491636580447947,
+      "trade_date": "2023-11-24",
+      "gross_amount": 17237.45487067192,
+      "commission": 5.171236461201576,
+      "stamp_duty": 17.23745487067192,
+      "transfer_fee": 0.0,
+      "total_fee": 22.4086913318735,
+      "net_cash_flow": 17215.046179340046,
+      "cost": 17215.046179340046
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-11-23:exit:2023-11-24",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-11-23:exit:2023-11-24",
+      "symbol": "300750.SZ",
+      "direction": "sell",
+      "quantity": 1300,
+      "price": 13.354423119755138,
+      "trade_date": "2023-11-24",
+      "gross_amount": 17360.750055681678,
+      "commission": 5.208225016704503,
+      "stamp_duty": 17.360750055681677,
+      "transfer_fee": 0.0,
+      "total_fee": 22.56897507238618,
+      "net_cash_flow": 17338.18108060929,
+      "cost": 17338.18108060929
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-02-09:exit:2024-02-12",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-02-09:exit:2024-02-12",
+      "symbol": "600519.SH",
+      "direction": "sell",
+      "quantity": 1600,
+      "price": 13.199239447459007,
+      "trade_date": "2024-02-12",
+      "gross_amount": 21118.783115934413,
+      "commission": 6.335634934780323,
+      "stamp_duty": 21.118783115934413,
+      "transfer_fee": 0.0,
+      "total_fee": 27.454418050714736,
+      "net_cash_flow": 21091.3286978837,
+      "cost": 21091.3286978837
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-02-15:exit:2024-02-16",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-02-15:exit:2024-02-16",
+      "symbol": "600036.SH",
+      "direction": "sell",
+      "quantity": 1600,
+      "price": 13.169938063864313,
+      "trade_date": "2024-02-16",
+      "gross_amount": 21071.9009021829,
+      "commission": 6.3215702706548695,
+      "stamp_duty": 21.0719009021829,
+      "transfer_fee": 0.0,
+      "total_fee": 27.39347117283777,
+      "net_cash_flow": 21044.507431010064,
+      "cost": 21044.507431010064
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-03-26:entry:2024-03-27",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-03-26:entry:2024-03-27",
+      "symbol": "000001.SZ",
+      "direction": "buy",
+      "quantity": 1600,
+      "price": 11.743183771122961,
+      "trade_date": "2024-03-27",
+      "gross_amount": 18789.094033796737,
+      "commission": 5.636728210139021,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.636728210139021,
+      "net_cash_flow": -18794.730762006875,
+      "cost": -18794.730762006875
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-03-26:entry:2024-03-27",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-03-26:entry:2024-03-27",
+      "symbol": "000002.SZ",
+      "direction": "buy",
+      "quantity": 1600,
+      "price": 11.659815484095787,
+      "trade_date": "2024-03-27",
+      "gross_amount": 18655.70477455326,
+      "commission": 5.596711432365978,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.596711432365978,
+      "net_cash_flow": -18661.301485985627,
+      "cost": -18661.301485985627
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-03-26:entry:2024-03-27",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-03-26:entry:2024-03-27",
+      "symbol": "600519.SH",
+      "direction": "buy",
+      "quantity": 1500,
+      "price": 12.171119192082356,
+      "trade_date": "2024-03-27",
+      "gross_amount": 18256.678788123536,
+      "commission": 5.47700363643706,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.47700363643706,
+      "net_cash_flow": -18262.15579175997,
+      "cost": -18262.15579175997
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-03-26:entry:2024-03-27",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-03-26:entry:2024-03-27",
+      "symbol": "600036.SH",
+      "direction": "buy",
+      "quantity": 1400,
+      "price": 12.60383510809279,
+      "trade_date": "2024-03-27",
+      "gross_amount": 17645.369151329905,
+      "commission": 5.293610745398971,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.293610745398971,
+      "net_cash_flow": -17650.662762075306,
+      "cost": -17650.662762075306
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-03-26:entry:2024-03-27",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-03-26:entry:2024-03-27",
+      "symbol": "300750.SZ",
+      "direction": "buy",
+      "quantity": 1400,
+      "price": 13.108079405076978,
+      "trade_date": "2024-03-27",
+      "gross_amount": 18351.31116710777,
+      "commission": 5.505393350132331,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.505393350132331,
+      "net_cash_flow": -18356.816560457904,
+      "cost": -18356.816560457904
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-03-28:exit:2024-03-29",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-03-28:exit:2024-03-29",
+      "symbol": "000001.SZ",
+      "direction": "sell",
+      "quantity": 1600,
+      "price": 11.821412493913106,
+      "trade_date": "2024-03-29",
+      "gross_amount": 18914.25999026097,
+      "commission": 5.67427799707829,
+      "stamp_duty": 18.91425999026097,
+      "transfer_fee": 0.0,
+      "total_fee": 24.588537987339258,
+      "net_cash_flow": 18889.67145227363,
+      "cost": 18889.67145227363
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-03-28:exit:2024-03-29",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-03-28:exit:2024-03-29",
+      "symbol": "000002.SZ",
+      "direction": "sell",
+      "quantity": 1600,
+      "price": 11.602656307355652,
+      "trade_date": "2024-03-29",
+      "gross_amount": 18564.25009176904,
+      "commission": 5.569275027530712,
+      "stamp_duty": 18.564250091769043,
+      "transfer_fee": 0.0,
+      "total_fee": 24.133525119299755,
+      "net_cash_flow": 18540.11656664974,
+      "cost": 18540.11656664974
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-03-28:exit:2024-03-29",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-03-28:exit:2024-03-29",
+      "symbol": "600519.SH",
+      "direction": "sell",
+      "quantity": 1500,
+      "price": 11.993913689509965,
+      "trade_date": "2024-03-29",
+      "gross_amount": 17990.87053426495,
+      "commission": 5.397261160279484,
+      "stamp_duty": 17.99087053426495,
+      "transfer_fee": 0.0,
+      "total_fee": 23.388131694544434,
+      "net_cash_flow": 17967.482402570404,
+      "cost": 17967.482402570404
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-03-28:exit:2024-03-29",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-03-28:exit:2024-03-29",
+      "symbol": "600036.SH",
+      "direction": "sell",
+      "quantity": 1400,
+      "price": 12.528392326655283,
+      "trade_date": "2024-03-29",
+      "gross_amount": 17539.749257317395,
+      "commission": 5.261924777195218,
+      "stamp_duty": 17.539749257317396,
+      "transfer_fee": 0.0,
+      "total_fee": 22.801674034512615,
+      "net_cash_flow": 17516.947583282883,
+      "cost": 17516.947583282883
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-03-28:exit:2024-03-29",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-03-28:exit:2024-03-29",
+      "symbol": "300750.SZ",
+      "direction": "sell",
+      "quantity": 1400,
+      "price": 13.21990866167907,
+      "trade_date": "2024-03-29",
+      "gross_amount": 18507.8721263507,
+      "commission": 5.552361637905209,
+      "stamp_duty": 18.5078721263507,
+      "transfer_fee": 0.0,
+      "total_fee": 24.060233764255912,
+      "net_cash_flow": 18483.811892586444,
+      "cost": 18483.811892586444
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-07-30:entry:2024-07-31",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-07-30:entry:2024-07-31",
+      "symbol": "000001.SZ",
+      "direction": "buy",
+      "quantity": 1500,
+      "price": 12.280524604124139,
+      "trade_date": "2024-07-31",
+      "gross_amount": 18420.786906186207,
+      "commission": 5.526236071855862,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.526236071855862,
+      "net_cash_flow": -18426.313142258063,
+      "cost": -18426.313142258063
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-07-30:entry:2024-07-31",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-07-30:entry:2024-07-31",
+      "symbol": "000002.SZ",
+      "direction": "buy",
+      "quantity": 1600,
+      "price": 12.055931010889012,
+      "trade_date": "2024-07-31",
+      "gross_amount": 19289.48961742242,
+      "commission": 5.786846885226725,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.786846885226725,
+      "net_cash_flow": -19295.276464307648,
+      "cost": -19295.276464307648
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-07-30:entry:2024-07-31",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-07-30:entry:2024-07-31",
+      "symbol": "600519.SH",
+      "direction": "buy",
+      "quantity": 1600,
+      "price": 11.02014289582653,
+      "trade_date": "2024-07-31",
+      "gross_amount": 17632.228633322447,
+      "commission": 5.289668589996734,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.289668589996734,
+      "net_cash_flow": -17637.518301912445,
+      "cost": -17637.518301912445
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-07-30:entry:2024-07-31",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-07-30:entry:2024-07-31",
+      "symbol": "600036.SH",
+      "direction": "buy",
+      "quantity": 1600,
+      "price": 11.395612721614171,
+      "trade_date": "2024-07-31",
+      "gross_amount": 18232.980354582673,
+      "commission": 5.4698941063748014,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.4698941063748014,
+      "net_cash_flow": -18238.45024868905,
+      "cost": -18238.45024868905
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-07-30:entry:2024-07-31",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-07-30:entry:2024-07-31",
+      "symbol": "300750.SZ",
+      "direction": "buy",
+      "quantity": 1500,
+      "price": 12.41797993388125,
+      "trade_date": "2024-07-31",
+      "gross_amount": 18626.969900821874,
+      "commission": 5.5880909702465615,
+      "stamp_duty": 0.0,
+      "transfer_fee": 0.0,
+      "total_fee": 5.5880909702465615,
+      "net_cash_flow": -18632.55799179212,
+      "cost": -18632.55799179212
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-08-01:exit:2024-08-02",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-08-01:exit:2024-08-02",
+      "symbol": "000001.SZ",
+      "direction": "sell",
+      "quantity": 1500,
+      "price": 12.407481002680298,
+      "trade_date": "2024-08-02",
+      "gross_amount": 18611.221504020446,
+      "commission": 5.583366451206134,
+      "stamp_duty": 18.611221504020445,
+      "transfer_fee": 0.0,
+      "total_fee": 24.19458795522658,
+      "net_cash_flow": 18587.02691606522,
+      "cost": 18587.02691606522
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-08-01:exit:2024-08-02",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-08-01:exit:2024-08-02",
+      "symbol": "000002.SZ",
+      "direction": "sell",
+      "quantity": 1600,
+      "price": 11.988254195021272,
+      "trade_date": "2024-08-02",
+      "gross_amount": 19181.206712034036,
+      "commission": 5.75436201361021,
+      "stamp_duty": 19.181206712034037,
+      "transfer_fee": 0.0,
+      "total_fee": 24.935568725644245,
+      "net_cash_flow": 19156.271143308393,
+      "cost": 19156.271143308393
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-08-01:exit:2024-08-02",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-08-01:exit:2024-08-02",
+      "symbol": "600519.SH",
+      "direction": "sell",
+      "quantity": 1600,
+      "price": 10.891456020698408,
+      "trade_date": "2024-08-02",
+      "gross_amount": 17426.329633117453,
+      "commission": 5.227898889935235,
+      "stamp_duty": 17.426329633117454,
+      "transfer_fee": 0.0,
+      "total_fee": 22.65422852305269,
+      "net_cash_flow": 17403.6754045944,
+      "cost": 17403.6754045944
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-08-01:exit:2024-08-02",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-08-01:exit:2024-08-02",
+      "symbol": "600036.SH",
+      "direction": "sell",
+      "quantity": 1600,
+      "price": 11.33995544896746,
+      "trade_date": "2024-08-02",
+      "gross_amount": 18143.928718347936,
+      "commission": 5.44317861550438,
+      "stamp_duty": 18.143928718347937,
+      "transfer_fee": 0.0,
+      "total_fee": 23.587107333852316,
+      "net_cash_flow": 18120.341611014082,
+      "cost": 18120.341611014082
+    },
+    {
+      "trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-08-01:exit:2024-08-02",
+      "order_id": "order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-08-01:exit:2024-08-02",
+      "symbol": "300750.SZ",
+      "direction": "sell",
+      "quantity": 1500,
+      "price": 12.573431898315665,
+      "trade_date": "2024-08-02",
+      "gross_amount": 18860.147847473498,
+      "commission": 5.658044354242048,
+      "stamp_duty": 18.8601478474735,
+      "transfer_fee": 0.0,
+      "total_fee": 24.518192201715546,
+      "net_cash_flow": 18835.629655271783,
+      "cost": 18835.629655271783
+    }
+  ],
+  "daily_portfolio_values": [
+    {
+      "date": "2023-01-03",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-03",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-04",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-05",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-06",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-09",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-10",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-11",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-12",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-13",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-16",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-17",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-18",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-19",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-20",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-23",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-24",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-25",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-26",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-27",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-30",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-01-31",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-01",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-02",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-03",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-06",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-07",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-08",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-09",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-10",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-13",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-14",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-15",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-16",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-17",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-20",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-21",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-22",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-23",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-24",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-27",
+      "cash": 100000.0,
+      "market_value": 0.0,
+      "total_value": 100000.0
+    },
+    {
+      "date": "2023-02-28",
+      "cash": 8829.737029761607,
+      "market_value": 96455.87360893545,
+      "total_value": 105285.61063869705
+    },
+    {
+      "date": "2023-03-01",
+      "cash": 8829.737029761607,
+      "market_value": 90966.00137882643,
+      "total_value": 99795.73840858805
+    },
+    {
+      "date": "2023-03-02",
+      "cash": 62300.55808805993,
+      "market_value": 37252.354592111034,
+      "total_value": 99552.91268017096
+    },
+    {
+      "date": "2023-03-03",
+      "cash": 62300.55808805993,
+      "market_value": 37468.03539599252,
+      "total_value": 99768.59348405246
+    },
+    {
+      "date": "2023-03-06",
+      "cash": 80534.17252132548,
+      "market_value": 19177.03207725684,
+      "total_value": 99711.20459858232
+    },
+    {
+      "date": "2023-03-07",
+      "cash": 80534.17252132548,
+      "market_value": 19139.208503976304,
+      "total_value": 99673.38102530179
+    },
+    {
+      "date": "2023-03-08",
+      "cash": 80534.17252132548,
+      "market_value": 19095.34033739467,
+      "total_value": 99629.51285872015
+    },
+    {
+      "date": "2023-03-09",
+      "cash": 80534.17252132548,
+      "market_value": 19179.536653775835,
+      "total_value": 99713.70917510132
+    },
+    {
+      "date": "2023-03-10",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-13",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-14",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-15",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-16",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-17",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-20",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-21",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-22",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-23",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-24",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-27",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-28",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-29",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-30",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-03-31",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-03",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-04",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-05",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-06",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-07",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-10",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-11",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-12",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-13",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-14",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-17",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-18",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-19",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-20",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-21",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-24",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-25",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-26",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-27",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-04-28",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-05-01",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-05-02",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-05-03",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-05-04",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-05-05",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-05-08",
+      "cash": 99578.81089395852,
+      "market_value": 0.0,
+      "total_value": 99578.81089395852
+    },
+    {
+      "date": "2023-05-09",
+      "cash": 11374.222501471108,
+      "market_value": 95023.57286916171,
+      "total_value": 106397.79537063281
+    },
+    {
+      "date": "2023-05-10",
+      "cash": 11374.222501471108,
+      "market_value": 87857.54277629402,
+      "total_value": 99231.76527776514
+    },
+    {
+      "date": "2023-05-11",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-12",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-15",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-16",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-17",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-18",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-19",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-22",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-23",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-24",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-25",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-26",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-29",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-30",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-05-31",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-01",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-02",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-05",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-06",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-07",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-08",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-09",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-12",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-13",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-14",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-15",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-16",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-19",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-20",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-21",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-22",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-23",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-26",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-27",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-28",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-29",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-06-30",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-03",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-04",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-05",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-06",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-07",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-10",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-11",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-12",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-13",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-14",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-17",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-18",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-19",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-20",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-21",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-24",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-25",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-26",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-27",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-28",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-07-31",
+      "cash": 99051.52071936996,
+      "market_value": 0.0,
+      "total_value": 99051.52071936996
+    },
+    {
+      "date": "2023-08-01",
+      "cash": 8679.441768413577,
+      "market_value": 95512.84126011061,
+      "total_value": 104192.2830285242
+    },
+    {
+      "date": "2023-08-02",
+      "cash": 8679.441768413577,
+      "market_value": 89945.66352940364,
+      "total_value": 98625.10529781721
+    },
+    {
+      "date": "2023-08-03",
+      "cash": 79695.96206724856,
+      "market_value": 18232.42812413498,
+      "total_value": 97928.39019138354
+    },
+    {
+      "date": "2023-08-04",
+      "cash": 79695.96206724856,
+      "market_value": 18345.455459404686,
+      "total_value": 98041.41752665324
+    },
+    {
+      "date": "2023-08-07",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-08",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-09",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-10",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-11",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-14",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-15",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-16",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-17",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-18",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-21",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-22",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-23",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-24",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-25",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-28",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-29",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-30",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-08-31",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-01",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-04",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-05",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-06",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-07",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-08",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-11",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-12",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-13",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-14",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-15",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-18",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-19",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-20",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-21",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-22",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-25",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-26",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-27",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-28",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-09-29",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-02",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-03",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-04",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-05",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-06",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-09",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-10",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-11",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-12",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-13",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-16",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-17",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-18",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-19",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-20",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-23",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-24",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-25",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-26",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-27",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-30",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-10-31",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-01",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-02",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-03",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-06",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-07",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-08",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-09",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-10",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-13",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-14",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-15",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-16",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-17",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-20",
+      "cash": 97834.35849160863,
+      "market_value": 0.0,
+      "total_value": 97834.35849160863
+    },
+    {
+      "date": "2023-11-21",
+      "cash": 8401.022316949467,
+      "market_value": 93944.42330832899,
+      "total_value": 102345.44562527846
+    },
+    {
+      "date": "2023-11-22",
+      "cash": 8401.022316949467,
+      "market_value": 89279.74020404079,
+      "total_value": 97680.76252099026
+    },
+    {
+      "date": "2023-11-23",
+      "cash": 60892.65957994742,
+      "market_value": 36677.20726021893,
+      "total_value": 97569.86684016636
+    },
+    {
+      "date": "2023-11-24",
+      "cash": 60892.65957994742,
+      "market_value": 36746.58362325068,
+      "total_value": 97639.2432031981
+    },
+    {
+      "date": "2023-11-27",
+      "cash": 60892.65957994742,
+      "market_value": 36899.243993711534,
+      "total_value": 97791.90357365896
+    },
+    {
+      "date": "2023-11-28",
+      "cash": 60892.65957994742,
+      "market_value": 37020.360206402154,
+      "total_value": 97913.01978634959
+    },
+    {
+      "date": "2023-11-29",
+      "cash": 60892.65957994742,
+      "market_value": 37115.63255465237,
+      "total_value": 98008.29213459979
+    },
+    {
+      "date": "2023-11-30",
+      "cash": 60892.65957994742,
+      "market_value": 37230.96847563474,
+      "total_value": 98123.62805558217
+    },
+    {
+      "date": "2023-12-01",
+      "cash": 60892.65957994742,
+      "market_value": 37316.141185507906,
+      "total_value": 98208.80076545532
+    },
+    {
+      "date": "2023-12-04",
+      "cash": 60892.65957994742,
+      "market_value": 37452.048905453106,
+      "total_value": 98344.70848540054
+    },
+    {
+      "date": "2023-12-05",
+      "cash": 60892.65957994742,
+      "market_value": 37622.28507571027,
+      "total_value": 98514.94465565769
+    },
+    {
+      "date": "2023-12-06",
+      "cash": 60892.65957994742,
+      "market_value": 37759.37494225717,
+      "total_value": 98652.0345222046
+    },
+    {
+      "date": "2023-12-07",
+      "cash": 60892.65957994742,
+      "market_value": 37927.0892253357,
+      "total_value": 98819.74880528313
+    },
+    {
+      "date": "2023-12-08",
+      "cash": 60892.65957994742,
+      "market_value": 38168.54379039136,
+      "total_value": 99061.20337033879
+    },
+    {
+      "date": "2023-12-11",
+      "cash": 60892.65957994742,
+      "market_value": 38388.03429931368,
+      "total_value": 99280.6938792611
+    },
+    {
+      "date": "2023-12-12",
+      "cash": 60892.65957994742,
+      "market_value": 38612.27742448641,
+      "total_value": 99504.93700443383
+    },
+    {
+      "date": "2023-12-13",
+      "cash": 60892.65957994742,
+      "market_value": 38715.10780058487,
+      "total_value": 99607.76738053228
+    },
+    {
+      "date": "2023-12-14",
+      "cash": 60892.65957994742,
+      "market_value": 38837.47485265963,
+      "total_value": 99730.13443260705
+    },
+    {
+      "date": "2023-12-15",
+      "cash": 60892.65957994742,
+      "market_value": 39002.21327902638,
+      "total_value": 99894.8728589738
+    },
+    {
+      "date": "2023-12-18",
+      "cash": 60892.65957994742,
+      "market_value": 39169.406431513155,
+      "total_value": 100062.06601146059
+    },
+    {
+      "date": "2023-12-19",
+      "cash": 60892.65957994742,
+      "market_value": 39368.94603390336,
+      "total_value": 100261.60561385078
+    },
+    {
+      "date": "2023-12-20",
+      "cash": 60892.65957994742,
+      "market_value": 39512.48132769899,
+      "total_value": 100405.14090764642
+    },
+    {
+      "date": "2023-12-21",
+      "cash": 60892.65957994742,
+      "market_value": 39727.77320091678,
+      "total_value": 100620.43278086421
+    },
+    {
+      "date": "2023-12-22",
+      "cash": 60892.65957994742,
+      "market_value": 39846.35271482704,
+      "total_value": 100739.01229477447
+    },
+    {
+      "date": "2023-12-25",
+      "cash": 60892.65957994742,
+      "market_value": 39961.22763277642,
+      "total_value": 100853.88721272384
+    },
+    {
+      "date": "2023-12-26",
+      "cash": 60892.65957994742,
+      "market_value": 40038.82537689414,
+      "total_value": 100931.48495684157
+    },
+    {
+      "date": "2023-12-27",
+      "cash": 60892.65957994742,
+      "market_value": 40171.268830870125,
+      "total_value": 101063.92841081755
+    },
+    {
+      "date": "2023-12-28",
+      "cash": 60892.65957994742,
+      "market_value": 40230.99506432566,
+      "total_value": 101123.65464427308
+    },
+    {
+      "date": "2023-12-29",
+      "cash": 60892.65957994742,
+      "market_value": 40314.16828499027,
+      "total_value": 101206.82786493769
+    },
+    {
+      "date": "2024-01-01",
+      "cash": 60892.65957994742,
+      "market_value": 40376.050367323216,
+      "total_value": 101268.70994727063
+    },
+    {
+      "date": "2024-01-02",
+      "cash": 60892.65957994742,
+      "market_value": 40504.1359518629,
+      "total_value": 101396.79553181032
+    },
+    {
+      "date": "2024-01-03",
+      "cash": 60892.65957994742,
+      "market_value": 40623.270864971295,
+      "total_value": 101515.93044491872
+    },
+    {
+      "date": "2024-01-04",
+      "cash": 60892.65957994742,
+      "market_value": 40776.298029456484,
+      "total_value": 101668.95760940391
+    },
+    {
+      "date": "2024-01-05",
+      "cash": 60892.65957994742,
+      "market_value": 40891.57846885885,
+      "total_value": 101784.23804880626
+    },
+    {
+      "date": "2024-01-08",
+      "cash": 60892.65957994742,
+      "market_value": 40942.050773119045,
+      "total_value": 101834.71035306648
+    },
+    {
+      "date": "2024-01-09",
+      "cash": 60892.65957994742,
+      "market_value": 41085.29293348508,
+      "total_value": 101977.95251343251
+    },
+    {
+      "date": "2024-01-10",
+      "cash": 60892.65957994742,
+      "market_value": 41168.43446302049,
+      "total_value": 102061.09404296792
+    },
+    {
+      "date": "2024-01-11",
+      "cash": 60892.65957994742,
+      "market_value": 41299.34888124096,
+      "total_value": 102192.00846118838
+    },
+    {
+      "date": "2024-01-12",
+      "cash": 60892.65957994742,
+      "market_value": 41332.79928067706,
+      "total_value": 102225.4588606245
+    },
+    {
+      "date": "2024-01-15",
+      "cash": 60892.65957994742,
+      "market_value": 41418.45664739131,
+      "total_value": 102311.11622733873
+    },
+    {
+      "date": "2024-01-16",
+      "cash": 60892.65957994742,
+      "market_value": 41412.333349296794,
+      "total_value": 102304.99292924421
+    },
+    {
+      "date": "2024-01-17",
+      "cash": 60892.65957994742,
+      "market_value": 41481.53399863138,
+      "total_value": 102374.1935785788
+    },
+    {
+      "date": "2024-01-18",
+      "cash": 60892.65957994742,
+      "market_value": 41617.74411960706,
+      "total_value": 102510.40369955447
+    },
+    {
+      "date": "2024-01-19",
+      "cash": 60892.65957994742,
+      "market_value": 41683.88081346995,
+      "total_value": 102576.54039341738
+    },
+    {
+      "date": "2024-01-22",
+      "cash": 60892.65957994742,
+      "market_value": 41663.59828088016,
+      "total_value": 102556.25786082758
+    },
+    {
+      "date": "2024-01-23",
+      "cash": 60892.65957994742,
+      "market_value": 41691.75925820823,
+      "total_value": 102584.41883815566
+    },
+    {
+      "date": "2024-01-24",
+      "cash": 60892.65957994742,
+      "market_value": 41729.40387793261,
+      "total_value": 102622.06345788002
+    },
+    {
+      "date": "2024-01-25",
+      "cash": 60892.65957994742,
+      "market_value": 41768.54272896638,
+      "total_value": 102661.20230891381
+    },
+    {
+      "date": "2024-01-26",
+      "cash": 60892.65957994742,
+      "market_value": 41759.99479527121,
+      "total_value": 102652.65437521864
+    },
+    {
+      "date": "2024-01-29",
+      "cash": 60892.65957994742,
+      "market_value": 41705.37897502783,
+      "total_value": 102598.03855497525
+    },
+    {
+      "date": "2024-01-30",
+      "cash": 60892.65957994742,
+      "market_value": 41811.99791238595,
+      "total_value": 102704.65749233338
+    },
+    {
+      "date": "2024-01-31",
+      "cash": 60892.65957994742,
+      "market_value": 41806.27458124873,
+      "total_value": 102698.93416119614
+    },
+    {
+      "date": "2024-02-01",
+      "cash": 60892.65957994742,
+      "market_value": 41863.70533487658,
+      "total_value": 102756.364914824
+    },
+    {
+      "date": "2024-02-02",
+      "cash": 60892.65957994742,
+      "market_value": 41971.98789921419,
+      "total_value": 102864.64747916162
+    },
+    {
+      "date": "2024-02-05",
+      "cash": 60892.65957994742,
+      "market_value": 42019.924842608685,
+      "total_value": 102912.5844225561
+    },
+    {
+      "date": "2024-02-06",
+      "cash": 60892.65957994742,
+      "market_value": 42088.723806994894,
+      "total_value": 102981.38338694233
+    },
+    {
+      "date": "2024-02-07",
+      "cash": 60892.65957994742,
+      "market_value": 42145.31913048438,
+      "total_value": 103037.97871043181
+    },
+    {
+      "date": "2024-02-08",
+      "cash": 60892.65957994742,
+      "market_value": 42223.107157434075,
+      "total_value": 103115.76673738149
+    },
+    {
+      "date": "2024-02-09",
+      "cash": 81983.98827783111,
+      "market_value": 21216.36540283317,
+      "total_value": 103200.35368066428
+    },
+    {
+      "date": "2024-02-12",
+      "cash": 81983.98827783111,
+      "market_value": 21166.50075242934,
+      "total_value": 103150.48903026045
+    },
+    {
+      "date": "2024-02-13",
+      "cash": 81983.98827783111,
+      "market_value": 21184.098702511725,
+      "total_value": 103168.08698034284
+    },
+    {
+      "date": "2024-02-14",
+      "cash": 81983.98827783111,
+      "market_value": 21170.4489629687,
+      "total_value": 103154.43724079982
+    },
+    {
+      "date": "2024-02-15",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-02-16",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-02-19",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-02-20",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-02-21",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-02-22",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-02-23",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-02-26",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-02-27",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-02-28",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-02-29",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-01",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-04",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-05",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-06",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-07",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-08",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-11",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-12",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-13",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-14",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-15",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-18",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-19",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-20",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-21",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-22",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-25",
+      "cash": 103028.49570884118,
+      "market_value": 0.0,
+      "total_value": 103028.49570884118
+    },
+    {
+      "date": "2024-03-26",
+      "cash": 11302.828346555485,
+      "market_value": 99566.04195740835,
+      "total_value": 110868.87030396383
+    },
+    {
+      "date": "2024-03-27",
+      "cash": 11302.828346555485,
+      "market_value": 92018.0908846889,
+      "total_value": 103320.91923124439
+    },
+    {
+      "date": "2024-03-28",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-03-29",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-01",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-02",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-03",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-04",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-05",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-08",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-09",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-10",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-11",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-12",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-15",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-16",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-17",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-18",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-19",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-22",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-23",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-24",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-25",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-26",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-29",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-04-30",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-01",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-02",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-03",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-06",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-07",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-08",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-09",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-10",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-13",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-14",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-15",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-16",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-17",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-20",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-21",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-22",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-23",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-24",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-27",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-28",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-29",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-30",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-05-31",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-03",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-04",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-05",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-06",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-07",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-10",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-11",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-12",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-13",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-14",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-17",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-18",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-19",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-20",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-21",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-24",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-25",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-26",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-27",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-06-28",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-01",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-02",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-03",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-04",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-05",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-08",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-09",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-10",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-11",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-12",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-15",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-16",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-17",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-18",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-19",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-22",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-23",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-24",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-25",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-26",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-29",
+      "cash": 102700.85824391857,
+      "market_value": 0.0,
+      "total_value": 102700.85824391857
+    },
+    {
+      "date": "2024-07-30",
+      "cash": 10470.742094959242,
+      "market_value": 99957.65190026903,
+      "total_value": 110428.39399522828
+    },
+    {
+      "date": "2024-07-31",
+      "cash": 10470.742094959242,
+      "market_value": 92274.06644078286,
+      "total_value": 102744.80853574211
+    },
+    {
+      "date": "2024-08-01",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-02",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-05",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-06",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-07",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-08",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-09",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-12",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-13",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-14",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-15",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-16",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-19",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-20",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-21",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-22",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-23",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-26",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-27",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-28",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-29",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-08-30",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-02",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-03",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-04",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-05",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-06",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-09",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-10",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-11",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-12",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-13",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-16",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-17",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-18",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-19",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-20",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-23",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-24",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-25",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-26",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-27",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-09-30",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-01",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-02",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-03",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-04",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-07",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-08",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-09",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-10",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-11",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-14",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-15",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-16",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-17",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-18",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-21",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-22",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-23",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-24",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-25",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-28",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-29",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-30",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-10-31",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-11-01",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-11-04",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-11-05",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-11-06",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-11-07",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-11-08",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-11-11",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-11-12",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    },
+    {
+      "date": "2024-11-13",
+      "cash": 102573.68682521312,
+      "market_value": 0.0,
+      "total_value": 102573.68682521312
+    }
+  ],
+  "rejected_orders": [],
+  "round_trips": [
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-03-02:exit:2023-03-03:0",
+      "symbol": "000001.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-02-28:entry:2023-03-01",
+      "buy_date": "2023-03-01",
+      "buy_price": 9.88268865284899,
+      "buy_trade_quantity": 1800,
+      "matched_quantity": 1800,
+      "buy_cost": 17794.17622700072,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-03-02:exit:2023-03-03",
+      "sell_date": "2023-03-03",
+      "sell_price": 9.755667938738739,
+      "sell_trade_quantity": 1800,
+      "sell_proceeds": 17537.374026753085,
+      "realized_pnl": -256.8022002476355,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-03-02:exit:2023-03-03:0",
+      "symbol": "300750.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-02-28:entry:2023-03-01",
+      "buy_date": "2023-03-01",
+      "buy_price": 14.693892753483432,
+      "buy_trade_quantity": 1200,
+      "matched_quantity": 1200,
+      "buy_cost": 17637.961105571372,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-03-02:exit:2023-03-03",
+      "sell_date": "2023-03-03",
+      "sell_price": 14.499741602453497,
+      "sell_trade_quantity": 1200,
+      "sell_proceeds": 17377.070326044366,
+      "realized_pnl": -260.8907795270061,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-03-02:exit:2023-03-03:0",
+      "symbol": "600036.SH",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-02-28:entry:2023-03-01",
+      "buy_date": "2023-03-01",
+      "buy_price": 13.175127153257497,
+      "buy_trade_quantity": 1400,
+      "matched_quantity": 1400,
+      "buy_cost": 18450.711567964867,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-03-02:exit:2023-03-03",
+      "sell_date": "2023-03-03",
+      "sell_price": 13.271808140225772,
+      "sell_trade_quantity": 1400,
+      "sell_proceeds": 18556.37670550087,
+      "realized_pnl": 105.66513753600157,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-03-06:exit:2023-03-07:0",
+      "symbol": "600519.SH",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-02-28:entry:2023-03-01",
+      "buy_date": "2023-03-01",
+      "buy_price": 13.095232764805948,
+      "buy_trade_quantity": 1400,
+      "matched_quantity": 1400,
+      "buy_cost": 18338.825868489545,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-03-06:exit:2023-03-07",
+      "sell_date": "2023-03-07",
+      "sell_price": 13.040963562106132,
+      "sell_trade_quantity": 1400,
+      "sell_proceeds": 18233.61443326555,
+      "realized_pnl": -105.21143522399507,
+      "holding_days": 6
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-03-10:exit:2023-03-13:0",
+      "symbol": "000002.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-02-28:entry:2023-03-01",
+      "buy_date": "2023-03-01",
+      "buy_price": 10.523836294229447,
+      "buy_trade_quantity": 1800,
+      "matched_quantity": 1800,
+      "buy_cost": 18948.58820121189,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-03-10:exit:2023-03-13",
+      "sell_date": "2023-03-13",
+      "sell_price": 10.594127016584357,
+      "sell_trade_quantity": 1800,
+      "sell_proceeds": 19044.638372633035,
+      "realized_pnl": 96.05017142114593,
+      "holding_days": 12
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-05-11:exit:2023-05-12:0",
+      "symbol": "000001.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-05-09:entry:2023-05-10",
+      "buy_date": "2023-05-10",
+      "buy_price": 10.197457400600491,
+      "buy_trade_quantity": 1800,
+      "matched_quantity": 1800,
+      "buy_cost": 18360.92994807721,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-05-11:exit:2023-05-12",
+      "sell_date": "2023-05-12",
+      "sell_price": 9.99399556966016,
+      "sell_trade_quantity": 1800,
+      "sell_proceeds": 17965.806075755285,
+      "realized_pnl": -395.12387232192486,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-05-11:exit:2023-05-12:0",
+      "symbol": "000002.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-05-09:entry:2023-05-10",
+      "buy_date": "2023-05-10",
+      "buy_price": 10.737392491288382,
+      "buy_trade_quantity": 1700,
+      "matched_quantity": 1700,
+      "buy_cost": 18259.043305360807,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-05-11:exit:2023-05-12",
+      "sell_date": "2023-05-12",
+      "sell_price": 10.834267868131173,
+      "sell_trade_quantity": 1700,
+      "sell_proceeds": 18394.311643834426,
+      "realized_pnl": 135.26833847361922,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-05-11:exit:2023-05-12:0",
+      "symbol": "300750.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-05-09:entry:2023-05-10",
+      "buy_date": "2023-05-10",
+      "buy_price": 14.528435857449054,
+      "buy_trade_quantity": 1200,
+      "matched_quantity": 1200,
+      "buy_cost": 17439.35326584755,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-05-11:exit:2023-05-12",
+      "sell_date": "2023-05-12",
+      "sell_price": 14.587738011932085,
+      "sell_trade_quantity": 1200,
+      "sell_proceeds": 17482.528743019888,
+      "realized_pnl": 43.175477172339015,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-05-11:exit:2023-05-12:0",
+      "symbol": "600036.SH",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-05-09:entry:2023-05-10",
+      "buy_date": "2023-05-10",
+      "buy_price": 12.394227798340967,
+      "buy_trade_quantity": 1400,
+      "matched_quantity": 1400,
+      "buy_cost": 17357.124493352658,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-05-11:exit:2023-05-12",
+      "sell_date": "2023-05-12",
+      "sell_price": 12.223003332323918,
+      "sell_trade_quantity": 1400,
+      "sell_proceeds": 17089.958799188655,
+      "realized_pnl": -267.16569416400307,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-05-11:exit:2023-05-12:0",
+      "symbol": "600519.SH",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-05-09:entry:2023-05-10",
+      "buy_date": "2023-05-10",
+      "buy_price": 11.987930320796034,
+      "buy_trade_quantity": 1400,
+      "matched_quantity": 1400,
+      "buy_cost": 16788.137379849184,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-05-11:exit:2023-05-12",
+      "sell_date": "2023-05-12",
+      "sell_price": 11.97606385165043,
+      "sell_trade_quantity": 1400,
+      "sell_proceeds": 16744.6929561006,
+      "realized_pnl": -43.444423748584086,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-08-03:exit:2023-08-04:0",
+      "symbol": "000001.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-08-01:entry:2023-08-02",
+      "buy_date": "2023-08-02",
+      "buy_price": 10.305821825576164,
+      "buy_trade_quantity": 1800,
+      "matched_quantity": 1800,
+      "buy_cost": 18556.044429822905,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-08-03:exit:2023-08-04",
+      "sell_date": "2023-08-04",
+      "sell_price": 10.178724946034354,
+      "sell_trade_quantity": 1800,
+      "sell_proceeds": 18297.88668648812,
+      "realized_pnl": -258.15774333478475,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-08-03:exit:2023-08-04:0",
+      "symbol": "300750.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-08-01:entry:2023-08-02",
+      "buy_date": "2023-08-02",
+      "buy_price": 14.534613073790931,
+      "buy_trade_quantity": 1200,
+      "matched_quantity": 1200,
+      "buy_cost": 17446.76814925568,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-08-03:exit:2023-08-04",
+      "sell_date": "2023-08-04",
+      "sell_price": 14.364911995040375,
+      "sell_trade_quantity": 1200,
+      "sell_proceeds": 17215.485131336187,
+      "realized_pnl": -231.28301791949343,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-08-03:exit:2023-08-04:0",
+      "symbol": "600036.SH",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-08-01:entry:2023-08-02",
+      "buy_date": "2023-08-02",
+      "buy_price": 12.189910395922606,
+      "buy_trade_quantity": 1500,
+      "matched_quantity": 1500,
+      "buy_cost": 18290.351053562074,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-08-03:exit:2023-08-04",
+      "sell_date": "2023-08-04",
+      "sell_price": 12.091508535969828,
+      "sell_trade_quantity": 1500,
+      "sell_proceeds": 18113.684362309603,
+      "realized_pnl": -176.66669125247063,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-08-03:exit:2023-08-04:0",
+      "symbol": "600519.SH",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-08-01:entry:2023-08-02",
+      "buy_date": "2023-08-02",
+      "buy_price": 11.813463338582073,
+      "buy_trade_quantity": 1500,
+      "matched_quantity": 1500,
+      "buy_cost": 17725.51106637547,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-08-03:exit:2023-08-04",
+      "sell_date": "2023-08-04",
+      "sell_price": 11.608066565669425,
+      "sell_trade_quantity": 1500,
+      "sell_proceeds": 17389.464118701082,
+      "realized_pnl": -336.04694767438923,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-08-07:exit:2023-08-08:0",
+      "symbol": "000002.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-08-01:entry:2023-08-02",
+      "buy_date": "2023-08-02",
+      "buy_price": 10.792882283515093,
+      "buy_trade_quantity": 1700,
+      "matched_quantity": 1700,
+      "buy_cost": 18353.40425194025,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-08-07:exit:2023-08-08",
+      "sell_date": "2023-08-08",
+      "sell_price": 10.683533549119772,
+      "sell_trade_quantity": 1700,
+      "sell_proceeds": 18138.396424360057,
+      "realized_pnl": -215.0078275801934,
+      "holding_days": 6
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-11-23:exit:2023-11-24:0",
+      "symbol": "000001.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-11-21:entry:2023-11-22",
+      "buy_date": "2023-11-22",
+      "buy_price": 11.121653763620682,
+      "buy_trade_quantity": 1600,
+      "matched_quantity": 1600,
+      "buy_cost": 17799.98441559963,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2023-11-23:exit:2023-11-24",
+      "sell_date": "2023-11-24",
+      "sell_price": 11.226100182142172,
+      "sell_trade_quantity": 1600,
+      "sell_proceeds": 17938.410003048622,
+      "realized_pnl": 138.4255874489936,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-11-23:exit:2023-11-24:0",
+      "symbol": "000002.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-11-21:entry:2023-11-22",
+      "buy_date": "2023-11-22",
+      "buy_price": 11.535265434209524,
+      "buy_trade_quantity": 1500,
+      "matched_quantity": 1500,
+      "buy_cost": 17308.089020759682,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2023-11-23:exit:2023-11-24",
+      "sell_date": "2023-11-24",
+      "sell_price": 11.491636580447947,
+      "sell_trade_quantity": 1500,
+      "sell_proceeds": 17215.046179340046,
+      "realized_pnl": -93.0428414196358,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-11-23:exit:2023-11-24:0",
+      "symbol": "300750.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-11-21:entry:2023-11-22",
+      "buy_date": "2023-11-22",
+      "buy_price": 13.39571382848176,
+      "buy_trade_quantity": 1300,
+      "matched_quantity": 1300,
+      "buy_cost": 17419.652305419397,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2023-11-23:exit:2023-11-24",
+      "sell_date": "2023-11-24",
+      "sell_price": 13.354423119755138,
+      "sell_trade_quantity": 1300,
+      "sell_proceeds": 17338.18108060929,
+      "realized_pnl": -81.47122481010592,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-02-09:exit:2024-02-12:0",
+      "symbol": "600519.SH",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2023-11-21:entry:2023-11-22",
+      "buy_date": "2023-11-22",
+      "buy_price": 11.425993270418333,
+      "buy_trade_quantity": 1600,
+      "matched_quantity": 1600,
+      "buy_cost": 18287.073709439133,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-02-09:exit:2024-02-12",
+      "sell_date": "2024-02-12",
+      "sell_price": 13.199239447459007,
+      "sell_trade_quantity": 1600,
+      "sell_proceeds": 21091.3286978837,
+      "realized_pnl": 2804.2549884445652,
+      "holding_days": 82
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-02-15:exit:2024-02-16:0",
+      "symbol": "600036.SH",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2023-11-21:entry:2023-11-22",
+      "buy_date": "2023-11-22",
+      "buy_price": 11.633095523493775,
+      "buy_trade_quantity": 1600,
+      "matched_quantity": 1600,
+      "buy_cost": 18618.536723441317,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-02-15:exit:2024-02-16",
+      "sell_date": "2024-02-16",
+      "sell_price": 13.169938063864313,
+      "sell_trade_quantity": 1600,
+      "sell_proceeds": 21044.507431010064,
+      "realized_pnl": 2425.9707075687475,
+      "holding_days": 86
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-03-28:exit:2024-03-29:0",
+      "symbol": "000001.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-03-26:entry:2024-03-27",
+      "buy_date": "2024-03-27",
+      "buy_price": 11.743183771122961,
+      "buy_trade_quantity": 1600,
+      "matched_quantity": 1600,
+      "buy_cost": 18794.730762006875,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-03-28:exit:2024-03-29",
+      "sell_date": "2024-03-29",
+      "sell_price": 11.821412493913106,
+      "sell_trade_quantity": 1600,
+      "sell_proceeds": 18889.67145227363,
+      "realized_pnl": 94.94069026675425,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-03-28:exit:2024-03-29:0",
+      "symbol": "000002.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-03-26:entry:2024-03-27",
+      "buy_date": "2024-03-27",
+      "buy_price": 11.659815484095787,
+      "buy_trade_quantity": 1600,
+      "matched_quantity": 1600,
+      "buy_cost": 18661.301485985627,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-03-28:exit:2024-03-29",
+      "sell_date": "2024-03-29",
+      "sell_price": 11.602656307355652,
+      "sell_trade_quantity": 1600,
+      "sell_proceeds": 18540.116566649744,
+      "realized_pnl": -121.18491933588302,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-03-28:exit:2024-03-29:0",
+      "symbol": "300750.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-03-26:entry:2024-03-27",
+      "buy_date": "2024-03-27",
+      "buy_price": 13.108079405076978,
+      "buy_trade_quantity": 1400,
+      "matched_quantity": 1400,
+      "buy_cost": 18356.816560457904,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-03-28:exit:2024-03-29",
+      "sell_date": "2024-03-29",
+      "sell_price": 13.21990866167907,
+      "sell_trade_quantity": 1400,
+      "sell_proceeds": 18483.811892586444,
+      "realized_pnl": 126.9953321285393,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-03-28:exit:2024-03-29:0",
+      "symbol": "600036.SH",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-03-26:entry:2024-03-27",
+      "buy_date": "2024-03-27",
+      "buy_price": 12.60383510809279,
+      "buy_trade_quantity": 1400,
+      "matched_quantity": 1400,
+      "buy_cost": 17650.662762075306,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-03-28:exit:2024-03-29",
+      "sell_date": "2024-03-29",
+      "sell_price": 12.528392326655283,
+      "sell_trade_quantity": 1400,
+      "sell_proceeds": 17516.947583282883,
+      "realized_pnl": -133.7151787924231,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-03-28:exit:2024-03-29:0",
+      "symbol": "600519.SH",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-03-26:entry:2024-03-27",
+      "buy_date": "2024-03-27",
+      "buy_price": 12.171119192082356,
+      "buy_trade_quantity": 1500,
+      "matched_quantity": 1500,
+      "buy_cost": 18262.15579175997,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-03-28:exit:2024-03-29",
+      "sell_date": "2024-03-29",
+      "sell_price": 11.993913689509965,
+      "sell_trade_quantity": 1500,
+      "sell_proceeds": 17967.482402570404,
+      "realized_pnl": -294.6733891895674,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-08-01:exit:2024-08-02:0",
+      "symbol": "000001.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-07-30:entry:2024-07-31",
+      "buy_date": "2024-07-31",
+      "buy_price": 12.280524604124139,
+      "buy_trade_quantity": 1500,
+      "matched_quantity": 1500,
+      "buy_cost": 18426.313142258063,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000001.SZ:2024-08-01:exit:2024-08-02",
+      "sell_date": "2024-08-02",
+      "sell_price": 12.407481002680298,
+      "sell_trade_quantity": 1500,
+      "sell_proceeds": 18587.02691606522,
+      "realized_pnl": 160.71377380715785,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-08-01:exit:2024-08-02:0",
+      "symbol": "000002.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-07-30:entry:2024-07-31",
+      "buy_date": "2024-07-31",
+      "buy_price": 12.055931010889012,
+      "buy_trade_quantity": 1600,
+      "matched_quantity": 1600,
+      "buy_cost": 19295.276464307648,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:000002.SZ:2024-08-01:exit:2024-08-02",
+      "sell_date": "2024-08-02",
+      "sell_price": 11.988254195021272,
+      "sell_trade_quantity": 1600,
+      "sell_proceeds": 19156.271143308393,
+      "realized_pnl": -139.00532099925476,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-08-01:exit:2024-08-02:0",
+      "symbol": "300750.SZ",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-07-30:entry:2024-07-31",
+      "buy_date": "2024-07-31",
+      "buy_price": 12.41797993388125,
+      "buy_trade_quantity": 1500,
+      "matched_quantity": 1500,
+      "buy_cost": 18632.55799179212,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:300750.SZ:2024-08-01:exit:2024-08-02",
+      "sell_date": "2024-08-02",
+      "sell_price": 12.573431898315665,
+      "sell_trade_quantity": 1500,
+      "sell_proceeds": 18835.629655271783,
+      "realized_pnl": 203.07166347966267,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-08-01:exit:2024-08-02:0",
+      "symbol": "600036.SH",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-07-30:entry:2024-07-31",
+      "buy_date": "2024-07-31",
+      "buy_price": 11.395612721614171,
+      "buy_trade_quantity": 1600,
+      "matched_quantity": 1600,
+      "buy_cost": 18238.45024868905,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600036.SH:2024-08-01:exit:2024-08-02",
+      "sell_date": "2024-08-02",
+      "sell_price": 11.33995544896746,
+      "sell_trade_quantity": 1600,
+      "sell_proceeds": 18120.341611014082,
+      "realized_pnl": -118.1086376749663,
+      "holding_days": 2
+    },
+    {
+      "round_trip_id": "rt:trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-08-01:exit:2024-08-02:0",
+      "symbol": "600519.SH",
+      "buy_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-07-30:entry:2024-07-31",
+      "buy_date": "2024-07-31",
+      "buy_price": 11.02014289582653,
+      "buy_trade_quantity": 1600,
+      "matched_quantity": 1600,
+      "buy_cost": 17637.518301912445,
+      "sell_trade_id": "trade:order:strategy_001_breakout_ma_exit:v1:600519.SH:2024-08-01:exit:2024-08-02",
+      "sell_date": "2024-08-02",
+      "sell_price": 10.891456020698408,
+      "sell_trade_quantity": 1600,
+      "sell_proceeds": 17403.6754045944,
+      "realized_pnl": -233.8428973180453,
+      "holding_days": 2
+    }
+  ],
+  "prototype_gate_result": {
+    "status": "passed",
+    "failed_checks": [],
+    "warning_checks": [],
+    "recommendation": "candidate_for_prototype_passed",
+    "metrics_full": {
+      "total_return": 0.025736868252131243,
+      "max_drawdown": -0.08297097228109555,
+      "sharpe_ratio": -0.03296417059273856,
+      "total_trades": 60,
+      "filled_orders": 60,
+      "completed_round_trips": 30,
+      "closed_lot_win_rate": 0.36666666666666664,
+      "profit_factor": 1.6843373752721293,
+      "avg_win": 575.8665334315933,
+      "avg_loss": 197.9392127649664,
+      "unmatched_sells": 0
+    },
+    "metrics_is": {
+      "total_return": 0.01206827864937688,
+      "max_drawdown": -0.08297097228109555,
+      "sharpe_ratio": -0.04092235682594881,
+      "total_trades": 38,
+      "filled_orders": 38,
+      "completed_round_trips": 18,
+      "closed_lot_win_rate": 0.2777777777777778,
+      "profit_factor": 0.19063408810752266,
+      "avg_win": 103.71694241041988,
+      "avg_loss": 209.25497686340168,
+      "unmatched_sells": 0
+    },
+    "metrics_oos": {
+      "total_return": 0.01350560025554337,
+      "max_drawdown": -0.07481977092404934,
+      "sharpe_ratio": -0.027413338845360645,
+      "total_trades": 22,
+      "filled_orders": 22,
+      "completed_round_trips": 10,
+      "closed_lot_win_rate": 0.4,
+      "profit_factor": 0.5629066595201965,
+      "avg_win": 146.43036492052852,
+      "avg_loss": 173.4217238850233,
+      "unmatched_sells": 2
+    },
+    "oos_split_date": "2023-12-31",
+    "oos_start_value": 101206.82786493769,
+    "oos_end_value": 102573.68682521312
+  },
+  "order_generation_events": [
+    {
+      "event_type": "t1_frozen",
+      "symbol": "000001.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:000001.SZ:2023-03-01:exit",
+      "intended_execution_date": "2023-03-02",
+      "reason": "t1_frozen: all 1800 shares frozen",
+      "requested_quantity": 1800,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1800
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "600036.SH",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:600036.SH:2023-03-01:exit",
+      "intended_execution_date": "2023-03-02",
+      "reason": "t1_frozen: all 1400 shares frozen",
+      "requested_quantity": 1400,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1400
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "300750.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:300750.SZ:2023-03-01:exit",
+      "intended_execution_date": "2023-03-02",
+      "reason": "t1_frozen: all 1200 shares frozen",
+      "requested_quantity": 1200,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1200
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "000002.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:000002.SZ:2023-05-10:exit",
+      "intended_execution_date": "2023-05-11",
+      "reason": "t1_frozen: all 1700 shares frozen",
+      "requested_quantity": 1700,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1700
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "600519.SH",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:600519.SH:2023-05-10:exit",
+      "intended_execution_date": "2023-05-11",
+      "reason": "t1_frozen: all 1400 shares frozen",
+      "requested_quantity": 1400,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1400
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "600036.SH",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:600036.SH:2023-05-10:exit",
+      "intended_execution_date": "2023-05-11",
+      "reason": "t1_frozen: all 1400 shares frozen",
+      "requested_quantity": 1400,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1400
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "300750.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:300750.SZ:2023-05-10:exit",
+      "intended_execution_date": "2023-05-11",
+      "reason": "t1_frozen: all 1200 shares frozen",
+      "requested_quantity": 1200,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1200
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "000001.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:000001.SZ:2023-08-02:exit",
+      "intended_execution_date": "2023-08-03",
+      "reason": "t1_frozen: all 1800 shares frozen",
+      "requested_quantity": 1800,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1800
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "600519.SH",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:600519.SH:2023-08-02:exit",
+      "intended_execution_date": "2023-08-03",
+      "reason": "t1_frozen: all 1500 shares frozen",
+      "requested_quantity": 1500,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1500
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "600036.SH",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:600036.SH:2023-08-02:exit",
+      "intended_execution_date": "2023-08-03",
+      "reason": "t1_frozen: all 1500 shares frozen",
+      "requested_quantity": 1500,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1500
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "300750.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:300750.SZ:2023-08-02:exit",
+      "intended_execution_date": "2023-08-03",
+      "reason": "t1_frozen: all 1200 shares frozen",
+      "requested_quantity": 1200,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1200
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "000001.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:000001.SZ:2023-11-22:exit",
+      "intended_execution_date": "2023-11-23",
+      "reason": "t1_frozen: all 1600 shares frozen",
+      "requested_quantity": 1600,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1600
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "000002.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:000002.SZ:2023-11-22:exit",
+      "intended_execution_date": "2023-11-23",
+      "reason": "t1_frozen: all 1500 shares frozen",
+      "requested_quantity": 1500,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1500
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "300750.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:300750.SZ:2023-11-22:exit",
+      "intended_execution_date": "2023-11-23",
+      "reason": "t1_frozen: all 1300 shares frozen",
+      "requested_quantity": 1300,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1300
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "000002.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:000002.SZ:2024-03-27:exit",
+      "intended_execution_date": "2024-03-28",
+      "reason": "t1_frozen: all 1600 shares frozen",
+      "requested_quantity": 1600,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1600
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "600519.SH",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:600519.SH:2024-03-27:exit",
+      "intended_execution_date": "2024-03-28",
+      "reason": "t1_frozen: all 1500 shares frozen",
+      "requested_quantity": 1500,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1500
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "600036.SH",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:600036.SH:2024-03-27:exit",
+      "intended_execution_date": "2024-03-28",
+      "reason": "t1_frozen: all 1400 shares frozen",
+      "requested_quantity": 1400,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1400
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "300750.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:300750.SZ:2024-03-27:exit",
+      "intended_execution_date": "2024-03-28",
+      "reason": "t1_frozen: all 1400 shares frozen",
+      "requested_quantity": 1400,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1400
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "000001.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:000001.SZ:2024-07-31:exit",
+      "intended_execution_date": "2024-08-01",
+      "reason": "t1_frozen: all 1500 shares frozen",
+      "requested_quantity": 1500,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1500
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "000002.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:000002.SZ:2024-07-31:exit",
+      "intended_execution_date": "2024-08-01",
+      "reason": "t1_frozen: all 1600 shares frozen",
+      "requested_quantity": 1600,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1600
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "600519.SH",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:600519.SH:2024-07-31:exit",
+      "intended_execution_date": "2024-08-01",
+      "reason": "t1_frozen: all 1600 shares frozen",
+      "requested_quantity": 1600,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1600
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "600036.SH",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:600036.SH:2024-07-31:exit",
+      "intended_execution_date": "2024-08-01",
+      "reason": "t1_frozen: all 1600 shares frozen",
+      "requested_quantity": 1600,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1600
+    },
+    {
+      "event_type": "t1_frozen",
+      "symbol": "300750.SZ",
+      "signal_id": "strategy_001_breakout_ma_exit:v1:300750.SZ:2024-07-31:exit",
+      "intended_execution_date": "2024-08-01",
+      "reason": "t1_frozen: all 1500 shares frozen",
+      "requested_quantity": 1500,
+      "generated_quantity": 0,
+      "sellable_quantity": 0,
+      "total_quantity": 1500
+    }
+  ],
+  "entry_signal_count": 30,
+  "exit_signal_count": 53,
+  "buy_order_count": 30,
+  "sell_order_count": 30,
+  "buy_fill_count": 30,
+  "sell_fill_count": 30,
+  "exit_rejected_count": 0,
+  "completed_round_trips": 30,
+  "exit_triggered_rules": [
+    "ma_condition:close<ma_10"
+  ],
+  "t1_blocked_exit_count": 23,
+  "partial_exit_due_to_t1_count": 0,
+  "warnings": [
+    "Transaction costs included: commission (default 0.03%, min 5 RMB) and stamp duty (0.1%, sell only).",
+    "Transfer fee not included (negligible impact, default 0%).",
+    "Slippage not simulated; fill price is execution_date open price."
+  ]
+}

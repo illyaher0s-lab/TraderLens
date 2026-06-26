@@ -1,0 +1,88 @@
+strategy_name: diagnostic-ma-condition-exit
+version: v1
+status: draft
+hypothesis_source_snapshot:
+  source_type: manual
+  source_run_id: diagnostic_ma_exit
+  evidence_pack_ids: []
+  generated_at: '2026-06-22T00:00:00'
+  data_range_used_for_generation:
+    start: '2023-01-01'
+    end: '2023-06-30'
+
+universe:
+  type: static_list
+  symbols:
+    - 000001.SZ
+
+entry_conditions:
+  logic: AND
+  rules:
+    - type: ma_condition
+      field: close
+      ma_period: 5
+      operator: '>'
+
+exit_conditions:
+  logic: OR
+  rules:
+    - type: ma_condition
+      field: close
+      ma_period: 5
+      operator: '<'
+
+risk_filters:
+  max_position_per_stock: 1.0
+  max_total_position: 1.0
+  restrict_limit_up_buy: false
+  restrict_limit_down_sell: true
+  restrict_suspended: true
+  min_liquidity_for_trade: 0
+
+rebalance:
+  frequency: daily
+  check_time: close
+
+fill_model:
+  signal_to_execution: T+1
+  execution_price: open
+  commission: 0.0003
+  stamp_tax: 0.001
+  slippage: 0.0
+  lot_size: 100
+  lot_rounding: floor
+  handling:
+    limit_up_buy: skip
+    limit_down_sell: defer_next_day
+    suspended: skip
+
+backtest_config:
+  initial_capital: 100000
+  start_date: '2023-01-10'
+  end_date: '2023-06-30'
+  sample_split:
+    in_sample_end: '2023-03-31'
+    out_of_sample_start: '2023-04-03'
+  benchmark:
+    type: index
+    code: 000905.SH
+    name: CSI 500
+  data_source: fixed_fixture
+  include_delisted: partial
+
+prototype_gate:
+  enabled: true
+  min_total_return: -1.0
+  max_drawdown: -1.0
+  min_sharpe_ratio: -10.0
+  min_trades: 1
+  min_oos_return: -1.0
+  max_oos_drawdown: -1.0
+  min_oos_trades: 0
+  min_completed_round_trips: 1
+
+audit:
+  created_at: '2026-06-22T00:00:00'
+  created_by: diagnostic
+  last_modified_at: '2026-06-22T00:00:00'
+  config_hash: diagnostic-ma-condition-exit

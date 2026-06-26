@@ -1,0 +1,47 @@
+{
+  "dataset_name": "20-stock-fixture",
+  "version": "1.0.0",
+  "source": "mock",
+  "fetched_at": "2026-06-22T15:21:10.299557Z",
+  "created_at": "2026-06-22T15:21:10.299557Z",
+  "date_range": {
+    "start": "2023-01-01",
+    "end": "2024-12-31"
+  },
+  "adjust_type": "qfq",
+  "schema_version": "1.0",
+  "snapshot_hash": "mock_v2.1_20_stocks_487_days_seed42",
+  "stock_count": 20,
+  "trading_days_count": 487,
+  "warnings": [
+    "MOCK DATA v2.1 - Deterministic volatility patterns with controlled breakouts for testing.",
+    "Not real market data. For backtest engine validation only.",
+    "Do not use for strategy performance evaluation."
+  ],
+  "stocks": [
+    "000001.SZ",
+    "000002.SZ",
+    "000333.SZ",
+    "000858.SZ",
+    "002594.SZ",
+    "002475.SZ",
+    "300750.SZ",
+    "300059.SZ",
+    "300760.SZ",
+    "002352.SZ",
+    "600000.SH",
+    "600036.SH",
+    "600519.SH",
+    "601318.SH",
+    "601398.SH",
+    "601888.SH",
+    "600887.SH",
+    "600585.SH",
+    "600690.SH",
+    "603259.SH"
+  ],
+  "mock_version": "2.1",
+  "mock_seed": 42,
+  "mock_generation_model": "deterministic_volatility_patterns_with_controlled_breakouts",
+  "result_usage": "toolchain_validation_only"
+}

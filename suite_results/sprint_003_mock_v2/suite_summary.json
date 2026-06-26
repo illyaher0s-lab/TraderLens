@@ -1,0 +1,76 @@
+{
+  "generated_at": "2026-06-22T12:24:23.661407",
+  "fixture_path": "tests\\fixed_fixture",
+  "strategies_dir": "examples\\strategies",
+  "output_dir": "suite_results\\sprint_003_mock_v2",
+  "strategy_count": 5,
+  "success_count": 4,
+  "failed_count": 1,
+  "data_source": "mock",
+  "result_usage": "toolchain_validation_only",
+  "results": [
+    {
+      "strategy_name": "strategy_001_breakout_ma_exit",
+      "strategy_file": "examples\\strategies\\strategy_001_breakout_ma_exit.yaml",
+      "status": "success",
+      "export_dir": "suite_results\\sprint_003_mock_v2\\strategy_001_breakout_ma_exit",
+      "total_return": 0.0,
+      "total_return_pct": 0.0,
+      "trade_count": 0,
+      "round_trips": 0,
+      "prototype_gate_status": "failed",
+      "t1_blocked_exit_count": 0,
+      "partial_exit_due_to_t1_count": 0
+    },
+    {
+      "strategy_name": "strategy_002_volume_breakout_stop_loss",
+      "strategy_file": "examples\\strategies\\strategy_002_volume_breakout_stop_loss.yaml",
+      "status": "success",
+      "export_dir": "suite_results\\sprint_003_mock_v2\\strategy_002_volume_breakout_stop_loss",
+      "total_return": 0.0,
+      "total_return_pct": 0.0,
+      "trade_count": 0,
+      "round_trips": 0,
+      "prototype_gate_status": "failed",
+      "t1_blocked_exit_count": 0,
+      "partial_exit_due_to_t1_count": 0
+    },
+    {
+      "strategy_name": "strategy_003_ma_trend_holding_days",
+      "strategy_file": "examples\\strategies\\strategy_003_ma_trend_holding_days.yaml",
+      "status": "failed",
+      "error": "no trading day after 2024-11-13"
+    },
+    {
+      "strategy_name": "strategy_004_breakdown_reversal_negative",
+      "strategy_file": "examples\\strategies\\strategy_004_breakdown_reversal_negative.yaml",
+      "status": "success",
+      "export_dir": "suite_results\\sprint_003_mock_v2\\strategy_004_breakdown_reversal_negative",
+      "total_return": 0.0,
+      "total_return_pct": 0.0,
+      "trade_count": 0,
+      "round_trips": 0,
+      "prototype_gate_status": "failed",
+      "t1_blocked_exit_count": 0,
+      "partial_exit_due_to_t1_count": 0
+    },
+    {
+      "strategy_name": "strategy_005_low_trade_count_negative",
+      "strategy_file": "examples\\strategies\\strategy_005_low_trade_count_negative.yaml",
+      "status": "success",
+      "export_dir": "suite_results\\sprint_003_mock_v2\\strategy_005_low_trade_count_negative",
+      "total_return": 0.0,
+      "total_return_pct": 0.0,
+      "trade_count": 0,
+      "round_trips": 0,
+      "prototype_gate_status": "failed",
+      "t1_blocked_exit_count": 0,
+      "partial_exit_due_to_t1_count": 0
+    }
+  ],
+  "warnings": [
+    "Data source is 'mock' - not real market data",
+    "Results are for toolchain validation only",
+    "Do not interpret strategy performance as real-world viability"
+  ]
+}

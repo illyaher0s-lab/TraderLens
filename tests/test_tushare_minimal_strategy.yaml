@@ -1,0 +1,81 @@
+# Minimal Test Strategy for Tushare M3.4
+# Uses only 2 stocks available in test snapshot
+
+strategy_name: test_tushare_minimal
+version: v1
+status: draft
+
+hypothesis_source_snapshot:
+  source_type: manual
+  source_run_id: m3_4_test
+  evidence_pack_ids: []
+  generated_at: '2026-06-22T00:00:00'
+  data_range_used_for_generation:
+    start: '2023-12-01'
+    end: '2023-12-29'
+
+universe:
+  type: static_list
+  symbols:
+    - 600519.SH
+    - 000001.SZ
+
+entry_conditions:
+  logic: AND
+  rules: []
+
+exit_conditions:
+  logic: OR
+  rules:
+    - type: ma_condition
+      field: close
+      ma_period: 2
+      operator: <
+
+risk_filters:
+  max_position_per_stock: 0.5
+  max_total_position: 1.0
+  restrict_limit_up_buy: true
+  restrict_limit_down_sell: true
+  restrict_suspended: true
+  min_liquidity_for_trade: 0
+
+rebalance:
+  frequency: daily
+  check_time: close
+
+fill_model:
+  signal_to_execution: T+1
+  execution_price: open
+  commission: 0.0003
+  stamp_tax: 0.001
+  slippage: 0.0
+  lot_size: 100
+  lot_rounding: floor
+  handling:
+    limit_up_buy: skip
+    limit_down_sell: defer_next_day
+    suspended: skip
+
+backtest_config:
+  initial_capital: 100000.0
+  start_date: '2023-12-01'
+  end_date: '2023-12-29'
+  sample_split:
+    in_sample_end: '2023-12-15'
+    out_of_sample_start: '2023-12-16'
+  benchmark:
+    type: index
+    code: '000300.SH'
+    name: CSI 300
+  data_source: tushare
+  include_delisted: partial
+
+prototype_gate:
+  enabled: false
+
+audit:
+  created_at: '2026-06-22T00:00:00'
+  created_by: m3_4_test
+  last_modified_at: '2026-06-22T00:00:00'
+  config_hash: test_minimal_v1

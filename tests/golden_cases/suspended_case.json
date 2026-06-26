@@ -1,0 +1,7 @@
+{
+  "case_id": "suspended_no_fill",
+  "symbol": "600000.SH",
+  "date": "2024-01-03",
+  "expected_constraint": "no fill when is_suspended is true",
+  "scope": "fixture_only_m0"
+}

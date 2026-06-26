@@ -1,0 +1,202 @@
+[
+  {
+    "symbol": "000001.SZ",
+    "name": "平安银行",
+    "exchange": "SZSE",
+    "list_date": "1991-04-03",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "银行",
+    "sector": "金融"
+  },
+  {
+    "symbol": "000002.SZ",
+    "name": "万科A",
+    "exchange": "SZSE",
+    "list_date": "1991-01-29",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "房地产开发",
+    "sector": "房地产"
+  },
+  {
+    "symbol": "000333.SZ",
+    "name": "美的集团",
+    "exchange": "SZSE",
+    "list_date": "2013-09-18",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "白色家电",
+    "sector": "家用电器"
+  },
+  {
+    "symbol": "000858.SZ",
+    "name": "五粮液",
+    "exchange": "SZSE",
+    "list_date": "1998-04-27",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "白酒",
+    "sector": "食品饮料"
+  },
+  {
+    "symbol": "002594.SZ",
+    "name": "比亚迪",
+    "exchange": "SZSE",
+    "list_date": "2011-06-30",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "汽车整车",
+    "sector": "汽车"
+  },
+  {
+    "symbol": "002475.SZ",
+    "name": "立讯精密",
+    "exchange": "SZSE",
+    "list_date": "2010-09-15",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "消费电子",
+    "sector": "电子"
+  },
+  {
+    "symbol": "300750.SZ",
+    "name": "宁德时代",
+    "exchange": "SZSE",
+    "list_date": "2018-06-11",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "电池",
+    "sector": "电力设备"
+  },
+  {
+    "symbol": "300059.SZ",
+    "name": "东方财富",
+    "exchange": "SZSE",
+    "list_date": "2010-03-19",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "证券",
+    "sector": "金融"
+  },
+  {
+    "symbol": "300760.SZ",
+    "name": "迈瑞医疗",
+    "exchange": "SZSE",
+    "list_date": "2018-10-16",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "医疗器械",
+    "sector": "医药生物"
+  },
+  {
+    "symbol": "002352.SZ",
+    "name": "顺丰控股",
+    "exchange": "SZSE",
+    "list_date": "2010-09-09",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "物流",
+    "sector": "交通运输"
+  },
+  {
+    "symbol": "600000.SH",
+    "name": "浦发银行",
+    "exchange": "SSE",
+    "list_date": "1999-11-10",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "银行",
+    "sector": "金融"
+  },
+  {
+    "symbol": "600036.SH",
+    "name": "招商银行",
+    "exchange": "SSE",
+    "list_date": "2002-04-09",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "银行",
+    "sector": "金融"
+  },
+  {
+    "symbol": "600519.SH",
+    "name": "贵州茅台",
+    "exchange": "SSE",
+    "list_date": "2001-08-27",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "白酒",
+    "sector": "食品饮料"
+  },
+  {
+    "symbol": "601318.SH",
+    "name": "中国平安",
+    "exchange": "SSE",
+    "list_date": "2007-03-01",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "保险",
+    "sector": "金融"
+  },
+  {
+    "symbol": "601398.SH",
+    "name": "工商银行",
+    "exchange": "SSE",
+    "list_date": "2006-10-27",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "银行",
+    "sector": "金融"
+  },
+  {
+    "symbol": "601888.SH",
+    "name": "中国中免",
+    "exchange": "SSE",
+    "list_date": "2009-07-03",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "旅游零售",
+    "sector": "社会服务"
+  },
+  {
+    "symbol": "600887.SH",
+    "name": "伊利股份",
+    "exchange": "SSE",
+    "list_date": "1996-03-12",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "乳品",
+    "sector": "食品饮料"
+  },
+  {
+    "symbol": "600585.SH",
+    "name": "海螺水泥",
+    "exchange": "SSE",
+    "list_date": "1997-10-21",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "水泥制造",
+    "sector": "建筑材料"
+  },
+  {
+    "symbol": "600690.SH",
+    "name": "海尔智家",
+    "exchange": "SSE",
+    "list_date": "1993-11-19",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "白色家电",
+    "sector": "家用电器"
+  },
+  {
+    "symbol": "603259.SH",
+    "name": "药明康德",
+    "exchange": "SSE",
+    "list_date": "2018-05-08",
+    "delist_date": null,
+    "current_status": "listed",
+    "industry": "医药外包",
+    "sector": "医药生物"
+  }
+]

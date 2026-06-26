@@ -1,0 +1,79 @@
+strategy_name: golden-breakout
+version: v1
+status: draft
+hypothesis_source_snapshot:
+  source_type: manual
+  source_run_id: manual_m0
+  evidence_pack_ids: []
+  generated_at: '2026-06-21T00:00:00'
+  data_range_used_for_generation:
+    start: '2024-01-01'
+    end: '2025-12-31'
+universe:
+  type: static_list
+  symbols:
+    - 000001.SZ
+    - 600000.SH
+    - 000002.SZ
+    - 600519.SH
+    - 300750.SZ
+entry_conditions:
+  logic: AND
+  rules: []
+exit_conditions:
+  logic: OR
+  rules:
+    - type: ma_condition
+      field: close
+      ma_period: 2
+      operator: <
+risk_filters:
+  max_position_per_stock: 0.2
+  max_total_position: 0.8
+  restrict_limit_up_buy: true
+  restrict_limit_down_sell: true
+  restrict_suspended: true
+  min_liquidity_for_trade: 10000000
+rebalance:
+  frequency: daily
+  check_time: close
+fill_model:
+  signal_to_execution: T+1
+  execution_price: open
+  commission: 0.0003
+  stamp_tax: 0.001
+  slippage: 0.002
+  lot_size: 100
+  lot_rounding: floor
+  handling:
+    limit_up_buy: skip
+    limit_down_sell: defer_next_day
+    suspended: skip
+backtest_config:
+  initial_capital: 1000000
+  start_date: '2024-01-01'
+  end_date: '2025-12-31'
+  sample_split:
+    in_sample_end: '2024-12-31'
+    out_of_sample_start: '2025-01-01'
+  benchmark:
+    type: index
+    code: 000905.SH
+    name: CSI 500
+  data_source: golden_case
+  include_delisted: partial
+prototype_gate:
+  enabled: true
+  min_total_return: 0.0
+  max_drawdown: -0.25
+  min_sharpe_ratio: 0.0
+  min_trades: 2
+  min_oos_return: -0.1
+  max_oos_drawdown: -0.3
+  min_oos_trades: 1
+  min_completed_round_trips: 1
+audit:
+  created_at: '2026-06-21T00:00:00'
+  created_by: user
+  last_modified_at: '2026-06-21T00:00:00'
+  config_hash: m0-golden

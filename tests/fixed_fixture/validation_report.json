@@ -1,0 +1,195 @@
+{
+  "validation_timestamp": "2026-06-22T15:25:06.474928",
+  "fixture_path": "D:\\Codex\\TraderLens\\tests\\fixed_fixture",
+  "status": "degraded",
+  "errors": [],
+  "warnings": [
+    "Data source is 'mock' (not real market data)"
+  ],
+  "missing_files": [],
+  "missing_fields": [],
+  "invalid_rows": [],
+  "suspicious_rows": [],
+  "per_symbol_summary": {
+    "000001.SZ": {
+      "symbol": "000001.SZ",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "000002.SZ": {
+      "symbol": "000002.SZ",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "000333.SZ": {
+      "symbol": "000333.SZ",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "000858.SZ": {
+      "symbol": "000858.SZ",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "002594.SZ": {
+      "symbol": "002594.SZ",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "002475.SZ": {
+      "symbol": "002475.SZ",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "300750.SZ": {
+      "symbol": "300750.SZ",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "300059.SZ": {
+      "symbol": "300059.SZ",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "300760.SZ": {
+      "symbol": "300760.SZ",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "002352.SZ": {
+      "symbol": "002352.SZ",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "600000.SH": {
+      "symbol": "600000.SH",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "600036.SH": {
+      "symbol": "600036.SH",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "600519.SH": {
+      "symbol": "600519.SH",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "601318.SH": {
+      "symbol": "601318.SH",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "601398.SH": {
+      "symbol": "601398.SH",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "601888.SH": {
+      "symbol": "601888.SH",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "600887.SH": {
+      "symbol": "600887.SH",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "600585.SH": {
+      "symbol": "600585.SH",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "600690.SH": {
+      "symbol": "600690.SH",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    },
+    "603259.SH": {
+      "symbol": "603259.SH",
+      "errors": [],
+      "warnings": [],
+      "daily_bars_count": 487,
+      "daily_status_count": 487,
+      "missing_dates": [],
+      "invalid_bars": []
+    }
+  }
+}

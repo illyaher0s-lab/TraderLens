@@ -1,0 +1,7 @@
+event_type,symbol,signal_id,intended_execution_date,reason,requested_quantity,generated_quantity,sellable_quantity,total_quantity
+zero_quantity,000001.SZ,strategy_002_volume_breakout_stop_loss:v1:000001.SZ:2023-08-01:entry,2023-08-02,insufficient_capital_for_one_lot,,,,
+zero_quantity,600519.SH,strategy_002_volume_breakout_stop_loss:v1:600519.SH:2023-08-01:entry,2023-08-02,insufficient_capital_for_one_lot,,,,
+zero_quantity,300750.SZ,strategy_002_volume_breakout_stop_loss:v1:300750.SZ:2023-08-01:entry,2023-08-02,insufficient_capital_for_one_lot,,,,
+zero_quantity,002475.SZ,strategy_002_volume_breakout_stop_loss:v1:002475.SZ:2023-08-01:entry,2023-08-02,insufficient_capital_for_one_lot,,,,
+zero_quantity,601318.SH,strategy_002_volume_breakout_stop_loss:v1:601318.SH:2023-08-01:entry,2023-08-02,insufficient_capital_for_one_lot,,,,
+zero_quantity,002475.SZ,strategy_002_volume_breakout_stop_loss:v1:002475.SZ:2024-07-30:entry,2024-07-31,insufficient_capital_for_one_lot,,,,

@@ -1,0 +1,8 @@
+event_type,symbol,signal_id,intended_execution_date,reason,requested_quantity,generated_quantity,sellable_quantity,total_quantity
+signal_conflict,000001.SZ,diagnostic-holding-days:v1:000001.SZ:2023-01-16:entry,2023-01-17,entry_exit_conflict_on_same_day,,,,
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-holding-days:v1:000001.SZ:2023-01-16:exit,2023-01-17,"partial_exit: requested 5600, only 4600 sellable (frozen 1000)",5600,4600,4600,5600
+signal_conflict,000001.SZ,diagnostic-holding-days:v1:000001.SZ:2023-01-17:entry,2023-01-18,entry_exit_conflict_on_same_day,,,,
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-holding-days:v1:000001.SZ:2023-02-21:exit,2023-02-22,"partial_exit: requested 4800, only 3600 sellable (frozen 1200)",4800,3600,3600,4800
+signal_conflict,000001.SZ,diagnostic-holding-days:v1:000001.SZ:2023-03-27:entry,2023-03-28,entry_exit_conflict_on_same_day,,,,
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-holding-days:v1:000001.SZ:2023-03-27:exit,2023-03-28,"partial_exit: requested 7300, only 6600 sellable (frozen 700)",7300,6600,6600,7300
+signal_conflict,000001.SZ,diagnostic-holding-days:v1:000001.SZ:2023-03-28:entry,2023-03-29,entry_exit_conflict_on_same_day,,,,

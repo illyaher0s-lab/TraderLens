@@ -1,0 +1,7 @@
+{
+  "case_id": "limit_down_sell_deferred",
+  "symbol": "000002.SZ",
+  "date": "2024-01-03",
+  "expected_constraint": "sell deferred when is_limit_down is true",
+  "scope": "fixture_only_m0"
+}

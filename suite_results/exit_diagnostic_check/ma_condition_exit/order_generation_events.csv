@@ -1,0 +1,18 @@
+event_type,symbol,signal_id,intended_execution_date,reason,requested_quantity,generated_quantity,sellable_quantity,total_quantity
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-01-18:exit,2023-01-19,"partial_exit: requested 7000, only 6400 sellable (frozen 600)",7000,6400,6400,7000
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-01-20:exit,2023-01-23,"partial_exit: requested 2400, only 600 sellable (frozen 1800)",2400,600,600,2400
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-02-03:exit,2023-02-06,"partial_exit: requested 4700, only 3500 sellable (frozen 1200)",4700,3500,3500,4700
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-02-17:exit,2023-02-20,"partial_exit: requested 3500, only 2000 sellable (frozen 1500)",3500,2000,2000,3500
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-02-21:exit,2023-02-22,"partial_exit: requested 3200, only 1500 sellable (frozen 1700)",3200,1500,1500,3200
+t1_frozen,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-03-01:exit,2023-03-02,t1_frozen: all 1800 shares frozen,1800,0,0,1800
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-03-13:exit,2023-03-14,"partial_exit: requested 3600, only 2000 sellable (frozen 1600)",3600,2000,2000,3600
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-03-30:exit,2023-03-31,"partial_exit: requested 8400, only 8100 sellable (frozen 300)",8400,8100,8100,8400
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-04-17:exit,2023-04-18,"partial_exit: requested 8400, only 8100 sellable (frozen 300)",8400,8100,8100,8400
+t1_frozen,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-04-20:exit,2023-04-21,t1_frozen: all 1900 shares frozen,1900,0,0,1900
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-04-24:exit,2023-04-25,"partial_exit: requested 3500, only 1900 sellable (frozen 1600)",3500,1900,1900,3500
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-05-01:exit,2023-05-02,"partial_exit: requested 3500, only 1900 sellable (frozen 1600)",3500,1900,1900,3500
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-05-10:exit,2023-05-11,"partial_exit: requested 6400, only 5700 sellable (frozen 700)",6400,5700,5700,6400
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-05-23:exit,2023-05-24,"partial_exit: requested 3400, only 1900 sellable (frozen 1500)",3400,1900,1900,3400
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-06-06:exit,2023-06-07,"partial_exit: requested 6400, only 5600 sellable (frozen 800)",6400,5600,5600,6400
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-06-15:exit,2023-06-16,"partial_exit: requested 5600, only 4600 sellable (frozen 1000)",5600,4600,4600,5600
+partial_exit_due_to_t1_freeze,000001.SZ,diagnostic-ma-condition-exit:v1:000001.SZ:2023-06-23:exit,2023-06-26,"partial_exit: requested 6800, only 6100 sellable (frozen 700)",6800,6100,6100,6800
