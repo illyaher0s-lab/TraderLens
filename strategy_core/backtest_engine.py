@@ -17,6 +17,7 @@ from backend.services.backtest_time_cursor import BacktestTimeCursor, FutureData
 from backend.services.b4_protocol_types import (
     OrderIntentRecord,
     FillRecord,
+    RejectedOrderRecord,
     EventBacktestResult,
     DailyPortfolioSnapshot,
     FutureDataViolation,
@@ -381,7 +382,7 @@ def run_event_backtest(
                     symbol=order.symbol,
                     signal_date=trade_date,  # T
                     intent=order.direction,  # "buy" or "sell"
-                    quantity=order.planned_quantity,
+                    quantity=order.quantity,  # Order has 'quantity', not 'planned_quantity'
                 )
                 order_intents.append(intent)
             
@@ -424,7 +425,14 @@ def run_event_backtest(
                         )
                         fills.append(fill)
                     else:
-                        rejected_orders.append(filled_order)
+                        # Record rejection
+                        rejected_record = RejectedOrderRecord(
+                            order_id=filled_order.order_id,
+                            symbol=filled_order.symbol,
+                            intended_date=filled_order.intended_execution_date,
+                            rejection_reason=filled_order.rejection_reason,
+                        )
+                        rejected_orders.append(rejected_record)
                 except FutureDataAccessError as e:
                     # Execution tried to read beyond T+1
                     future_violations.append(e.violation)

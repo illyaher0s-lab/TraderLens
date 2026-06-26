@@ -439,36 +439,51 @@ class TestB4EventBacktestLoop(unittest.TestCase):
         """Event loop must return rejected orders in EventBacktestResult."""
         from strategy_core.backtest_engine import run_event_backtest
         from strategy_core.dsl_parser import parse_strategy_config
-        from backend.app.golden_cases import GoldenCaseDataSource
         from strategy_core.trading_calendar import TradingCalendar
+        from tests.b4_fixtures import create_rejection_test_data_source
         from pathlib import Path
         
-        # Create aggressive strategy that will likely hit rejections
-        # (e.g., try to buy on limit-up days if data has them, or high quantity for liquidity)
-        strategy_config = parse_strategy_config(
-            Path(__file__).parent / "golden_cases" / "strategy_config.yaml"
-        )
+        # Guaranteed rejection scenario: suspended stock
+        # Test-specific data source with:
+        # - T (2024-01-09): normal, strategy generates buy signal
+        # - T+1 (2024-01-10): SUSPENDED, order rejected
         
-        data_source = GoldenCaseDataSource(Path(__file__).parent / "golden_cases")
+        data_source = create_rejection_test_data_source()
+        strategy_config = parse_strategy_config(Path(__file__).parent / "rejection_test_strategy.yaml")
         calendar = TradingCalendar(data_source)
         
-        # Run with very limited capital to trigger rejections
+        # Run event backtest
         result = run_event_backtest(
             strategy_config=strategy_config,
             data_source=data_source,
             calendar=calendar,
             protocol_snapshot_id="proto_reject_test",
             data_snapshot_hash="hash_reject_test",
-            initial_capital=1000.0,  # Very low capital - likely to reject orders
+            initial_capital=100000.0,
         )
         
-        # Verify rejected_orders structure exists and is tuple
+        # Strong assertion: must have at least one rejection
+        self.assertGreater(
+            len(result.rejected_orders),
+            0,
+            "Event loop must produce at least one rejection in suspended stock scenario",
+        )
+        
+        # Verify rejected_orders is tuple
         self.assertIsInstance(result.rejected_orders, tuple)
         
-        # If any rejected orders, verify they have reasons
+        # Verify all rejected orders have reasons
         for rejected_order in result.rejected_orders:
             self.assertIsNotNone(rejected_order.rejection_reason)
             self.assertGreater(len(rejected_order.rejection_reason), 0)
+        
+        # Verify at least one rejection is due to suspended
+        rejection_reasons = {order.rejection_reason for order in result.rejected_orders}
+        self.assertIn(
+            "suspended",
+            rejection_reasons,
+            f"Expected 'suspended' in rejection reasons, got: {rejection_reasons}",
+        )
 
 
 if __name__ == "__main__":

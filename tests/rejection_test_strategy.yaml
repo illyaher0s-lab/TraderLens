@@ -1,0 +1,75 @@
+strategy_name: rejection_test
+version: test_v1
+status: draft
+hypothesis_source_snapshot:
+  source_type: manual
+  source_run_id: test
+  evidence_pack_ids: []
+  generated_at: '2024-01-01T00:00:00'
+  data_range_used_for_generation:
+    start: '2024-01-01'
+    end: '2024-12-31'
+universe:
+  type: static_list
+  symbols:
+    - 999999.SZ
+entry_conditions:
+  logic: AND
+  rules:
+    - type: ma_condition
+      field: close
+      ma_period: 2
+      operator: '>'
+exit_conditions:
+  logic: OR
+  rules: []
+risk_filters:
+  max_position_per_stock: 0.5
+  max_total_position: 0.8
+  restrict_limit_up_buy: true
+  restrict_limit_down_sell: true
+  restrict_suspended: true
+  min_liquidity_for_trade: 100000
+rebalance:
+  frequency: daily
+  check_time: close
+fill_model:
+  signal_to_execution: T+1
+  execution_price: open
+  commission: 0.0003
+  stamp_tax: 0.001
+  slippage: 0.0
+  lot_size: 100
+  lot_rounding: floor
+  handling:
+    limit_up_buy: skip
+    limit_down_sell: skip
+    suspended: skip
+backtest_config:
+  initial_capital: 100000
+  start_date: '2024-01-08'
+  end_date: '2024-01-10'
+  sample_split:
+    in_sample_end: '2024-01-09'
+    out_of_sample_start: '2024-01-10'
+  benchmark:
+    type: index
+    code: 000300.SH
+    name: CSI300
+  data_source: test
+  include_delisted: none
+prototype_gate:
+  enabled: false
+  min_total_return: 0.0
+  max_drawdown: -1.0
+  min_sharpe_ratio: -100.0
+  min_trades: 0
+  min_oos_return: -1.0
+  max_oos_drawdown: -1.0
+  min_oos_trades: 0
+  min_completed_round_trips: 0
+audit:
+  created_at: '2024-01-01T00:00:00'
+  created_by: test
+  last_modified_at: '2024-01-01T00:00:00'
+  config_hash: test
