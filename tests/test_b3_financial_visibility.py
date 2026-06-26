@@ -52,6 +52,29 @@ class TestFinancialVisibilityGuard(unittest.TestCase):
         )
         self.assertFalse(is_visible)
 
+    def test_period_end_before_t_but_ann_date_after_t_is_not_visible(self):
+        """Report period before T but ann_date after T must not be visible."""
+        is_visible, error = self.guard.check_visibility(
+            symbol="000001.SZ",
+            report_period_end=date(2024, 3, 31),  # Q1 report
+            ann_date=date(2024, 6, 1),  # Announced June 1
+            as_of_date=date(2024, 5, 1),  # Query as of May 1
+        )
+        self.assertFalse(is_visible)
+        self.assertIn("future", error.lower())
+
+    def test_no_fallback_to_period_end_date(self):
+        """Guard must not use report period end date when ann_date is missing."""
+        # Missing ann_date should block, not fall back to report_period_end
+        is_visible, error = self.guard.check_visibility(
+            symbol="000001.SZ",
+            report_period_end=date(2024, 3, 31),
+            ann_date=None,  # Missing
+            as_of_date=date(2024, 5, 1),
+        )
+        self.assertFalse(is_visible)
+        self.assertIn("ann_date", error)
+
     def test_no_llm_call_in_visibility_guard(self):
         """Visibility guard must be deterministic."""
         from backend.services import financial_visibility

@@ -78,19 +78,56 @@ class TestB3Contracts(unittest.TestCase):
 
 class TestPointInTimeUniverseBuilder(unittest.TestCase):
     def setUp(self):
-        from backend.services.point_in_time_universe import PointInTimeUniverseBuilder
-        self.builder = PointInTimeUniverseBuilder()
+        from backend.services.point_in_time_universe import (
+            PointInTimeUniverseBuilder,
+            InMemoryMembershipSource,
+        )
+        from tests.b1_fixtures import make_backtest_universe
+        
+        # Create test records with effective date windows
+        test_records = (
+            UniverseMembershipRecord(
+                symbol="000001.SZ",
+                effective_from=date(2020, 1, 1),
+                effective_to=None,  # Still trading
+                source="test_index",
+                snapshot_id="test_snap",
+            ),
+            UniverseMembershipRecord(
+                symbol="000002.SZ",
+                effective_from=date(2023, 1, 1),
+                effective_to=date(2023, 12, 31),  # Delisted
+                source="test_index",
+                snapshot_id="test_snap",
+            ),
+            UniverseMembershipRecord(
+                symbol="000003.SZ",
+                effective_from=date(2025, 1, 1),
+                effective_to=None,  # Future listing
+                source="test_index",
+                snapshot_id="test_snap",
+            ),
+        )
+        
+        self.membership_source = InMemoryMembershipSource(
+            records=test_records,
+            source_snapshot_date=date(2023, 1, 1),
+        )
+        self.builder = PointInTimeUniverseBuilder(membership_source=self.membership_source)
+        self.universe = make_backtest_universe()
 
     def test_builder_only_accepts_backtest_universe_spec(self):
         """Only BacktestUniverseSpec allowed, not ForwardWatchlistSnapshot or plain list."""
         from contracts.strategy import BacktestUniverseSpec
-        from tests.b1_fixtures import make_backtest_universe
         
-        universe = make_backtest_universe()
-        self.assertIsInstance(universe, BacktestUniverseSpec)
+        self.assertIsInstance(self.universe, BacktestUniverseSpec)
         
         # Should not raise
-        snapshot = self.builder.build_membership_snapshot(universe, date(2024, 1, 1))
+        snapshot = self.builder.build_membership_snapshot(
+            self.universe,
+            backtest_start=date(2024, 1, 1),
+            backtest_end=date(2024, 12, 31),
+        )
         self.assertEqual(snapshot.universe_rule_type, "point_in_time_membership")
 
     def test_builder_rejects_forward_watchlist(self):
@@ -102,25 +139,203 @@ class TestPointInTimeUniverseBuilder(unittest.TestCase):
         self.assertFalse(is_valid)
         self.assertIn("ForwardWatchlist", error)
 
-    def test_builder_requires_effective_date_membership(self):
-        """Membership must have effective_from/to, not just current snapshot."""
-        from tests.b1_fixtures import make_backtest_universe
+    def test_rejects_confirmed_candidate_symbol_pool(self):
+        """Confirmed candidate pool from A module must be rejected."""
+        from contracts.strategy import BacktestUniverseSpec
         
-        universe = make_backtest_universe()
-        snapshot = self.builder.build_membership_snapshot(universe, date(2024, 1, 1))
+        candidate_pool = BacktestUniverseSpec(
+            universe_spec_id="confirmed_candidate_pool_2024",
+            universe_rule_type="point_in_time_membership",
+            membership_source="a_module_candidates",
+            membership_effective_from=date(2024, 1, 1),
+            membership_effective_to=date(2024, 12, 31),
+            snapshot_date=date(2024, 1, 1),
+            membership_snapshot_ids=("snap_001",),
+            quality_status="ok",
+        )
         
-        # Snapshot must enforce include_delisted=True
-        self.assertEqual(snapshot.include_delisted, True)
+        with self.assertRaises(ValueError) as ctx:
+            self.builder.build_membership_snapshot(
+                candidate_pool,
+                backtest_start=date(2024, 1, 1),
+                backtest_end=date(2024, 12, 31),
+            )
+        
+        self.assertIn("Confirmed candidate pool", str(ctx.exception))
 
-    def test_delisted_stocks_included_if_valid_during_period(self):
-        """Delisted stocks valid during backtest period must be included."""
-        from tests.b1_fixtures import make_backtest_universe
+    def test_membership_respects_effective_date_window(self):
+        """Records must respect effective_from/to window logic."""
+        snapshot = self.builder.build_membership_snapshot(
+            self.universe,
+            backtest_start=date(2024, 1, 1),
+            backtest_end=date(2024, 12, 31),
+        )
         
-        universe = make_backtest_universe()
-        snapshot = self.builder.build_membership_snapshot(universe, date(2024, 1, 1))
+        symbols = {r.symbol for r in snapshot.records}
         
-        # include_delisted must be True to avoid survivorship bias
-        self.assertTrue(snapshot.include_delisted)
+        # 000001.SZ: listed 2020, still trading → included
+        self.assertIn("000001.SZ", symbols)
+        
+        # 000002.SZ: delisted 2023-12-31, backtest 2024 → excluded
+        self.assertNotIn("000002.SZ", symbols)
+        
+        # 000003.SZ: listed 2025, backtest 2024 → excluded
+        self.assertNotIn("000003.SZ", symbols)
+
+    def test_delisted_stock_present_during_valid_period(self):
+        """Delisted stock must appear if backtest period overlaps its valid period."""
+        snapshot = self.builder.build_membership_snapshot(
+            self.universe,
+            backtest_start=date(2023, 6, 1),
+            backtest_end=date(2023, 12, 1),
+        )
+        
+        symbols = {r.symbol for r in snapshot.records}
+        
+        # 000002.SZ valid until 2023-12-31, backtest overlaps → included
+        self.assertIn("000002.SZ", symbols)
+
+    def test_stock_absent_before_listing_date(self):
+        """Stock must not appear before its effective_from date."""
+        # Use a membership source snapshot taken BEFORE the backtest period
+        from backend.services.point_in_time_universe import (
+            InMemoryMembershipSource,
+            PointInTimeUniverseBuilder,
+        )
+        
+        early_records = (
+            UniverseMembershipRecord(
+                symbol="000001.SZ",
+                effective_from=date(2020, 1, 1),
+                effective_to=None,
+                source="test_index",
+                snapshot_id="early_snap",
+            ),
+            UniverseMembershipRecord(
+                symbol="000002.SZ",
+                effective_from=date(2023, 1, 1),
+                effective_to=date(2023, 12, 31),
+                source="test_index",
+                snapshot_id="early_snap",
+            ),
+        )
+        
+        early_source = InMemoryMembershipSource(
+            records=early_records,
+            source_snapshot_date=date(2021, 1, 1),  # Before backtest 2022
+        )
+        
+        builder = PointInTimeUniverseBuilder(membership_source=early_source)
+        
+        snapshot = builder.build_membership_snapshot(
+            self.universe,
+            backtest_start=date(2022, 1, 1),
+            backtest_end=date(2022, 12, 31),
+        )
+        
+        symbols = {r.symbol for r in snapshot.records}
+        
+        # 000002.SZ listed 2023-01-01, backtest 2022 → excluded
+        self.assertNotIn("000002.SZ", symbols)
+
+    def test_stock_absent_after_delisting_date(self):
+        """Stock must not appear after its effective_to date."""
+        snapshot = self.builder.build_membership_snapshot(
+            self.universe,
+            backtest_start=date(2024, 1, 1),
+            backtest_end=date(2024, 12, 31),
+        )
+        
+        symbols = {r.symbol for r in snapshot.records}
+        
+        # 000002.SZ delisted 2023-12-31, backtest 2024 → excluded
+        self.assertNotIn("000002.SZ", symbols)
+
+    def test_missing_membership_source_is_insufficient(self):
+        """Builder without membership source must fail loud."""
+        from backend.services.point_in_time_universe import PointInTimeUniverseBuilder
+        
+        builder_no_source = PointInTimeUniverseBuilder(membership_source=None)
+        
+        snapshot = builder_no_source.build_membership_snapshot(
+            self.universe,
+            backtest_start=date(2024, 1, 1),
+            backtest_end=date(2024, 12, 31),
+        )
+        
+        self.assertEqual(snapshot.quality_status, "insufficient")
+        self.assertGreater(len(snapshot.gaps), 0)
+        self.assertEqual(len(snapshot.records), 0)
+
+    def test_current_membership_cannot_backfill_history(self):
+        """Membership source snapshot_date > backtest_start must fail."""
+        from backend.services.point_in_time_universe import (
+            InMemoryMembershipSource,
+            PointInTimeUniverseBuilder,
+        )
+        
+        # Current membership snapshot (2024-12-31)
+        current_records = (
+            UniverseMembershipRecord(
+                symbol="000001.SZ",
+                effective_from=date(2020, 1, 1),
+                effective_to=None,
+                source="current_snapshot",
+                snapshot_id="current",
+            ),
+        )
+        
+        current_source = InMemoryMembershipSource(
+            records=current_records,
+            source_snapshot_date=date(2024, 12, 31),  # Future relative to backtest
+        )
+        
+        builder = PointInTimeUniverseBuilder(membership_source=current_source)
+        
+        # Try to backtest in 2023 using 2024 membership → must fail
+        with self.assertRaises(ValueError) as ctx:
+            builder.build_membership_snapshot(
+                self.universe,
+                backtest_start=date(2023, 1, 1),
+                backtest_end=date(2023, 12, 31),
+            )
+        
+        self.assertIn("backfill history", str(ctx.exception))
+
+    def test_current_sector_membership_cannot_backfill_past(self):
+        """Current sector/concept membership must not be used for historical backtest."""
+        from backend.services.point_in_time_universe import (
+            InMemoryMembershipSource,
+            PointInTimeUniverseBuilder,
+        )
+        
+        # Current sector snapshot taken today
+        sector_records = (
+            UniverseMembershipRecord(
+                symbol="000001.SZ",
+                effective_from=date(2020, 1, 1),
+                effective_to=None,
+                source="current_sector_snapshot",
+                snapshot_id="sector_2024",
+            ),
+        )
+        
+        current_sector = InMemoryMembershipSource(
+            records=sector_records,
+            source_snapshot_date=date(2024, 6, 1),  # Current
+        )
+        
+        builder = PointInTimeUniverseBuilder(membership_source=current_sector)
+        
+        # Try to use current sector membership for 2023 backtest → fail
+        with self.assertRaises(ValueError) as ctx:
+            builder.build_membership_snapshot(
+                self.universe,
+                backtest_start=date(2023, 1, 1),
+                backtest_end=date(2023, 12, 31),
+            )
+        
+        self.assertIn("backfill history", str(ctx.exception))
 
     def test_no_llm_call_in_universe_builder(self):
         """Universe builder must be deterministic, no LLM."""
