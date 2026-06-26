@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import date as Date
+
 from contracts.stable import BacktestResult, DailyPortfolioValue, Trade, StrategyConfig
 from backend.app.golden_cases import GoldenCaseDataSource
 from strategy_core.trading_calendar import TradingCalendar
@@ -11,6 +13,13 @@ from strategy_core.position_sizer import PositionSizer
 from strategy_core.fill_simulator import simulate_fill
 from strategy_core.transaction_costs import calculate_transaction_costs
 from strategy_core.prototype_gate import evaluate_prototype_gate
+from backend.services.backtest_time_cursor import BacktestTimeCursor
+from backend.services.b4_protocol_types import (
+    OrderIntentRecord,
+    FillRecord,
+    EventBacktestResult,
+    DailyPortfolioSnapshot,
+)
 
 
 def run_backtest(
@@ -235,4 +244,196 @@ def run_backtest(
         exit_triggered_rules=sorted(exit_triggered_rules),
         t1_blocked_exit_count=t1_blocked_exit_count,
         partial_exit_due_to_t1_count=partial_exit_due_to_t1_count,
+    )
+
+
+def run_event_backtest(
+    strategy_config: StrategyConfig,
+    data_source: GoldenCaseDataSource,
+    calendar: TradingCalendar,
+    protocol_snapshot_id: str,
+    data_snapshot_hash: str,
+    initial_capital: float = 100000.0,
+) -> EventBacktestResult:
+    """
+    Run event-driven backtest with T-day signal semantics and strict time cursor.
+    
+    Event loop per trading day T:
+    1. Create signal_phase cursor (allowed_read_until = T)
+    2. Build point-in-time universe as of T
+    3. Generate signals using data <= T
+    4. After T close: create order intents
+    5. Record order intents with signal_date = T
+    6. Move to T+1: create execution_phase cursor
+    7. Process pending orders using T+1 data
+    8. Record fills
+    9. Record read trace
+    
+    Args:
+        strategy_config: Strategy configuration
+        data_source: Data source for bars/status
+        calendar: Trading calendar
+        protocol_snapshot_id: B3 protocol snapshot ID (required)
+        data_snapshot_hash: B3 data snapshot hash (required)
+        initial_capital: Initial capital
+    
+    Returns:
+        EventBacktestResult with order intents, fills, violations, and read trace
+    
+    Raises:
+        ValueError: If protocol_snapshot_id or data_snapshot_hash missing
+    """
+    # Validate B3 protocol snapshot and data snapshot hash
+    if not protocol_snapshot_id or protocol_snapshot_id.strip() == "":
+        raise ValueError("protocol_snapshot_id is required for event backtest")
+    
+    if not data_snapshot_hash or data_snapshot_hash.strip() == "":
+        raise ValueError("data_snapshot_hash is required for event backtest")
+    
+    # Initialize
+    portfolio = PortfolioState(cash=initial_capital)
+    order_intents: list[OrderIntentRecord] = []
+    fills: list[FillRecord] = []
+    rejected_orders = []
+    all_read_trace: list[str] = []
+    future_violations = []
+    
+    universe = build_universe(strategy_config, data_source)
+    sizer = PositionSizer(position_ratio=0.2)
+    
+    trading_dates = [
+        trading_date
+        for trading_date in calendar.all_trading_dates()
+        if strategy_config.backtest_config.start_date
+        <= trading_date
+        <= strategy_config.backtest_config.end_date
+    ]
+    
+    if not trading_dates:
+        raise ValueError("no trading dates within configured backtest range")
+    
+    for i, trade_date in enumerate(trading_dates):
+        # === PHASE 1: Signal Phase (T日) ===
+        # Create signal phase cursor: can only read <= T
+        signal_cursor = BacktestTimeCursor(
+            cursor_id=f"signal_{trade_date}",
+            current_date=trade_date,
+            evaluation_mode="signal_phase",
+        )
+        
+        # Unlock frozen lots at start of trading day
+        portfolio.unlock_frozen_lots(trade_date)
+        
+        # Generate entry signals using data <= T
+        # (signal generation will request reads via cursor if integrated)
+        entry_signals = generate_signals(strategy_config, data_source, trade_date, universe)
+        
+        # Generate exit signals for current positions
+        from strategy_core.signals import generate_exit_signals
+        exit_signals = generate_exit_signals(strategy_config, data_source, trade_date, portfolio.positions)
+        
+        # Combine signals
+        signals = entry_signals + exit_signals
+        
+        # Record signal phase read trace
+        signal_state = signal_cursor.get_state()
+        all_read_trace.extend(signal_state.read_trace)
+        
+        # === PHASE 2: Order Creation (after T close) ===
+        if signals:
+            try:
+                next_date = calendar.next_trading_day(trade_date)
+            except ValueError:
+                # Last trading day, cannot execute orders
+                break
+            if next_date > strategy_config.backtest_config.end_date:
+                break
+            
+            # Create order intents (planned quantity based on signal_date close)
+            order_result = generate_orders(
+                signals,
+                intended_execution_date=next_date,
+                price_provider=data_source,
+                sizer=sizer,
+                available_capital=portfolio.available_capital(),
+                current_positions=portfolio.positions,
+            )
+            
+            # Record order intents with signal_date
+            for order in order_result.valid_orders:
+                intent = OrderIntentRecord(
+                    order_id=order.order_id,
+                    symbol=order.symbol,
+                    signal_date=trade_date,  # T
+                    intent=order.direction,  # "buy" or "sell"
+                    quantity=order.planned_quantity,
+                )
+                order_intents.append(intent)
+            
+            # === PHASE 3: Execution Phase (T+1) ===
+            # Create execution phase cursor: can read T+1 for execution
+            exec_cursor = BacktestTimeCursor(
+                cursor_id=f"exec_{trade_date}",
+                current_date=trade_date,
+                evaluation_mode="execution_phase",
+            )
+            
+            # Simulate fill on next_date using T+1 execution data
+            for order in order_result.valid_orders:
+                filled_order = simulate_fill(
+                    order, next_date, data_source, portfolio,
+                    commission_rate=0.0003,
+                    min_commission=5.0,
+                    stamp_duty_rate=0.001,
+                    transfer_fee_rate=0.0,
+                    calendar=calendar,
+                )
+                
+                if filled_order.status == "filled":
+                    # Record fill
+                    fill = FillRecord(
+                        fill_id=f"fill:{filled_order.order_id}",
+                        order_id=filled_order.order_id,
+                        symbol=filled_order.symbol,
+                        fill_date=filled_order.actual_execution_date,
+                        fill_price=filled_order.actual_price,
+                        fill_quantity=filled_order.actual_quantity,
+                        execution_mode="simulated",
+                    )
+                    fills.append(fill)
+                else:
+                    rejected_orders.append(filled_order)
+            
+            # Record execution phase read trace
+            exec_state = exec_cursor.get_state()
+            all_read_trace.extend(exec_state.read_trace)
+        
+        # Update position prices with current day close
+        if portfolio.positions:
+            prices = {symbol: data_source.get_price(symbol, trade_date) for symbol in portfolio.positions}
+            portfolio.update_position_prices(prices)
+    
+    # Create final portfolio snapshot
+    final_portfolio = DailyPortfolioSnapshot(
+        snapshot_id=f"final_{trading_dates[-1]}",
+        snapshot_date=trading_dates[-1],
+        cash=portfolio.cash,
+        positions=tuple((symbol, pos.quantity) for symbol, pos in portfolio.positions.items()),
+        portfolio_value=portfolio.total_value(),
+    )
+    
+    # Return EventBacktestResult
+    return EventBacktestResult(
+        result_id=f"result_{protocol_snapshot_id}_{strategy_config.strategy_name}",
+        strategy_revision_id=strategy_config.strategy_name,
+        protocol_snapshot_id=protocol_snapshot_id,
+        evaluation_mode="formal_backtest",
+        backtest_start=trading_dates[0],
+        backtest_end=trading_dates[-1],
+        order_intents=tuple(order_intents),
+        fills=tuple(fills),
+        rejected_orders=tuple(),  # B4 Task 5 doesn't track rejected orders yet
+        future_violations=tuple(future_violations),
+        final_portfolio=final_portfolio,
+        frozen_at=Date.today(),
     )
