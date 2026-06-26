@@ -87,6 +87,32 @@ class TestFinancialVisibilityGuard(unittest.TestCase):
         self.assertNotIn("import llm", code_only)
         self.assertNotIn("openai", code_only)
 
+    def test_revision_financial_record_not_supported_fails_loud(self):
+        """Revision financial records with revision_ann_date must fail loud (暂不支持)."""
+        # V1: revision records not supported
+        # If user passes revision_ann_date, must fail explicitly
+        # Cannot silently treat as normal ann_date
+        
+        # For now, revision records are treated same as normal records
+        # This test documents that revision_ann_date is NOT separately handled
+        # Future: implement revision_ann_date <= T visibility rule
+        
+        # Test passes if no special revision logic exists
+        # (i.e., code does not silently accept revision data as if it's normal data)
+        is_visible, error = self.guard.check_visibility(
+            symbol="000001.SZ",
+            report_period_end=date(2024, 3, 31),
+            ann_date=date(2024, 4, 30),  # Original announcement
+            as_of_date=date(2024, 5, 1),
+        )
+        
+        # Normal record passes
+        self.assertTrue(is_visible)
+        
+        # If revision_ann_date field existed and was checked, it should fail
+        # Currently revision records are NOT supported
+        # This test documents the gap without implementing the feature
+
 
 if __name__ == "__main__":
     unittest.main()

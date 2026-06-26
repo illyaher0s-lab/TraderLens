@@ -69,8 +69,14 @@ class TestOOSWindowRules(unittest.TestCase):
             available_end=date(2024, 12, 31),
         )
         
+        # P0-3: Complete OOSWindowSpec must be equal
         self.assertEqual(window1.oos_window_start, window2.oos_window_start)
         self.assertEqual(window1.oos_window_end, window2.oos_window_end)
+        self.assertEqual(window1.oos_window_rule_id, window2.oos_window_rule_id)
+        self.assertEqual(window1.generated_at, window2.generated_at)
+        
+        # Entire object must be equal
+        self.assertEqual(window1, window2)
 
     def test_latest_252_trading_days_rule(self):
         """latest_252_trading_days rule uses last N trading days."""
@@ -117,7 +123,7 @@ class TestOOSWindowRules(unittest.TestCase):
         self.assertIn("insufficient", str(ctx.exception).lower())
 
     def test_shared_oos_window_id_is_stable(self):
-        """shared_oos_window_id must be deterministic."""
+        """shared_oos_window_id must be deterministic and non-empty."""
         window1 = self.registry.generate(
             rule_id="fixed_ratio_70_30",
             trading_calendar=self.trading_calendar,
@@ -132,10 +138,33 @@ class TestOOSWindowRules(unittest.TestCase):
             available_end=date(2024, 12, 31),
         )
         
-        # Both should produce same shared_oos_window_id (not implemented in OOSWindowSpec yet)
-        # For now, just verify window dates are identical (deterministic)
+        # Compute shared_oos_window_id explicitly
+        shared_id1 = self.registry.compute_shared_oos_window_id(
+            rule_id="fixed_ratio_70_30",
+            trading_calendar=self.trading_calendar,
+            available_start=date(2024, 1, 1),
+            available_end=date(2024, 12, 31),
+        )
+        
+        shared_id2 = self.registry.compute_shared_oos_window_id(
+            rule_id="fixed_ratio_70_30",
+            trading_calendar=self.trading_calendar,
+            available_start=date(2024, 1, 1),
+            available_end=date(2024, 12, 31),
+        )
+        
+        # shared_oos_window_id must be stable
+        self.assertEqual(shared_id1, shared_id2)
+        self.assertIsNotNone(shared_id1)
+        self.assertNotEqual(shared_id1, "")
+        self.assertGreater(len(shared_id1), 0)
+        
+        # Window dates must be identical (deterministic)
         self.assertEqual(window1.oos_window_start, window2.oos_window_start)
         self.assertEqual(window1.oos_window_end, window2.oos_window_end)
+        
+        # generated_at must be deterministic (not current date)
+        self.assertEqual(window1.generated_at, window2.generated_at)
 
     def test_oos_window_generator_has_no_llm_dependency(self):
         """OOS window generator must be deterministic, no LLM."""

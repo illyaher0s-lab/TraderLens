@@ -10,6 +10,7 @@ from backend.services.b3_protocol_types import (
     OOSWindowSpec,
 )
 from backend.services.oos_window_rules import OOSWindowRuleRegistry
+from backend.services.time_consistency_guard import TimeConsistencyGuard
 from contracts.strategy import (
     BacktestUniverseSpec,
     ResearchProtocolSnapshot,
@@ -41,6 +42,7 @@ class ResearchProtocolFreezer:
         oos_window: OOSWindowSpec,
         gate_criteria_hash: str,
         frozen_by: str,
+        backtest_start: __import__("datetime").date,
     ) -> ResearchProtocolSnapshot:
         """
         Freeze research protocol snapshot.
@@ -52,6 +54,7 @@ class ResearchProtocolFreezer:
             oos_window: OOS window from registered rule
             gate_criteria_hash: Gate criteria hash
             frozen_by: Agent/user who froze protocol
+            backtest_start: Backtest start date for time consistency check
         
         Returns:
             Immutable ResearchProtocolSnapshot
@@ -91,6 +94,33 @@ class ResearchProtocolFreezer:
         if universe.quality_status == "insufficient":
             raise ValueError(
                 "Universe quality is insufficient. Cannot freeze protocol with contaminated universe."
+            )
+        
+        # Time consistency validation (P0-1: must integrate guard)
+        guard = TimeConsistencyGuard()
+        
+        # Check universe snapshot time consistency
+        universe_check = guard.validate_universe_snapshot(
+            snapshot_date=universe.snapshot_date,
+            backtest_start=backtest_start,
+            universe_type=universe.universe_rule_type,
+        )
+        
+        if universe_check.status == "fail":
+            raise ValueError(
+                f"Time consistency violation: {'; '.join(universe_check.blocking_violations)}"
+            )
+        
+        # Check universe source type
+        source_check = guard.validate_universe_source(
+            source_type=universe.membership_source,
+            source_snapshot_date=universe.snapshot_date,
+            backtest_start=backtest_start,
+        )
+        
+        if source_check.status == "fail":
+            raise ValueError(
+                f"Universe source violation: {'; '.join(source_check.blocking_violations)}"
             )
         
         # Compute shared_oos_window_id (deterministic)

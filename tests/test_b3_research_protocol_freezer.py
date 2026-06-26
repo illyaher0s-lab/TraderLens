@@ -67,6 +67,7 @@ class TestResearchProtocolFreezer(unittest.TestCase):
             oos_window=self.oos_window,
             gate_criteria_hash="hash_gate",
             frozen_by="test_agent",
+            backtest_start=date(2024, 1, 1),
         )
         
         self.assertIsNotNone(protocol)
@@ -97,6 +98,7 @@ class TestResearchProtocolFreezer(unittest.TestCase):
                 oos_window=self.oos_window,
                 gate_criteria_hash="hash_gate",
                 frozen_by="test_agent",
+                backtest_start=date(2024, 1, 1),
             )
         
         self.assertIn("strategy_config", str(ctx.exception).lower())
@@ -122,6 +124,7 @@ class TestResearchProtocolFreezer(unittest.TestCase):
                 oos_window=self.oos_window,
                 gate_criteria_hash="hash_gate",
                 frozen_by="test_agent",
+                backtest_start=date(2024, 1, 1),
             )
         
         self.assertIn("data_snapshot_hash", str(ctx.exception).lower())
@@ -136,6 +139,7 @@ class TestResearchProtocolFreezer(unittest.TestCase):
                 oos_window=self.oos_window,
                 gate_criteria_hash="",  # Empty
                 frozen_by="test_agent",
+                backtest_start=date(2024, 1, 1),
             )
         
         self.assertIn("gate_criteria_hash", str(ctx.exception).lower())
@@ -158,6 +162,7 @@ class TestResearchProtocolFreezer(unittest.TestCase):
                 oos_window=invalid_oos,
                 gate_criteria_hash="hash_gate",
                 frozen_by="test_agent",
+                backtest_start=date(2024, 1, 1),
             )
         
         self.assertIn("oos", str(ctx.exception).lower())
@@ -183,6 +188,7 @@ class TestResearchProtocolFreezer(unittest.TestCase):
                 oos_window=self.oos_window,
                 gate_criteria_hash="hash_gate",
                 frozen_by="test_agent",
+                backtest_start=date(2024, 1, 1),
             )
         
         self.assertIn("insufficient", str(ctx.exception).lower())
@@ -209,6 +215,7 @@ class TestResearchProtocolFreezer(unittest.TestCase):
                 oos_window=self.oos_window,
                 gate_criteria_hash="hash_gate",
                 frozen_by="test_agent",
+                backtest_start=date(2024, 1, 1),
             )
         
         self.assertIn("universe", str(ctx.exception).lower())
@@ -222,6 +229,7 @@ class TestResearchProtocolFreezer(unittest.TestCase):
             oos_window=self.oos_window,
             gate_criteria_hash="hash_gate",
             frozen_by="test_agent",
+            backtest_start=date(2024, 1, 1),
         )
         
         # Protocol should not have Gate/report/promotion fields
@@ -238,6 +246,7 @@ class TestResearchProtocolFreezer(unittest.TestCase):
             oos_window=self.oos_window,
             gate_criteria_hash="hash_gate",
             frozen_by="test_agent",
+            backtest_start=date(2024, 1, 1),
         )
         
         # Pydantic frozen model cannot be modified
@@ -257,6 +266,96 @@ class TestResearchProtocolFreezer(unittest.TestCase):
         self.assertNotIn("from llm", code_only)
         self.assertNotIn("openai", code_only)
         self.assertNotIn("anthropic", code_only)
+
+    # P0-1: End-to-end time consistency tests
+    def test_e2e_rejects_universe_snapshot_after_backtest_start(self):
+        """E2E: Universe snapshot_date > backtest_start must fail at freezer."""
+        future_universe = BacktestUniverseSpec(
+            universe_spec_id="universe_001",
+            universe_rule_type="point_in_time_membership",
+            membership_source="historical_index",
+            membership_effective_from=date(2024, 1, 1),
+            membership_effective_to=date(2024, 12, 31),
+            snapshot_date=date(2024, 6, 1),  # After backtest_start
+            membership_snapshot_ids=("snap_001",),
+            quality_status="ok",
+            gaps=(),
+        )
+        
+        with self.assertRaises(ValueError) as ctx:
+            self.freezer.freeze_protocol(
+                strategy_draft=self.strategy_draft,
+                universe=future_universe,
+                data_snapshot=self.data_snapshot,
+                oos_window=self.oos_window,
+                gate_criteria_hash="hash_gate",
+                frozen_by="test_agent",
+                backtest_start=date(2024, 1, 1),
+            )
+        
+        # Must fail with time consistency violation
+        self.assertIn("time consistency", str(ctx.exception).lower())
+        # Must NOT return protocol snapshot
+        # (assertRaises already confirms no return)
+
+    def test_e2e_rejects_current_confirmed_candidate_pool(self):
+        """E2E: Current confirmed candidate pool must fail at freezer."""
+        candidate_universe = BacktestUniverseSpec(
+            universe_spec_id="confirmed_candidate_pool_2024",
+            universe_rule_type="point_in_time_membership",
+            membership_source="confirmed_candidate_pool",  # Contaminated
+            membership_effective_from=date(2024, 1, 1),
+            membership_effective_to=date(2024, 12, 31),
+            snapshot_date=date(2024, 1, 1),
+            membership_snapshot_ids=("snap_001",),
+            quality_status="ok",
+            gaps=(),
+        )
+        
+        with self.assertRaises(ValueError) as ctx:
+            self.freezer.freeze_protocol(
+                strategy_draft=self.strategy_draft,
+                universe=candidate_universe,
+                data_snapshot=self.data_snapshot,
+                oos_window=self.oos_window,
+                gate_criteria_hash="hash_gate",
+                frozen_by="test_agent",
+                backtest_start=date(2024, 1, 1),
+            )
+        
+        # Must fail with source violation
+        self.assertIn("candidate", str(ctx.exception).lower())
+
+    def test_e2e_rejects_current_sector_membership(self):
+        """E2E: Current sector membership for historical backtest must fail."""
+        current_sector_universe = BacktestUniverseSpec(
+            universe_spec_id="universe_001",
+            universe_rule_type="sector_plus_tags",
+            membership_source="current_sector_snapshot",
+            membership_effective_from=date(2024, 1, 1),
+            membership_effective_to=date(2024, 12, 31),
+            snapshot_date=date(2024, 12, 31),  # Current snapshot
+            membership_snapshot_ids=("snap_001",),
+            quality_status="ok",
+            gaps=(),
+        )
+        
+        with self.assertRaises(ValueError) as ctx:
+            self.freezer.freeze_protocol(
+                strategy_draft=self.strategy_draft,
+                universe=current_sector_universe,
+                data_snapshot=self.data_snapshot,
+                oos_window=self.oos_window,
+                gate_criteria_hash="hash_gate",
+                frozen_by="test_agent",
+                backtest_start=date(2024, 1, 1),
+            )
+        
+        # Must fail at freezer (time consistency violation)
+        error_msg = str(ctx.exception).lower()
+        self.assertTrue(
+            "time consistency" in error_msg or "future" in error_msg or "source" in error_msg
+        )
 
 
 if __name__ == "__main__":

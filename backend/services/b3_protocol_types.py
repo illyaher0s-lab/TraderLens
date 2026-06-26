@@ -59,10 +59,15 @@ class DataSnapshotManifest(BaseModel):
     market_data_fingerprint: str
     daily_status_fingerprint: str
     membership_fingerprint: str
+    trading_calendar_fingerprint: str = ""
+    delisted_coverage_policy: str = ""
     financial_visibility_fingerprint: str = ""
     benchmark_fingerprint: str = ""
+    adjustment_factor_fingerprint: str = ""
+    provider_fingerprints: tuple[str, ...] = ()
     quality_status: Literal["ok", "insufficient"]
     gaps: tuple[str, ...]
+    generated_by: str = ""  # Runtime metadata (excluded from hash)
 
 
 class OOSWindowSpec(BaseModel):

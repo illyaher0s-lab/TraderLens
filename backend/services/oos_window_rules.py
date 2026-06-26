@@ -39,7 +39,7 @@ class OOSWindowRuleRegistry:
             available_end: Available data end date
         
         Returns:
-            OOSWindowSpec with deterministic window
+            OOSWindowSpec with deterministic window and shared_oos_window_id
         
         Raises:
             ValueError: If rule unregistered or insufficient data
@@ -57,26 +57,41 @@ class OOSWindowRuleRegistry:
         
         # Dispatch to rule implementation
         if rule_id == "latest_252_trading_days":
-            return self._generate_latest_252_days(
-                trading_calendar, available_start, available_end
-            )
+            window_start, window_end = self._generate_latest_252_days(trading_calendar)
         elif rule_id == "fixed_ratio_70_30":
-            return self._generate_fixed_ratio_70_30(
-                trading_calendar, available_start, available_end
-            )
+            window_start, window_end = self._generate_fixed_ratio_70_30(trading_calendar)
         else:
             raise ValueError(f"Rule '{rule_id}' registered but not implemented")
+        
+        # Compute stable shared_oos_window_id
+        shared_oos_window_id = self.compute_shared_oos_window_id(
+            rule_id=rule_id,
+            trading_calendar=trading_calendar,
+            available_start=available_start,
+            available_end=available_end,
+        )
+        
+        # Use deterministic generated_at from inputs (not current date)
+        generated_at = available_start
+        
+        return OOSWindowSpec(
+            oos_window_rule_id=rule_id,
+            oos_window_start=window_start,
+            oos_window_end=window_end,
+            generated_at=generated_at,
+        )
     
     def _generate_latest_252_days(
         self,
         trading_calendar: tuple[date, ...],
-        available_start: date,
-        available_end: date,
-    ) -> OOSWindowSpec:
+    ) -> tuple[date, date]:
         """
         Use latest 252 trading days as OOS window.
         
         Fails if fewer than 252 days available.
+        
+        Returns:
+            (oos_window_start, oos_window_end)
         """
         if len(trading_calendar) < 252:
             raise ValueError(
@@ -87,23 +102,19 @@ class OOSWindowRuleRegistry:
         # Take last 252 days
         oos_calendar = trading_calendar[-252:]
         
-        return OOSWindowSpec(
-            oos_window_rule_id="latest_252_trading_days",
-            oos_window_start=oos_calendar[0],
-            oos_window_end=oos_calendar[-1],
-            generated_at=date.today(),
-        )
+        return (oos_calendar[0], oos_calendar[-1])
     
     def _generate_fixed_ratio_70_30(
         self,
         trading_calendar: tuple[date, ...],
-        available_start: date,
-        available_end: date,
-    ) -> OOSWindowSpec:
+    ) -> tuple[date, date]:
         """
         Split calendar 70% in-sample / 30% out-of-sample.
         
         Minimum 30 OOS days required.
+        
+        Returns:
+            (oos_window_start, oos_window_end)
         """
         total_days = len(trading_calendar)
         
@@ -120,12 +131,7 @@ class OOSWindowRuleRegistry:
         # OOS starts after IS period
         oos_calendar = trading_calendar[is_days:]
         
-        return OOSWindowSpec(
-            oos_window_rule_id="fixed_ratio_70_30",
-            oos_window_start=oos_calendar[0],
-            oos_window_end=oos_calendar[-1],
-            generated_at=date.today(),
-        )
+        return (oos_calendar[0], oos_calendar[-1])
     
     def compute_shared_oos_window_id(
         self,

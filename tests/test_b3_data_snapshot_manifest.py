@@ -188,7 +188,7 @@ class TestDataSnapshotManifest(unittest.TestCase):
         self.assertNotEqual(hash1, hash2)
 
     def test_runtime_metadata_excluded_from_hash(self):
-        """Runtime metadata (created_at) must not affect hash."""
+        """Runtime metadata (created_at, generated_by) must not affect hash."""
         manifest1 = DataSnapshotManifest(
             data_snapshot_id="snap_001",
             data_snapshot_hash="placeholder",
@@ -196,6 +196,7 @@ class TestDataSnapshotManifest(unittest.TestCase):
             market_data_fingerprint="mkt_fp_001",
             daily_status_fingerprint="status_fp_001",
             membership_fingerprint="member_fp_001",
+            generated_by="agent_v1",
             quality_status="ok",
             gaps=(),
         )
@@ -207,6 +208,7 @@ class TestDataSnapshotManifest(unittest.TestCase):
             market_data_fingerprint="mkt_fp_001",
             daily_status_fingerprint="status_fp_001",
             membership_fingerprint="member_fp_001",
+            generated_by="agent_v2",  # Different generated_by
             quality_status="ok",
             gaps=(),
         )
@@ -214,8 +216,132 @@ class TestDataSnapshotManifest(unittest.TestCase):
         hash1 = self.builder.compute_hash(manifest1)
         hash2 = self.builder.compute_hash(manifest2)
         
-        # Runtime metadata (created_at) changes must NOT change hash
+        # Runtime metadata (created_at, generated_by) changes must NOT change hash
         self.assertEqual(hash1, hash2)
+
+    def test_trading_calendar_fingerprint_changes_hash(self):
+        """Changing trading calendar must change hash."""
+        manifest1 = DataSnapshotManifest(
+            data_snapshot_id="snap_001",
+            data_snapshot_hash="placeholder",
+            created_at=date(2024, 1, 1),
+            market_data_fingerprint="mkt_fp_001",
+            daily_status_fingerprint="status_fp_001",
+            membership_fingerprint="member_fp_001",
+            trading_calendar_fingerprint="cal_fp_001",
+            quality_status="ok",
+            gaps=(),
+        )
+        
+        manifest2 = DataSnapshotManifest(
+            data_snapshot_id="snap_001",
+            data_snapshot_hash="placeholder",
+            created_at=date(2024, 1, 1),
+            market_data_fingerprint="mkt_fp_001",
+            daily_status_fingerprint="status_fp_001",
+            membership_fingerprint="member_fp_001",
+            trading_calendar_fingerprint="cal_fp_002",  # Changed
+            quality_status="ok",
+            gaps=(),
+        )
+        
+        hash1 = self.builder.compute_hash(manifest1)
+        hash2 = self.builder.compute_hash(manifest2)
+        
+        self.assertNotEqual(hash1, hash2)
+
+    def test_delisted_coverage_policy_changes_hash(self):
+        """Changing delisted coverage policy must change hash."""
+        manifest1 = DataSnapshotManifest(
+            data_snapshot_id="snap_001",
+            data_snapshot_hash="placeholder",
+            created_at=date(2024, 1, 1),
+            market_data_fingerprint="mkt_fp_001",
+            daily_status_fingerprint="status_fp_001",
+            membership_fingerprint="member_fp_001",
+            delisted_coverage_policy="strict",
+            quality_status="ok",
+            gaps=(),
+        )
+        
+        manifest2 = DataSnapshotManifest(
+            data_snapshot_id="snap_001",
+            data_snapshot_hash="placeholder",
+            created_at=date(2024, 1, 1),
+            market_data_fingerprint="mkt_fp_001",
+            daily_status_fingerprint="status_fp_001",
+            membership_fingerprint="member_fp_001",
+            delisted_coverage_policy="lenient",  # Changed
+            quality_status="ok",
+            gaps=(),
+        )
+        
+        hash1 = self.builder.compute_hash(manifest1)
+        hash2 = self.builder.compute_hash(manifest2)
+        
+        self.assertNotEqual(hash1, hash2)
+
+    def test_adjustment_factor_fingerprint_changes_hash(self):
+        """Changing adjustment factor must change hash."""
+        manifest1 = DataSnapshotManifest(
+            data_snapshot_id="snap_001",
+            data_snapshot_hash="placeholder",
+            created_at=date(2024, 1, 1),
+            market_data_fingerprint="mkt_fp_001",
+            daily_status_fingerprint="status_fp_001",
+            membership_fingerprint="member_fp_001",
+            adjustment_factor_fingerprint="adj_fp_001",
+            quality_status="ok",
+            gaps=(),
+        )
+        
+        manifest2 = DataSnapshotManifest(
+            data_snapshot_id="snap_001",
+            data_snapshot_hash="placeholder",
+            created_at=date(2024, 1, 1),
+            market_data_fingerprint="mkt_fp_001",
+            daily_status_fingerprint="status_fp_001",
+            membership_fingerprint="member_fp_001",
+            adjustment_factor_fingerprint="adj_fp_002",  # Changed
+            quality_status="ok",
+            gaps=(),
+        )
+        
+        hash1 = self.builder.compute_hash(manifest1)
+        hash2 = self.builder.compute_hash(manifest2)
+        
+        self.assertNotEqual(hash1, hash2)
+
+    def test_provider_fingerprints_changes_hash(self):
+        """Changing provider fingerprints must change hash."""
+        manifest1 = DataSnapshotManifest(
+            data_snapshot_id="snap_001",
+            data_snapshot_hash="placeholder",
+            created_at=date(2024, 1, 1),
+            market_data_fingerprint="mkt_fp_001",
+            daily_status_fingerprint="status_fp_001",
+            membership_fingerprint="member_fp_001",
+            provider_fingerprints=("provider_a", "provider_b"),
+            quality_status="ok",
+            gaps=(),
+        )
+        
+        manifest2 = DataSnapshotManifest(
+            data_snapshot_id="snap_001",
+            data_snapshot_hash="placeholder",
+            created_at=date(2024, 1, 1),
+            market_data_fingerprint="mkt_fp_001",
+            daily_status_fingerprint="status_fp_001",
+            membership_fingerprint="member_fp_001",
+            provider_fingerprints=("provider_a", "provider_c"),  # Changed
+            quality_status="ok",
+            gaps=(),
+        )
+        
+        hash1 = self.builder.compute_hash(manifest1)
+        hash2 = self.builder.compute_hash(manifest2)
+        
+        self.assertNotEqual(hash1, hash2)
 
     def test_missing_data_gaps_recorded(self):
         """Missing data gaps must be recorded in manifest."""
