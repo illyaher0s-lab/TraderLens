@@ -47,6 +47,13 @@ class CursorBoundDataView:
                 return bar
         return None
     
+    def get_daily_bar(self, symbol: str, trade_date: date) -> DailyBar:
+        """Compatibility adapter for get_bar (used by fill_simulator)."""
+        bar = self.get_bar(symbol, trade_date)
+        if bar is None:
+            raise KeyError(f"No bar for {symbol} on {trade_date}")
+        return bar
+    
     def get_price(self, symbol: str, as_of_date: date) -> float:
         """Get close price with cursor validation."""
         bar = self.get_bar(symbol, as_of_date)
@@ -67,3 +74,7 @@ class CursorBoundDataView:
             raise FutureDataAccessError(violation)
         
         return self._raw.get_status(symbol, as_of_date)
+    
+    def get_daily_status(self, symbol: str, trade_date: date):
+        """Compatibility adapter for get_status (used by fill_simulator)."""
+        return self.get_status(symbol, trade_date)

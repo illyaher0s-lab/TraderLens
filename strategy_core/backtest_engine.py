@@ -461,7 +461,7 @@ def run_event_backtest(
         backtest_end=trading_dates[-1],
         order_intents=tuple(order_intents),
         fills=tuple(fills),
-        rejected_orders=tuple(),  # B4 Task 5 doesn't track rejected orders yet
+        rejected_orders=tuple(rejected_orders),  # Task 6: return rejected orders
         future_violations=tuple(future_violations),
         final_portfolio=final_portfolio,
         frozen_at=Date.today(),
