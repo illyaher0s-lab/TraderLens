@@ -397,15 +397,17 @@ def run_event_backtest(
             exec_data_view = CursorBoundDataView(data_source, exec_cursor)
             
             # Simulate fill on next_date using T+1 execution data
-            # Task 5: zero cost (Task 6 will add A-share cost model)
+            # Task 6: A-share base cost model
             for order in order_result.valid_orders:
                 try:
                     filled_order = simulate_fill(
                         order, next_date, exec_data_view, portfolio,
-                        commission_rate=0.0,  # Task 6: A-share commission
-                        min_commission=0.0,   # Task 6: min commission
-                        stamp_duty_rate=0.0,  # Task 6: stamp duty
+                        commission_rate=0.0003,  # Task 6: A-share commission (万三)
+                        min_commission=5.0,      # Task 6: min commission
+                        stamp_duty_rate=0.001,   # Task 6: stamp duty (千一)
                         transfer_fee_rate=0.0,
+                        slippage_rate=0.0,       # Task 6: slippage (default 0)
+                        max_participation_rate=0.10,  # Task 6: liquidity constraint (10%)
                         calendar=calendar,
                     )
                     

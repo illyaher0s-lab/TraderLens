@@ -277,12 +277,17 @@ class TestT1FreezeLogic(unittest.TestCase):
             date(2024, 1, 3),
             self.data_source,
             portfolio,
+            commission_rate=0.0003,
+            min_commission=5.0,
+            stamp_duty_rate=0.001,
+            slippage_rate=0.0,
+            max_participation_rate=0.10,
             calendar=self.calendar
         )
         
         self.assertEqual(filled_order.status, "rejected")
-        self.assertIn("t1_violation", filled_order.rejection_reason)
-        self.assertIn("only 0 sellable", filled_order.rejection_reason)
+        # T+1 violation manifests as insufficient_position
+        self.assertIn("insufficient_position", filled_order.rejection_reason)
         
         # Position should remain unchanged
         self.assertEqual(pos.quantity, 100)

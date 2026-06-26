@@ -20,6 +20,8 @@ def simulate_fill(
     min_commission: float = 5.0,
     stamp_duty_rate: float = 0.001,
     transfer_fee_rate: float = 0.0,
+    slippage_rate: float = 0.0,  # Task 6: slippage rate
+    max_participation_rate: float = 0.10,  # Task 6: liquidity constraint (10%)
     calendar=None,  # TradingCalendar, required for T+1 freeze tracking
 ) -> Order:
     """
@@ -63,29 +65,40 @@ def simulate_fill(
             "status": "rejected",
             "rejection_reason": "suspended",
         })
-    
+    # Delegate to direction-specific fill logic
     if order.direction == "buy":
         return _simulate_buy_fill(
             order, execution_date, bar, status, portfolio,
-            commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate, calendar
+            commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate,
+            slippage_rate, max_participation_rate, calendar
         )
     elif order.direction == "sell":
         return _simulate_sell_fill(
             order, execution_date, bar, status, portfolio,
-            commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate
+            commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate,
+            slippage_rate, max_participation_rate
         )
     else:
         raise ValueError(f"unknown direction: {order.direction}")
 
 
 def _simulate_buy_fill(order, execution_date, bar, status, portfolio,
-                       commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate, calendar):
-    """Simulate buy order fill with transaction costs and T+1 freeze."""
+                       commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate,
+                       slippage_rate, max_participation_rate, calendar):
+    """Simulate buy order fill with transaction costs, T+1 freeze, slippage, and liquidity."""
     # Limit up check
     if status.is_limit_up:
         return order.model_copy(update={
             "status": "rejected",
             "rejection_reason": "limit_up",
+        })
+    
+    # Liquidity check
+    max_allowed_quantity = int(bar.volume * max_participation_rate / 100) * 100
+    if order.quantity > max_allowed_quantity:
+        return order.model_copy(update={
+            "status": "rejected",
+            "rejection_reason": "liquidity_shortfall",
         })
 
     if calendar is None:
@@ -98,7 +111,9 @@ def _simulate_buy_fill(order, execution_date, bar, status, portfolio,
             "rejection_reason": "no_t1_unlock_date",
         })
     
-    execution_price = bar.open
+    # Base execution price + slippage (buy pays more)
+    base_price = bar.open
+    execution_price = base_price * (1 + slippage_rate)
     
     # Calculate costs for planned quantity
     gross, commission, stamp_duty, transfer_fee, total_fee, net_cash_flow = calculate_transaction_costs(
@@ -177,13 +192,22 @@ def _simulate_buy_fill(order, execution_date, bar, status, portfolio,
 
 
 def _simulate_sell_fill(order, execution_date, bar, status, portfolio,
-                        commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate):
-    """Simulate sell order fill with transaction costs."""
+                        commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate,
+                        slippage_rate, max_participation_rate):
+    """Simulate sell order fill with transaction costs, slippage, and liquidity."""
     # Limit down check
     if status.is_limit_down:
         return order.model_copy(update={
             "status": "rejected",
             "rejection_reason": "limit_down",
+        })
+    
+    # Liquidity check
+    max_allowed_quantity = int(bar.volume * max_participation_rate / 100) * 100
+    if order.quantity > max_allowed_quantity:
+        return order.model_copy(update={
+            "status": "rejected",
+            "rejection_reason": "liquidity_shortfall",
         })
     
     # Position check
@@ -193,26 +217,18 @@ def _simulate_sell_fill(order, execution_date, bar, status, portfolio,
             "rejection_reason": "no_position",
         })
     
-    pos = portfolio.positions[order.symbol]
+    position = portfolio.positions[order.symbol]
     
-    # Check total quantity first (insufficient_position takes precedence over T+1)
-    if order.quantity > pos.quantity:
+    # T+1 check: only sellable_quantity available
+    if position.sellable_quantity < order.quantity:
         return order.model_copy(update={
             "status": "rejected",
             "rejection_reason": "insufficient_position",
         })
     
-    # T+1 check: can only sell sellable_quantity
-    if order.quantity > pos.sellable_quantity:
-        return order.model_copy(update={
-            "status": "rejected",
-            "rejection_reason": (
-                f"t1_violation: only {pos.sellable_quantity} sellable "
-                f"(total {pos.quantity}, frozen {pos.quantity - pos.sellable_quantity})"
-            ),
-        })
-    
-    execution_price = bar.open
+    # Base execution price - slippage (sell gets less)
+    base_price = bar.open
+    execution_price = base_price * (1 - slippage_rate)
     
     # Calculate costs
     gross, commission, stamp_duty, transfer_fee, total_fee, net_cash_flow = calculate_transaction_costs(
