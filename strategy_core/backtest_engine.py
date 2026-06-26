@@ -13,13 +13,15 @@ from strategy_core.position_sizer import PositionSizer
 from strategy_core.fill_simulator import simulate_fill
 from strategy_core.transaction_costs import calculate_transaction_costs
 from strategy_core.prototype_gate import evaluate_prototype_gate
-from backend.services.backtest_time_cursor import BacktestTimeCursor
+from backend.services.backtest_time_cursor import BacktestTimeCursor, FutureDataAccessError
 from backend.services.b4_protocol_types import (
     OrderIntentRecord,
     FillRecord,
     EventBacktestResult,
     DailyPortfolioSnapshot,
+    FutureDataViolation,
 )
+from strategy_core.cursor_bound_data_view import CursorBoundDataView
 
 
 def run_backtest(
@@ -296,7 +298,7 @@ def run_event_backtest(
     fills: list[FillRecord] = []
     rejected_orders = []
     all_read_trace: list[str] = []
-    future_violations = []
+    future_violations: list[FutureDataViolation] = []
     
     universe = build_universe(strategy_config, data_source)
     sizer = PositionSizer(position_ratio=0.2)
@@ -321,16 +323,28 @@ def run_event_backtest(
             evaluation_mode="signal_phase",
         )
         
+        # Create cursor-bound data view for signal phase
+        signal_data_view = CursorBoundDataView(data_source, signal_cursor)
+        
         # Unlock frozen lots at start of trading day
         portfolio.unlock_frozen_lots(trade_date)
         
-        # Generate entry signals using data <= T
-        # (signal generation will request reads via cursor if integrated)
-        entry_signals = generate_signals(strategy_config, data_source, trade_date, universe)
+        # Generate entry signals using cursor-bound data view
+        # Any attempt to read T+1 will raise FutureDataAccessError
+        try:
+            entry_signals = generate_signals(strategy_config, signal_data_view, trade_date, universe)
+        except FutureDataAccessError as e:
+            # Record violation and skip this day
+            future_violations.append(e.violation)
+            entry_signals = []
         
         # Generate exit signals for current positions
         from strategy_core.signals import generate_exit_signals
-        exit_signals = generate_exit_signals(strategy_config, data_source, trade_date, portfolio.positions)
+        try:
+            exit_signals = generate_exit_signals(strategy_config, signal_data_view, trade_date, portfolio.positions)
+        except FutureDataAccessError as e:
+            future_violations.append(e.violation)
+            exit_signals = []
         
         # Combine signals
         signals = entry_signals + exit_signals
@@ -350,10 +364,11 @@ def run_event_backtest(
                 break
             
             # Create order intents (planned quantity based on signal_date close)
+            # Use signal_data_view for price reads (still within signal phase time bounds)
             order_result = generate_orders(
                 signals,
                 intended_execution_date=next_date,
-                price_provider=data_source,
+                price_provider=signal_data_view,
                 sizer=sizer,
                 available_capital=portfolio.available_capital(),
                 current_positions=portfolio.positions,
@@ -378,40 +393,52 @@ def run_event_backtest(
                 evaluation_mode="execution_phase",
             )
             
+            # Create cursor-bound data view for execution phase
+            exec_data_view = CursorBoundDataView(data_source, exec_cursor)
+            
             # Simulate fill on next_date using T+1 execution data
+            # Task 5: zero cost (Task 6 will add A-share cost model)
             for order in order_result.valid_orders:
-                filled_order = simulate_fill(
-                    order, next_date, data_source, portfolio,
-                    commission_rate=0.0003,
-                    min_commission=5.0,
-                    stamp_duty_rate=0.001,
-                    transfer_fee_rate=0.0,
-                    calendar=calendar,
-                )
-                
-                if filled_order.status == "filled":
-                    # Record fill
-                    fill = FillRecord(
-                        fill_id=f"fill:{filled_order.order_id}",
-                        order_id=filled_order.order_id,
-                        symbol=filled_order.symbol,
-                        fill_date=filled_order.actual_execution_date,
-                        fill_price=filled_order.actual_price,
-                        fill_quantity=filled_order.actual_quantity,
-                        execution_mode="simulated",
+                try:
+                    filled_order = simulate_fill(
+                        order, next_date, exec_data_view, portfolio,
+                        commission_rate=0.0,  # Task 6: A-share commission
+                        min_commission=0.0,   # Task 6: min commission
+                        stamp_duty_rate=0.0,  # Task 6: stamp duty
+                        transfer_fee_rate=0.0,
+                        calendar=calendar,
                     )
-                    fills.append(fill)
-                else:
-                    rejected_orders.append(filled_order)
+                    
+                    if filled_order.status == "filled":
+                        # Record fill
+                        fill = FillRecord(
+                            fill_id=f"fill:{filled_order.order_id}",
+                            order_id=filled_order.order_id,
+                            symbol=filled_order.symbol,
+                            fill_date=filled_order.actual_execution_date,
+                            fill_price=filled_order.actual_price,
+                            fill_quantity=filled_order.actual_quantity,
+                            execution_mode="simulated",
+                        )
+                        fills.append(fill)
+                    else:
+                        rejected_orders.append(filled_order)
+                except FutureDataAccessError as e:
+                    # Execution tried to read beyond T+1
+                    future_violations.append(e.violation)
             
             # Record execution phase read trace
             exec_state = exec_cursor.get_state()
             all_read_trace.extend(exec_state.read_trace)
         
-        # Update position prices with current day close
+        # Update position prices with current day close (use signal_data_view for T)
         if portfolio.positions:
-            prices = {symbol: data_source.get_price(symbol, trade_date) for symbol in portfolio.positions}
-            portfolio.update_position_prices(prices)
+            try:
+                prices = {symbol: signal_data_view.get_price(symbol, trade_date) for symbol in portfolio.positions}
+                portfolio.update_position_prices(prices)
+            except FutureDataAccessError as e:
+                # Should not happen (reading T from T cursor), but record if it does
+                future_violations.append(e.violation)
     
     # Create final portfolio snapshot
     final_portfolio = DailyPortfolioSnapshot(
