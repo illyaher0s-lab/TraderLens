@@ -183,5 +183,156 @@ class TestB4Contracts(unittest.TestCase):
         self.assertFalse(hasattr(intent, "fill_date"))
 
 
+class TestBacktestTimeCursor(unittest.TestCase):
+    def test_signal_phase_can_only_read_current_date(self):
+        """T日 signal phase can only read <= T."""
+        from backend.services.backtest_time_cursor import BacktestTimeCursor
+        
+        cursor = BacktestTimeCursor(
+            cursor_id="cursor_001",
+            current_date=date(2024, 1, 10),
+            evaluation_mode="signal_phase",
+        )
+        
+        # Can read T
+        allowed, violation = cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 10),
+            data_type="bar",
+            source="test",
+        )
+        self.assertTrue(allowed)
+        self.assertIsNone(violation)
+        
+        # Can read T-1
+        allowed, violation = cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 9),
+            data_type="bar",
+            source="test",
+        )
+        self.assertTrue(allowed)
+        self.assertIsNone(violation)
+        
+        # Cannot read T+1
+        allowed, violation = cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 11),
+            data_type="bar",
+            source="test",
+        )
+        self.assertFalse(allowed)
+        self.assertIsNotNone(violation)
+        self.assertEqual(violation.requested_date, date(2024, 1, 11))
+        self.assertEqual(violation.allowed_max_date, date(2024, 1, 10))
+
+    def test_read_trace_recorded(self):
+        """Read trace must be recorded."""
+        from backend.services.backtest_time_cursor import BacktestTimeCursor
+        
+        cursor = BacktestTimeCursor(
+            cursor_id="cursor_001",
+            current_date=date(2024, 1, 10),
+            evaluation_mode="signal_phase",
+        )
+        
+        cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 10),
+            data_type="bar",
+            source="test",
+        )
+        
+        cursor.request_read(
+            symbol="000002.SZ",
+            requested_date=date(2024, 1, 9),
+            data_type="daily_status",
+            source="test",
+        )
+        
+        state = cursor.get_state()
+        self.assertEqual(len(state.read_trace), 2)
+        self.assertIn("bar:000001.SZ", state.read_trace[0])
+        self.assertIn("daily_status:000002.SZ", state.read_trace[1])
+
+    def test_future_data_access_error_is_blocking(self):
+        """FutureDataAccessError is blocking failure."""
+        from backend.services.backtest_time_cursor import (
+            BacktestTimeCursor,
+            FutureDataAccessError,
+        )
+        
+        cursor = BacktestTimeCursor(
+            cursor_id="cursor_001",
+            current_date=date(2024, 1, 10),
+            evaluation_mode="signal_phase",
+        )
+        
+        allowed, violation = cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 11),
+            data_type="bar",
+            source="strategy_logic",
+        )
+        
+        self.assertFalse(allowed)
+        
+        # Should raise FutureDataAccessError
+        with self.assertRaises(FutureDataAccessError) as ctx:
+            raise FutureDataAccessError(violation)
+        
+        self.assertIn("Future data access blocked", str(ctx.exception))
+
+    def test_cursor_state_immutable(self):
+        """Cursor state snapshot is immutable."""
+        from backend.services.backtest_time_cursor import BacktestTimeCursor
+        
+        cursor = BacktestTimeCursor(
+            cursor_id="cursor_001",
+            current_date=date(2024, 1, 10),
+            evaluation_mode="signal_phase",
+        )
+        
+        state = cursor.get_state()
+        
+        # State is frozen
+        with self.assertRaises(Exception):
+            state.current_date = date(2024, 1, 11)
+
+    def test_validate_read_request(self):
+        """Validate BacktestReadRequest against cursor."""
+        from backend.services.backtest_time_cursor import BacktestTimeCursor
+        
+        cursor = BacktestTimeCursor(
+            cursor_id="cursor_001",
+            current_date=date(2024, 1, 10),
+            evaluation_mode="signal_phase",
+        )
+        
+        # Valid request
+        request = BacktestReadRequest(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 10),
+            data_type="bar",
+            source="strategy",
+        )
+        
+        allowed, violation = cursor.validate_read_request(request)
+        self.assertTrue(allowed)
+        self.assertIsNone(violation)
+        
+        # Invalid request (future)
+        future_request = BacktestReadRequest(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 11),
+            data_type="bar",
+            source="strategy",
+        )
+        
+        allowed, violation = cursor.validate_read_request(future_request)
+        self.assertFalse(allowed)
+        self.assertIsNotNone(violation)
+
+
 if __name__ == "__main__":
     unittest.main()
