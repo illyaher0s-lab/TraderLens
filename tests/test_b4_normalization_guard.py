@@ -230,17 +230,18 @@ class TestB4NormalizationGuard(unittest.TestCase):
         violation = cm.exception.violation
         self.assertIn("all_history_percentile", violation.reason)
 
-    def test_future_universe_membership_not_used_for_rank(self):
-        """Ranking must not use future universe membership - stock has T bar but not in T universe."""
-        from strategy_core.signals import cross_section_rank
-        
+    def test_future_universe_membership_blocked_in_real_signal_path(self):
+        """Rank condition in generate_signals() must not use future universe membership."""
+        from strategy_core.dsl_parser import parse_strategy_config
+        from pathlib import Path
+
         # Scenario:
-        # - STOCK_A and STOCK_B are in T visible universe
-        # - STOCK_FUTURE has valid T bar data
-        # - STOCK_FUTURE enters membership only at T+1
-        # - ranking candidate source includes STOCK_FUTURE (in data source)
-        # - rank result at T excludes STOCK_FUTURE because membership as of T excludes it
-        
+        # - Universe passed to generate_signals: ["STOCK_A", "STOCK_B"]  (T-visible)
+        # - STOCK_FUTURE has bar data but is NOT in T universe
+        # - Strategy has rank_condition: top_n=2
+        # - If system incorrectly used future membership, STOCK_FUTURE would rank #1
+        # - Correct behavior: rank only T-visible stocks
+
         bars_a = [
             DailyBar(symbol="STOCK_A", date=date(2024, 1, 10), open=10.0, high=10.5, low=9.5, close=10.0, volume=1000, amount=10000.0, adj_factor=1.0),
         ]
@@ -248,54 +249,56 @@ class TestB4NormalizationGuard(unittest.TestCase):
             DailyBar(symbol="STOCK_B", date=date(2024, 1, 10), open=12.0, high=12.5, low=11.5, close=12.0, volume=1100, amount=13200.0, adj_factor=1.0),
         ]
         bars_future = [
-            # STOCK_FUTURE has T bar data but is NOT in T universe membership
+            # STOCK_FUTURE has T bar data but is NOT in T universe
             DailyBar(symbol="STOCK_FUTURE", date=date(2024, 1, 10), open=8.0, high=8.5, low=7.5, close=8.0, volume=900, amount=7200.0, adj_factor=1.0),
         ]
-        
+
         data_source = create_mock_bar_data_source({
             "STOCK_A": bars_a,
             "STOCK_B": bars_b,
             "STOCK_FUTURE": bars_future,  # Has bar data!
         })
-        
+
         cursor = BacktestTimeCursor(
             cursor_id="test_cursor",
             current_date=date(2024, 1, 10),
             evaluation_mode="signal_phase",
         )
-        
+
         data_view = CursorBoundDataView(data_source, cursor)
-        
-        # T visible universe (from membership as of T): only STOCK_A and STOCK_B
-        # STOCK_FUTURE is NOT in T universe (enters at T+1)
+
+        # Load rank strategy
+        strategy_config = parse_strategy_config(Path(__file__).parent / "rank_test_strategy.yaml")
+
+        # T visible universe: only STOCK_A and STOCK_B
+        # STOCK_FUTURE is NOT in universe (future membership)
         t_visible_universe = ["STOCK_A", "STOCK_B"]
-        
-        # Collect values only for T-visible stocks (cursor-bound reads)
-        symbol_values = []
-        for symbol in t_visible_universe:
-            bar = data_view.get_bar(symbol, date(2024, 1, 10))
-            if bar is not None:
-                symbol_values.append((symbol, bar.close))
-        
-        # Rank should only include T-visible stocks
-        ranks = cross_section_rank(symbol_values, ascending=True)
-        
-        # Expected: only STOCK_A and STOCK_B in ranks
-        self.assertIn("STOCK_A", ranks)
-        self.assertIn("STOCK_B", ranks)
-        self.assertNotIn("STOCK_FUTURE", ranks)
-        
-        # STOCK_A (10.0) = 1, STOCK_B (12.0) = 2
-        self.assertEqual(ranks["STOCK_A"], 1)
-        self.assertEqual(ranks["STOCK_B"], 2)
-        
-        # Verify STOCK_FUTURE has bar data but is excluded from rank
+
+        # Generate signals through real signal path
+        signals = generate_signals(
+            config=strategy_config,
+            data_source=data_view,
+            trade_date=date(2024, 1, 10),
+            universe=t_visible_universe,  # Only T-visible stocks
+        )
+
+        # Verify: rank condition should use only T-visible universe
+        # STOCK_A (close=10.0) rank=1, STOCK_B (close=12.0) rank=2
+        # top_n=2 means both should trigger signals
+        self.assertEqual(len(signals), 2)
+        signal_symbols = {s.symbol for s in signals}
+        self.assertIn("STOCK_A", signal_symbols)
+        self.assertIn("STOCK_B", signal_symbols)
+        self.assertNotIn("STOCK_FUTURE", signal_symbols)
+
+        # Verify triggered rules mention rank_condition
+        for signal in signals:
+            self.assertTrue(any("rank_condition" in rule for rule in signal.triggered_rules))
+
+        # Verify STOCK_FUTURE has bar data but was excluded
         future_bar = data_view.get_bar("STOCK_FUTURE", date(2024, 1, 10))
-        self.assertIsNotNone(future_bar, "STOCK_FUTURE has T bar data")
-        self.assertEqual(future_bar.close, 8.0, "STOCK_FUTURE would rank #1 if included")
-        
-        # If ranking used future membership, STOCK_FUTURE would be rank 1
-        # But it's excluded because T membership doesn't include it
+        self.assertIsNotNone(future_bar)
+        self.assertEqual(future_bar.close, 8.0)  # Would be rank 1 if included
 
     def test_rank_has_deterministic_tie_breaker(self):
         """Rank must have deterministic tie-breaker: (value, symbol) stable sort."""

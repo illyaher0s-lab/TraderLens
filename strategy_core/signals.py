@@ -29,7 +29,7 @@ def generate_signals(
 ) -> list[Signal]:
     """
     Generate entry signals based on entry_conditions.
-    
+
     Exit signals are generated separately by generate_exit_signals().
     """
     if config.entry_conditions.logic != "AND":
@@ -42,13 +42,30 @@ def generate_signals(
     # Check if data_source is cursor-bound (has get_bar method)
     has_cursor_bound = hasattr(data_source, 'get_bar')
 
+    # Check if any rule requires cross-sectional ranking
+    has_rank_rule = any(rule.get("type") == "rank_condition" for rule in rules)
+
+    # If rank rule exists, compute ranks once for all symbols in universe
+    rank_results = {}
+    if has_rank_rule:
+        rank_results = _compute_cross_sectional_ranks(
+            rules=rules,
+            data_source=data_source,
+            trade_date=trade_date,
+            universe=universe,
+            has_cursor_bound=has_cursor_bound,
+        )
+
     signals: list[Signal] = []
     for symbol in universe:
         triggered_rules: list[str] = []
         for rule in rules:
             rule_type = rule.get("type")
-            
-            if has_cursor_bound:
+
+            if rule_type == "rank_condition":
+                # Rank condition uses pre-computed ranks
+                matched = _evaluate_rank_condition(rule, symbol, rank_results)
+            elif has_cursor_bound:
                 # Use cursor-bound path (reads data day-by-day with validation)
                 if rule_type == "breakthrough":
                     matched = _evaluate_breakthrough_cursor_bound(rule, data_source, symbol, trade_date)
@@ -240,6 +257,8 @@ def _rule_label(rule: dict) -> str:
         )
     if rule.get("type") == "ma_condition":
         return f"ma_condition:{rule.get('field')}{rule.get('operator')}ma_{rule.get('ma_period')}"
+    if rule.get("type") == "rank_condition":
+        return f"rank_condition:{rule.get('field')}:rank<={rule.get('top_n')}"
     return f"breakthrough:{rule.get('field')}{rule.get('operator')}{rule.get('benchmark')}"
 
 
@@ -485,8 +504,88 @@ def _evaluate_volume_surge_cursor_bound(
     return _evaluate_volume_surge(rule, bars, trade_date)
 
 
-# Cross-sectional ranking helper (B4 Task 7)
-# Used by signal generation when ranking is needed
+# Cross-sectional ranking (B4 Task 7)
+# Connected to real signal generation path
+
+def _compute_cross_sectional_ranks(
+    rules: list[dict],
+    data_source,
+    trade_date: date,
+    universe: list[str],
+    has_cursor_bound: bool,
+) -> dict[str, dict[str, int]]:
+    """
+    Compute cross-sectional ranks for all rank_condition rules.
+
+    Returns: {field_name: {symbol: rank}}
+
+    Universe filtering happens at caller level - this function ranks
+    only the symbols in the provided universe list.
+    """
+    rank_results = {}
+
+    # Find all unique rank fields needed
+    rank_rules = [r for r in rules if r.get("type") == "rank_condition"]
+    fields_to_rank = {r.get("field") for r in rank_rules}
+
+    for field in fields_to_rank:
+        # Collect field values for all universe symbols using cursor-bound reads
+        symbol_values = []
+        for symbol in universe:
+            try:
+                if has_cursor_bound:
+                    # Use cursor-bound read (enforces T-day visibility)
+                    bar = data_source.get_bar(symbol, trade_date)
+                else:
+                    # Legacy path
+                    bars = data_source.get_daily_bars(symbol)
+                    matching_bars = [b for b in bars if b.date == trade_date]
+                    bar = matching_bars[0] if matching_bars else None
+
+                if bar is not None:
+                    value = getattr(bar, field)
+                    symbol_values.append((symbol, value))
+            except Exception:
+                # Skip symbols with missing data
+                continue
+
+        # Rank symbols (ascending by default for close, volume, etc.)
+        ranks = cross_section_rank(symbol_values, ascending=True)
+        rank_results[field] = ranks
+
+    return rank_results
+
+
+def _evaluate_rank_condition(
+    rule: dict,
+    symbol: str,
+    rank_results: dict[str, dict[str, int]],
+) -> bool:
+    """
+    Evaluate rank condition for a symbol.
+
+    Rule format:
+        type: rank_condition
+        field: close
+        top_n: 10
+
+    Returns True if symbol's rank <= top_n.
+    """
+    field = rule.get("field")
+    top_n = rule.get("top_n")
+
+    if not isinstance(top_n, int) or top_n <= 0:
+        raise ValueError("rank_condition top_n must be a positive integer")
+
+    field_ranks = rank_results.get(field, {})
+    symbol_rank = field_ranks.get(symbol)
+
+    if symbol_rank is None:
+        # Symbol not in ranks (missing data or not in universe)
+        return False
+
+    return symbol_rank <= top_n
+
 
 def cross_section_rank(
     symbol_values: list[tuple[str, float]],
@@ -494,23 +593,23 @@ def cross_section_rank(
 ) -> dict[str, int]:
     """
     Rank symbols by value with deterministic tie-breaker.
-    
+
     Args:
         symbol_values: List of (symbol, value) tuples
         ascending: True for ascending rank (lower value = rank 1), False for descending
-    
+
     Returns:
         Dict mapping symbol to rank (1-indexed)
-    
+
     Tie-breaker:
         Primary: value (ascending or descending)
         Secondary: symbol (always ascending for determinism)
-    
+
     This ensures rank is independent of input order.
     """
     if not symbol_values:
         return {}
-    
+
     # Sort: primary by value, secondary by symbol (always ascending)
     # ascending=True: (value asc, symbol asc)
     # ascending=False: (value desc, symbol asc)
@@ -518,10 +617,10 @@ def cross_section_rank(
         sorted_symbols = sorted(symbol_values, key=lambda x: (x[1], x[0]))
     else:
         sorted_symbols = sorted(symbol_values, key=lambda x: (-x[1], x[0]))
-    
+
     # Assign ranks (1-indexed)
     ranks = {}
     for rank, (symbol, value) in enumerate(sorted_symbols, start=1):
         ranks[symbol] = rank
-    
+
     return ranks
