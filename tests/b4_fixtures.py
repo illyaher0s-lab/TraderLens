@@ -3,6 +3,41 @@ from datetime import date
 from contracts.stable import DailyBar, DailyStatus
 
 
+def create_mock_bar_data_source(bars_by_symbol: dict[str, list[DailyBar]]):
+    """
+    Create a mock data source from a dict of symbol -> bars.
+    
+    Args:
+        bars_by_symbol: Dict mapping symbol to list of DailyBar
+    
+    Returns:
+        Mock data source with get_bar() and get_daily_bars() methods
+    """
+    class MockBarDataSource:
+        def __init__(self, bars_by_symbol):
+            self.bars_by_symbol = bars_by_symbol
+        
+        def get_bar(self, symbol: str, requested_date: date) -> DailyBar | None:
+            if symbol not in self.bars_by_symbol:
+                return None
+            
+            for bar in self.bars_by_symbol[symbol]:
+                if bar.date == requested_date:
+                    return bar
+            
+            return None
+        
+        def get_daily_bar(self, symbol: str, trade_date: date) -> DailyBar | None:
+            """Alias for get_bar() for compatibility."""
+            return self.get_bar(symbol, trade_date)
+        
+        def get_daily_bars(self, symbol: str) -> list[DailyBar]:
+            """Return all bars for symbol (used by CursorBoundDataView)."""
+            return self.bars_by_symbol.get(symbol, [])
+    
+    return MockBarDataSource(bars_by_symbol)
+
+
 def create_suspended_stock_data():
     """
     Create minimal data for a suspended stock scenario.

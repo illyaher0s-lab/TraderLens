@@ -10,6 +10,15 @@ from contracts.stable import DailyBar, Signal, StrategyConfig
 class BarDataSource(Protocol):
     def get_daily_bars(self, symbol: str) -> list[DailyBar]:
         ...
+    
+    def get_bar(self, symbol: str, as_of_date: date) -> DailyBar | None:
+        """
+        Get single bar with cursor validation (if data source is cursor-bound).
+        
+        Returns None if bar not found.
+        Raises FutureDataAccessError if as_of_date is beyond cursor's allowed_read_until.
+        """
+        ...
 
 
 def generate_signals(
@@ -30,19 +39,35 @@ def generate_signals(
     if not rules:
         return []
 
+    # Check if data_source is cursor-bound (has get_bar method)
+    has_cursor_bound = hasattr(data_source, 'get_bar')
+
     signals: list[Signal] = []
     for symbol in universe:
         triggered_rules: list[str] = []
         for rule in rules:
             rule_type = rule.get("type")
-            if rule_type == "breakthrough":
-                matched = _evaluate_breakthrough(rule, data_source.get_daily_bars(symbol), trade_date)
-            elif rule_type == "volume_surge":
-                matched = _evaluate_volume_surge(rule, data_source.get_daily_bars(symbol), trade_date)
-            elif rule_type == "ma_condition":
-                matched = _evaluate_ma_condition(rule, data_source.get_daily_bars(symbol), trade_date)
+            
+            if has_cursor_bound:
+                # Use cursor-bound path (reads data day-by-day with validation)
+                if rule_type == "breakthrough":
+                    matched = _evaluate_breakthrough_cursor_bound(rule, data_source, symbol, trade_date)
+                elif rule_type == "volume_surge":
+                    matched = _evaluate_volume_surge_cursor_bound(rule, data_source, symbol, trade_date)
+                elif rule_type == "ma_condition":
+                    matched = _evaluate_ma_condition_cursor_bound(rule, data_source, symbol, trade_date)
+                else:
+                    raise NotImplementedError(f"signal rule is not implemented: {rule.get('type')}")
             else:
-                raise NotImplementedError(f"signal rule is not implemented: {rule.get('type')}")
+                # Legacy path (reads all bars at once)
+                if rule_type == "breakthrough":
+                    matched = _evaluate_breakthrough(rule, data_source.get_daily_bars(symbol), trade_date)
+                elif rule_type == "volume_surge":
+                    matched = _evaluate_volume_surge(rule, data_source.get_daily_bars(symbol), trade_date)
+                elif rule_type == "ma_condition":
+                    matched = _evaluate_ma_condition(rule, data_source.get_daily_bars(symbol), trade_date)
+                else:
+                    raise NotImplementedError(f"signal rule is not implemented: {rule.get('type')}")
 
             if matched:
                 triggered_rules.append(_rule_label(rule))
@@ -369,3 +394,134 @@ def _evaluate_stop_loss_pct_exit(rule: dict, bars: list[DailyBar], trade_date: d
     return_pct = (current.close - position.avg_cost) / position.avg_cost
     
     return return_pct <= threshold
+
+
+# Cursor-bound evaluation functions (B4 Task 7)
+# These read data day-by-day through data_source.get_bar() which enforces cursor validation
+
+def _evaluate_ma_condition_cursor_bound(
+    rule: dict,
+    data_source,
+    symbol: str,
+    trade_date: date,
+) -> bool:
+    """
+    Evaluate MA condition using cursor-bound reads.
+    
+    Reads data day-by-day via data_source.get_bar() which will raise
+    FutureDataAccessError if attempting to read beyond cursor's allowed_read_until.
+    """
+    if rule.get("field") != "close":
+        raise NotImplementedError("ma_condition only supports field=close")
+    if rule.get("operator") != ">":
+        raise NotImplementedError("ma_condition only supports operator=>")
+
+    period = rule.get("ma_period")
+    if not isinstance(period, int) or period <= 0:
+        raise ValueError("ma_condition ma_period must be a positive integer")
+
+    # Collect bars by reading day-by-day (cursor validates each read)
+    from datetime import timedelta
+    history = []
+    
+    # Try to collect up to 'period' bars before and including trade_date
+    # Start from trade_date and go backwards
+    for offset in range(period - 1, -1, -1):
+        check_date = trade_date - timedelta(days=offset)
+        bar = data_source.get_bar(symbol, check_date)  # Cursor validation here
+        if bar is not None:
+            history.append(bar)
+    
+    if not history:
+        return False
+    
+    # Current bar must be the last one (trade_date)
+    current_bar = data_source.get_bar(symbol, trade_date)
+    if current_bar is None:
+        return False
+    
+    # Calculate moving average from collected history
+    if len(history) < period:
+        # Not enough data for full window - use what we have
+        recent = history
+    else:
+        recent = history[-period:]
+    
+    moving_average = sum(bar.close for bar in recent) / len(recent)
+    return current_bar.close > moving_average
+
+
+def _evaluate_breakthrough_cursor_bound(
+    rule: dict,
+    data_source,
+    symbol: str,
+    trade_date: date,
+) -> bool:
+    """
+    Evaluate breakthrough using cursor-bound reads.
+    
+    For now, fallback to get_daily_bars since breakthrough needs historical context.
+    TODO: Implement day-by-day reads if breakthrough becomes critical path.
+    """
+    # Fallback to legacy implementation
+    bars = data_source.get_daily_bars(symbol)
+    return _evaluate_breakthrough(rule, bars, trade_date)
+
+
+def _evaluate_volume_surge_cursor_bound(
+    rule: dict,
+    data_source,
+    symbol: str,
+    trade_date: date,
+) -> bool:
+    """
+    Evaluate volume surge using cursor-bound reads.
+    
+    For now, fallback to get_daily_bars since volume surge needs historical context.
+    TODO: Implement day-by-day reads if volume surge becomes critical path.
+    """
+    # Fallback to legacy implementation
+    bars = data_source.get_daily_bars(symbol)
+    return _evaluate_volume_surge(rule, bars, trade_date)
+
+
+# Cross-sectional ranking helper (B4 Task 7)
+# Used by signal generation when ranking is needed
+
+def cross_section_rank(
+    symbol_values: list[tuple[str, float]],
+    ascending: bool = True,
+) -> dict[str, int]:
+    """
+    Rank symbols by value with deterministic tie-breaker.
+    
+    Args:
+        symbol_values: List of (symbol, value) tuples
+        ascending: True for ascending rank (lower value = rank 1), False for descending
+    
+    Returns:
+        Dict mapping symbol to rank (1-indexed)
+    
+    Tie-breaker:
+        Primary: value (ascending or descending)
+        Secondary: symbol (always ascending for determinism)
+    
+    This ensures rank is independent of input order.
+    """
+    if not symbol_values:
+        return {}
+    
+    # Sort: primary by value, secondary by symbol (always ascending)
+    # ascending=True: (value asc, symbol asc)
+    # ascending=False: (value desc, symbol asc)
+    if ascending:
+        sorted_symbols = sorted(symbol_values, key=lambda x: (x[1], x[0]))
+    else:
+        sorted_symbols = sorted(symbol_values, key=lambda x: (-x[1], x[0]))
+    
+    # Assign ranks (1-indexed)
+    ranks = {}
+    for rank, (symbol, value) in enumerate(sorted_symbols, start=1):
+        ranks[symbol] = rank
+    
+    return ranks
