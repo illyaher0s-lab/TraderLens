@@ -6,6 +6,17 @@ from pydantic import BaseModel, ConfigDict, field_validator
 from contracts.strategy import BacktestUniverseSpec
 
 
+class HypothesisBuilderValidationErrorContext(BaseModel):
+    """Lightweight validation error context for repair loop."""
+    
+    model_config = ConfigDict(frozen=True)
+    
+    code: str
+    field_path: str
+    message: str
+    repairable: bool
+
+
 class LLMTemplateSelection(BaseModel):
     """
     LLM output contract for template selection.
@@ -46,6 +57,7 @@ class HypothesisBuilderInput(BaseModel):
     evidence_summary: dict | None
     backtest_universe_spec: BacktestUniverseSpec
     strategy_revision_id: str
+    previous_validation_errors: tuple[HypothesisBuilderValidationErrorContext, ...] = ()
     
     @field_validator("strategy_revision_id")
     @classmethod

@@ -108,6 +108,38 @@ class TestStrategyConfigValidator(unittest.TestCase):
         result2 = self.validator.validate(config2, self.template)
         self.assertEqual(result2.status, "fail")
 
+    def test_rejects_evidence_term_in_deep_key(self):
+        """Validator must check deep nested keys for evidence terms."""
+        config = copy.deepcopy(self.template.strategy_config_payload)
+        config["entry"]["announcement_based_filter"] = {"enabled": True}
+        result = self.validator.validate(config, self.template)
+        self.assertEqual(result.status, "fail")
+        self.assertTrue(
+            any("announcement" in e.message.lower() for e in result.errors)
+        )
+
+    def test_rejects_evidence_term_in_string_value(self):
+        """Validator must check string values for evidence terms."""
+        config = copy.deepcopy(self.template.strategy_config_payload)
+        config["entry"]["filter_type"] = "公告驱动"
+        result = self.validator.validate(config, self.template)
+        self.assertEqual(result.status, "fail")
+        self.assertTrue(
+            any("公告" in e.message for e in result.errors)
+        )
+
+    def test_rejects_evidence_term_in_exit_and_risk_values(self):
+        """Validator must check exit and risk sections for evidence terms."""
+        config = copy.deepcopy(self.template.strategy_config_payload)
+        config["exit"]["trigger"] = "disclosure event"
+        result = self.validator.validate(config, self.template)
+        self.assertEqual(result.status, "fail")
+        
+        config2 = copy.deepcopy(self.template.strategy_config_payload)
+        config2["risk"]["avoid_conditions"] = ["订单取消"]
+        result2 = self.validator.validate(config2, self.template)
+        self.assertEqual(result2.status, "fail")
+
 
 if __name__ == "__main__":
     unittest.main()

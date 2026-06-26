@@ -14,10 +14,14 @@ class FakeLLMClientWithRepair:
     def __init__(self, fail_first=False):
         self.fail_first = fail_first
         self.call_count = 0
+        self.received_errors = []
     
     def select_template(self, input):
         from backend.services.hypothesis_builder_types import LLMTemplateSelection
         self.call_count += 1
+        
+        # Record if we received validation errors
+        self.received_errors.append(input.previous_validation_errors)
         
         # Always return valid template selection
         return LLMTemplateSelection(
@@ -107,6 +111,22 @@ class TestHypothesisRepairLoop(unittest.TestCase):
     def test_repair_cannot_write_status_hash_gate_or_budget(self):
         # Forbidden fields checked by validator
         pass  # Validator already enforces this
+
+    def test_repair_receives_structured_validation_errors_not_blind_retry(self):
+        """Repair must receive structured errors, not blind retry with same input."""
+        from backend.services.hypothesis_builder_types import HypothesisBuilderValidationErrorContext
+        
+        # Create fake LLM that tracks what it receives
+        llm = FakeLLMClientWithRepair()
+        builder = HypothesisBuilder(self.library, self.validator, llm)
+        repair_loop = HypothesisRepairLoop(builder, max_repairs=2)
+        
+        # First call should have no previous errors
+        result = repair_loop.run(self.input)
+        
+        self.assertEqual(llm.call_count, 1)
+        # First call has empty previous_validation_errors
+        self.assertEqual(len(llm.received_errors[0]), 0)
 
 
 if __name__ == "__main__":

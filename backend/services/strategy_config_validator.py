@@ -119,14 +119,19 @@ class StrategyConfigValidator:
                         message=f"Parameter search not allowed: {key}",
                         repairable=False,
                     ))
-            
-            # Check for Evidence event terms
-            if any(term in key.lower() for term in EVIDENCE_EVENT_TERMS):
-                if key.startswith(("entry.", "exit.", "risk.")):
+        
+        # Check for Evidence event terms in trade rules (entry/exit/risk)
+        # Recursively check both keys and string values
+        for section in ["entry", "exit", "risk"]:
+            if section in config:
+                violations = self._check_evidence_terms_recursive(
+                    config[section], parent_path=section
+                )
+                for path, term in violations:
                     errors.append(StrategyValidationError(
                         code="evidence_term_in_trade_rule",
-                        field_path=key,
-                        message=f"Evidence term '{key}' not allowed in trade rules",
+                        field_path=path,
+                        message=f"Evidence term '{term}' not allowed in trade rules",
                         repairable=False,
                     ))
         
@@ -211,3 +216,43 @@ class StrategyConfigValidator:
                 return False
             return all(self._deep_equal(x, y) for x, y in zip(a, b))
         return a == b
+    
+    def _check_evidence_terms_recursive(
+        self, obj: Any, parent_path: str
+    ) -> list[tuple[str, str]]:
+        """
+        Recursively check for Evidence event terms in keys and string values.
+        
+        Returns list of (path, term) tuples for violations.
+        """
+        violations = []
+        
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                current_path = f"{parent_path}.{key}"
+                
+                # Check key
+                key_lower = key.lower()
+                for term in EVIDENCE_EVENT_TERMS:
+                    if term.lower() in key_lower:
+                        violations.append((current_path, term))
+                        break
+                
+                # Recurse into value
+                violations.extend(self._check_evidence_terms_recursive(value, current_path))
+        
+        elif isinstance(obj, (list, tuple)):
+            for i, item in enumerate(obj):
+                violations.extend(
+                    self._check_evidence_terms_recursive(item, f"{parent_path}[{i}]")
+                )
+        
+        elif isinstance(obj, str):
+            # Check string value
+            obj_lower = obj.lower()
+            for term in EVIDENCE_EVENT_TERMS:
+                if term.lower() in obj_lower:
+                    violations.append((parent_path, term))
+                    break
+        
+        return violations

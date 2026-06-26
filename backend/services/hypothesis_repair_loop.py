@@ -5,6 +5,7 @@ from backend.services.hypothesis_builder import HypothesisBuilder
 from backend.services.hypothesis_builder_types import (
     HypothesisBuilderInput,
     HypothesisBuilderResult,
+    HypothesisBuilderValidationErrorContext,
 )
 
 
@@ -14,6 +15,7 @@ class HypothesisRepairLoop:
     
     Max repairs = 2.
     Each repair re-runs full validation.
+    Repair receives structured validation errors from previous attempt.
     Repair cannot modify template parameters (they come from library).
     Repair cannot introduce Evidence/announcement/status/hash/Gate/budget.
     
@@ -31,7 +33,7 @@ class HypothesisRepairLoop:
         
         Returns success with draft or failure after exhausting repairs.
         """
-        # First attempt
+        # First attempt (no previous errors)
         result = self.builder.build(input)
         
         if result.status == "success":
@@ -39,8 +41,22 @@ class HypothesisRepairLoop:
         
         # Repair loop (max 2 attempts)
         for attempt in range(1, self.max_repairs + 1):
-            # Retry with same input (LLM gets validation errors via builder)
-            result = self.builder.build(input)
+            # Convert validation errors to context
+            error_contexts = tuple(
+                HypothesisBuilderValidationErrorContext(
+                    code=err,
+                    field_path="unknown",
+                    message=err,
+                    repairable=True,
+                )
+                for err in result.validation_errors
+            )
+            
+            # Retry with structured errors
+            repair_input = input.model_copy(
+                update={"previous_validation_errors": error_contexts}
+            )
+            result = self.builder.build(repair_input)
             
             if result.status == "success":
                 # Update repair count in result
@@ -55,3 +71,4 @@ class HypothesisRepairLoop:
                 "repair_attempts": self.max_repairs,
             }
         )
+
