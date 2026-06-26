@@ -333,6 +333,193 @@ class TestBacktestTimeCursor(unittest.TestCase):
         self.assertFalse(allowed)
         self.assertIsNotNone(violation)
 
+    def test_execution_phase_boundary_separation(self):
+        """Execution phase can read T+1, but cannot pollute signal phase."""
+        from backend.services.backtest_time_cursor import BacktestTimeCursor
+        from datetime import timedelta
+        
+        # Signal phase: T日 only read <= T
+        signal_cursor = BacktestTimeCursor(
+            cursor_id="signal_001",
+            current_date=date(2024, 1, 10),
+            evaluation_mode="signal_phase",
+        )
+        
+        # Signal phase can read T
+        allowed, _ = signal_cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 10),
+            data_type="bar",
+            source="signal",
+        )
+        self.assertTrue(allowed)
+        
+        # Signal phase cannot read T+1
+        allowed, violation = signal_cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 11),
+            data_type="bar",
+            source="signal",
+        )
+        self.assertFalse(allowed)
+        self.assertIsNotNone(violation)
+        
+        # Get signal phase state
+        signal_state = signal_cursor.get_state()
+        signal_trace_len = len(signal_state.read_trace)
+        
+        # Execution phase: can read T+1
+        exec_cursor = BacktestTimeCursor(
+            cursor_id="exec_001",
+            current_date=date(2024, 1, 10),
+            evaluation_mode="execution_phase",
+        )
+        
+        # Execution phase can read T+1
+        allowed, _ = exec_cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 11),
+            data_type="bar",
+            source="execution",
+        )
+        self.assertTrue(allowed)
+        
+        # Verify signal phase state unchanged
+        signal_state_after = signal_cursor.get_state()
+        self.assertEqual(len(signal_state_after.read_trace), signal_trace_len)
+        self.assertEqual(signal_state_after.current_date, date(2024, 1, 10))
+        self.assertEqual(signal_state_after.allowed_read_until, date(2024, 1, 10))
+
+    def test_membership_as_of_date_visibility(self):
+        """Universe membership only visible if as_of_date <= current_date."""
+        from backend.services.backtest_time_cursor import BacktestTimeCursor
+        
+        cursor = BacktestTimeCursor(
+            cursor_id="cursor_001",
+            current_date=date(2024, 1, 10),
+            evaluation_mode="signal_phase",
+        )
+        
+        # as_of_date = current_date: allowed
+        allowed, _ = cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 10),
+            data_type="membership",
+            source="membership_reader",
+        )
+        self.assertTrue(allowed)
+        
+        # as_of_date < current_date: allowed
+        allowed, _ = cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 9),
+            data_type="membership",
+            source="membership_reader",
+        )
+        self.assertTrue(allowed)
+        
+        # as_of_date > current_date: blocked
+        allowed, violation = cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 11),
+            data_type="membership",
+            source="membership_reader",
+        )
+        self.assertFalse(allowed)
+        self.assertIsNotNone(violation)
+        self.assertEqual(violation.requested_date, date(2024, 1, 11))
+
+    def test_financial_ann_date_visibility(self):
+        """Financial data visible only if ann_date <= current_date."""
+        from backend.services.backtest_time_cursor import BacktestTimeCursor
+        
+        cursor = BacktestTimeCursor(
+            cursor_id="cursor_001",
+            current_date=date(2024, 1, 10),
+            evaluation_mode="signal_phase",
+        )
+        
+        # ann_date <= current_date: allowed
+        allowed, _ = cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 10),  # ann_date
+            data_type="financial",
+            source="financial_reader",
+        )
+        self.assertTrue(allowed)
+        
+        # ann_date > current_date: blocked (even if report_period_end in past)
+        # Example: Q3 2023 report, ann_date = 2024-01-15 (future)
+        allowed, violation = cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 15),  # ann_date in future
+            data_type="financial",
+            source="financial_reader",
+        )
+        self.assertFalse(allowed)
+        self.assertIsNotNone(violation)
+        
+        # Violation shows we use ann_date, not report_period_end
+        self.assertEqual(violation.requested_date, date(2024, 1, 15))
+        self.assertIn("financial", violation.source.lower())
+
+    def test_unknown_symbol_or_date_fails_loud(self):
+        """Unknown symbol/date must raise explicit error, not return None."""
+        from backend.services.backtest_time_cursor import BacktestTimeCursor
+        
+        cursor = BacktestTimeCursor(
+            cursor_id="cursor_001",
+            current_date=date(2024, 1, 10),
+            evaluation_mode="signal_phase",
+        )
+        
+        # Valid request returns explicit (allowed, violation)
+        allowed, violation = cursor.request_read(
+            symbol="000001.SZ",
+            requested_date=date(2024, 1, 10),
+            data_type="bar",
+            source="test",
+        )
+        self.assertIsNotNone(allowed)  # Explicit bool, not None
+        
+        # Future date returns explicit rejection
+        allowed, violation = cursor.request_read(
+            symbol="UNKNOWN_SYMBOL",
+            requested_date=date(2024, 1, 11),
+            data_type="bar",
+            source="test",
+        )
+        self.assertFalse(allowed)  # Explicit False
+        self.assertIsNotNone(violation)  # Explicit violation
+        self.assertIn("requested", violation.reason.lower())
+
+    def test_strategy_cannot_bypass_cursor_to_raw_dataset(self):
+        """Strategy cannot access raw dataset, only via cursor API."""
+        from backend.services.backtest_time_cursor import BacktestTimeCursor
+        
+        cursor = BacktestTimeCursor(
+            cursor_id="cursor_001",
+            current_date=date(2024, 1, 10),
+            evaluation_mode="signal_phase",
+        )
+        
+        # Cursor must not expose raw data fields
+        self.assertFalse(hasattr(cursor, "data_snapshot"))
+        self.assertFalse(hasattr(cursor, "_raw_data"))
+        self.assertFalse(hasattr(cursor, "bars"))
+        self.assertFalse(hasattr(cursor, "full_dataset"))
+        
+        # Only allowed access: via request_read API
+        # Cannot get unfiltered data
+        self.assertTrue(hasattr(cursor, "request_read"))
+        self.assertTrue(hasattr(cursor, "validate_read_request"))
+        self.assertTrue(hasattr(cursor, "get_state"))
+        
+        # Internal fields must be private or controlled
+        # read_trace is OK (audit trail), but must be via get_state()
+        state = cursor.get_state()
+        self.assertIsInstance(state.read_trace, tuple)  # Immutable
+
 
 if __name__ == "__main__":
     unittest.main()

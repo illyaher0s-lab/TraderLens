@@ -41,7 +41,8 @@ class BacktestTimeCursor:
         elif evaluation_mode == "execution_phase":
             # Execution phase: can read current_date + 1 (for execution data)
             # But this cannot backflow into signal logic
-            self.allowed_read_until = current_date
+            from datetime import timedelta
+            self.allowed_read_until = current_date + timedelta(days=1)
         else:
             raise ValueError(f"Unknown evaluation_mode: {evaluation_mode}")
     
