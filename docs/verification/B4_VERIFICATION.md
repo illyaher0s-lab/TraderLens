@@ -10,7 +10,7 @@
 
 | Task | Commit | Description |
 |------|--------|-------------|
-| **B3 (prerequisite)** | `51eb286` | Protocol snapshot + data snapshot + point-in-time membership |
+| **B3 (prerequisite)** | `1cfec6b` | test: protect B3 compatibility boundaries |
 | **B4 Task 1-4** | `d63e94c` | test: complete B4 time cursor coverage |
 | **B4 Task 5** | `3db8196` | fix: enforce cursor-bound event loop reads |
 | **B4 Task 6** | `1aa3057` | fix: guarantee event loop rejected order coverage |
