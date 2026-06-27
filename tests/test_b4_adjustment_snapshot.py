@@ -286,7 +286,43 @@ class TestLateCorporateActionCannotRewritePastPrices(unittest.TestCase):
 
 class TestMixedAdjustmentModesRejected(unittest.TestCase):
     """Mixed raw/qfq/hfq in one backtest run is hard reject."""
-    
+
+    def test_invalid_adjustment_mode_rejected(self):
+        """Adjustment mode outside raw/qfq/hfq must hard reject via real get_bar path."""
+        cursor = BacktestTimeCursor(
+            cursor_id="test_cursor",
+            current_date=date(2024, 1, 10),
+            evaluation_mode="signal_phase",
+        )
+
+        bars = {
+            "000001.SZ": [
+                DailyBar(
+                    date=date(2024, 1, 10),
+                    symbol="000001.SZ",
+                    open=10.0, high=11.0, low=9.0, close=10.5,
+                    volume=1000000, amount=10500000.0,
+                    adj_factor=1.0,
+                )
+            ]
+        }
+        mock_source = create_mock_bar_data_source(bars)
+
+        data_view = CursorBoundDataView(
+            mock_source,
+            cursor,
+            adjustment_mode="bad_mode",
+            adjustment_snapshot_date=date(2024, 1, 9),
+            adjustment_fingerprint="abc123",
+            expected_adjustment_fingerprint="abc123",
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            data_view.get_bar("000001.SZ", date(2024, 1, 10))
+
+        self.assertIn("adjustment mode", str(ctx.exception).lower())
+        self.assertIn("bad_mode", str(ctx.exception))
+
     def test_mixed_adjustment_modes_rejected(self):
         """raw → qfq is hard reject."""
         cursor = BacktestTimeCursor(

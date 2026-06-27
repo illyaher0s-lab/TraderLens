@@ -139,6 +139,13 @@ class BacktestTimeCursor:
             ValueError: Mixed adjustment modes or fingerprint mismatch
             FutureDataAccessError: Adjustment snapshot dated after current_date
         """
+        allowed_modes = {"raw", "qfq", "hfq"}
+        if adjustment_mode not in allowed_modes:
+            raise ValueError(
+                f"Invalid adjustment mode: {adjustment_mode}. "
+                f"Expected one of {sorted(allowed_modes)}, source={source}"
+            )
+
         # 1. Lock adjustment mode on first call
         if self.locked_adjustment_mode is None:
             self.locked_adjustment_mode = adjustment_mode
