@@ -85,6 +85,37 @@ class ExplanationSnapshot(FrozenB5Contract):
     frozen: Literal[True] = True
 
 
+class BaseCostResult(FrozenB5Contract):
+    """
+    Base cost assumptions result.
+    
+    Must be explicitly present (not None, not 0 by default).
+    """
+    result_id: str = Field(min_length=1)
+    slippage_bps: float = Field(ge=0.0)
+    commission_bps: float = Field(ge=0.0)
+    impact_bps: float = Field(ge=0.0)
+    total_cost_bps: float = Field(ge=0.0)
+    assumptions_hash: str = Field(min_length=1)
+    frozen: Literal[True] = True
+
+
+class StressCostResult(FrozenB5Contract):
+    """
+    Stress cost assumptions result.
+    
+    Must be stricter than base cost (higher slippage/commission/impact).
+    """
+    result_id: str = Field(min_length=1)
+    slippage_bps: float = Field(ge=0.0)
+    commission_bps: float = Field(ge=0.0)
+    impact_bps: float = Field(ge=0.0)
+    total_cost_bps: float = Field(ge=0.0)
+    stress_multiplier: float = Field(ge=1.0)  # Must be >= 1.0
+    assumptions_hash: str = Field(min_length=1)
+    frozen: Literal[True] = True
+
+
 class B5ValidationBoundary(FrozenB5Contract):
     """
     B5 validation boundary proof.
