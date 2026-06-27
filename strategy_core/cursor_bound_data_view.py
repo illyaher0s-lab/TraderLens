@@ -15,9 +15,52 @@ class CursorBoundDataView:
     Read trace is automatically recorded in cursor.
     """
     
-    def __init__(self, raw_data_source, cursor: BacktestTimeCursor):
+    def __init__(
+        self,
+        raw_data_source,
+        cursor: BacktestTimeCursor,
+        adjustment_mode: str | None = None,
+        adjustment_snapshot_date: date | None = None,
+        adjustment_fingerprint: str | None = None,
+        expected_adjustment_fingerprint: str | None = None,
+    ):
+        """
+        Initialize cursor-bound data view.
+        
+        Args:
+            raw_data_source: Raw data source
+            cursor: BacktestTimeCursor
+            adjustment_mode: Optional "raw", "qfq", or "hfq" (Task 8)
+            adjustment_snapshot_date: Optional adjustment factor snapshot date (Task 8)
+            adjustment_fingerprint: Optional adjustment factor fingerprint (Task 8)
+            expected_adjustment_fingerprint: Optional expected fingerprint from B3 (Task 8)
+        
+        Task 8 compatibility:
+        - If adjustment parameters are None → skip adjustment validation (backward compat)
+        - If adjustment parameters are provided → enforce adjustment snapshot guard
+        """
         self._raw = raw_data_source
         self._cursor = cursor
+        
+        # Task 8: Adjustment snapshot guard (optional)
+        self._adjustment_mode = adjustment_mode
+        self._adjustment_snapshot_date = adjustment_snapshot_date
+        self._adjustment_fingerprint = adjustment_fingerprint
+        self._expected_adjustment_fingerprint = expected_adjustment_fingerprint
+        
+        # Validate: either all adjustment params provided or all None
+        adj_params = [
+            adjustment_mode,
+            adjustment_snapshot_date,
+            adjustment_fingerprint,
+            expected_adjustment_fingerprint,
+        ]
+        adj_provided_count = sum(p is not None for p in adj_params)
+        if adj_provided_count not in (0, 4):
+            raise ValueError(
+                f"Adjustment validation requires all 4 parameters or none. "
+                f"Got {adj_provided_count}/4 provided."
+            )
     
     def get_daily_bars(self, symbol: str) -> list[DailyBar]:
         """
@@ -44,6 +87,17 @@ class CursorBoundDataView:
         bars = self._raw.get_daily_bars(symbol)
         for bar in bars:
             if bar.date == as_of_date:
+                # Task 8: Validate adjustment snapshot if enabled
+                if self._adjustment_mode is not None:
+                    self._cursor.validate_bar_adjustment(
+                        symbol=symbol,
+                        bar=bar,
+                        adjustment_mode=self._adjustment_mode,
+                        adjustment_snapshot_date=self._adjustment_snapshot_date,
+                        adjustment_fingerprint=self._adjustment_fingerprint,
+                        expected_adjustment_fingerprint=self._expected_adjustment_fingerprint,
+                        source="cursor_bound_data_view",
+                    )
                 return bar
         return None
     

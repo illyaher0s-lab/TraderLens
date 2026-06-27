@@ -34,6 +34,11 @@ class BacktestTimeCursor:
         self.evaluation_mode = evaluation_mode
         self.read_trace: list[str] = []
         
+        # Adjustment snapshot state (Task 8)
+        self.adjustment_snapshot_date: date | None = None
+        self.adjustment_snapshot_fingerprint: str | None = None
+        self.locked_adjustment_mode: str | None = None
+        
         # Set allowed read window based on mode
         if evaluation_mode == "signal_phase":
             # Signal phase: can only read <= current_date
@@ -98,6 +103,103 @@ class BacktestTimeCursor:
             data_type=request.data_type,
             source=request.source,
         )
+
+
+    def validate_bar_adjustment(
+        self,
+        symbol: str,
+        bar,  # DailyBar
+        adjustment_mode: str,
+        adjustment_snapshot_date: date,
+        adjustment_fingerprint: str,
+        expected_adjustment_fingerprint: str,
+        source: str,
+    ) -> None:
+        """
+        Validate bar adjustment factor against snapshot constraints.
+        
+        Task 8: Adjustment price snapshot guard.
+        
+        Rules:
+        1. Adjustment mode (raw/qfq/hfq) must be locked per backtest run
+        2. Mixed modes are hard rejected
+        3. Adjustment fingerprint must match expected (from B3 DataSnapshotManifest)
+        4. Adjustment snapshot_date must not be after current_date (future data)
+        
+        Args:
+            symbol: Stock symbol
+            bar: DailyBar with adj_factor
+            adjustment_mode: "raw", "qfq", or "hfq"
+            adjustment_snapshot_date: Adjustment factor snapshot as-of date
+            adjustment_fingerprint: Adjustment factor snapshot fingerprint
+            expected_adjustment_fingerprint: Expected fingerprint from B3 manifest
+            source: Source identifier for audit trail
+        
+        Raises:
+            ValueError: Mixed adjustment modes or fingerprint mismatch
+            FutureDataAccessError: Adjustment snapshot dated after current_date
+        """
+        # 1. Lock adjustment mode on first call
+        if self.locked_adjustment_mode is None:
+            self.locked_adjustment_mode = adjustment_mode
+            self.adjustment_snapshot_date = adjustment_snapshot_date
+            self.adjustment_snapshot_fingerprint = adjustment_fingerprint
+        else:
+            # 2. Check mixed modes (hard reject)
+            if self.locked_adjustment_mode != adjustment_mode:
+                raise ValueError(
+                    f"Mixed adjustment modes rejected: "
+                    f"locked={self.locked_adjustment_mode}, attempted={adjustment_mode}, "
+                    f"source={source}"
+                )
+            
+            # Check snapshot consistency
+            if self.adjustment_snapshot_date != adjustment_snapshot_date:
+                raise ValueError(
+                    f"Adjustment snapshot date changed: "
+                    f"locked={self.adjustment_snapshot_date}, attempted={adjustment_snapshot_date}, "
+                    f"source={source}"
+                )
+            
+            if self.adjustment_snapshot_fingerprint != adjustment_fingerprint:
+                raise ValueError(
+                    f"Adjustment snapshot fingerprint changed: "
+                    f"locked={self.adjustment_snapshot_fingerprint}, attempted={adjustment_fingerprint}, "
+                    f"source={source}"
+                )
+        
+        # 3. Validate fingerprint matches expected (from B3 DataSnapshotManifest)
+        if adjustment_fingerprint != expected_adjustment_fingerprint:
+            raise ValueError(
+                f"Adjustment factor fingerprint mismatch: "
+                f"expected={expected_adjustment_fingerprint}, got={adjustment_fingerprint}, "
+                f"source={source}"
+            )
+        
+        # 4. Check adjustment snapshot_date not after current_date (future data)
+        if adjustment_snapshot_date > self.current_date:
+            violation = FutureDataViolation(
+                requested_date=adjustment_snapshot_date,
+                allowed_max_date=self.current_date,
+                source=source,
+                reason=(
+                    f"Adjustment factor snapshot date {adjustment_snapshot_date} > "
+                    f"current date {self.current_date}"
+                ),
+                evaluation_mode=self.evaluation_mode,
+            )
+            raise FutureDataAccessError(violation)
+        
+        # 5. Record adjustment read in trace
+        trace_entry = (
+            f"adjustment_factor:{symbol}:{bar.date}:"
+            f"mode={adjustment_mode}:"
+            f"adj_factor={bar.adj_factor}:"
+            f"fingerprint={adjustment_fingerprint}:"
+            f"snapshot_date={adjustment_snapshot_date}:"
+            f"source={source}"
+        )
+        self.read_trace.append(trace_entry)
 
 
 class FutureDataAccessError(Exception):
