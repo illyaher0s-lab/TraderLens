@@ -2,6 +2,37 @@
 
 You are taking over `D:\Codex\TraderLens`.
 
+## Latest Accepted State
+
+**Date**: 2026-06-27 CST
+**Milestone**: B4 Event-Driven Backtest Verification complete
+
+Read first:
+- `AGENTS.md`
+- `status.md`
+- `docs/verification/B4_VERIFICATION.md`
+
+B4 accepted commits:
+- B3 prerequisite: `1cfec6b`
+- B4 Task 1-4: `d63e94c`
+- B4 Task 5: `3db8196`
+- B4 Task 6: `1aa3057`
+- B4 Task 7: `f7eb491`
+- B4 Task 8: `e8d4ced`
+- B4 Task 9: `b105dac`
+- B4 Task 10: `5854bfc`
+- B4 Task 11: `7c17fca`
+
+Recorded verification baseline:
+- B4 combined suite: 131 tests passing
+- Full pytest: 1198 passed, 2 skipped, 3 warnings, 24 subtests passed
+
+B4 is not profitability proof, B5 OOS, Gate pass, promotion, `prototype_passed`, Signal Board output, or live trading readiness.
+
+Formal B4 qualification must use `run_qualification_with_b3_protocol()`. Legacy `run_qualification()` is Task 4 Canary compatibility only.
+
+---
+
 ## Current Status
 
 **Date**: 2026-06-25 23:30 CST  

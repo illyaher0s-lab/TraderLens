@@ -63,7 +63,7 @@ B4 has locked down the following correctness boundaries:
 ### 2.5 Delisting & Liquidation Policy (Task 9)
 - **Delisting detection**: Tracks `daily_status.is_delisted` and forces liquidation.
 - **Long suspension liquidation**: Suspensions exceeding threshold trigger forced liquidation with penalty.
-- **Penalty policy**: System baseline penalty (default 20%) cannot be lowered at runtime.
+- **Penalty policy**: System baseline penalty (default 5%) cannot be lowered at runtime.
 - **Liquidation impact tracking**: `EventBacktestResult.liquidation_impact` records loss from penalty.
 - **Insufficient liquidation**: Missing delisting status or last tradable price marks result as degraded/insufficient.
 - **Portfolio application**: Applying insufficient liquidation raises `ValueError`.
@@ -147,6 +147,7 @@ B4 is a **backtest correctness and future-data guard layer**. It does NOT:
 **B4 scope**:
 - Backtest correctness: T-day signal semantics, A-share constraints, future data guard, adjustment/delisting/liquidation logic.
 - Compatibility boundaries: No LLM, no Gate, no promotion, no Signal Board.
+- Formal B4 qualification must use `run_qualification_with_b3_protocol()`. Legacy `run_qualification()` remains only for Task 4 Canary compatibility and is not an authorization path for formal B4 backtests.
 
 **Out of B4 scope**:
 - **Profitability validation**: Belongs to B5/OOS.

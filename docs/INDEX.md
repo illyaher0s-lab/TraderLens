@@ -2,6 +2,12 @@
 
 This index intentionally excludes Signal Board process docs and milestone closeout notes.
 
+## Latest Verification
+
+- `verification/B4_VERIFICATION.md` - B4 event-driven backtest verification. B4 is correctness/future-data protection only; it is not profitability proof, B5 OOS, Gate pass, promotion, Signal Board output, or live trading readiness.
+- `verification/B3_VERIFICATION.md` - B3 point-in-time data protocol verification.
+- `verification/B2_VERIFICATION.md` - B2 hypothesis builder verification.
+
 ## Read First
 
 1. `../README.md`

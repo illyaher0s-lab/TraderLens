@@ -1,5 +1,36 @@
 # TraderLens Status
 
+**Last Updated**: 2026-06-27 CST
+**Current Milestone**: B4 Event-Driven Backtest Verification complete
+
+## Current B4 Verification State
+
+B4 is complete as an offline backtest correctness and future-data guard layer.
+
+Accepted verification record:
+- `docs/verification/B4_VERIFICATION.md`
+
+Accepted commits:
+- B3 prerequisite: `1cfec6b`
+- B4 Task 1-4: `d63e94c`
+- B4 Task 5: `3db8196`
+- B4 Task 6: `1aa3057`
+- B4 Task 7: `f7eb491`
+- B4 Task 8: `e8d4ced`
+- B4 Task 9: `b105dac`
+- B4 Task 10: `5854bfc`
+- B4 Task 11: `7c17fca`
+
+Verification baseline recorded in B4 verification doc:
+- B4 combined suite: 131 tests passing
+- Full pytest: 1198 passed, 2 skipped, 3 warnings, 24 subtests passed
+
+B4 does not prove profitability, does not run B5 OOS, does not pass Gate, does not promote to `prototype_passed`, does not enable Signal Board output, and does not make the system live-trading ready.
+
+Formal B4 qualification must use `run_qualification_with_b3_protocol()`. Legacy `run_qualification()` remains only for Task 4 Canary compatibility and is not a formal B4 authorization path.
+
+---
+
 **Last Updated**: 2026-06-25 23:30 CST  
 **Current Milestone**: Serenity 双阶段生产入口启用 (Production Entry Enabled) — 完成 ✅
 

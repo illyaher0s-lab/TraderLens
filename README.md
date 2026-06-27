@@ -6,6 +6,10 @@ A-share research, candidate selection, strategy validation, and action-planning 
 
 **Product Entry Point**: `/themes` (Research Module)
 
+**Latest verification milestone**: B4 Event-Driven Backtest Verification is complete. See [docs/verification/B4_VERIFICATION.md](docs/verification/B4_VERIFICATION.md).
+
+B4 is an offline backtest correctness layer. It does not prove profitability, does not run B5 OOS, does not pass Gate, does not promote to `prototype_passed`, and does not make the system live-trading ready.
+
 The full product chain is:
 
 ```text
@@ -46,8 +50,9 @@ Theme input (manual / market scan)
 
 **Core documents (read first)**:
 1. [AGENTS.md](AGENTS.md) - Development rules
-2. [status.md](status.md) - Current status and test baseline (896 tests)
-3. [HANDOFF_PROMPT.md](HANDOFF_PROMPT.md) - Latest handoff (Phase 4: Production entry enabled)
+2. [status.md](status.md) - Current status and verification baseline
+3. [HANDOFF_PROMPT.md](HANDOFF_PROMPT.md) - Latest handoff
+4. [docs/verification/B4_VERIFICATION.md](docs/verification/B4_VERIFICATION.md) - B4 accepted commits, guarantees, boundaries, and test record
 
 **Phase documentation**:
 - [docs/phases/](docs/phases/) - Historical phase plans and reports
@@ -67,7 +72,7 @@ Theme input (manual / market scan)
 # Frontend type check
 node_modules\.bin\tsc.cmd -p frontend --noEmit
 
-# Python tests (896 tests, 2 skipped)
+# Python tests
 .venv\Scripts\python.exe -m pytest tests/ -x --tb=short -q
 ```
 
