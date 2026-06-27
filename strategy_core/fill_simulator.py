@@ -11,6 +11,12 @@ from strategy_core.transaction_costs import (
 )
 
 
+# Task 9: System baseline delisting penalty (5%)
+# This is the minimum penalty applied to delisted/long-suspended positions
+# Runtime cannot lower this value
+DELISTING_PENALTY_PCT = 0.05
+
+
 def simulate_fill(
     order: Order,
     execution_date: date,
@@ -252,3 +258,138 @@ def _simulate_sell_fill(order, execution_date, bar, status, portfolio,
         "actual_price": execution_price,
         "actual_quantity": order.quantity,
     })
+
+
+def try_force_liquidation(
+    symbol: str,
+    position: Position,
+    last_tradable_bar,  # DailyBar | None
+    reason: str,
+    runtime_penalty_pct: float | None = None,
+) -> dict:
+    """
+    Force liquidation for delisted or long-suspended stock.
+    
+    Task 9: Delisting and long suspension liquidation policy.
+    
+    Policy:
+    1. If last_tradable_bar available: use last tradable close with system baseline penalty
+    2. If no reliable exit price: mark result as insufficient
+    3. System baseline penalty (DELISTING_PENALTY_PCT) is fixed, cannot be lowered at runtime
+    
+    Args:
+        symbol: Stock symbol
+        position: Position to liquidate
+        last_tradable_bar: Last tradable bar before delisting/suspension (None if unavailable)
+        reason: "delisted" or "long_suspension"
+        runtime_penalty_pct: Optional runtime penalty override (must be >= baseline, or raises ValueError)
+    
+    Returns:
+        dict with liquidation record:
+        - status: "liquidated" or "insufficient"
+        - symbol, reason, quantity
+        - exit_price, exit_price_source
+        - penalty_pct (always >= DELISTING_PENALTY_PCT)
+        - impact_on_value
+        - insufficient_reason (if status=insufficient)
+    
+    Raises:
+        ValueError: If runtime_penalty_pct < DELISTING_PENALTY_PCT (cannot lower baseline)
+    """
+    # Validate reason
+    if reason not in ("delisted", "long_suspension"):
+        raise ValueError(f"Invalid liquidation reason: {reason}")
+    
+    # Determine penalty: runtime override must not lower baseline
+    if runtime_penalty_pct is not None:
+        if runtime_penalty_pct < DELISTING_PENALTY_PCT:
+            raise ValueError(
+                f"Runtime penalty ({runtime_penalty_pct}) cannot be lower than "
+                f"system baseline ({DELISTING_PENALTY_PCT})"
+            )
+        penalty_pct = runtime_penalty_pct
+    else:
+        penalty_pct = DELISTING_PENALTY_PCT
+    
+    # No reliable exit price → insufficient
+    if last_tradable_bar is None:
+        return {
+            "status": "insufficient",
+            "symbol": symbol,
+            "reason": reason,
+            "quantity": position.quantity,
+            "exit_price": None,
+            "exit_price_source": "none",
+            "penalty_pct": penalty_pct,
+            "impact_on_value": 0.0,
+            "insufficient_reason": "no_reliable_exit_price",
+        }
+    
+    # Use last tradable close with penalty
+    base_price = last_tradable_bar.close
+    exit_price = base_price * (1 - penalty_pct)
+    impact_on_value = position.quantity * exit_price
+    
+    return {
+        "status": "liquidated",
+        "symbol": symbol,
+        "reason": reason,
+        "quantity": position.quantity,
+        "exit_price": exit_price,
+        "exit_price_source": "last_tradable_with_penalty",
+        "penalty_pct": penalty_pct,
+        "impact_on_value": impact_on_value,
+        "base_price": base_price,
+        "last_tradable_date": last_tradable_bar.date,
+    }
+
+
+def apply_force_liquidation(
+    portfolio: PortfolioState,
+    liquidation: dict,
+) -> None:
+    """
+    Apply forced liquidation to portfolio.
+    
+    Task 9: Portfolio application of delisting/long suspension liquidation.
+    
+    Updates:
+    - Removes position from portfolio
+    - Adds liquidation proceeds to cash (with penalty applied)
+    
+    Args:
+        portfolio: Portfolio state to update (mutated)
+        liquidation: Liquidation record from try_force_liquidation()
+    
+    Raises:
+        ValueError: If liquidation status is insufficient or position doesn't exist
+    """
+    if liquidation["status"] != "liquidated":
+        raise ValueError(
+            f"Cannot apply {liquidation['status']} liquidation. "
+            f"Reason: {liquidation.get('insufficient_reason', 'unknown')}"
+        )
+    
+    symbol = liquidation["symbol"]
+    
+    if symbol not in portfolio.positions:
+        raise ValueError(f"Position {symbol} not found in portfolio")
+    
+    position = portfolio.positions[symbol]
+    
+    # Verify quantity matches
+    if position.quantity != liquidation["quantity"]:
+        raise ValueError(
+            f"Position quantity mismatch: portfolio has {position.quantity}, "
+            f"liquidation expects {liquidation['quantity']}"
+        )
+    
+    # Add liquidation proceeds to cash (exit_price × quantity, penalty already applied)
+    liquidation_proceeds = liquidation["impact_on_value"]
+    portfolio.cash += liquidation_proceeds
+    
+    # Remove position entirely (forced liquidation closes all)
+    del portfolio.positions[symbol]
+    
+    # Validate portfolio invariants
+    portfolio.validate_invariants()
