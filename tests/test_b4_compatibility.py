@@ -12,7 +12,7 @@ import subprocess
 from pathlib import Path
 
 
-# B4 production files to scan (Task 1-10 deliverables)
+# B4 production files to scan (Task 1-11 deliverables)
 B4_PRODUCTION_FILES = [
     "backend/services/backtest_engine_qualification.py",
     "backend/services/backtest_time_cursor.py",
@@ -23,12 +23,15 @@ B4_PRODUCTION_FILES = [
     "strategy_core/portfolio.py",
     "strategy_core/cursor_bound_data_view.py",
     "strategy_core/trading_calendar.py",
+    "strategy_core/signals.py",
+    "strategy_core/orders.py",
+    "strategy_core/transaction_costs.py",
+    "strategy_core/position_sizer.py",
 ]
 
-# Optional B4 files (future tasks, not scanned)
-B4_OPTIONAL_FILES = [
-    # Note: strategy_core/backtest_engine.py is legacy, not B4
-    # Note: strategy_core/signals.py, orders.py may not exist yet
+# Files with mixed legacy + B4 code requiring selective scanning
+B4_MIXED_LEGACY_FILES = [
+    "strategy_core/backtest_engine.py",  # Has legacy run_backtest (Gate) + B4 run_event_backtest
 ]
 
 # Forbidden files that must not be modified by B4
@@ -48,17 +51,31 @@ def get_b4_file_contents():
     """Read all B4 production files."""
     project_root = Path(__file__).parent.parent
     contents = {}
-    
+
     for file_path in B4_PRODUCTION_FILES:
         full_path = project_root / file_path
         if full_path.exists():
             contents[file_path] = full_path.read_text(encoding='utf-8')
-    
-    for file_path in B4_OPTIONAL_FILES:
+
+    # Mixed legacy files: extract only B4 sections
+    for file_path in B4_MIXED_LEGACY_FILES:
         full_path = project_root / file_path
         if full_path.exists():
-            contents[file_path] = full_path.read_text(encoding='utf-8')
-    
+            full_content = full_path.read_text(encoding='utf-8')
+
+            # For backtest_engine.py: extract run_event_backtest function only
+            if "backtest_engine.py" in file_path:
+                # Extract from "def run_event_backtest" to end of file
+                # This includes B4 event loop code but excludes legacy run_backtest with Gate
+                if "def run_event_backtest(" in full_content:
+                    start_idx = full_content.find("def run_event_backtest(")
+                    if start_idx != -1:
+                        b4_content = full_content[start_idx:]
+                        contents[file_path] = b4_content
+            else:
+                # Other mixed files: include full content for now
+                contents[file_path] = full_content
+
     return contents
 
 
@@ -69,7 +86,7 @@ class TestB4DoesNotCallLLM(unittest.TestCase):
         """B4 production files must not import OpenAI/Anthropic/LangChain."""
         contents = get_b4_file_contents()
         self.assertGreater(len(contents), 0, "No B4 files found")
-        
+
         forbidden_llm_keywords = [
             "openai",
             "anthropic",
@@ -85,14 +102,18 @@ class TestB4DoesNotCallLLM(unittest.TestCase):
             "ChatOpenAI",
             "ChatAnthropic",
         ]
-        
+
         violations = []
         for file_path, content in contents.items():
+            # Skip test file itself
+            if "test_b4_compatibility.py" in file_path:
+                continue
+
             content_lower = content.lower()
             for keyword in forbidden_llm_keywords:
                 if keyword.lower() in content_lower:
                     violations.append(f"{file_path} contains forbidden LLM keyword: {keyword}")
-        
+
         if violations:
             self.fail("B4 must not call LLM:\n" + "\n".join(violations))
 
