@@ -188,19 +188,46 @@ class TestB3ProtocolSnapshotRequiredForB4Backtest(unittest.TestCase):
         self.assertIn("pointintime", str(ctx.exception).lower())
     
     def test_string_only_entrypoint_unavailable(self):
-        """String-only entrypoint (run_qualification) exists for Task 4 compatibility only."""
+        """String-only entrypoint (run_qualification) cannot produce formal B4 qualification."""
         qualification = BacktestEngineQualification()
-        
-        # run_qualification exists for Task 4 compatibility
+
+        # Legacy run_qualification exists for Task 4 compatibility
         self.assertTrue(hasattr(qualification, 'run_qualification'))
-        
+
         # But run_qualification_with_b3_protocol is the formal B4 entrypoint
         self.assertTrue(hasattr(qualification, 'run_qualification_with_b3_protocol'))
-        
-        # Docstring warns it's legacy
-        doc = qualification.run_qualification.__doc__
-        self.assertIn("legacy", doc.lower())
-        self.assertIn("task 4", doc.lower())
+
+        # Call legacy string-only entrypoint
+        legacy_result = qualification.run_qualification(
+            protocol_snapshot_id="string_only_001",
+            qualification_date=date(2024, 1, 10),
+        )
+
+        # Legacy result is BacktestEngineQualificationResult, not the dict with B3 metadata
+        # It lacks protocol_snapshot_id, data_snapshot_id, data_snapshot_hash, universe_snapshot_id
+        self.assertNotIsInstance(legacy_result, dict)
+        self.assertFalse(hasattr(legacy_result, 'data_snapshot_hash'))
+        self.assertFalse(hasattr(legacy_result, 'data_snapshot_id'))
+        self.assertFalse(hasattr(legacy_result, 'universe_snapshot_id'))
+
+        # Only formal B4 path returns dict with B3 metadata
+        protocol = create_valid_protocol()
+        manifest = create_valid_manifest()
+        universe = create_valid_pit_universe()
+
+        formal_result = qualification.run_qualification_with_b3_protocol(
+            protocol=protocol,
+            manifest=manifest,
+            universe_spec=universe,
+            qualification_date=date(2024, 1, 10),
+        )
+
+        # Formal result has B3 metadata that legacy lacks
+        self.assertIsInstance(formal_result, dict)
+        self.assertIn("protocol_snapshot_id", formal_result)
+        self.assertIn("data_snapshot_hash", formal_result)
+        self.assertIn("data_snapshot_id", formal_result)
+        self.assertIn("universe_snapshot_id", formal_result)
 
 
 class TestB3DataSnapshotHashRequiredForB4Backtest(unittest.TestCase):
@@ -350,22 +377,24 @@ class TestB4RecordsProtocolAndSnapshotIDsInResult(unittest.TestCase):
         protocol = create_valid_protocol()
         manifest = create_valid_manifest()
         universe = create_valid_pit_universe()
-        
+
         result = qualification.run_qualification_with_b3_protocol(
             protocol=protocol,
             manifest=manifest,
             universe_spec=universe,
             qualification_date=date(2024, 1, 10),
         )
-        
+
         # Result must record B3 metadata
         self.assertIn("protocol_snapshot_id", result)
         self.assertIn("data_snapshot_hash", result)
         self.assertIn("data_snapshot_id", result)
-        
+        self.assertIn("universe_snapshot_id", result)
+
         self.assertEqual(result["protocol_snapshot_id"], "proto_001")
         self.assertEqual(result["data_snapshot_hash"], "valid_hash_xyz")
         self.assertEqual(result["data_snapshot_id"], "data_001")
+        self.assertEqual(result["universe_snapshot_id"], "pit_001")
 
 
 class TestB4DoesNotModifyB3Protocol(unittest.TestCase):
