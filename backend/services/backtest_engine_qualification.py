@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from datetime import date
 
+from pydantic import ValidationError
+
 from backend.services.backtest_time_cursor import BacktestTimeCursor
 from backend.services.future_data_guard import FutureDataGuard
 from backend.services.canary_strategies import (
@@ -36,13 +38,13 @@ class BacktestEngineQualification:
         FutureAdjustmentFactorCanary,
     ]
     
-    def run_qualification(
+    def _run_qualification_internal(
         self,
         protocol_snapshot_id: str,
         qualification_date: date,
     ) -> BacktestEngineQualificationResult:
         """
-        Run Canary qualification suite.
+        Internal Canary qualification (Task 10 v3: private, use run_qualification_with_b3_protocol).
         
         Returns:
             BacktestEngineQualificationResult with qualification_status='pass' if all blocked
@@ -78,6 +80,22 @@ class BacktestEngineQualification:
             qualified_at=qualification_date,
         )
     
+    def run_qualification(
+        self,
+        protocol_snapshot_id: str,
+        qualification_date: date,
+    ) -> BacktestEngineQualificationResult:
+        """
+        Legacy Canary qualification (Task 4 compatibility).
+        
+        WARNING: This is a legacy entrypoint for Task 4 tests only.
+        For formal B4 backtest with B3 protocol, use run_qualification_with_b3_protocol().
+        
+        Returns:
+            BacktestEngineQualificationResult
+        """
+        return self._run_qualification_internal(protocol_snapshot_id, qualification_date)
+    
     def run_qualification_with_b3_protocol(
         self,
         protocol,  # ResearchProtocolSnapshot
@@ -111,7 +129,37 @@ class BacktestEngineQualification:
         Raises:
             ValueError: If protocol/manifest/universe validation fails
         """
-        # Task 10: Enforce B3 protocol requirements (cannot bypass)
+        # Task 10 v3: Enforce B3 protocol requirements with type checking
+        
+        # 0. Type checking: reject None
+        if protocol is None:
+            raise ValueError("ResearchProtocolSnapshot is required (got None)")
+        if manifest is None:
+            raise ValueError("DataSnapshotManifest is required (got None)")
+        if universe_spec is None:
+            raise ValueError("PointInTimeMembershipSnapshot is required (got None)")
+        
+        # Type checking: reject fake/duck-typed objects
+        # Check for actual B3 types by presence of required attributes
+        required_protocol_attrs = ['protocol_snapshot_id', 'data_snapshot_hash', 'data_snapshot_id', 'frozen']
+        for attr in required_protocol_attrs:
+            if not hasattr(protocol, attr):
+                raise ValueError(
+                    f"Invalid protocol object: missing '{attr}'. "
+                    f"Must be ResearchProtocolSnapshot."
+                )
+        
+        required_manifest_attrs = ['data_snapshot_id', 'data_snapshot_hash', 'created_at']
+        for attr in required_manifest_attrs:
+            if not hasattr(manifest, attr):
+                raise ValueError(
+                    f"Invalid manifest object: missing '{attr}'. "
+                    f"Must be DataSnapshotManifest."
+                )
+        
+        # Verify protocol frozen=True (ResearchProtocolSnapshot has explicit frozen field)
+        if not getattr(protocol, 'frozen', False):
+            raise ValueError("Protocol must be frozen (frozen=True)")
         
         # 1. Validate data_snapshot_hash match
         self._validate_data_snapshot_hash(protocol, manifest)
@@ -119,8 +167,8 @@ class BacktestEngineQualification:
         # 2. Validate universe specification
         universe_info = self._validate_universe_spec(universe_spec)
         
-        # 3. Run Canary qualification
-        qualification_result = self.run_qualification(
+        # 3. Run Canary qualification (internal only)
+        qualification_result = self._run_qualification_internal(
             protocol_snapshot_id=protocol.protocol_snapshot_id,
             qualification_date=qualification_date,
         )

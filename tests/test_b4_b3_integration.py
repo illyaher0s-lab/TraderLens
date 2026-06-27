@@ -66,18 +66,60 @@ class TestB3ProtocolSnapshotRequiredForB4Backtest(unittest.TestCase):
     """B4 entrypoint requires B3 protocol snapshot."""
     
     def test_b3_protocol_snapshot_required_for_b4_backtest(self):
-        """Missing protocol raises ValueError through B4 entrypoint."""
+        """Missing protocol (None) raises ValueError through B4 entrypoint."""
         qualification = BacktestEngineQualification()
         manifest = create_valid_manifest()
         universe = create_valid_pit_universe()
         
-        with self.assertRaises((ValueError, AttributeError, TypeError)):
+        with self.assertRaises(ValueError) as ctx:
             qualification.run_qualification_with_b3_protocol(
                 protocol=None,  # Missing
                 manifest=manifest,
                 universe_spec=universe,
                 qualification_date=date(2024, 1, 10),
             )
+        
+        self.assertIn("required", str(ctx.exception).lower())
+        self.assertIn("none", str(ctx.exception).lower())
+    
+    def test_fake_protocol_object_rejected(self):
+        """Fake/duck-typed protocol object rejected."""
+        from types import SimpleNamespace
+        
+        qualification = BacktestEngineQualification()
+        manifest = create_valid_manifest()
+        universe = create_valid_pit_universe()
+        
+        # Fake protocol (missing required attributes)
+        fake_protocol = SimpleNamespace(
+            protocol_snapshot_id="fake_001",
+            data_snapshot_hash="fake_hash",
+        )
+        
+        with self.assertRaises(ValueError) as ctx:
+            qualification.run_qualification_with_b3_protocol(
+                protocol=fake_protocol,
+                manifest=manifest,
+                universe_spec=universe,
+                qualification_date=date(2024, 1, 10),
+            )
+        
+        self.assertIn("invalid", str(ctx.exception).lower())
+    
+    def test_string_only_entrypoint_unavailable(self):
+        """String-only entrypoint (run_qualification) exists for Task 4 compatibility only."""
+        qualification = BacktestEngineQualification()
+        
+        # run_qualification exists for Task 4 compatibility
+        self.assertTrue(hasattr(qualification, 'run_qualification'))
+        
+        # But run_qualification_with_b3_protocol is the formal B4 entrypoint
+        self.assertTrue(hasattr(qualification, 'run_qualification_with_b3_protocol'))
+        
+        # Docstring warns it's legacy
+        doc = qualification.run_qualification.__doc__
+        self.assertIn("legacy", doc.lower())
+        self.assertIn("task 4", doc.lower())
 
 
 class TestB3DataSnapshotHashRequiredForB4Backtest(unittest.TestCase):
