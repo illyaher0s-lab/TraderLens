@@ -240,6 +240,46 @@ class TestBacktestReportBuilder(unittest.TestCase):
                 adjustment_snapshot_fingerprint="adj_fp_001",
             )
         self.assertIn("protocol_snapshot_id", str(ctx.exception))
+
+    def test_report_rejects_protocol_snapshot_id_mismatch_with_b4_result(self):
+        """Report must not relabel a B4 result under a different protocol."""
+        with self.assertRaises(ValueError) as ctx:
+            self.builder.build_report(
+                report_id="rpt_test",
+                strategy_revision_id="strat_001",
+                protocol_snapshot_id="proto_DIFFERENT",
+                strategy_config_hash="config_hash_001",
+                data_snapshot_hash="data_hash_001",
+                gate_criteria_hash="gate_hash_001",
+                oos_draw_index=1,
+                shared_oos_window_id="shared_oos_001",
+                b4_result=self.b4_result,
+                adjustment_mode="qfq",
+                adjustment_snapshot_fingerprint="adj_fp_001",
+            )
+        self.assertIn("protocol_snapshot_id mismatch", str(ctx.exception).lower())
+        self.assertIn("proto_001", str(ctx.exception))
+        self.assertIn("proto_DIFFERENT", str(ctx.exception))
+
+    def test_report_rejects_strategy_revision_id_mismatch_with_b4_result(self):
+        """Report must not relabel a B4 result under a different strategy revision."""
+        with self.assertRaises(ValueError) as ctx:
+            self.builder.build_report(
+                report_id="rpt_test",
+                strategy_revision_id="strat_DIFFERENT",
+                protocol_snapshot_id="proto_001",
+                strategy_config_hash="config_hash_001",
+                data_snapshot_hash="data_hash_001",
+                gate_criteria_hash="gate_hash_001",
+                oos_draw_index=1,
+                shared_oos_window_id="shared_oos_001",
+                b4_result=self.b4_result,
+                adjustment_mode="qfq",
+                adjustment_snapshot_fingerprint="adj_fp_001",
+            )
+        self.assertIn("strategy_revision_id mismatch", str(ctx.exception).lower())
+        self.assertIn("strat_001", str(ctx.exception))
+        self.assertIn("strat_DIFFERENT", str(ctx.exception))
     
     def test_report_hash_is_deterministic(self):
         """Same report payload generates same hash."""

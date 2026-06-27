@@ -67,7 +67,11 @@ class BacktestReportBuilder:
             ValueError: If required B4 metadata missing
         """
         # Validate required B4 metadata
-        self._validate_b4_metadata(b4_result)
+        self._validate_b4_metadata(
+            b4_result,
+            strategy_revision_id=strategy_revision_id,
+            protocol_snapshot_id=protocol_snapshot_id,
+        )
         
         # Extract B4 read trace summary
         b4_read_trace_summary = self._summarize_b4_read_trace(b4_result)
@@ -132,7 +136,12 @@ class BacktestReportBuilder:
         
         return report
     
-    def _validate_b4_metadata(self, b4_result: EventBacktestResult) -> None:
+    def _validate_b4_metadata(
+        self,
+        b4_result: EventBacktestResult,
+        strategy_revision_id: str,
+        protocol_snapshot_id: str,
+    ) -> None:
         """
         Validate B4 result has required metadata.
         
@@ -147,6 +156,20 @@ class BacktestReportBuilder:
         
         if b4_result.evaluation_mode not in ["formal_backtest", "in_sample", "out_of_sample"]:
             raise ValueError(f"Invalid B4 evaluation_mode: {b4_result.evaluation_mode}")
+
+        if b4_result.protocol_snapshot_id != protocol_snapshot_id:
+            raise ValueError(
+                f"protocol_snapshot_id mismatch: "
+                f"B4 has '{b4_result.protocol_snapshot_id}', "
+                f"report input has '{protocol_snapshot_id}'"
+            )
+
+        if b4_result.strategy_revision_id != strategy_revision_id:
+            raise ValueError(
+                f"strategy_revision_id mismatch: "
+                f"B4 has '{b4_result.strategy_revision_id}', "
+                f"report input has '{strategy_revision_id}'"
+            )
     
     def _summarize_b4_read_trace(self, b4_result: EventBacktestResult) -> str:
         """
