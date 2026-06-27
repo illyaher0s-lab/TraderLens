@@ -83,19 +83,37 @@ class TestB3ProtocolSnapshotRequiredForB4Backtest(unittest.TestCase):
         self.assertIn("none", str(ctx.exception).lower())
     
     def test_fake_protocol_object_rejected(self):
-        """Fake/duck-typed protocol object rejected."""
+        """Fake/duck-typed protocol object rejected even with all attributes."""
         from types import SimpleNamespace
-        
+
         qualification = BacktestEngineQualification()
         manifest = create_valid_manifest()
         universe = create_valid_pit_universe()
-        
-        # Fake protocol (missing required attributes)
+
+        # Fake protocol with ALL required attributes (still rejected by isinstance)
         fake_protocol = SimpleNamespace(
             protocol_snapshot_id="fake_001",
-            data_snapshot_hash="fake_hash",
+            theme_id="fake_theme",
+            hypothesis_source_snapshot_id="fake_hyp",
+            strategy_revision_id="fake_rev",
+            sample_split_rule_id="fake_split",
+            oos_window_rule_id="fake_oos",
+            oos_window_rule_params_json="{}",
+            oos_window_start=date(2024, 6, 1),
+            oos_window_end=date(2024, 12, 31),
+            shared_oos_window_id="fake_win",
+            backtest_universe_spec_id="fake_univ",
+            data_snapshot_id="data_001",
+            kill_criteria_snapshot_id="fake_kill",
+            prototype_gate_thresholds_json="{}",
+            strategy_config_hash="fake_config",
+            data_snapshot_hash="valid_hash_xyz",
+            gate_criteria_hash="fake_gate",
+            frozen=True,
+            frozen_at=datetime(2024, 1, 1, 12, 0, 0),
+            frozen_by="fake_system",
         )
-        
+
         with self.assertRaises(ValueError) as ctx:
             qualification.run_qualification_with_b3_protocol(
                 protocol=fake_protocol,
@@ -103,8 +121,71 @@ class TestB3ProtocolSnapshotRequiredForB4Backtest(unittest.TestCase):
                 universe_spec=universe,
                 qualification_date=date(2024, 1, 10),
             )
-        
+
         self.assertIn("invalid", str(ctx.exception).lower())
+        self.assertIn("researchprotocolsnapshot", str(ctx.exception).lower())
+
+    def test_fake_manifest_object_rejected(self):
+        """Fake/duck-typed manifest object rejected even with all attributes."""
+        from types import SimpleNamespace
+
+        qualification = BacktestEngineQualification()
+        protocol = create_valid_protocol()
+        universe = create_valid_pit_universe()
+
+        # Fake manifest with ALL required attributes (still rejected by isinstance)
+        fake_manifest = SimpleNamespace(
+            data_snapshot_id="data_001",
+            data_snapshot_hash="valid_hash_xyz",
+            created_at=date(2024, 1, 1),
+            market_data_fingerprint="fake_market",
+            daily_status_fingerprint="fake_status",
+            membership_fingerprint="fake_member",
+            quality_status="ok",
+            gaps=(),
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            qualification.run_qualification_with_b3_protocol(
+                protocol=protocol,
+                manifest=fake_manifest,
+                universe_spec=universe,
+                qualification_date=date(2024, 1, 10),
+            )
+
+        self.assertIn("invalid", str(ctx.exception).lower())
+        self.assertIn("datasnapshotmanifest", str(ctx.exception).lower())
+
+    def test_fake_universe_object_rejected(self):
+        """Fake/duck-typed universe object rejected even with all attributes."""
+        from types import SimpleNamespace
+
+        qualification = BacktestEngineQualification()
+        protocol = create_valid_protocol()
+        manifest = create_valid_manifest()
+
+        # Fake universe with ALL required attributes (still rejected by isinstance)
+        fake_universe = SimpleNamespace(
+            snapshot_id="fake_pit_001",
+            snapshot_date=date(2023, 12, 31),
+            universe_rule_type="point_in_time_membership",
+            membership_source="index_constituents",
+            include_delisted=True,
+            records=(),
+            quality_status="ok",
+            gaps=(),
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            qualification.run_qualification_with_b3_protocol(
+                protocol=protocol,
+                manifest=manifest,
+                universe_spec=fake_universe,
+                qualification_date=date(2024, 1, 10),
+            )
+
+        self.assertIn("invalid", str(ctx.exception).lower())
+        self.assertIn("pointintime", str(ctx.exception).lower())
     
     def test_string_only_entrypoint_unavailable(self):
         """String-only entrypoint (run_qualification) exists for Task 4 compatibility only."""

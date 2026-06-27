@@ -19,6 +19,11 @@ from backend.services.b4_protocol_types import (
     BacktestEngineQualificationResult,
     CanaryCaseResult,
 )
+from backend.services.b3_protocol_types import (
+    DataSnapshotManifest,
+    PointInTimeMembershipSnapshot,
+)
+from contracts.strategy import ResearchProtocolSnapshot, ForwardWatchlistSnapshot
 
 
 class BacktestEngineQualification:
@@ -105,18 +110,18 @@ class BacktestEngineQualification:
     ) -> dict:
         """
         Run B4 qualification with B3 frozen protocol (Task 10 integration boundary).
-        
+
         This is the official B4 entrypoint that enforces B3 protocol requirements:
         - Validates data_snapshot_hash match (hard reject on mismatch)
         - Validates universe specification (rejects forward watchlist / static list)
         - Records B3 protocol_snapshot_id and data_snapshot_hash in result
-        
+
         Args:
             protocol: B3 ResearchProtocolSnapshot (frozen, required)
             manifest: B3 DataSnapshotManifest (frozen, required)
             universe_spec: B3 PointInTimeMembershipSnapshot (frozen, required)
             qualification_date: Date to run qualification
-        
+
         Returns:
             dict with:
             - result: BacktestEngineQualificationResult
@@ -125,54 +130,45 @@ class BacktestEngineQualification:
             - data_snapshot_id: str
             - universe_type: str
             - universe_snapshot_id: str
-        
+
         Raises:
             ValueError: If protocol/manifest/universe validation fails
         """
-        # Task 10 v3: Enforce B3 protocol requirements with type checking
-        
-        # 0. Type checking: reject None
-        if protocol is None:
-            raise ValueError("ResearchProtocolSnapshot is required (got None)")
-        if manifest is None:
-            raise ValueError("DataSnapshotManifest is required (got None)")
-        if universe_spec is None:
-            raise ValueError("PointInTimeMembershipSnapshot is required (got None)")
-        
-        # Type checking: reject fake/duck-typed objects
-        # Check for actual B3 types by presence of required attributes
-        required_protocol_attrs = ['protocol_snapshot_id', 'data_snapshot_hash', 'data_snapshot_id', 'frozen']
-        for attr in required_protocol_attrs:
-            if not hasattr(protocol, attr):
-                raise ValueError(
-                    f"Invalid protocol object: missing '{attr}'. "
-                    f"Must be ResearchProtocolSnapshot."
-                )
-        
-        required_manifest_attrs = ['data_snapshot_id', 'data_snapshot_hash', 'created_at']
-        for attr in required_manifest_attrs:
-            if not hasattr(manifest, attr):
-                raise ValueError(
-                    f"Invalid manifest object: missing '{attr}'. "
-                    f"Must be DataSnapshotManifest."
-                )
-        
+        # Task 10 v4: Enforce B3 protocol requirements with strict isinstance() checks
+
+        # Strict type checking: reject None and fake objects
+        if not isinstance(protocol, ResearchProtocolSnapshot):
+            if protocol is None:
+                raise ValueError("ResearchProtocolSnapshot is required (got None)")
+            raise ValueError(
+                f"Invalid protocol object type: {type(protocol).__name__}. "
+                f"Must be ResearchProtocolSnapshot (got fake object)."
+            )
+
+        if not isinstance(manifest, DataSnapshotManifest):
+            if manifest is None:
+                raise ValueError("DataSnapshotManifest is required (got None)")
+            raise ValueError(
+                f"Invalid manifest object type: {type(manifest).__name__}. "
+                f"Must be DataSnapshotManifest (got fake object)."
+            )
+
         # Verify protocol frozen=True (ResearchProtocolSnapshot has explicit frozen field)
-        if not getattr(protocol, 'frozen', False):
+        if not protocol.frozen:
             raise ValueError("Protocol must be frozen (frozen=True)")
-        
+
         # 1. Validate data_snapshot_hash match
         self._validate_data_snapshot_hash(protocol, manifest)
-        
-        # 2. Validate universe specification
+
+        # 2. Validate universe specification (strict type check inside)
         universe_info = self._validate_universe_spec(universe_spec)
-        
+
         # 3. Run Canary qualification (internal only)
         qualification_result = self._run_qualification_internal(
             protocol_snapshot_id=protocol.protocol_snapshot_id,
             qualification_date=qualification_date,
         )
-        
+
         # 4. Return enhanced result with B3 metadata
         return {
             "result": qualification_result,
@@ -212,30 +208,36 @@ class BacktestEngineQualification:
     ) -> dict:
         """
         Validate universe specification (Task 10).
-        
+
         Raises:
             ValueError: If universe invalid for historical backtest
         """
-        # Reject ForwardWatchlistSnapshot
-        if hasattr(universe_spec, 'forward_only') and universe_spec.forward_only:
-            raise ValueError(
-                "ForwardWatchlistSnapshot cannot be used in historical backtest. "
-                "Forward watchlist is prospective-only."
-            )
-        
         # Reject static symbol list
         if isinstance(universe_spec, (list, tuple)):
             raise ValueError(
                 "Static symbol list cannot be used as historical universe. "
                 "Must use point-in-time membership snapshot."
             )
-        
-        # Accept PointInTimeMembershipSnapshot
-        if hasattr(universe_spec, 'snapshot_date') and hasattr(universe_spec, 'snapshot_id'):
+
+        # Reject ForwardWatchlistSnapshot (strict type check)
+        if isinstance(universe_spec, ForwardWatchlistSnapshot):
+            raise ValueError(
+                "ForwardWatchlistSnapshot cannot be used in historical backtest. "
+                "Forward watchlist is prospective-only."
+            )
+
+        # Accept only PointInTimeMembershipSnapshot (strict type check)
+        if isinstance(universe_spec, PointInTimeMembershipSnapshot):
             return {
                 "universe_type": "point_in_time",
                 "snapshot_id": universe_spec.snapshot_id,
                 "as_of_date": universe_spec.snapshot_date,
             }
-        
-        raise ValueError(f"Unknown universe specification type: {type(universe_spec)}")
+
+        if universe_spec is None:
+            raise ValueError("PointInTimeMembershipSnapshot is required (got None)")
+
+        raise ValueError(
+            f"Invalid universe specification type: {type(universe_spec).__name__}. "
+            f"Must be PointInTimeMembershipSnapshot (got fake object)."
+        )
