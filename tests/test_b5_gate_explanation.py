@@ -49,7 +49,7 @@ class TestGateExplanationBuilder(unittest.TestCase):
             strategy_revision_id="strat_001",
             protocol_snapshot_id="proto_001",
             verdict="rejected",
-            checks_json="{}",
+            checks_json='{"future_data_violations": 0}',
             blocking_issues=("Test issue",),
             warnings=(),
             strategy_config_hash="config_001",
@@ -81,7 +81,7 @@ class TestGateExplanationBuilder(unittest.TestCase):
             strategy_revision_id="strat_001",
             protocol_snapshot_id="proto_001",
             verdict="candidate_for_prototype_passed",
-            checks_json="{}",
+            checks_json='{"future_data_violations": 0}',
             blocking_issues=(),
             warnings=(),
             strategy_config_hash="config_001",
@@ -113,7 +113,7 @@ class TestGateExplanationBuilder(unittest.TestCase):
             strategy_revision_id="strat_001",
             protocol_snapshot_id="proto_001",
             verdict="needs_review",
-            checks_json="{}",
+            checks_json='{"future_data_violations": 0}',
             blocking_issues=(),
             warnings=("Low trade count",),
             strategy_config_hash="config_001",
@@ -155,6 +155,62 @@ class TestGateExplanationBuilder(unittest.TestCase):
             )
         
         self.assertIn("gate_result", str(ctx.exception).lower())
+
+        gate_result = PrototypeGateResultV2(
+            gate_result_id="gate_001",
+            report_id="rpt_001",
+            strategy_revision_id="strat_001",
+            protocol_snapshot_id="proto_001",
+            verdict="rejected",
+            checks_json="{}",
+            blocking_issues=("Test issue",),
+            warnings=(),
+            strategy_config_hash="config_001",
+            data_snapshot_hash="data_001",
+            gate_criteria_hash="gate_001",
+            oos_draw_index=1,
+            shared_oos_window_id="oos_001",
+            multiple_comparison_flag=False,
+            generated_at=datetime.now(),
+            gate_result_hash="hash_001",
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            self.builder.build_explanation(
+                report_id="rpt_001",
+                gate_result=gate_result,
+            )
+
+        self.assertIn("deterministic evidence", str(ctx.exception).lower())
+
+    def test_explanation_rejects_report_id_mismatch(self):
+        """Explanation must not bind a Gate result to a different report."""
+        gate_result = PrototypeGateResultV2(
+            gate_result_id="gate_001",
+            report_id="rpt_001",
+            strategy_revision_id="strat_001",
+            protocol_snapshot_id="proto_001",
+            verdict="rejected",
+            checks_json='{"future_data_violations": 2}',
+            blocking_issues=("Future data violations",),
+            warnings=(),
+            strategy_config_hash="config_001",
+            data_snapshot_hash="data_001",
+            gate_criteria_hash="gate_001",
+            oos_draw_index=1,
+            shared_oos_window_id="oos_001",
+            multiple_comparison_flag=False,
+            generated_at=datetime.now(),
+            gate_result_hash="hash_001",
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            self.builder.build_explanation(
+                report_id="rpt_DIFFERENT",
+                gate_result=gate_result,
+            )
+
+        self.assertIn("report_id mismatch", str(ctx.exception).lower())
     
     def test_explanation_has_no_llm_dependency_or_llm_is_summary_only(self):
         """Explanation builder must not import LLM, or LLM is summary-only after deterministic Gate."""

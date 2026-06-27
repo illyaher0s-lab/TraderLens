@@ -42,12 +42,22 @@ class GateExplanationBuilder:
         # Fail loud if evidence missing
         if gate_result is None:
             raise ValueError("gate_result is required (cannot build explanation without deterministic Gate result)")
+
+        if report_id != gate_result.report_id:
+            raise ValueError(
+                f"report_id mismatch: explanation input has '{report_id}', "
+                f"Gate result has '{gate_result.report_id}'"
+            )
         
         # Generate plain summary based on verdict
         plain_summary = self._generate_plain_summary(gate_result)
         
         # Extract deterministic evidence references
         deterministic_evidence = self._extract_evidence_references(gate_result)
+        if not deterministic_evidence:
+            raise ValueError(
+                "Deterministic evidence is required to build Gate explanation"
+            )
         
         # Build explanation snapshot
         explanation_id = f"expl_{gate_result.gate_result_id}"

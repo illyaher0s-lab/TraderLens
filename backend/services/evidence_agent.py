@@ -129,7 +129,7 @@ class EvidenceAgentOrchestrator:
             (data_packet, audit, evidence_items)
         """
         audit = EvidenceAgentAudit()
-        t0 = time.time()
+        t0 = time.perf_counter()
 
         # Step 1: Call all three data tools
         tool_calls = []
@@ -209,7 +209,7 @@ class EvidenceAgentOrchestrator:
         # Step 3: Run LLM extraction (if available)
         if self.llm_client is None:
             audit.errors.append("No LLM client configured; cannot run evidence extraction")
-            audit.extraction_time_ms = (time.time() - t0) * 1000
+            audit.extraction_time_ms = self._elapsed_ms(t0)
             return packet, audit, []
 
         evidence_items = self._run_llm_extraction(packet, audit)
@@ -223,8 +223,13 @@ class EvidenceAgentOrchestrator:
         # Step 6: Output validation (quality rules)
         self._validate_output(evidence_items, packet, audit)
 
-        audit.extraction_time_ms = (time.time() - t0) * 1000
+        audit.extraction_time_ms = self._elapsed_ms(t0)
         return packet, audit, evidence_items
+
+    @staticmethod
+    def _elapsed_ms(start: float) -> float:
+        """Return a monotonic non-zero elapsed duration for audit records."""
+        return max((time.perf_counter() - start) * 1000, 0.001)
 
     def _run_llm_extraction(
         self,

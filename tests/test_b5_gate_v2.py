@@ -266,6 +266,134 @@ class TestPrototypeGateV2(unittest.TestCase):
         # High return alone cannot pass without control
         self.assertNotEqual(result.verdict, "candidate_for_prototype_passed")
 
+    def test_explicit_stress_failure_blocks_candidate(self):
+        """Gate must reject a present but failed stress result."""
+        import json
+
+        report_payload = {
+            "protocol_snapshot_id": "proto_001",
+            "strategy_config_hash": "config_001",
+            "data_snapshot_hash": "data_001",
+            "gate_criteria_hash": "gate_001",
+            "future_data_violation_count": 0,
+            "base_cost_result": {"status": "pass"},
+            "stress_cost_result": {"status": "fail"},
+            "benchmark_comparison": {"status": "pass"},
+            "control_comparison": {"status": "pass"},
+            "data_quality_status": "ok",
+        }
+
+        report = ImmutableBacktestReport(
+            report_id="rpt_001",
+            theme_id="theme_001",
+            strategy_revision_id="strat_001",
+            protocol_snapshot_id="proto_001",
+            strategy_config_hash="config_001",
+            data_snapshot_hash="data_001",
+            gate_criteria_hash="gate_001",
+            evaluation_mode="out_of_sample",
+            oos_draw_index=1,
+            shared_oos_window_id="oos_001",
+            multiple_comparison_flag=False,
+            report_payload_json=json.dumps(report_payload),
+            integrity_status="valid",
+            generated_at=datetime.now(),
+            report_hash="hash_001",
+        )
+
+        result = self.gate.evaluate(report=report, gate_criteria_hash="gate_001")
+
+        self.assertEqual(result.verdict, "rejected")
+        self.assertTrue(any("stress" in issue.lower() for issue in result.blocking_issues))
+
+    def test_explicit_control_or_benchmark_failure_blocks_candidate(self):
+        """Gate must reject failed benchmark/control comparison, not just require presence."""
+        import json
+
+        for failed_field in ("benchmark_comparison", "control_comparison"):
+            report_payload = {
+                "protocol_snapshot_id": "proto_001",
+                "strategy_config_hash": "config_001",
+                "data_snapshot_hash": "data_001",
+                "gate_criteria_hash": "gate_001",
+                "future_data_violation_count": 0,
+                "base_cost_result": {"status": "pass"},
+                "stress_cost_result": {"status": "pass"},
+                "benchmark_comparison": {"status": "pass"},
+                "control_comparison": {"status": "pass"},
+                "data_quality_status": "ok",
+            }
+            report_payload[failed_field] = {"status": "fail"}
+
+            report = ImmutableBacktestReport(
+                report_id=f"rpt_{failed_field}",
+                theme_id="theme_001",
+                strategy_revision_id="strat_001",
+                protocol_snapshot_id="proto_001",
+                strategy_config_hash="config_001",
+                data_snapshot_hash="data_001",
+                gate_criteria_hash="gate_001",
+                evaluation_mode="out_of_sample",
+                oos_draw_index=1,
+                shared_oos_window_id="oos_001",
+                multiple_comparison_flag=False,
+                report_payload_json=json.dumps(report_payload),
+                integrity_status="valid",
+                generated_at=datetime.now(),
+                report_hash="hash_001",
+            )
+
+            result = self.gate.evaluate(report=report, gate_criteria_hash="gate_001")
+
+            self.assertEqual(result.verdict, "rejected")
+            self.assertTrue(
+                any(failed_field.replace("_", " ") in issue.lower() for issue in result.blocking_issues)
+            )
+
+    def test_concentration_or_beta_flags_block_candidate(self):
+        """Gate must reject beta domination and concentration flags from deterministic comparison."""
+        import json
+
+        report_payload = {
+            "protocol_snapshot_id": "proto_001",
+            "strategy_config_hash": "config_001",
+            "data_snapshot_hash": "data_001",
+            "gate_criteria_hash": "gate_001",
+            "future_data_violation_count": 0,
+            "base_cost_result": {"status": "pass"},
+            "stress_cost_result": {"status": "pass"},
+            "benchmark_comparison": {"status": "pass"},
+            "control_comparison": {"status": "pass"},
+            "data_quality_status": "ok",
+            "beta_dominated": True,
+            "single_symbol_concentration": {"can_candidate": False},
+        }
+
+        report = ImmutableBacktestReport(
+            report_id="rpt_001",
+            theme_id="theme_001",
+            strategy_revision_id="strat_001",
+            protocol_snapshot_id="proto_001",
+            strategy_config_hash="config_001",
+            data_snapshot_hash="data_001",
+            gate_criteria_hash="gate_001",
+            evaluation_mode="out_of_sample",
+            oos_draw_index=1,
+            shared_oos_window_id="oos_001",
+            multiple_comparison_flag=False,
+            report_payload_json=json.dumps(report_payload),
+            integrity_status="valid",
+            generated_at=datetime.now(),
+            report_hash="hash_001",
+        )
+
+        result = self.gate.evaluate(report=report, gate_criteria_hash="gate_001")
+
+        self.assertEqual(result.verdict, "rejected")
+        joined_issues = " ".join(result.blocking_issues).lower()
+        self.assertIn("beta", joined_issues)
+        self.assertIn("concentration", joined_issues)
+
 
 if __name__ == "__main__":
     unittest.main()
