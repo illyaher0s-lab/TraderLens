@@ -51,8 +51,8 @@ Theme input (manual / market scan)
 **Core documents (read first)**:
 1. [AGENTS.md](AGENTS.md) - Development rules
 2. [status.md](status.md) - Current status and verification baseline
-3. [HANDOFF_PROMPT.md](HANDOFF_PROMPT.md) - Latest handoff
-4. [docs/verification/B4_VERIFICATION.md](docs/verification/B4_VERIFICATION.md) - B4 accepted commits, guarantees, boundaries, and test record
+3. [docs/verification/B4_VERIFICATION.md](docs/verification/B4_VERIFICATION.md) - B4 accepted commits, guarantees, boundaries, and test record
+4. [docs/phases/HANDOFF_B4.md](docs/phases/HANDOFF_B4.md) - B4 handoff context
 
 **Phase documentation**:
 - [docs/phases/](docs/phases/) - Historical phase plans and reports
