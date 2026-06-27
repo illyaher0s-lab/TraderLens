@@ -244,6 +244,77 @@ class TestB5B3B4PrerequisiteBoundary(unittest.TestCase):
         self.assertEqual(result["data_snapshot_id"], "data_snap_001")
         self.assertEqual(result["universe_type"], "point_in_time")
         self.assertEqual(result["universe_snapshot_id"], "univ_snap_001")
+    
+    def test_b5_rejects_failed_b4_qualification(self):
+        """B5 rejects B4 qualification with status != 'pass'."""
+        # B4 result with failed qualification
+        failed_b4_result = self.b4_result.copy()
+        failed_b4_result["result"] = BacktestEngineQualificationResult(
+            qualification_id="qual_002",
+            protocol_snapshot_id="proto_001",
+            canary_cases=(),
+            qualification_status="fail",  # Failed
+            qualified_at=date(2024, 1, 1),
+        )
+        
+        with self.assertRaises(ValueError) as ctx:
+            self.controller.validate_b3_b4_prerequisites(
+                self.protocol, self.manifest, self.universe, failed_b4_result
+            )
+        self.assertIn("qualification failed", str(ctx.exception).lower())
+        self.assertIn("fail", str(ctx.exception))
+    
+    def test_b5_rejects_b4_protocol_snapshot_id_mismatch(self):
+        """B5 rejects B4 result with mismatched protocol_snapshot_id."""
+        mismatched_b4 = self.b4_result.copy()
+        mismatched_b4["protocol_snapshot_id"] = "proto_DIFFERENT"
+        
+        with self.assertRaises(ValueError) as ctx:
+            self.controller.validate_b3_b4_prerequisites(
+                self.protocol, self.manifest, self.universe, mismatched_b4
+            )
+        self.assertIn("protocol_snapshot_id mismatch", str(ctx.exception).lower())
+        self.assertIn("proto_001", str(ctx.exception))
+        self.assertIn("proto_DIFFERENT", str(ctx.exception))
+    
+    def test_b5_rejects_b4_data_snapshot_hash_mismatch(self):
+        """B5 rejects B4 result with mismatched data_snapshot_hash."""
+        mismatched_b4 = self.b4_result.copy()
+        mismatched_b4["data_snapshot_hash"] = "data_hash_DIFFERENT"
+        
+        with self.assertRaises(ValueError) as ctx:
+            self.controller.validate_b3_b4_prerequisites(
+                self.protocol, self.manifest, self.universe, mismatched_b4
+            )
+        self.assertIn("data_snapshot_hash mismatch", str(ctx.exception).lower())
+        self.assertIn("data_hash_001", str(ctx.exception))
+        self.assertIn("data_hash_DIFFERENT", str(ctx.exception))
+    
+    def test_b5_rejects_b4_data_snapshot_id_mismatch(self):
+        """B5 rejects B4 result with mismatched data_snapshot_id."""
+        mismatched_b4 = self.b4_result.copy()
+        mismatched_b4["data_snapshot_id"] = "data_snap_DIFFERENT"
+        
+        with self.assertRaises(ValueError) as ctx:
+            self.controller.validate_b3_b4_prerequisites(
+                self.protocol, self.manifest, self.universe, mismatched_b4
+            )
+        self.assertIn("data_snapshot_id mismatch", str(ctx.exception).lower())
+        self.assertIn("data_snap_001", str(ctx.exception))
+        self.assertIn("data_snap_DIFFERENT", str(ctx.exception))
+    
+    def test_b5_rejects_b4_universe_snapshot_id_mismatch(self):
+        """B5 rejects B4 result with mismatched universe_snapshot_id."""
+        mismatched_b4 = self.b4_result.copy()
+        mismatched_b4["universe_snapshot_id"] = "univ_snap_DIFFERENT"
+        
+        with self.assertRaises(ValueError) as ctx:
+            self.controller.validate_b3_b4_prerequisites(
+                self.protocol, self.manifest, self.universe, mismatched_b4
+            )
+        self.assertIn("universe_snapshot_id mismatch", str(ctx.exception).lower())
+        self.assertIn("univ_snap_001", str(ctx.exception))
+        self.assertIn("univ_snap_DIFFERENT", str(ctx.exception))
 
 
 if __name__ == "__main__":

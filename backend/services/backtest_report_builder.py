@@ -5,6 +5,7 @@ import hashlib
 import json
 from datetime import datetime
 
+from contracts.strategy import ImmutableBacktestReport
 from backend.services.b5_oos_types import ReportPayloadSchema
 from backend.services.b4_protocol_types import EventBacktestResult
 
@@ -31,6 +32,8 @@ class BacktestReportBuilder:
     
     def build_report(
         self,
+        report_id: str,
+        strategy_revision_id: str,
         protocol_snapshot_id: str,
         strategy_config_hash: str,
         data_snapshot_hash: str,
@@ -40,11 +43,13 @@ class BacktestReportBuilder:
         b4_result: EventBacktestResult,
         adjustment_mode: str,
         adjustment_snapshot_fingerprint: str,
-    ) -> ReportPayloadSchema:
+    ) -> ImmutableBacktestReport:
         """
         Build immutable backtest report from B4 result.
         
         Args:
+            report_id: Unique report ID
+            strategy_revision_id: Strategy revision ID
             protocol_snapshot_id: B3 protocol snapshot ID
             strategy_config_hash: Strategy config hash
             data_snapshot_hash: Data snapshot hash
@@ -56,7 +61,7 @@ class BacktestReportBuilder:
             adjustment_snapshot_fingerprint: Adjustment snapshot fingerprint
         
         Returns:
-            ReportPayloadSchema with report facts
+            ImmutableBacktestReport with all required fields
         
         Raises:
             ValueError: If required B4 metadata missing
@@ -79,23 +84,53 @@ class BacktestReportBuilder:
             "It is not a future profit guarantee, not a live trading instruction, and not a promotion by itself."
         )
         
-        # Build report payload
-        report_payload = ReportPayloadSchema(
+        # Build report payload with explicit missing fields
+        report_payload_dict = {
+            "protocol_snapshot_id": protocol_snapshot_id,
+            "strategy_config_hash": strategy_config_hash,
+            "data_snapshot_hash": data_snapshot_hash,
+            "gate_criteria_hash": gate_criteria_hash,
+            "oos_draw_index": oos_draw_index,
+            "shared_oos_window_id": shared_oos_window_id,
+            "b4_read_trace_summary": b4_read_trace_summary,
+            "future_data_violation_count": future_data_violation_count,
+            "adjustment_mode": adjustment_mode,
+            "adjustment_snapshot_fingerprint": adjustment_snapshot_fingerprint,
+            "liquidation_impact": liquidation_impact,
+            "base_cost_result": "not_available_from_b4_result",
+            "stress_cost_result": "not_available_from_b4_result",
+            "control_comparison": "not_available_from_b4_result",
+            "disclaimer": disclaimer,
+        }
+        
+        report_payload_json = json.dumps(report_payload_dict, sort_keys=True)
+        
+        # Compute report hash
+        report_hash = self.compute_report_hash_from_dict(report_payload_dict)
+        
+        # Determine evaluation mode
+        evaluation_mode = self._determine_evaluation_mode(oos_draw_index)
+        
+        # Build ImmutableBacktestReport
+        report = ImmutableBacktestReport(
+            report_id=report_id,
+            theme_id="not_available_from_b4_result",  # Future: extract from protocol
+            strategy_revision_id=strategy_revision_id,
             protocol_snapshot_id=protocol_snapshot_id,
             strategy_config_hash=strategy_config_hash,
             data_snapshot_hash=data_snapshot_hash,
             gate_criteria_hash=gate_criteria_hash,
+            evaluation_mode=evaluation_mode,
             oos_draw_index=oos_draw_index,
             shared_oos_window_id=shared_oos_window_id,
-            b4_read_trace_summary=b4_read_trace_summary,
-            future_data_violation_count=future_data_violation_count,
-            adjustment_mode=adjustment_mode,
-            adjustment_snapshot_fingerprint=adjustment_snapshot_fingerprint,
-            liquidation_impact=liquidation_impact,
-            disclaimer=disclaimer,
+            multiple_comparison_flag=False,
+            report_payload_json=report_payload_json,
+            integrity_status="valid",
+            generated_at=datetime.now(),
+            report_hash=report_hash,
         )
         
-        return report_payload
+        return report
     
     def _validate_b4_metadata(self, b4_result: EventBacktestResult) -> None:
         """
@@ -142,9 +177,9 @@ class BacktestReportBuilder:
         # Future: extract from EventBacktestResult.liquidation_events if added
         return 0.0
     
-    def compute_report_hash(self, report_payload: ReportPayloadSchema) -> str:
+    def compute_report_hash(self, report: ImmutableBacktestReport) -> str:
         """
-        Compute deterministic report hash.
+        Compute deterministic report hash from ImmutableBacktestReport.
         
         Hash includes:
         - Protocol snapshot ID
@@ -160,19 +195,57 @@ class BacktestReportBuilder:
         Returns:
             SHA256 hash (hex string)
         """
+        import json
+        payload = json.loads(report.report_payload_json)
+        
         hash_input = {
-            "protocol_snapshot_id": report_payload.protocol_snapshot_id,
-            "strategy_config_hash": report_payload.strategy_config_hash,
-            "data_snapshot_hash": report_payload.data_snapshot_hash,
-            "gate_criteria_hash": report_payload.gate_criteria_hash,
-            "oos_draw_index": report_payload.oos_draw_index,
-            "shared_oos_window_id": report_payload.shared_oos_window_id,
-            "b4_read_trace_summary": report_payload.b4_read_trace_summary,
-            "future_data_violation_count": report_payload.future_data_violation_count,
-            "adjustment_mode": report_payload.adjustment_mode,
-            "adjustment_snapshot_fingerprint": report_payload.adjustment_snapshot_fingerprint,
-            "liquidation_impact": report_payload.liquidation_impact,
+            "protocol_snapshot_id": payload["protocol_snapshot_id"],
+            "strategy_config_hash": payload["strategy_config_hash"],
+            "data_snapshot_hash": payload["data_snapshot_hash"],
+            "gate_criteria_hash": payload["gate_criteria_hash"],
+            "oos_draw_index": payload["oos_draw_index"],
+            "shared_oos_window_id": payload["shared_oos_window_id"],
+            "b4_read_trace_summary": payload["b4_read_trace_summary"],
+            "future_data_violation_count": payload["future_data_violation_count"],
+            "adjustment_mode": payload["adjustment_mode"],
+            "adjustment_snapshot_fingerprint": payload["adjustment_snapshot_fingerprint"],
+            "liquidation_impact": payload["liquidation_impact"],
         }
         
         serialized = json.dumps(hash_input, sort_keys=True)
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+    
+    def compute_report_hash_from_dict(self, report_payload_dict: dict) -> str:
+        """
+        Compute deterministic report hash from dict.
+        
+        Returns:
+            SHA256 hash (hex string)
+        """
+        hash_input = {
+            "protocol_snapshot_id": report_payload_dict["protocol_snapshot_id"],
+            "strategy_config_hash": report_payload_dict["strategy_config_hash"],
+            "data_snapshot_hash": report_payload_dict["data_snapshot_hash"],
+            "gate_criteria_hash": report_payload_dict["gate_criteria_hash"],
+            "oos_draw_index": report_payload_dict["oos_draw_index"],
+            "shared_oos_window_id": report_payload_dict["shared_oos_window_id"],
+            "b4_read_trace_summary": report_payload_dict["b4_read_trace_summary"],
+            "future_data_violation_count": report_payload_dict["future_data_violation_count"],
+            "adjustment_mode": report_payload_dict["adjustment_mode"],
+            "adjustment_snapshot_fingerprint": report_payload_dict["adjustment_snapshot_fingerprint"],
+            "liquidation_impact": report_payload_dict["liquidation_impact"],
+        }
+        
+        serialized = json.dumps(hash_input, sort_keys=True)
+        return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+    
+    def _determine_evaluation_mode(self, oos_draw_index: int | None) -> str:
+        """
+        Determine evaluation mode from OOS draw index.
+        
+        Returns:
+            "out_of_sample" if oos_draw_index is set, else "in_sample"
+        """
+        if oos_draw_index is not None and oos_draw_index >= 1:
+            return "out_of_sample"
+        return "in_sample"

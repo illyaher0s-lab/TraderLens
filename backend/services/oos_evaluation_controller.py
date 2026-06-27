@@ -74,7 +74,10 @@ class OOSEvaluationController:
         # 5. Validate hash consistency
         self._validate_hash_consistency(protocol, manifest)
         
-        # 6. Record validated metadata
+        # 6. Validate B4 metadata consistency
+        self._validate_b4_metadata_consistency(b4_result, protocol, manifest, universe)
+        
+        # 7. Record validated metadata
         return {
             "protocol_snapshot_id": protocol.protocol_snapshot_id,
             "data_snapshot_hash": protocol.data_snapshot_hash,
@@ -161,6 +164,7 @@ class OOSEvaluationController:
         Validate B4 formal qualification result.
         
         Must be from run_qualification_with_b3_protocol(), not legacy run_qualification().
+        Must have qualification_status == "pass".
         
         Raises:
             ValueError: If B4 result invalid or legacy format
@@ -188,6 +192,20 @@ class OOSEvaluationController:
                     f"B4 formal qualification result missing required field: '{field}'. "
                     f"Must come from run_qualification_with_b3_protocol()."
                 )
+        
+        # Verify B4 qualification passed
+        b4_qual_result = b4_result.get("result")
+        if not b4_qual_result or not hasattr(b4_qual_result, "qualification_status"):
+            raise ValueError(
+                "B4 result missing qualification_status. "
+                "Must come from run_qualification_with_b3_protocol()."
+            )
+        
+        if b4_qual_result.qualification_status != "pass":
+            raise ValueError(
+                f"B4 qualification failed (status='{b4_qual_result.qualification_status}'). "
+                f"Cannot proceed with OOS evaluation."
+            )
         
         # Verify B4 result does not contain Gate/promotion fields
         forbidden_fields = [
@@ -224,4 +242,69 @@ class OOSEvaluationController:
                 f"protocol expects '{expected}', "
                 f"manifest has '{actual}'. "
                 f"Cannot proceed with mismatched data snapshot."
+            )
+    
+    def _validate_b4_metadata_consistency(
+        self,
+        b4_result: dict,
+        protocol: ResearchProtocolSnapshot,
+        manifest: DataSnapshotManifest,
+        universe: PointInTimeMembershipSnapshot,
+    ) -> None:
+        """
+        Validate B4 result metadata matches B3 protocol/manifest/universe.
+        
+        Raises:
+            ValueError: If any metadata mismatch
+        """
+        # Verify protocol_snapshot_id
+        if b4_result["protocol_snapshot_id"] != protocol.protocol_snapshot_id:
+            raise ValueError(
+                f"B4 protocol_snapshot_id mismatch: "
+                f"B4 has '{b4_result['protocol_snapshot_id']}', "
+                f"protocol has '{protocol.protocol_snapshot_id}'"
+            )
+        
+        # Verify data_snapshot_hash (3-way: B4, protocol, manifest)
+        if b4_result["data_snapshot_hash"] != protocol.data_snapshot_hash:
+            raise ValueError(
+                f"B4 data_snapshot_hash mismatch with protocol: "
+                f"B4 has '{b4_result['data_snapshot_hash']}', "
+                f"protocol has '{protocol.data_snapshot_hash}'"
+            )
+        
+        if b4_result["data_snapshot_hash"] != manifest.data_snapshot_hash:
+            raise ValueError(
+                f"B4 data_snapshot_hash mismatch with manifest: "
+                f"B4 has '{b4_result['data_snapshot_hash']}', "
+                f"manifest has '{manifest.data_snapshot_hash}'"
+            )
+        
+        # Verify data_snapshot_id (3-way: B4, protocol, manifest)
+        if b4_result["data_snapshot_id"] != protocol.data_snapshot_id:
+            raise ValueError(
+                f"B4 data_snapshot_id mismatch with protocol: "
+                f"B4 has '{b4_result['data_snapshot_id']}', "
+                f"protocol has '{protocol.data_snapshot_id}'"
+            )
+        
+        if b4_result["data_snapshot_id"] != manifest.data_snapshot_id:
+            raise ValueError(
+                f"B4 data_snapshot_id mismatch with manifest: "
+                f"B4 has '{b4_result['data_snapshot_id']}', "
+                f"manifest has '{manifest.data_snapshot_id}'"
+            )
+        
+        # Verify universe_snapshot_id
+        if b4_result["universe_snapshot_id"] != universe.snapshot_id:
+            raise ValueError(
+                f"B4 universe_snapshot_id mismatch: "
+                f"B4 has '{b4_result['universe_snapshot_id']}', "
+                f"universe has '{universe.snapshot_id}'"
+            )
+        
+        # Verify universe_type
+        if b4_result["universe_type"] != "point_in_time":
+            raise ValueError(
+                f"B4 universe_type must be 'point_in_time', got '{b4_result['universe_type']}'"
             )
