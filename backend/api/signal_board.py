@@ -84,20 +84,25 @@ def get_signal_summary(
 
 
 @router.get("/strategies", response_model=List[dict])
-def list_strategies():
+def list_strategies(
+    include_missing_admission: bool = Query(False, description="Include strategies without valid admission metadata (audit/internal only)")
+):
     """
     List all strategy_id + strategy_version combinations in the database.
-    
+
     Returns list of strategies with signal counts and latest signal date.
     Used by frontend to populate strategy selector.
     
+    By default, only returns strategies with valid admission metadata
+    (lifecycle_state_at_generation='prototype_passed').
+
     Returns:
         List of dicts with:
         - strategy_id: str
         - strategy_version: str
         - signal_count: int
         - latest_signal_date: str (ISO format)
-    
+
     Example Response:
         [
             {
@@ -113,12 +118,13 @@ def list_strategies():
                 "latest_signal_date": "2023-12-28"
             }
         ]
-    
+
     Examples:
         GET /api/signals/strategies
+        GET /api/signals/strategies?include_missing_admission=true (audit mode)
     """
     db = get_db()
-    strategies = db.list_strategies()
+    strategies = db.list_strategies(include_missing_admission=include_missing_admission)
     return strategies
 
 
@@ -141,7 +147,8 @@ def list_signals(
     strategy_id: Optional[str] = Query(None, description="Filter by strategy ID (M4.1 Phase 3)"),
     strategy_version: Optional[str] = Query(None, description="Filter by strategy version (M4.1 Phase 3)"),
     limit: int = Query(100, description="Max results to return"),
-    offset: int = Query(0, description="Pagination offset")
+    offset: int = Query(0, description="Pagination offset"),
+    include_missing_admission: bool = Query(False, description="Include signals without valid admission metadata (audit/internal only)")
 ):
     """
     List signals with optional filters.
@@ -176,7 +183,8 @@ def list_signals(
         strategy_id=strategy_id,
         strategy_version=strategy_version,
         limit=limit,
-        offset=offset
+        offset=offset,
+        include_missing_admission=include_missing_admission,
     )
     
     return result.to_dict()

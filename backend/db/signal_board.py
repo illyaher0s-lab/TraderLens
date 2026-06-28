@@ -233,7 +233,8 @@ class SignalBoardDB:
         strategy_id: Optional[str] = None,
         strategy_version: Optional[str] = None,
         limit: int = 100,
-        offset: int = 0
+        offset: int = 0,
+        include_missing_admission: bool = False,
     ) -> SignalListResult:
         """
         Query signals with filters.
@@ -248,6 +249,9 @@ class SignalBoardDB:
             strategy_version: Filter by strategy version (M4.1 Phase 3)
             limit: Max results to return
             offset: Pagination offset
+            include_missing_admission: If False (default), only return signals with valid
+                admission metadata (lifecycle_state_at_generation='prototype_passed').
+                If True, include all signals (for audit/internal use).
         
         Returns:
             Paginated result. It can still be iterated/indexed like a list for
@@ -262,6 +266,11 @@ class SignalBoardDB:
 
         where = " WHERE 1=1"
         params = []
+        
+        # C1 Task 3: Default filter - only return signals with valid admission
+        if not include_missing_admission:
+            where += " AND lifecycle_state_at_generation = ?"
+            params.append("prototype_passed")
         
         if signal_date is not None:
             where += " AND signal_date = ?"
@@ -502,9 +511,14 @@ class SignalBoardDB:
                 pending_count=pending_count
             )
     
-    def list_strategies(self) -> List[dict]:
+    def list_strategies(self, include_missing_admission: bool = False) -> List[dict]:
         """
         List all strategy_id + strategy_version combinations in the database.
+        
+        Args:
+            include_missing_admission: If False (default), only count signals with valid
+                admission metadata (lifecycle_state_at_generation='prototype_passed').
+                If True, include all signals (for audit/internal use).
         
         Returns:
             List of dicts with:
@@ -523,14 +537,19 @@ class SignalBoardDB:
                 }
             ]
         """
+        where_clause = ""
+        if not include_missing_admission:
+            where_clause = "WHERE lifecycle_state_at_generation = 'prototype_passed'"
+        
         with self._get_conn() as conn:
-            cursor = conn.execute("""
+            cursor = conn.execute(f"""
                 SELECT 
                     strategy_id,
                     strategy_version,
                     COUNT(*) as signal_count,
                     MAX(signal_date) as latest_signal_date
                 FROM planned_signals
+                {where_clause}
                 GROUP BY strategy_id, strategy_version
                 ORDER BY strategy_id ASC, strategy_version ASC
             """)
