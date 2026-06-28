@@ -16,11 +16,12 @@
 | **C1 Task 4** | `eab2aaf` | test: C1 Task 4 - block Signal Board admission bypasses |
 | **C1 Task 5** | `359abd1` | docs: C1 Task 5 - verification documentation |
 | **C1 Test Fix** | `298b70c` | fix: update test helpers with C1 admission metadata |
+| **C1 Doc Update** | `b41d366` | docs: update C1 verification with final commit hashes |
+| **C1 API Fix** | `66a8287` | fix: remove include_missing_admission from public API, enforce admission filter |
 
 **Verification Date**: 2026-06-28  
 **C1 Focused Tests**: 17 tests (5 risk identification + 12 bypass prevention)  
-**Prerequisites**: C0 15 tests passing, B6 26 tests passing
-
+**Prerequisites**: C0 11 tests passing, B6 26 tests passing
 ---
 
 ## 2. What C1 Now Proves
@@ -36,9 +37,9 @@ C1 demonstrates Signal Board display layer admission enforcement:
 ### 2.2 Signal Board API/DB Filter by Admission (Task 3)
 - **list_signals() filters by default**: Only returns signals with `lifecycle_state_at_generation='prototype_passed'`
 - **list_strategies() filters by default**: Only counts signals with valid admission metadata
-- **Audit mode available**: `include_missing_admission=True` returns all signals (for audit/internal use)
-- **API /api/signals filters by default**: No unadmitted signals in user-facing results
-- **API /api/signals/strategies filters by default**: No unadmitted strategies in user-facing results
+- **Audit mode available in DB layer only**: `include_missing_admission=True` parameter exists in SignalBoardDB methods for internal/test use
+- **Public API does not expose audit mode**: `/api/signals` and `/api/signals/strategies` always filter by admission, no query parameter bypass
+- **API enforces admission filter**: User-facing API endpoints cannot be bypassed to display unadmitted signals
 
 ### 2.3 Bypass Prevention (Task 4)
 - **prototype_passed signals visible**: Default query returns them
@@ -106,17 +107,17 @@ C1 is a **Signal Board display layer admission enforcement**. It does NOT:
 ### 4.3 Task 3 Known Boundary (Admission Filtering)
 **What Task 3 guarantees**:
 - `list_signals()` and `list_strategies()` filter by `lifecycle_state_at_generation='prototype_passed'` by default
-- API `/api/signals` and `/api/signals/strategies` apply default filtering
-- `include_missing_admission=True` provides audit mode for internal use
+- Public API `/api/signals` and `/api/signals/strategies` always apply admission filtering (no user bypass)
+- `include_missing_admission=True` parameter exists only in DB layer methods for internal/test use
 
 **What Task 3 does NOT solve**:
-- **UI integration**: Task 3 is backend filtering. UI must call API without `include_missing_admission=True` to respect filtering.
-- **Existing clients**: Existing callers of `list_signals()` / `list_strategies()` must be updated if they expect old behavior (all signals including unadmitted).
+- **UI integration**: Task 3 is backend filtering. UI must call API endpoints (which enforce filtering automatically).
+- **Audit queries**: If internal audit queries are needed, they must use DB layer methods directly, not public API.
 
 **Mitigation**:
 - Default behavior is secure (only admitted signals displayed)
-- Audit mode available for legitimate internal use
-- UI must explicitly set `include_missing_admission=True` to bypass filter (intentional)
+- Public API does not expose `include_missing_admission` parameter
+- Audit mode requires direct DB access (internal tools only)
 
 ---
 
@@ -144,7 +145,8 @@ C1 is a **Signal Board display layer admission enforcement**. It does NOT:
 - Signal Board display layer admission enforcement
 - Only `lifecycle_state_at_generation='prototype_passed'` signals displayed by default
 - Old signals (pre-C0) hidden by default
-- Audit mode available for internal use
+- Audit mode available in DB layer only (not exposed via public API)
+- Public API enforces admission filtering with no user bypass
 
 **Out of C1 scope**:
 - **UI for Signal Board**: Frontend, web interface, user dashboard
