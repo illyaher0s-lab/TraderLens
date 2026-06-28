@@ -13,7 +13,7 @@
 | **C0 Task 1** | `063529d` | test: C0 Task 1 - identify C admission boundary |
 | **C0 Task 2** | `e8682e0` | feat: C0 Task 2 - enforce C admission gate for B-approved strategies |
 | **C0 Task 3** | `8ccec2c` | feat: C0 Task 3 - anti-bypass tests for C admission gate |
-| **C0 Review Fix** | `623852e` | fix: require C admission metadata for signal generation |
+| **C0 Review Fix** | `1c21e73` | fix: require C admission metadata for signal generation |
 
 **Verification Date**: 2026-06-28  
 **C0 Focused Tests**: 15 tests (4 boundary + 4 integration + 7 anti-bypass)  
