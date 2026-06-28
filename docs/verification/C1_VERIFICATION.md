@@ -14,7 +14,8 @@
 | **C1 Task 2** | `9e8199f` | feat: C1 Task 2 - add C admission metadata to PlannedSignal and SignalBoardDB |
 | **C1 Task 3** | `48bdf6e` | feat: C1 Task 3 - filter Signal Board results by C admission status |
 | **C1 Task 4** | `eab2aaf` | test: C1 Task 4 - block Signal Board admission bypasses |
-| **C1 Task 5** | TBD | docs: C1 Task 5 - verification documentation |
+| **C1 Task 5** | `359abd1` | docs: C1 Task 5 - verification documentation |
+| **C1 Test Fix** | `298b70c` | fix: update test helpers with C1 admission metadata |
 
 **Verification Date**: 2026-06-28  
 **C1 Focused Tests**: 17 tests (5 risk identification + 12 bypass prevention)  
