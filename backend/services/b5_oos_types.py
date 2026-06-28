@@ -119,7 +119,7 @@ class StressCostResult(FrozenB5Contract):
 class B5ValidationBoundary(FrozenB5Contract):
     """
     B5 validation boundary proof.
-    
+
     Tests must verify:
     - B5 types frozen / extra forbid
     - OOS reservation has reserved/completed/released/failed states
@@ -130,4 +130,31 @@ class B5ValidationBoundary(FrozenB5Contract):
     """
     boundary_name: Literal["b5_oos_types_frozen"]
     proof_timestamp: datetime
+    frozen: Literal[True] = True
+
+
+class B6ValidationRunResult(FrozenB5Contract):
+    """
+    Auditable B6 vertical validation run result.
+
+    Records the complete validation flow from StrategyDraft to final state.
+    Does NOT contain buy/sell recommendations or technical parameters.
+    """
+    run_id: str = Field(min_length=1)
+    strategy_revision_id: str = Field(min_length=1)
+    protocol_snapshot_id: str = Field(min_length=1)
+    report_id: str | None = None
+    gate_result_id: str | None = None
+    explanation_id: str | None = None
+    promotion_id: str | None = None
+    final_state: Literal[
+        "draft",
+        "rejected",
+        "needs_review",
+        "candidate_for_prototype_passed",
+        "prototype_passed",
+    ]
+    status: Literal["completed", "blocked", "failed"]
+    blocking_reason: str | None = None
+    created_at: datetime
     frozen: Literal[True] = True
