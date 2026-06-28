@@ -366,10 +366,24 @@ class TestSignalBoardAPI(unittest.TestCase):
         """Test summary for date with no signals."""
         response = self.client.get("/api/signals/summary?signal_date=2023-12-30")
         self.assertEqual(response.status_code, 200)
-        
+
         data = response.json()
         self.assertEqual(data["total_count"], 0)
         self.assertEqual(data["pending_count"], 0)
+
+    def test_get_signal_rejects_unadmitted_signal_by_direct_id(self):
+        """Direct signal detail lookup must not bypass C1 list filtering."""
+        signal = self._create_test_signal(
+            signal_id="legacy-unadmitted",
+            strategy_revision_id=None,
+            lifecycle_state_at_generation=None,
+            admission_source=None,
+        )
+        self.db.create_signal(signal)
+
+        response = self.client.get("/api/signals/legacy-unadmitted")
+
+        self.assertEqual(response.status_code, 404)
 
 
 if __name__ == "__main__":
