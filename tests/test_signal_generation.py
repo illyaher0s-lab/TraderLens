@@ -285,6 +285,8 @@ class TestSignalConversion(unittest.TestCase):
             intended_execution_date=date(2023, 1, 4),
             data_source=self.data_source,
             strategy_config=self.strategy_config,
+            strategy_revision_id="rev_test_strategy",
+            lifecycle_state="prototype_passed",
         )
         
         self.assertEqual(planned_signal.direction, "buy")
@@ -314,6 +316,8 @@ class TestSignalConversion(unittest.TestCase):
             intended_execution_date=date(2023, 1, 4),
             data_source=self.data_source,
             strategy_config=self.strategy_config,
+            strategy_revision_id="rev_test_strategy",
+            lifecycle_state="prototype_passed",
         )
         
         self.assertEqual(planned_signal.direction, "sell")
@@ -340,6 +344,8 @@ class TestSignalConversion(unittest.TestCase):
             intended_execution_date=date(2023, 1, 4),
             data_source=self.data_source,
             strategy_config=self.strategy_config,
+            strategy_revision_id="rev_test_strategy",
+            lifecycle_state="prototype_passed",
         )
         
         # Check all required fields
@@ -382,6 +388,8 @@ class TestSignalConversion(unittest.TestCase):
                 intended_execution_date=date(2023, 1, 4),
                 data_source=self.data_source,
                 strategy_config=self.strategy_config,
+                strategy_revision_id="rev_test_strategy",
+                lifecycle_state="prototype_passed",
             )
         
         self.assertIn("no triggered_rules", str(cm.exception).lower())

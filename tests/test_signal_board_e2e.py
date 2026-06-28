@@ -72,6 +72,9 @@ class TestSignalBoardEndToEnd(unittest.TestCase):
                 signal_id="test_signal_001",
                 strategy_id="test_strategy",
                 strategy_version="v1.0.0",
+                strategy_revision_id="rev_test",
+                lifecycle_state_at_generation="prototype_passed",
+                admission_source="c_admission_gate",
                 snapshot_hash="test_snapshot_hash_abc123",
                 signal_date=date(2023, 12, 29),
                 intended_execution_date=date(2024, 1, 2),
@@ -89,6 +92,9 @@ class TestSignalBoardEndToEnd(unittest.TestCase):
                 signal_id="test_signal_002",
                 strategy_id="test_strategy",
                 strategy_version="v1.0.0",
+                strategy_revision_id="rev_test",
+                lifecycle_state_at_generation="prototype_passed",
+                admission_source="c_admission_gate",
                 snapshot_hash="test_snapshot_hash_abc123",
                 signal_date=date(2023, 12, 29),
                 intended_execution_date=date(2024, 1, 2),
@@ -178,6 +184,9 @@ class TestSignalBoardEndToEnd(unittest.TestCase):
             signal_id="test_signal_preserve",
             strategy_id="test_strategy",
             strategy_version="v1.0.0",
+            strategy_revision_id="rev_test",
+            lifecycle_state_at_generation="prototype_passed",
+            admission_source="c_admission_gate",
             snapshot_hash="test_hash",
             signal_date=date(2023, 12, 29),
             intended_execution_date=date(2024, 1, 2),
@@ -237,6 +246,9 @@ class TestSignalBoardEndToEnd(unittest.TestCase):
             signal_id="identical_signal_id_123",
             strategy_id="test_strategy",
             strategy_version="v1.0.0",
+            strategy_revision_id="rev_test",
+            lifecycle_state_at_generation="prototype_passed",
+            admission_source="c_admission_gate",
             snapshot_hash="hash_abc",
             signal_date=date(2023, 12, 29),
             intended_execution_date=date(2024, 1, 2),
@@ -257,6 +269,9 @@ class TestSignalBoardEndToEnd(unittest.TestCase):
             signal_id="identical_signal_id_123",  # Same ID!
             strategy_id="test_strategy",
             strategy_version="v1.0.0",
+            strategy_revision_id="rev_test",
+            lifecycle_state_at_generation="prototype_passed",
+            admission_source="c_admission_gate",
             snapshot_hash="hash_abc",
             signal_date=date(2023, 12, 29),
             intended_execution_date=date(2024, 1, 2),
@@ -274,7 +289,7 @@ class TestSignalBoardEndToEnd(unittest.TestCase):
             self.db.create_signal(signal_2)
         
         # Verify only one signal exists
-        all_signals = self.db.list_signals()
+        all_signals = self.db.list_signals(include_missing_admission=True)
         self.assertEqual(len(all_signals), 1)
     
     def test_review_status_transitions(self):
@@ -294,6 +309,9 @@ class TestSignalBoardEndToEnd(unittest.TestCase):
             signal_id="test_transition",
             strategy_id="test_strategy",
             strategy_version="v1.0.0",
+            strategy_revision_id="rev_test",
+            lifecycle_state_at_generation="prototype_passed",
+            admission_source="c_admission_gate",
             snapshot_hash="hash",
             signal_date=date(2023, 12, 29),
             intended_execution_date=date(2024, 1, 2),
@@ -336,6 +354,9 @@ class TestSignalBoardEndToEnd(unittest.TestCase):
                 signal_id=f"test_{i}",
                 strategy_id="test_strategy",
                 strategy_version="v1.0.0",
+                strategy_revision_id="rev_test",
+                lifecycle_state_at_generation="prototype_passed",
+                admission_source="c_admission_gate",
                 snapshot_hash="hash",
                 signal_date=date(2023, 12, 29),
                 intended_execution_date=date(2024, 1, 2),

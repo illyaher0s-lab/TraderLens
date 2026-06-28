@@ -52,18 +52,17 @@ class TestC1SignalBoardAdmissionRisk(unittest.TestCase):
 
     def test_planned_signal_lacks_admission_metadata_fields(self):
         """
-        Risk: PlannedSignal contract has no strategy_revision_id or lifecycle_state.
+        Risk (C1 Task 1): PlannedSignal contract has no strategy_revision_id or lifecycle_state.
         
-        Current state: PlannedSignal only has strategy_id + strategy_version.
-        Cannot distinguish prototype_passed from draft/rejected strategies.
+        Resolution (C1 Task 2): PlannedSignal now has admission metadata fields.
+        This test verifies the fields were added.
         """
         signal = self._make_signal_without_admission_metadata("sig_001")
         
-        # Verify no admission metadata fields
-        self.assertFalse(hasattr(signal, "strategy_revision_id"))
-        self.assertFalse(hasattr(signal, "lifecycle_state"))
-        self.assertFalse(hasattr(signal, "admission_status"))
-        self.assertFalse(hasattr(signal, "admission_source"))
+        # Verify admission metadata fields exist (C1 Task 2 added them)
+        self.assertTrue(hasattr(signal, "strategy_revision_id"))
+        self.assertTrue(hasattr(signal, "lifecycle_state_at_generation"))
+        self.assertTrue(hasattr(signal, "admission_source"))
 
     def test_signal_board_db_stores_signals_without_admission_check(self):
         """
@@ -89,61 +88,58 @@ class TestC1SignalBoardAdmissionRisk(unittest.TestCase):
 
     def test_signal_board_api_list_signals_has_no_admission_filter(self):
         """
-        Risk: SignalBoardDB.list_signals() has no admission_status filter.
+        Risk (C1 Task 1): SignalBoardDB.list_signals() has no admission_status filter.
         
-        Current filters: signal_date, intended_execution_date, review_status,
-        direction, snapshot_hash, strategy_id, strategy_version.
-        
-        Missing: admission_status, lifecycle_state, strategy_revision_id.
-        
-        Cannot filter out signals from non-prototype_passed strategies.
+        Resolution (C1 Task 3): list_signals() now filters by lifecycle_state_at_generation='prototype_passed' by default.
+        This test verifies unadmitted signals are hidden.
         """
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "test.db"
             db = SignalBoardDB(db_path)
             
-            # Create signals
+            # Create signals without admission metadata
             signal_a = self._make_signal_without_admission_metadata("sig_a", "strat_A", "v1.0")
             signal_b = self._make_signal_without_admission_metadata("sig_b", "strat_B", "v2.0")
             
             db.create_signal(signal_a)
             db.create_signal(signal_b)
             
-            # list_signals() returns all signals (no admission filter)
+            # list_signals() now filters out unadmitted signals (C1 Task 3)
             result = db.list_signals()
-            self.assertEqual(len(result), 2)
+            self.assertEqual(len(result), 0)
             
-            # Cannot filter by admission_status (field does not exist)
-            # This would fail: db.list_signals(admission_status="accepted")
+            # Audit mode returns all signals
+            result_audit = db.list_signals(include_missing_admission=True)
+            self.assertEqual(len(result_audit), 2)
 
     def test_signal_board_api_list_strategies_has_no_admission_filter(self):
         """
-        Risk: SignalBoardDB.list_strategies() returns all strategies in DB.
+        Risk (C1 Task 1): SignalBoardDB.list_strategies() returns all strategies in DB.
         
-        Current behavior: Aggregates strategy_id + strategy_version, counts signals.
-        No admission_status filter, no lifecycle_state check.
-        
-        Cannot distinguish prototype_passed from draft/rejected strategies.
+        Resolution (C1 Task 3): list_strategies() now filters by lifecycle_state_at_generation='prototype_passed' by default.
+        This test verifies unadmitted strategies are hidden.
         """
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "test.db"
             db = SignalBoardDB(db_path)
             
-            # Create signals for different strategies
+            # Create signals for different strategies without admission metadata
             signal_a = self._make_signal_without_admission_metadata("sig_a", "draft_strat", "v1.0")
             signal_b = self._make_signal_without_admission_metadata("sig_b", "prototype_strat", "v2.0")
             
             db.create_signal(signal_a)
             db.create_signal(signal_b)
             
-            # list_strategies() returns all strategies (no admission filter)
+            # list_strategies() now filters out unadmitted strategies (C1 Task 3)
             strategies = db.list_strategies()
-            self.assertEqual(len(strategies), 2)
+            self.assertEqual(len(strategies), 0)
             
-            strategy_ids = {s["strategy_id"] for s in strategies}
+            # Audit mode returns all strategies
+            strategies_audit = db.list_strategies(include_missing_admission=True)
+            self.assertEqual(len(strategies_audit), 2)
+            
+            strategy_ids = {s["strategy_id"] for s in strategies_audit}
             self.assertEqual(strategy_ids, {"draft_strat", "prototype_strat"})
-            
-            # Cannot distinguish which strategy is prototype_passed
 
     def test_old_signals_without_admission_metadata_default_to_displayed(self):
         """

@@ -195,8 +195,8 @@ class TestSignalBoardDBMigration(unittest.TestCase):
             db.create_signal(signal_warning)
             db.create_signal(signal_blocked)
             
-            # List all
-            signals = db.list_signals(signal_date=date(2023, 12, 29))
+            # List all (include signals without admission metadata for this migration test)
+            signals = db.list_signals(signal_date=date(2023, 12, 29), include_missing_admission=True)
             
             self.assertEqual(len(signals), 3)
             
