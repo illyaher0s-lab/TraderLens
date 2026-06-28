@@ -13,6 +13,8 @@ from contracts.strategy import (
     ResearchProtocolSnapshot,
     BacktestUniverseSpec,
     StrategyLifecycleState,
+    ImmutableBacktestReport,
+    PrototypeGateResultV2,
 )
 from backend.services.b3_protocol_types import (
     DataSnapshotManifest,
@@ -20,6 +22,7 @@ from backend.services.b3_protocol_types import (
     UniverseMembershipRecord,
 )
 from backend.services.b4_protocol_types import EventBacktestResult
+from backend.services.b5_oos_types import ExplanationSnapshot
 from backend.db.strategy import StrategyDB
 from backend.services.strategy_promotion_reducer import StrategyPromotionReducer
 
@@ -268,6 +271,94 @@ class TestB6ValidationFlow(unittest.TestCase):
 
         db.close()
 
+    def test_b6_flow_forced_candidate_promotes_through_reducer(self):
+        """A candidate Gate result with human approval must promote through the reducer."""
+        db = StrategyDB(":memory:")
+        reducer = StrategyPromotionReducer(db)
+        strategy_draft = self._create_strategy_draft()
+        protocol = self._create_protocol()
+
+        db.store_backtest_universe(self._create_universe_spec())
+        db.create_strategy_draft(
+            strategy_draft,
+            StrategyLifecycleState(
+                lifecycle_state_id="lifecycle_forced_candidate_001",
+                strategy_revision_id=strategy_draft.strategy_revision_id,
+                state_version=1,
+                state="draft",
+                source_record_id="draft_001",
+                recorded_at=datetime.now(),
+                recorded_by="test",
+            ),
+        )
+        db.store_protocol_snapshot(protocol)
+
+        flow = B6ValidationFlow(
+            report_builder=_CandidateReportBuilder(),
+            gate=_CandidateGate(),
+            explanation_builder=_CandidateExplanationBuilder(),
+            strategy_db=db,
+            promotion_reducer=reducer,
+        )
+
+        result = flow.run_minimal_validation(
+            strategy_draft=strategy_draft,
+            protocol=protocol,
+            manifest=self._create_manifest(),
+            universe=self._create_universe(),
+            b4_qualification=self._create_b4_qualification_dict(),
+            b4_event_result=self._create_b4_event_result(),
+            human_decision="approve",
+        )
+
+        self.assertEqual(result.final_state, "prototype_passed")
+        self.assertIsNotNone(result.promotion_id)
+        state = db.get_latest_lifecycle_state(strategy_draft.strategy_revision_id)
+        self.assertEqual(state.state, "prototype_passed")
+        db.close()
+
+    def test_b6_flow_reducer_error_fails_loud(self):
+        """Reducer errors must not be swallowed by B6."""
+        db = StrategyDB(":memory:")
+        strategy_draft = self._create_strategy_draft()
+        protocol = self._create_protocol()
+        db.store_backtest_universe(self._create_universe_spec())
+        db.create_strategy_draft(
+            strategy_draft,
+            StrategyLifecycleState(
+                lifecycle_state_id="lifecycle_reducer_failure_001",
+                strategy_revision_id=strategy_draft.strategy_revision_id,
+                state_version=1,
+                state="draft",
+                source_record_id="draft_001",
+                recorded_at=datetime.now(),
+                recorded_by="test",
+            ),
+        )
+        db.store_protocol_snapshot(protocol)
+
+        flow = B6ValidationFlow(
+            report_builder=_CandidateReportBuilder(),
+            gate=_CandidateGate(),
+            explanation_builder=_CandidateExplanationBuilder(),
+            strategy_db=db,
+            promotion_reducer=_FailingPromotionReducer(),
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            flow.run_minimal_validation(
+                strategy_draft=strategy_draft,
+                protocol=protocol,
+                manifest=self._create_manifest(),
+                universe=self._create_universe(),
+                b4_qualification=self._create_b4_qualification_dict(),
+                b4_event_result=self._create_b4_event_result(),
+                human_decision="approve",
+            )
+
+        self.assertIn("forced reducer failure", str(ctx.exception))
+        db.close()
+
     # Helper methods
     def _create_strategy_draft(self) -> StrategyDraft:
         return StrategyDraft(
@@ -391,6 +482,73 @@ class TestB6ValidationFlow(unittest.TestCase):
             ),
             frozen_at=date(2024, 12, 31),
         )
+
+
+class _CandidateReportBuilder:
+    def build_report(self, **kwargs):
+        return ImmutableBacktestReport(
+            report_id=kwargs["report_id"],
+            theme_id="theme_001",
+            strategy_revision_id=kwargs["strategy_revision_id"],
+            protocol_snapshot_id=kwargs["protocol_snapshot_id"],
+            strategy_config_hash=kwargs["strategy_config_hash"],
+            data_snapshot_hash=kwargs["data_snapshot_hash"],
+            gate_criteria_hash=kwargs["gate_criteria_hash"],
+            evaluation_mode="out_of_sample",
+            oos_draw_index=kwargs["oos_draw_index"],
+            shared_oos_window_id=kwargs["shared_oos_window_id"],
+            multiple_comparison_flag=False,
+            report_payload_json=(
+                '{"future_data_violation_count": 0, '
+                '"base_cost_result": {"status": "pass"}, '
+                '"stress_cost_result": {"status": "pass"}, '
+                '"benchmark_comparison": {"status": "pass"}, '
+                '"control_comparison": {"status": "pass"}, '
+                '"data_quality_status": "ok"}'
+            ),
+            integrity_status="valid",
+            generated_at=datetime.now(),
+            report_hash="candidate_report_hash",
+        )
+
+
+class _CandidateGate:
+    def evaluate(self, report, gate_criteria_hash):
+        return PrototypeGateResultV2(
+            gate_result_id="gate_candidate_001",
+            report_id=report.report_id,
+            strategy_revision_id=report.strategy_revision_id,
+            protocol_snapshot_id=report.protocol_snapshot_id,
+            verdict="candidate_for_prototype_passed",
+            checks_json='{"base_cost_present": true}',
+            blocking_issues=(),
+            warnings=(),
+            strategy_config_hash=report.strategy_config_hash,
+            data_snapshot_hash=report.data_snapshot_hash,
+            gate_criteria_hash=gate_criteria_hash,
+            oos_draw_index=report.oos_draw_index,
+            shared_oos_window_id=report.shared_oos_window_id,
+            multiple_comparison_flag=report.multiple_comparison_flag,
+            generated_at=datetime.now(),
+            gate_result_hash="candidate_gate_hash",
+        )
+
+
+class _CandidateExplanationBuilder:
+    def build_explanation(self, report_id, gate_result):
+        return ExplanationSnapshot(
+            explanation_id="expl_candidate_001",
+            report_id=report_id,
+            gate_result_id=gate_result.gate_result_id,
+            plain_summary="Candidate requires human confirmation.",
+            deterministic_evidence=("base_cost_present",),
+            generated_at=datetime.now(),
+        )
+
+
+class _FailingPromotionReducer:
+    def promote_to_prototype_passed(self, **kwargs):
+        raise ValueError("forced reducer failure")
 
 
 if __name__ == "__main__":

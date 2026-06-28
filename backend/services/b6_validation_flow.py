@@ -146,19 +146,15 @@ class B6ValidationFlow:
             )
             self.strategy_db.store_human_confirmation(confirmation)
 
-            # Promote via reducer
-            try:
-                promotion = self.promotion_reducer.promote_to_prototype_passed(
-                    strategy_revision_id=strategy_draft.strategy_revision_id,
-                    gate_result_id=gate_result.gate_result_id,
-                    human_confirmation_id=confirmation.human_confirmation_id,
-                    promoted_by="test_user",
-                )
-                promotion_id = promotion.promotion_id
-                final_state = "prototype_passed"
-            except ValueError:
-                # Promotion failed, keep as candidate
-                pass
+            # Promote via reducer. Reducer failures must remain loud.
+            promotion = self.promotion_reducer.promote_to_prototype_passed(
+                strategy_revision_id=strategy_draft.strategy_revision_id,
+                gate_result_id=gate_result.gate_result_id,
+                human_confirmation_id=confirmation.human_confirmation_id,
+                promoted_by="test_user",
+            )
+            promotion_id = promotion.promotion_id
+            final_state = "prototype_passed"
 
         return B6ValidationRunResult(
             run_id=f"b6_{strategy_draft.strategy_revision_id}",

@@ -14,9 +14,10 @@
 | **B6 Task 2-6** | `e7f14e6` | feat: validation flow with B3/B4/B5 integration and reducer-backed promotion |
 | **B6 Task 7** | `ba7ee01` | feat: C admission gate for prototype_passed strategies |
 | **B6 Task 8** | `7a2f751` | test: no shortcuts boundary tests |
+| **B6 review fix** | `20d9c9b` | fix: keep reducer promotion failures loud |
 
 **Verification Date**: 2026-06-28  
-**B6 Focused Tests**: 24 tests (10 validation flow + 4 C admission + 10 boundary)  
+**B6 Focused Tests**: 26 tests (12 validation flow + 4 C admission + 10 boundary)
 **Prerequisites**: B5 112 tests passing, B4 131 tests passing
 
 ---
@@ -31,6 +32,7 @@ B6 demonstrates the minimal B-module V1 vertical flow from the original design:
 - **Report/Gate/Explanation generation**: B6 uses existing `BacktestReportBuilder`, `PrototypeGateV2`, `GateExplanationBuilder`
 - **Human approval required**: Gate `candidate_for_prototype_passed` + `human_decision="approve"` required for promotion
 - **Reducer-backed promotion**: Only `StrategyPromotionReducer.promote_to_prototype_passed()` can write `prototype_passed` state
+- **Reducer failures fail loud**: Promotion reducer errors are not swallowed by B6
 - **No user technical parameters**: B6 explicitly rejects `**unexpected_user_parameters` (user cannot supply Gate thresholds, OOS dates, etc.)
 
 ### 2.2 C Admission Gate (Task 7)
@@ -78,6 +80,7 @@ B6 is a **minimal vertical flow proof**. It does NOT:
 - Report/Gate/Explanation produced via existing builders
 - Human approval required for promotion
 - Reducer-backed promotion (only `StrategyPromotionReducer` writes `prototype_passed`)
+- Reducer errors remain visible to callers and are not converted into silent candidate state
 
 **What B6 does NOT solve**:
 - **Thin orchestration**: B6 is a test-level orchestration (in `run_minimal_validation()`). Full operational orchestration service (with async job queue, retry logic, error recovery) is not implemented. This is intentional to avoid big framework.
@@ -151,13 +154,13 @@ B6 is a **minimal vertical flow proof**. It does NOT:
 
 **Result** (2026-06-28):
 ```
-Ran 24 tests in 0.020s
+Ran 26 tests
 
 OK
 ```
 
 **Test breakdown**:
-- Task 1-6 (Validation Flow): 10 tests
+- Task 1-6 (Validation Flow): 12 tests
 - Task 7 (C Admission): 4 tests
 - Task 8 (Boundary): 10 tests
 
@@ -183,6 +186,16 @@ OK
 Ran 131 tests in 1.197s
 
 OK
+```
+
+### 5.4 Full Test Suite
+```powershell
+.venv\Scripts\python.exe -m pytest tests/ -x --tb=short -q
+```
+
+**Result** (2026-06-28):
+```
+1336 passed, 2 skipped, 3 warnings, 28 subtests passed
 ```
 
 ---
@@ -238,7 +251,7 @@ Before merging any change touching B6 files:
 ```
 
 **Pass criteria**:
-- All 24 B6 focused tests must pass.
+- All 26 B6 focused tests must pass.
 - All 112 B5 tests must pass.
 - All 131 B4 tests must pass.
 - All tests in full suite must pass.
@@ -264,7 +277,7 @@ If B6 work requires changes to these files, it is a **scope violation** and must
 - [x] Known boundaries documented (thin orchestration, existing Signal Board integration, obfuscation limits, B6 overall scope)
 - [x] Promotion block documented (no `prototype_passed` automatic, no buy/sell without promotion, no future profit claim)
 - [x] Review rule documented (mandatory triggers, test commands, forbidden modifications)
-- [x] Test results recorded (24 B6 focused tests pass, 112 B5 tests pass, 131 B4 tests pass)
+- [x] Test results recorded (26 B6 focused tests pass, 112 B5 tests pass, 131 B4 tests pass, full pytest pass)
 - [x] No forbidden claims in doc (no future profit guarantee, automatic promotion, or live trading approval)
 
 ---
