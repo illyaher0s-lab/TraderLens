@@ -190,22 +190,22 @@ def list_signals(
 def get_signal(signal_id: str):
     """
     Get a single signal by ID.
-    
+
     Args:
         signal_id: Signal UUID
-    
+
     Returns:
         PlannedSignal
-    
+
     Raises:
         404: Signal not found
     """
     db = get_db()
-    signal = db.get_signal(signal_id)
-    
+    signal = db.get_admitted_signal(signal_id)
+
     if signal is None:
         raise HTTPException(status_code=404, detail=f"Signal {signal_id} not found")
-    
+
     return signal
 
 

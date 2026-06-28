@@ -206,10 +206,10 @@ class SignalBoardDB:
     def get_signal(self, signal_id: str) -> Optional[PlannedSignal]:
         """
         Retrieve a single signal by ID.
-        
+
         Args:
             signal_id: Signal UUID
-        
+
         Returns:
             PlannedSignal if found, None otherwise
         """
@@ -222,7 +222,24 @@ class SignalBoardDB:
             if row is None:
                 return None
             return self._row_to_signal(row)
-    
+
+    def get_admitted_signal(self, signal_id: str) -> Optional[PlannedSignal]:
+        """
+        Return signal only if it has valid C admission metadata.
+
+        Args:
+            signal_id: Signal UUID
+
+        Returns:
+            PlannedSignal if found and admitted (prototype_passed), None otherwise
+        """
+        signal = self.get_signal(signal_id)
+        if signal is None:
+            return None
+        if signal.lifecycle_state_at_generation != "prototype_passed":
+            return None
+        return signal
+
     def list_signals(
         self,
         signal_date: Optional[date] = None,
