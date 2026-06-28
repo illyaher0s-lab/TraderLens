@@ -1,8 +1,8 @@
 # B5 OOS Validation and Gate Verification Record
 
-**Purpose**: Record B5 Task 9-12 acceptance state, guarantees, known boundaries, and promotion blocks.
+**Purpose**: Record B5 acceptance state, guarantees, known boundaries, and promotion blocks.
 
-**Status**: B5 Task 9-12 completed and verified. Does NOT imply strategy profitability, Gate pass, automatic promotion, or production readiness.
+**Status**: B5 Tasks 1-12 completed and verified through the test record below. This does NOT imply future profit, Gate pass, automatic promotion, live trading approval, or deployment approval.
 
 ---
 
@@ -10,14 +10,24 @@
 
 | Task | Commit | Description |
 |------|--------|-------------|
-| **B5 Task 1-8 (prerequisite)** | `078f223` | fix: harden B5 gate deterministic boundaries |
+| **B5 design** | `329ed89` | docs: design B5 OOS validation gate |
+| **B5 Task 1-2** | `e0d5965` | test: lock B5 OOS contracts |
+| **B5 Task 3** | `d05b414` | feat: enforce B5 B3-B4 prerequisite boundary |
+| **B5 Task 4** | `8643b15` | feat: build immutable B5 backtest report |
+| **B5 Task 1-4 v2 fix** | `1aea68b` | fix: B5 v2 - enforce B4 qualification pass + metadata consistency + explicit missing fields |
+| **B5 Task 4 review fix** | `2437e48` | fix: enforce B5 report B4 metadata consistency |
+| **B5 Task 5** | `09b9ec8` | feat: B5 Task 5 - base/stress cost orchestration with frozen strictness policy |
+| **B5 Task 6** | `17de3df` | feat: B5 Task 6 - benchmark and control comparison with frozen thresholds |
+| **B5 Task 7** | `7109922` | feat: B5 Task 7 - PrototypeGateV2 deterministic evaluator with frozen policies |
+| **B5 Task 8** | `575bf80` | feat: B5 Task 8 - Gate explanation builder with template-based plain summary |
+| **B5 Task 5-8 review fix** | `078f223` | fix: harden B5 gate deterministic boundaries |
 | **B5 Task 9** | `a827080` | feat: B5 Task 9 - promotion boundary enforcement with human confirmation gate |
 | **B5 Task 10** | `f722a8f` | feat: B5 Task 10 - vertical flow test from B3/B4 to Gate explanation |
 | **B5 Task 11** | `24fd74f` | feat: B5 Task 11 - compatibility and boundary tests |
-| **B5 Task 12** | (this doc) | docs: B5 verification documentation |
+| **B5 Task 12** | `f3648c6` | docs: B5 Task 12 - verification documentation |
 
 **Verification Date**: 2026-06-28  
-**B5 Focused Tests**: 36 tests (Task 9: 10, Task 10: 7, Task 11: 19)  
+**B5 Focused Tests**: 112 tests (Tasks 1-12 focused suite)
 **Prerequisites**: B4 131 tests passing, B3 verification complete
 
 ---
@@ -71,7 +81,7 @@ B5 has locked down the following validation and promotion boundaries:
 
 B5 is an **OOS validation and Gate evaluation layer**. It does NOT:
 
-1. **Prove strategy profitability**: B5 ensures OOS validation and Gate checks, not future profit. A strategy passing B5 Gate may still lose money in live trading.
+1. **Guarantee future profit**: B5 ensures OOS validation and Gate checks, not future returns. A strategy passing B5 Gate may still lose money in live trading.
 2. **Automatically promote to `prototype_passed`**: B5 Gate produces `candidate_for_prototype_passed` at most. Human confirmation + `StrategyPromotionReducer` are required for promotion.
 3. **Generate buy/sell recommendations**: B5 is validation-only. Signal Board and action plan generation belong to downstream modules (post-promotion).
 4. **Enable live trading**: B5 is offline validation. Live trading requires broker integration, order execution, risk controls (out of B5 scope).
@@ -108,7 +118,7 @@ B5 is an **OOS validation and Gate evaluation layer**. It does NOT:
 - Rejected reports remain visible.
 
 **What Task 10 does NOT solve**:
-- Thin orchestration: Task 10 tests individual components. Full production orchestration (B3 -> B4 -> B5 -> promotion -> Signal Board) is not implemented as single service.
+- Thin orchestration: Task 10 tests individual components. Full operational orchestration (B3 -> B4 -> B5 -> promotion -> Signal Board) is not implemented as a single service.
 - Error recovery: Infrastructure failures during OOS run require manual reservation release.
 
 **Mitigation**:
@@ -144,7 +154,7 @@ B5 is an **OOS validation and Gate evaluation layer**. It does NOT:
 - Human confirmation and promotion boundary enforcement.
 
 **Out of B5 scope**:
-- **Strategy profitability guarantee**: Belongs to live trading validation.
+- **Future profit guarantee**: Historical validation cannot guarantee future returns.
 - **Signal Board and action plan**: Requires `prototype_passed` state, downstream of B5.
 - **Broker integration and order execution**: Belongs to live trading module (not B5 responsibility).
 - **Parameter optimization**: Belongs to upstream research workflow.
@@ -156,12 +166,12 @@ B5 is an **OOS validation and Gate evaluation layer**. It does NOT:
 
 ### 5.1 B5 Focused Test Suite
 ```powershell
-.venv\Scripts\python.exe -m unittest tests.test_b5_promotion_boundary tests.test_b5_vertical_flow tests.test_b5_compatibility -v
+.venv\Scripts\python.exe -m unittest tests.test_b5_oos_budget tests.test_b5_oos_controller tests.test_b5_report_builder tests.test_b5_cost_stress tests.test_b5_control_comparison tests.test_b5_gate_v2 tests.test_b5_gate_explanation tests.test_b5_promotion_boundary tests.test_b5_vertical_flow tests.test_b5_compatibility -v
 ```
 
 **Result** (2026-06-28):
 ```
-Ran 36 tests in <time>
+Ran 112 tests
 
 OK
 ```
@@ -188,7 +198,10 @@ OK
 .venv\Scripts\python.exe -m pytest tests/ -x --tb=short -q
 ```
 
-**Expected**: All tests pass (B5 does not break existing functionality).
+**Result** (2026-06-28):
+```
+1310 passed, 2 skipped, 3 warnings, 24 subtests passed
+```
 
 ---
 
@@ -198,7 +211,7 @@ OK
 
 1. **`prototype_passed` status**: B5 Gate produces at most `candidate_for_prototype_passed`. Human confirmation + `StrategyPromotionReducer` are required.
 2. **Automatic promotion**: Gate candidate does not trigger automatic promotion. User must explicitly approve.
-3. **Strategy profitability**: B5 validates OOS performance under frozen rules, not future profit.
+3. **Future profit**: B5 validates OOS performance under frozen rules, not future returns.
 4. **Signal Board actions**: Gate pass does not generate buy/sell recommendations. Signal Board requires `prototype_passed` state.
 5. **Live trading readiness**: B5 is offline validation. Live trading requires broker integration, order execution, risk controls (not B5 responsibility).
 
@@ -206,7 +219,7 @@ OK
 - Do NOT interpret B5 Gate `candidate_for_prototype_passed` as automatic promotion.
 - Do NOT use B5 Gate results to generate buy/sell recommendations without `prototype_passed` state.
 - Do NOT bypass human confirmation for promotion.
-- Do NOT use B5 results as profitability proof for marketing or user communication.
+- Do NOT describe B5 results as proof of future profit in marketing or user communication.
 
 ---
 
@@ -240,7 +253,7 @@ Before merging any change touching B5 files:
 
 ```powershell
 # Step 1: Run B5 focused suite
-.venv\Scripts\python.exe -m unittest tests.test_b5_promotion_boundary tests.test_b5_vertical_flow tests.test_b5_compatibility -v
+.venv\Scripts\python.exe -m unittest tests.test_b5_oos_budget tests.test_b5_oos_controller tests.test_b5_report_builder tests.test_b5_cost_stress tests.test_b5_control_comparison tests.test_b5_gate_v2 tests.test_b5_gate_explanation tests.test_b5_promotion_boundary tests.test_b5_vertical_flow tests.test_b5_compatibility -v
 
 # Step 2: Run B4 regression (ensure B5 does not break B4)
 .venv\Scripts\python.exe -m unittest tests.test_b4_time_cursor tests.test_b4_future_data_guard tests.test_b4_canary_qualification tests.test_b4_event_backtest_loop tests.test_b4_ashare_fill_constraints tests.test_b4_normalization_guard tests.test_b4_adjustment_snapshot tests.test_b4_delisting_liquidation tests.test_b4_b3_integration tests.test_b4_compatibility -v
@@ -250,7 +263,7 @@ Before merging any change touching B5 files:
 ```
 
 **Pass criteria**:
-- All 36 B5 tests must pass.
+- All 112 B5 focused tests must pass.
 - All 131 B4 tests must pass.
 - All tests in full suite must pass.
 - No new violations in compatibility scan.
@@ -269,14 +282,14 @@ If B5 work requires changes to these files, it is a **scope violation** and must
 
 ## 8. Verification Checklist
 
-- [x] All 3 B5 Task commits recorded (Task 9, 10, 11)
+- [x] All B5 Task commits recorded (Tasks 1-12 plus review fixes)
 - [x] B5 guarantees documented (promotion boundary, vertical flow, compatibility)
-- [x] B5 non-guarantees documented (no profitability proof, no automatic promotion, no Signal Board, no live trading)
+- [x] B5 non-guarantees documented (no future profit guarantee, no automatic promotion, no Signal Board, no live trading)
 - [x] Known boundaries documented (Task 9 explanation quality, Task 10 thin orchestration, Task 11 obfuscation limits, B5 overall scope)
-- [x] Promotion block documented (no `prototype_passed` automatic, no buy/sell without promotion, no profitability claim)
+- [x] Promotion block documented (no `prototype_passed` automatic, no buy/sell without promotion, no future profit claim)
 - [x] Review rule documented (mandatory triggers, test commands, forbidden modifications)
-- [x] Test results recorded (36 B5 tests pass, 131 B4 tests pass)
-- [x] No forbidden keywords in doc (no claim of profitability, automatic promotion, or production readiness)
+- [x] Test results recorded (112 B5 focused tests pass, 131 B4 tests pass, full pytest pass)
+- [x] No forbidden claims in doc (no future profit guarantee, automatic promotion, or live trading approval)
 
 ---
 
@@ -301,7 +314,7 @@ The following are **explicitly out of B5 scope** and belong to future work:
    - Cost impact breakdown
    - Control comparison narrative
 
-4. **Production Orchestration** (If Needed)
+4. **Operational Orchestration** (If Needed)
    - Single `B5ValidationFlow` service orchestrating B3 -> B4 -> B5 -> promotion
    - Currently avoided to prevent big framework (Task 10 proves component integration)
 
