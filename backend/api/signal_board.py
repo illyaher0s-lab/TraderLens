@@ -213,25 +213,25 @@ def get_signal(signal_id: str):
 def review_signal(signal_id: str, request: SignalReviewRequest):
     """
     Update review status of a signal.
-    
+
     Args:
         signal_id: Signal UUID
         request: Review request (status, reviewed_by, optional rejection_reason)
-    
+
     Returns:
         Updated PlannedSignal
-    
+
     Raises:
-        404: Signal not found
+        404: Signal not found or not admitted
         400: Invalid review status transition or missing rejection_reason
-    
+
     Examples:
         POST /api/signals/{id}/review
         {
             "review_status": "watching",
             "reviewed_by": "trader1"
         }
-        
+
         POST /api/signals/{id}/review
         {
             "review_status": "ignored",
@@ -240,14 +240,19 @@ def review_signal(signal_id: str, request: SignalReviewRequest):
         }
     """
     db = get_db()
-    
+
+    # C2: Verify signal exists and is admitted before allowing review
+    signal = db.get_admitted_signal(signal_id)
+    if signal is None:
+        raise HTTPException(status_code=404, detail=f"Signal {signal_id} not found")
+
     # Validate: rejection_reason required if status is 'ignored'
     if request.review_status == "ignored" and not request.rejection_reason:
         raise HTTPException(
             status_code=400,
             detail="rejection_reason is required when review_status is 'ignored'"
         )
-    
+
     # Update review status
     updated = db.update_review_status(
         signal_id=signal_id,
@@ -255,12 +260,15 @@ def review_signal(signal_id: str, request: SignalReviewRequest):
         reviewed_by=request.reviewed_by,
         rejection_reason=request.rejection_reason
     )
-    
+
     if not updated:
         raise HTTPException(status_code=404, detail=f"Signal {signal_id} not found")
-    
-    # Return updated signal
-    signal = db.get_signal(signal_id)
+
+    # Return updated signal (use admitted filter)
+    signal = db.get_admitted_signal(signal_id)
+    if signal is None:
+        raise HTTPException(status_code=404, detail=f"Signal {signal_id} not found")
+
     return signal
 
 
@@ -274,16 +282,16 @@ class BatchReviewResponse(BaseModel):
 def batch_review_signals(request: SignalBatchReviewRequest):
     """
     Batch update review status of multiple signals.
-    
+
     Args:
         request: Batch review request (signal_ids, status, reviewed_by, optional rejection_reason)
-    
+
     Returns:
         BatchReviewResponse with count of updated signals
-    
+
     Raises:
         400: Invalid review status or missing rejection_reason
-    
+
     Examples:
         POST /api/signals/batch-review
         {
@@ -294,22 +302,29 @@ def batch_review_signals(request: SignalBatchReviewRequest):
         }
     """
     db = get_db()
-    
+
     # Validate: rejection_reason required if status is 'ignored'
     if request.review_status == "ignored" and not request.rejection_reason:
         raise HTTPException(
             status_code=400,
             detail="rejection_reason is required when review_status is 'ignored'"
         )
-    
-    # Batch update
+
+    # C2: Filter to only admitted signals
+    admitted_signal_ids = []
+    for signal_id in request.signal_ids:
+        signal = db.get_admitted_signal(signal_id)
+        if signal is not None:
+            admitted_signal_ids.append(signal_id)
+
+    # Batch update only admitted signals
     updated_count = db.batch_update_review_status(
-        signal_ids=request.signal_ids,
+        signal_ids=admitted_signal_ids,
         review_status=request.review_status,
         reviewed_by=request.reviewed_by,
         rejection_reason=request.rejection_reason
     )
-    
+
     return BatchReviewResponse(
         updated_count=updated_count,
         signal_ids=request.signal_ids

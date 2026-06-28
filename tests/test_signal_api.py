@@ -385,6 +385,123 @@ class TestSignalBoardAPI(unittest.TestCase):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_get_signal_rejects_draft_signal(self):
+        """GET detail rejects draft signals."""
+        signal = self._create_test_signal(
+            signal_id="draft-signal",
+            lifecycle_state_at_generation="draft",
+        )
+        self.db.create_signal(signal)
+
+        response = self.client.get("/api/signals/draft-signal")
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_signal_rejects_rejected_signal(self):
+        """GET detail rejects rejected signals."""
+        signal = self._create_test_signal(
+            signal_id="rejected-signal",
+            lifecycle_state_at_generation="rejected",
+        )
+        self.db.create_signal(signal)
+
+        response = self.client.get("/api/signals/rejected-signal")
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_signal_rejects_needs_review_signal(self):
+        """GET detail rejects needs_review signals."""
+        signal = self._create_test_signal(
+            signal_id="needs-review-signal",
+            lifecycle_state_at_generation="needs_review",
+        )
+        self.db.create_signal(signal)
+
+        response = self.client.get("/api/signals/needs-review-signal")
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_post_review_rejects_missing_admission_signal(self):
+        """POST review rejects signals without admission metadata."""
+        signal = self._create_test_signal(
+            signal_id="legacy-signal",
+            strategy_revision_id=None,
+            lifecycle_state_at_generation=None,
+            admission_source=None,
+        )
+        self.db.create_signal(signal)
+
+        response = self.client.post(
+            "/api/signals/legacy-signal/review",
+            json={
+                "review_status": "watching",
+                "reviewed_by": "trader1"
+            }
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_post_review_rejects_draft_signal(self):
+        """POST review rejects draft signals and does not modify them."""
+        signal = self._create_test_signal(
+            signal_id="draft-signal",
+            lifecycle_state_at_generation="draft",
+            review_status="pending",
+        )
+        self.db.create_signal(signal)
+
+        response = self.client.post(
+            "/api/signals/draft-signal/review",
+            json={
+                "review_status": "watching",
+                "reviewed_by": "trader1"
+            }
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+        # Verify database was not modified
+        signal_after = self.db.get_signal("draft-signal")
+        self.assertEqual(signal_after.review_status, "pending")
+        self.assertIsNone(signal_after.reviewed_by)
+
+    def test_batch_review_does_not_update_unadmitted_signals(self):
+        """Batch review only updates admitted signals, ignores unadmitted."""
+        admitted = self._create_test_signal(
+            signal_id="admitted-signal",
+            lifecycle_state_at_generation="prototype_passed",
+        )
+        legacy = self._create_test_signal(
+            signal_id="legacy-signal",
+            strategy_revision_id=None,
+            lifecycle_state_at_generation=None,
+            admission_source=None,
+        )
+
+        self.db.create_signal(admitted)
+        self.db.create_signal(legacy)
+
+        response = self.client.post(
+            "/api/signals/batch-review",
+            json={
+                "signal_ids": ["admitted-signal", "legacy-signal"],
+                "review_status": "watching",
+                "reviewed_by": "trader1"
+            }
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["updated_count"], 1)
+
+        # Verify admitted was updated
+        admitted_after = self.db.get_signal("admitted-signal")
+        self.assertEqual(admitted_after.review_status, "watching")
+
+        # Verify legacy was not updated
+        legacy_after = self.db.get_signal("legacy-signal")
+        self.assertEqual(legacy_after.review_status, "pending")
+
 
 if __name__ == "__main__":
     unittest.main()

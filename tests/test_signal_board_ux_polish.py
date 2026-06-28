@@ -39,6 +39,12 @@ class TestSignalBoardUxPolish(unittest.TestCase):
             "一键下单",
             "最佳策略",
             "策略排名",
+            "支持自动交易",
+            "开启自动交易",
+            "自动交易已启用",
+            "一键自动交易",
+            "可自动交易",
+            "自动执行交易",
         ]
 
         for term in prohibited_terms:
