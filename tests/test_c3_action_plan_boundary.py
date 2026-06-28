@@ -208,7 +208,7 @@ class TestActionPlanBuilder(unittest.TestCase):
         self.assertTrue(expired_check.blocking)
 
     def test_blocking_rule_evidence_blocked(self):
-        """ActionPlan is expired when evidence_status == blocked."""
+        """ActionPlan shows blocking check when evidence_status == blocked."""
         signal = self._create_test_signal(
             evidence_status="blocked",
             risk_flags=["suspended"]
@@ -216,7 +216,8 @@ class TestActionPlanBuilder(unittest.TestCase):
 
         plan = build_action_plan(signal)
 
-        self.assertEqual(plan.status, "expired")
+        # Status is ready_for_human (blocking represented by checks, not status)
+        self.assertEqual(plan.status, "ready_for_human")
 
         # Evidence check should block
         evidence_check = next(c for c in plan.pre_action_checks if c.check_id == "evidence_check")
@@ -229,7 +230,7 @@ class TestActionPlanBuilder(unittest.TestCase):
         self.assertTrue(blocked_check.blocking)
 
     def test_blocking_rule_review_status_ignored(self):
-        """ActionPlan is expired when review_status == ignored."""
+        """ActionPlan shows blocking check when review_status == ignored."""
         signal = self._create_test_signal(
             review_status="ignored",
             rejection_reason="Low liquidity"
@@ -237,7 +238,8 @@ class TestActionPlanBuilder(unittest.TestCase):
 
         plan = build_action_plan(signal)
 
-        self.assertEqual(plan.status, "expired")
+        # Status is ready_for_human (blocking represented by checks, not status)
+        self.assertEqual(plan.status, "ready_for_human")
 
         # Already ignored invalidation check should block
         ignored_check = next(c for c in plan.invalidation_checks if c.check_id == "already_ignored")
@@ -344,24 +346,29 @@ class TestActionPlanBuilder(unittest.TestCase):
             self.assertNotIn(field, plan_dict)
 
     def test_builder_is_deterministic(self):
-        """Builder produces same ActionPlan for same input (except timestamps and UUIDs)."""
+        """Builder produces identical ActionPlan for same input (signal, today, now)."""
         signal = self._create_test_signal()
         today = date.today()
+        now = datetime(2026, 6, 28, 12, 0, 0, tzinfo=timezone.utc)
 
-        plan1 = build_action_plan(signal, today=today)
-        plan2 = build_action_plan(signal, today=today)
+        plan1 = build_action_plan(signal, today=today, now=now)
+        plan2 = build_action_plan(signal, today=today, now=now)
 
-        # Same deterministic fields
-        self.assertEqual(plan1.signal_id, plan2.signal_id)
-        self.assertEqual(plan1.freshness_status, plan2.freshness_status)
-        self.assertEqual(plan1.status, plan2.status)
-        self.assertEqual(len(plan1.pre_action_checks), len(plan2.pre_action_checks))
-        self.assertEqual(len(plan1.invalidation_checks), len(plan2.invalidation_checks))
+        # Full equality including action_plan_id and timestamps
+        plan1_dict = plan1.model_dump()
+        plan2_dict = plan2.model_dump()
 
-        # Check IDs match (deterministic)
-        check1_ids = [c.check_id for c in plan1.pre_action_checks]
-        check2_ids = [c.check_id for c in plan2.pre_action_checks]
-        self.assertEqual(check1_ids, check2_ids)
+        self.assertEqual(plan1_dict, plan2_dict)
+
+        # Verify deterministic ID
+        self.assertEqual(plan1.action_plan_id, plan2.action_plan_id)
+        self.assertTrue(plan1.action_plan_id.startswith("ap_"))
+
+        # Verify deterministic timestamps
+        self.assertEqual(plan1.created_at, plan2.created_at)
+        self.assertEqual(plan1.updated_at, plan2.updated_at)
+        self.assertEqual(plan1.created_at, now)
+        self.assertEqual(plan1.updated_at, now)
 
 
 if __name__ == "__main__":

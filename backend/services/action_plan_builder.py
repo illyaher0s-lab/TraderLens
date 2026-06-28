@@ -21,9 +21,14 @@ Core Rules:
 3. Warning: evidence warning, risk_flags present, stale freshness, missing quantity/price
 4. Pre-action checks: admission, freshness, evidence, risk, snapshot linkage, strategy revision linkage
 5. Invalidation checks: expired signal, blocked evidence, ignored review, expired review
+
+Determinism:
+- action_plan_id is deterministic hash from signal metadata
+- Timestamps are injectable for testing
+- Same input (signal, today, now) produces identical output
 """
 
-import uuid
+import hashlib
 from datetime import date, datetime, timezone
 
 from contracts.signal_board import PlannedSignal
@@ -33,6 +38,35 @@ from contracts.action_plan import (
     ExecutionWindow,
     UserActionDecision,
 )
+
+
+def _generate_deterministic_action_plan_id(signal: PlannedSignal) -> str:
+    """
+    Generate deterministic Action Plan ID from signal metadata.
+
+    Uses SHA256 hash over signal identifying fields to ensure:
+    - Same signal always produces same action_plan_id
+    - Different signals produce different action_plan_ids
+    - No random UUIDs
+
+    Args:
+        signal: PlannedSignal to generate ID from
+
+    Returns:
+        Deterministic action_plan_id string (format: "ap_<hash_prefix>")
+    """
+    components = [
+        signal.signal_id,
+        signal.strategy_id,
+        signal.strategy_version,
+        signal.strategy_revision_id or "",
+        signal.snapshot_hash,
+        signal.intended_execution_date.isoformat(),
+    ]
+    hash_input = "|".join(components)
+    hash_digest = hashlib.sha256(hash_input.encode("utf-8")).hexdigest()
+    # Use first 16 chars of hash for readability
+    return f"ap_{hash_digest[:16]}"
 
 
 def _determine_freshness(
@@ -262,35 +296,50 @@ def _determine_action_plan_status(
     """
     Determine Action Plan status based on signal state and checks.
 
-    Returns one of:
-    - "ready_for_human": Can be reviewed by human
-    - "expired": Expired by freshness or review status
-    """
-    # Check if any invalidation check is blocked
-    any_blocked = any(check.status == "blocked" for check in invalidation_checks)
+    Status logic:
+    - "expired": Only if freshness is expired OR review_status is "expired"
+    - "ready_for_human": Can be reviewed (may have blocking checks, but not date-expired)
 
-    if any_blocked or freshness_status == "expired":
+    Blocking conditions (evidence blocked, ignored review) are represented by
+    ActionCheck.blocking=True, not by ActionPlan.status="expired".
+
+    Returns one of:
+    - "ready_for_human": Can be reviewed by human (even if some checks block execution)
+    - "expired": Date-expired or marked expired by review
+    """
+    # Only mark as expired if actually date-expired or review status expired
+    if freshness_status == "expired" or signal.review_status == "expired":
         return "expired"
 
+    # All other cases (including evidence blocked, ignored) are ready_for_human
+    # Blocking is represented by individual check.blocking=True
     return "ready_for_human"
 
 
 def build_action_plan(
     signal: PlannedSignal,
-    today: date | None = None
+    today: date | None = None,
+    now: datetime | None = None
 ) -> ActionPlan:
     """
     Build deterministic Action Plan from admitted PlannedSignal.
 
     Args:
         signal: Admitted PlannedSignal (must have lifecycle_state_at_generation == "prototype_passed")
-        today: Current date (defaults to UTC today)
+        today: Current date (defaults to UTC today if None)
+        now: Current timestamp (defaults to UTC now if None)
 
     Returns:
         ActionPlan with deterministic checks and status
 
     Raises:
         ValueError: If signal is not admitted (lifecycle_state_at_generation != "prototype_passed")
+
+    Determinism:
+        When today and now are provided, output is fully deterministic:
+        - action_plan_id is SHA256 hash of signal metadata
+        - created_at and updated_at are set to provided now
+        - Same (signal, today, now) produces identical ActionPlan
     """
     # Validate admission
     if signal.lifecycle_state_at_generation != "prototype_passed":
@@ -300,9 +349,11 @@ def build_action_plan(
             f"expected 'prototype_passed'"
         )
 
-    # Default to today
+    # Default to today and now
     if today is None:
         today = datetime.now(timezone.utc).date()
+    if now is None:
+        now = datetime.now(timezone.utc)
 
     # Determine freshness
     freshness_status, valid_for_date, expires_after_date = _determine_freshness(
@@ -326,11 +377,10 @@ def build_action_plan(
         signal, freshness_status, invalidation_checks
     )
 
-    # Generate Action Plan ID
-    action_plan_id = str(uuid.uuid4())
+    # Generate deterministic Action Plan ID
+    action_plan_id = _generate_deterministic_action_plan_id(signal)
 
     # Build Action Plan
-    now = datetime.now(timezone.utc)
     return ActionPlan(
         action_plan_id=action_plan_id,
         signal_id=signal.signal_id,
