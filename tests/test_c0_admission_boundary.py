@@ -66,13 +66,11 @@ class TestC0AdmissionBoundary(unittest.TestCase):
         """
         SignalBoardDB schema: planned_signals table.
 
-        Observation: PlannedSignal contract has strategy_id + strategy_version,
-        but no strategy_revision_id or lifecycle_state.
+        C1 Update: PlannedSignal now has strategy_revision_id, lifecycle_state_at_generation,
+        and admission_source fields (added in C1 Task 2).
 
-        Risk: Cannot retroactively filter signals by lifecycle_state in DB.
-
-        Mitigation: C0 admission gate prevents non-prototype_passed signals
-        from being generated in the first place (reject at generation time).
+        C0 observation was: PlannedSignal had no lifecycle_state field.
+        C1 solution: Added admission metadata fields to enable filtering.
         """
         from contracts.signal_board import PlannedSignal
 
@@ -82,11 +80,10 @@ class TestC0AdmissionBoundary(unittest.TestCase):
         self.assertIn("strategy_id", fields)
         self.assertIn("strategy_version", fields)
 
-        # Verify no lifecycle_state field (EXPECTED - signals are downstream)
-        self.assertNotIn("lifecycle_state", fields)
-        self.assertNotIn("strategy_revision_id", fields)
-
-        # This is EXPECTED - admission gate rejects at generation time
+        # C1 Task 2 added admission metadata fields
+        self.assertIn("strategy_revision_id", fields)
+        self.assertIn("lifecycle_state_at_generation", fields)
+        self.assertIn("admission_source", fields)
 
     def test_c_admission_boundary_is_signal_generation_entry_point(self):
         """

@@ -78,6 +78,21 @@ class PlannedSignal(BaseModel):
         description="Strategy version string (e.g., 'v2.1.0'). Links to exact strategy config used."
     )
     
+    strategy_revision_id: str | None = Field(
+        None,
+        description="Strategy revision ID from StrategyDB (B-module lifecycle tracking). None for signals generated before C0 admission integration."
+    )
+    
+    lifecycle_state_at_generation: str | None = Field(
+        None,
+        description="Lifecycle state when signal was generated (e.g., 'prototype_passed'). None for signals generated before C0 admission integration."
+    )
+    
+    admission_source: str | None = Field(
+        None,
+        description="Source of admission validation ('c_admission_gate', 'legacy_pre_c0', 'manual_override'). None for signals generated before C0."
+    )
+    
     snapshot_hash: str = Field(
         ...,
         description="Hash of frozen snapshot used. Links to exact data for reproducibility."

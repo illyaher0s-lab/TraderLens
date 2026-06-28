@@ -108,6 +108,9 @@ class SignalBoardDB:
                     signal_id TEXT PRIMARY KEY,
                     strategy_id TEXT NOT NULL,
                     strategy_version TEXT NOT NULL,
+                    strategy_revision_id TEXT,
+                    lifecycle_state_at_generation TEXT,
+                    admission_source TEXT,
                     snapshot_hash TEXT NOT NULL,
                     signal_date TEXT NOT NULL,
                     intended_execution_date TEXT NOT NULL,
@@ -164,16 +167,21 @@ class SignalBoardDB:
         with self._get_conn() as conn:
             conn.execute("""
                 INSERT INTO planned_signals (
-                    signal_id, strategy_id, strategy_version, snapshot_hash,
+                    signal_id, strategy_id, strategy_version, strategy_revision_id,
+                    lifecycle_state_at_generation, admission_source,
+                    snapshot_hash,
                     signal_date, intended_execution_date, symbol, direction,
                     planned_action, quantity, trigger_reason, review_status, reviewed_at,
                     reviewed_by, rejection_reason, current_price, position_before,
                     created_at, metadata, risk_flags, evidence_status, evidence_checked_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 signal.signal_id,
                 signal.strategy_id,
                 signal.strategy_version,
+                signal.strategy_revision_id,
+                signal.lifecycle_state_at_generation,
+                signal.admission_source,
                 signal.snapshot_hash,
                 signal.signal_date.isoformat(),
                 signal.intended_execution_date.isoformat(),
@@ -545,6 +553,9 @@ class SignalBoardDB:
             signal_id=row["signal_id"],
             strategy_id=row["strategy_id"],
             strategy_version=row["strategy_version"],
+            strategy_revision_id=row["strategy_revision_id"],
+            lifecycle_state_at_generation=row["lifecycle_state_at_generation"],
+            admission_source=row["admission_source"],
             snapshot_hash=row["snapshot_hash"],
             signal_date=date.fromisoformat(row["signal_date"]),
             intended_execution_date=date.fromisoformat(row["intended_execution_date"]),

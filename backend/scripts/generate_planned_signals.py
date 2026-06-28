@@ -126,6 +126,8 @@ def convert_signal_to_planned_signal(
     intended_execution_date: date,
     data_source: TushareDataSource,
     strategy_config: StrategyConfig,
+    strategy_revision_id: str,
+    lifecycle_state: str,
 ) -> PlannedSignal:
     """
     Convert strategy_core Signal to PlannedSignal.
@@ -206,6 +208,9 @@ def convert_signal_to_planned_signal(
         signal_id=signal_id,
         strategy_id=signal.strategy_id,
         strategy_version=signal.strategy_version,
+        strategy_revision_id=strategy_revision_id,
+        lifecycle_state_at_generation=lifecycle_state,
+        admission_source="c_admission_gate",
         snapshot_hash=snapshot_hash,
         signal_date=signal_date,
         intended_execution_date=intended_execution_date,
@@ -342,6 +347,8 @@ def generate_planned_signals_from_snapshot(
             intended_execution_date=intended_execution_date,
             data_source=data_source,
             strategy_config=strategy_config,
+            strategy_revision_id=strategy_revision_id,
+            lifecycle_state=lifecycle_state,
         )
         planned_signals.append(planned_signal)
     
