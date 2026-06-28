@@ -274,7 +274,7 @@ export default function SignalsPage() {
             查看策略生成的计划信号，并进行人工审核
           </p>
           <p className="text-xs text-[#808080] mt-1">
-            数据来源：Strategy Core｜不包含实时行情｜不做自动执行
+            仅显示已通过验证的计划信号｜不是买卖建议｜不会自动交易
           </p>
         </div>
 

@@ -13,3 +13,41 @@ def test_frontend_planned_signal_includes_admission_metadata():
     assert "strategy_revision_id: string | null" in source
     assert "lifecycle_state_at_generation: string | null" in source
     assert "admission_source: string | null" in source
+
+
+def test_signal_board_visible_copy_has_decision_boundary_disclaimer():
+    list_source = SIGNALS_PAGE.read_text(encoding="utf-8")
+    detail_source = SIGNAL_DETAIL_PAGE.read_text(encoding="utf-8")
+
+    required_phrases = [
+        "不是买卖建议",
+        "不会自动交易",
+        "仅显示已通过验证的计划信号",
+    ]
+
+    combined = list_source + "\n" + detail_source
+    for phrase in required_phrases:
+        assert phrase in combined, f"Missing required phrase: {phrase}"
+
+
+def test_signal_board_visible_copy_has_no_profit_or_live_trading_claims():
+    combined = (
+        SIGNALS_PAGE.read_text(encoding="utf-8")
+        + "\n"
+        + SIGNAL_DETAIL_PAGE.read_text(encoding="utf-8")
+    )
+
+    forbidden = [
+        "保证盈利",
+        "稳定盈利",
+        "实盘可用",
+        "立即买入",
+        "立即卖出",
+        "推荐买入",
+        "推荐卖出",
+        "最佳策略",
+        "一键下单",
+    ]
+
+    for phrase in forbidden:
+        assert phrase not in combined, f"Forbidden phrase found: {phrase}"

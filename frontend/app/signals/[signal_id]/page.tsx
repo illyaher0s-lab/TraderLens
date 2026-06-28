@@ -152,6 +152,9 @@ export default function SignalDetailPage({ params }: { params: { signal_id: stri
           <div className="text-sm text-slate-700">
             <strong>触发原因:</strong> {signal.trigger_reason}
           </div>
+          <p className="text-xs text-slate-500 mt-2">
+            仅显示已通过验证的计划信号；不是买卖建议；不会自动交易。
+          </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
