@@ -431,8 +431,30 @@ def submit_action_plan_decision(signal_id: str, request: ActionPlanDecisionReque
             detail=f"reason is required when decision is '{request.decision}'"
         )
 
-    # Build Action Plan to get action_plan_id
+    # Build Action Plan to get action_plan_id and check blocking conditions
     action_plan = build_action_plan(signal)
+
+    # Validate: execute/partial not allowed if blocked or expired
+    if request.decision in ["execute", "partial"]:
+        # Check for blocking conditions
+        has_blocking_check = any(
+            check.blocking and check.status == "blocked"
+            for check in action_plan.pre_action_checks + action_plan.invalidation_checks
+        )
+        is_expired = action_plan.freshness_status == "expired"
+
+        if has_blocking_check or is_expired:
+            blocking_reasons = []
+            if is_expired:
+                blocking_reasons.append("Action Plan has expired")
+            for check in action_plan.pre_action_checks + action_plan.invalidation_checks:
+                if check.blocking and check.status == "blocked":
+                    blocking_reasons.append(f"{check.label}: {check.detail}")
+
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot {request.decision} blocked or expired Action Plan. Blocking reasons: {'; '.join(blocking_reasons)}"
+            )
 
     # Save decision
     from datetime import datetime, timezone

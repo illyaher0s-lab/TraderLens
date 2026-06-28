@@ -405,9 +405,13 @@ class TestActionPlanAPI(unittest.TestCase):
         lifecycle_state: str = "prototype_passed",
         evidence_status: str = "clean",
         review_status: str = "pending",
+        intended_execution_date: date | None = None,
         **kwargs
     ) -> PlannedSignal:
         """Create and insert test signal."""
+        if intended_execution_date is None:
+            intended_execution_date = date.today() + timedelta(days=1)
+
         signal = PlannedSignal(
             signal_id=signal_id,
             strategy_id="test_strategy",
@@ -417,7 +421,7 @@ class TestActionPlanAPI(unittest.TestCase):
             admission_source="c_admission_gate",
             snapshot_hash="abc123def456",
             signal_date=date.today(),
-            intended_execution_date=date.today() + timedelta(days=1),
+            intended_execution_date=intended_execution_date,
             symbol="600519.SH",
             direction="buy",
             planned_action="enter",
@@ -626,6 +630,100 @@ class TestActionPlanAPI(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+
+    def test_post_action_decision_rejects_execute_on_expired(self):
+        """Cannot execute expired Action Plan."""
+        from datetime import date, timedelta
+
+        signal = self._create_test_signal(
+            signal_id="expired-execute",
+            intended_execution_date=date.today() - timedelta(days=2)  # Expired
+        )
+
+        response = self.client.post(
+            f"/api/signals/expired-execute/action-plan/decision",
+            json={"decision": "execute", "decided_by": "trader1"}
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("blocked or expired", response.json()["detail"].lower())
+
+    def test_post_action_decision_rejects_partial_on_expired(self):
+        """Cannot partially execute expired Action Plan."""
+        from datetime import date, timedelta
+
+        signal = self._create_test_signal(
+            signal_id="expired-partial",
+            intended_execution_date=date.today() - timedelta(days=2)  # Expired
+        )
+
+        response = self.client.post(
+            f"/api/signals/expired-partial/action-plan/decision",
+            json={"decision": "partial", "decided_by": "trader1", "reason": "Trying anyway"}
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("blocked or expired", response.json()["detail"].lower())
+
+    def test_post_action_decision_rejects_execute_on_evidence_blocked(self):
+        """Cannot execute Action Plan with blocked evidence."""
+        signal = self._create_test_signal(
+            signal_id="evidence-blocked-execute",
+            evidence_status="blocked"
+        )
+
+        response = self.client.post(
+            f"/api/signals/evidence-blocked-execute/action-plan/decision",
+            json={"decision": "execute", "decided_by": "trader1"}
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("blocked or expired", response.json()["detail"].lower())
+
+    def test_post_action_decision_rejects_partial_on_evidence_blocked(self):
+        """Cannot partially execute Action Plan with blocked evidence."""
+        signal = self._create_test_signal(
+            signal_id="evidence-blocked-partial",
+            evidence_status="blocked"
+        )
+
+        response = self.client.post(
+            f"/api/signals/evidence-blocked-partial/action-plan/decision",
+            json={"decision": "partial", "decided_by": "trader1", "reason": "Trying anyway"}
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("blocked or expired", response.json()["detail"].lower())
+
+    def test_post_action_decision_allows_skip_on_blocked(self):
+        """Can skip blocked Action Plan."""
+        signal = self._create_test_signal(
+            signal_id="blocked-skip",
+            evidence_status="blocked"
+        )
+
+        response = self.client.post(
+            f"/api/signals/blocked-skip/action-plan/decision",
+            json={"decision": "skip", "decided_by": "trader1", "reason": "Evidence blocked"}
+        )
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_post_action_decision_allows_expired_on_expired_plan(self):
+        """Can mark expired Action Plan as expired."""
+        from datetime import date, timedelta
+
+        signal = self._create_test_signal(
+            signal_id="expired-mark-expired",
+            intended_execution_date=date.today() - timedelta(days=2)  # Expired
+        )
+
+        response = self.client.post(
+            f"/api/signals/expired-mark-expired/action-plan/decision",
+            json={"decision": "expired", "decided_by": "trader1", "reason": "Too late"}
+        )
+
+        self.assertEqual(response.status_code, 200)
 
 
 if __name__ == "__main__":

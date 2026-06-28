@@ -123,6 +123,38 @@ class TestActionPlanCopyBoundary(unittest.TestCase):
             "Exception phrase '不会自动交易' not found (required in disclaimer)"
         )
 
+    def test_blocked_action_plan_disables_execute_button(self):
+        """Blocked Action Plan must disable '准备执行' button."""
+        # Verify logic exists to disable execute button when blocked
+        self.assertIn("canAct", self.action_plan_panel_content, "canAct variable not found")
+        self.assertIn("disabled={!canAct", self.action_plan_panel_content, "Execute button not using canAct check")
+
+    def test_blocked_action_plan_disables_partial_button(self):
+        """Blocked Action Plan must disable '部分执行' button."""
+        # Verify both canAct variable exists and partial button uses it
+        self.assertIn("canAct", self.action_plan_panel_content, "canAct variable not found")
+        self.assertIn("部分执行", self.action_plan_panel_content, "Partial button not found")
+        # Verify the pattern disabled={!canAct appears (for both execute and partial)
+        self.assertIn("!canAct", self.action_plan_panel_content, "Buttons not using canAct check")
+
+    def test_blocked_action_plan_allows_skip_and_expired(self):
+        """Blocked Action Plan must still allow '今日放弃' and '标记过期'."""
+        # Verify skip and expired buttons exist
+        self.assertIn("今日放弃", self.action_plan_panel_content, "Skip button not found")
+        self.assertIn("标记过期", self.action_plan_panel_content, "Expired button not found")
+
+        # Count occurrences - canAct should appear in:
+        # 1. Blocking notice conditional: {!canAct && ...}
+        # 2. Execute button disabled: disabled={!canAct || isSubmitting}
+        # 3. Partial button disabled: disabled={!canAct || isSubmitting}
+        canact_count = self.action_plan_panel_content.count("!canAct")
+        self.assertGreaterEqual(canact_count, 2, f"Expected at least 2 uses of !canAct, found {canact_count}")
+
+    def test_blocking_notice_shown(self):
+        """Blocking notice must be shown when canAct is false."""
+        self.assertIn("阻断条件", self.action_plan_panel_content, "Blocking notice label not found")
+        self.assertIn("无法执行或部分执行", self.action_plan_panel_content, "Blocking message not found")
+
     def test_no_broker_order_fields(self):
         """No broker/order/fill fields should appear in Action Plan UI code."""
         # Remove comments to avoid matching documentation

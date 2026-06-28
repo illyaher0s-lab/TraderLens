@@ -34,8 +34,19 @@ export default function ActionPlanPanel({ actionPlan, onDecisionSubmit, isSubmit
     (check) => check.blocking && check.status === "blocked"
   );
 
-  // Disable execute button if blocking exists or expired
-  const canExecute = !hasBlockingCheck && actionPlan.freshness_status !== "expired";
+  // Disable execute AND partial buttons if blocking exists or expired
+  const canAct = !hasBlockingCheck && actionPlan.freshness_status !== "expired";
+
+  // Get blocking reasons for display
+  const blockingReasons: string[] = [];
+  if (actionPlan.freshness_status === "expired") {
+    blockingReasons.push("执行计划已过期");
+  }
+  [...actionPlan.pre_action_checks, ...actionPlan.invalidation_checks].forEach((check) => {
+    if (check.blocking && check.status === "blocked") {
+      blockingReasons.push(`${check.label}: ${check.detail}`);
+    }
+  });
 
   const handleDecisionClick = (decision: "execute" | "partial" | "skip" | "expired") => {
     setSelectedDecision(decision);
@@ -153,14 +164,25 @@ export default function ActionPlanPanel({ actionPlan, onDecisionSubmit, isSubmit
         </div>
       )}
 
+      {/* Blocking Notice */}
+      {!canAct && blockingReasons.length > 0 && (
+        <div className="mb-4 p-3 rounded bg-red-50 border border-red-200">
+          <div className="text-sm font-medium text-red-900 mb-1">阻断条件</div>
+          {blockingReasons.map((reason, idx) => (
+            <div key={idx} className="text-xs text-red-700">• {reason}</div>
+          ))}
+          <div className="text-xs text-red-600 mt-2">无法执行或部分执行，仅可标记为放弃或过期。</div>
+        </div>
+      )}
+
       {/* Decision Buttons */}
       {!showReasonInput && (
         <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => handleDecisionClick("execute")}
-            disabled={!canExecute || isSubmitting}
+            disabled={!canAct || isSubmitting}
             className={`px-4 py-2 text-sm font-medium rounded ${
-              canExecute
+              canAct
                 ? "bg-green-600 text-white hover:bg-green-700"
                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }`}
@@ -169,8 +191,12 @@ export default function ActionPlanPanel({ actionPlan, onDecisionSubmit, isSubmit
           </button>
           <button
             onClick={() => handleDecisionClick("partial")}
-            disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium rounded bg-blue-600 text-white hover:bg-blue-700"
+            disabled={!canAct || isSubmitting}
+            className={`px-4 py-2 text-sm font-medium rounded ${
+              canAct
+                ? "bg-blue-600 text-white hover:bg-blue-700"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+            }`}
           >
             部分执行
           </button>
