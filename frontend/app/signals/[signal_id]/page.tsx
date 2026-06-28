@@ -17,13 +17,26 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ReviewForm from "@/components/ReviewForm";
-import { getSignal, reviewSignal, type PlannedSignal, type SignalReviewRequest } from "@/lib/api-client";
+import ActionPlanPanel from "@/components/ActionPlanPanel";
+import {
+  getSignal,
+  reviewSignal,
+  getActionPlan,
+  submitActionDecision,
+  type PlannedSignal,
+  type SignalReviewRequest,
+  type ActionPlan,
+  type ActionPlanDecisionRequest
+} from "@/lib/api-client";
 
 export default function SignalDetailPage({ params }: { params: { signal_id: string } }) {
   const router = useRouter();
   const [signal, setSignal] = useState<PlannedSignal | null>(null);
+  const [actionPlan, setActionPlan] = useState<ActionPlan | null>(null);
   const [loading, setLoading] = useState(true);
+  const [actionPlanLoading, setActionPlanLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [actionPlanError, setActionPlanError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
@@ -37,10 +50,26 @@ export default function SignalDetailPage({ params }: { params: { signal_id: stri
       setError(null);
       const data = await getSignal(params.signal_id);
       setSignal(data);
+
+      // Load Action Plan after signal is loaded
+      loadActionPlan();
     } catch (err) {
       setError(err instanceof Error ? err.message : "加载信号失败");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadActionPlan = async () => {
+    try {
+      setActionPlanLoading(true);
+      setActionPlanError(null);
+      const data = await getActionPlan(params.signal_id);
+      setActionPlan(data);
+    } catch (err) {
+      setActionPlanError(err instanceof Error ? err.message : "加载执行计划失败");
+    } finally {
+      setActionPlanLoading(false);
     }
   };
 
@@ -50,11 +79,34 @@ export default function SignalDetailPage({ params }: { params: { signal_id: stri
       const updatedSignal = await reviewSignal(params.signal_id, request);
       setSignal(updatedSignal);
       setSubmitSuccess(true);
-      
+
+      // Reload Action Plan after review status change
+      loadActionPlan();
+
       // Hide success message after 3 seconds
       setTimeout(() => setSubmitSuccess(false), 3000);
     } catch (err) {
       // Error is handled by ReviewForm component
+      throw err;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleActionPlanDecision = async (request: ActionPlanDecisionRequest) => {
+    try {
+      setIsSubmitting(true);
+      const updatedActionPlan = await submitActionDecision(params.signal_id, request);
+      setActionPlan(updatedActionPlan);
+      setSubmitSuccess(true);
+
+      // Reload signal to reflect review_status change
+      const updatedSignal = await getSignal(params.signal_id);
+      setSignal(updatedSignal);
+
+      // Hide success message after 3 seconds
+      setTimeout(() => setSubmitSuccess(false), 3000);
+    } catch (err) {
       throw err;
     } finally {
       setIsSubmitting(false);
@@ -239,6 +291,30 @@ export default function SignalDetailPage({ params }: { params: { signal_id: stri
                 </div>
               </dl>
             </div>
+
+            {/* C. Action Plan */}
+            {actionPlanLoading && (
+              <div className="bg-white rounded-lg border border-slate-200 p-6">
+                <div className="text-center">
+                  <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                  <p className="text-sm text-slate-600 mt-2">加载执行计划...</p>
+                </div>
+              </div>
+            )}
+
+            {actionPlanError && (
+              <div className="bg-white rounded-lg border border-slate-200 p-6">
+                <div className="text-sm text-red-700">{actionPlanError}</div>
+              </div>
+            )}
+
+            {actionPlan && !actionPlanLoading && !actionPlanError && (
+              <ActionPlanPanel
+                actionPlan={actionPlan}
+                onDecisionSubmit={handleActionPlanDecision}
+                isSubmitting={isSubmitting}
+              />
+            )}
           </div>
 
           {/* Right Column: Review Form */}

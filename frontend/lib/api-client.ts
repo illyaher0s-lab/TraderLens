@@ -52,6 +52,60 @@ export interface StrategyInfo {
   latest_signal_date: string;
 }
 
+// C3 Action Plan types
+export interface ActionCheck {
+  check_id: string;
+  label: string;
+  source: "strategy_core" | "signal_metadata" | "risk_flag" | "system_rule";
+  status: "pass" | "warning" | "blocked" | "unknown";
+  blocking: boolean;
+  detail: string;
+}
+
+export interface UserActionDecision {
+  decision: "execute" | "skip" | "partial" | "expired";
+  decided_at: string; // ISO datetime
+  decided_by: string;
+  reason: string | null;
+  manual_notes: string | null;
+}
+
+export interface ExecutionWindow {
+  planned_date: string; // ISO date
+  valid_for_date: string; // ISO date
+  expires_after_date: string; // ISO date
+}
+
+export interface ActionPlan {
+  action_plan_id: string;
+  signal_id: string;
+  strategy_id: string;
+  strategy_version: string;
+  strategy_revision_id: string | null;
+  snapshot_hash: string;
+  symbol: string;
+  planned_action: "enter" | "exit";
+  signal_date: string; // ISO date
+  intended_execution_date: string; // ISO date
+  action_plan_date: string; // ISO date
+  status: "draft" | "ready_for_human" | "user_marked_execute" | "user_marked_skip" | "user_marked_partial" | "expired";
+  freshness_status: "fresh" | "stale" | "expired";
+  execution_window: ExecutionWindow;
+  pre_action_checks: ActionCheck[];
+  invalidation_checks: ActionCheck[];
+  risk_warnings: string[];
+  user_decision: UserActionDecision | null;
+  created_at: string; // ISO datetime
+  updated_at: string; // ISO datetime
+}
+
+export interface ActionPlanDecisionRequest {
+  decision: "execute" | "skip" | "partial" | "expired";
+  decided_by: string;
+  reason?: string;
+  manual_notes?: string;
+}
+
 export interface SignalListResponse {
   items: PlannedSignal[];
   total: number;
@@ -158,10 +212,51 @@ export async function getSignalSummary(signalDate: string): Promise<SignalSummar
 export async function listStrategies(): Promise<StrategyInfo[]> {
   const url = `${API_BASE_URL}/api/signals/strategies`;
   const response = await fetch(url);
-  
+
   if (!response.ok) {
     throw new Error(`Failed to list strategies: ${response.statusText}`);
   }
-  
+
+  return response.json();
+}
+
+/**
+ * Get Action Plan for a signal.
+ */
+export async function getActionPlan(signalId: string): Promise<ActionPlan> {
+  const url = `${API_BASE_URL}/api/signals/${signalId}/action-plan`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(`Action Plan not available for signal: ${signalId}`);
+    }
+    throw new Error(`Failed to get action plan: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Submit Action Plan decision.
+ */
+export async function submitActionDecision(
+  signalId: string,
+  request: ActionPlanDecisionRequest
+): Promise<ActionPlan> {
+  const url = `${API_BASE_URL}/api/signals/${signalId}/action-plan/decision`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to submit decision: ${response.statusText}`);
+  }
+
   return response.json();
 }
