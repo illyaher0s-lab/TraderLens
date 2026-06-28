@@ -10,6 +10,9 @@ export interface PlannedSignal {
   signal_id: string;
   strategy_id: string;
   strategy_version: string;
+  strategy_revision_id: string | null;
+  lifecycle_state_at_generation: string | null;
+  admission_source: string | null;
   snapshot_hash: string;
   signal_date: string; // ISO date
   intended_execution_date: string; // ISO date
