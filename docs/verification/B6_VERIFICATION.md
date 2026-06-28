@@ -14,7 +14,7 @@
 | **B6 Task 2-6** | `e7f14e6` | feat: validation flow with B3/B4/B5 integration and reducer-backed promotion |
 | **B6 Task 7** | `ba7ee01` | feat: C admission gate for prototype_passed strategies |
 | **B6 Task 8** | `7a2f751` | test: no shortcuts boundary tests |
-| **B6 review fix** | `20d9c9b` | fix: keep reducer promotion failures loud |
+| **B6 review fix** | `9d612f0` | fix: keep reducer promotion failures loud |
 
 **Verification Date**: 2026-06-28  
 **B6 Focused Tests**: 26 tests (12 validation flow + 4 C admission + 10 boundary)
