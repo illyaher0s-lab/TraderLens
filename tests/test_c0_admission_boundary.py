@@ -10,15 +10,13 @@ import unittest
 class TestC0AdmissionBoundary(unittest.TestCase):
     def test_signal_generation_script_has_no_strategy_state_check(self):
         """
-        Current Signal Board entry point: generate_planned_signals.py script.
+        Original Signal Board entry point: generate_planned_signals.py script.
 
-        Observation: Script takes strategy YAML file path directly.
+        Original observation: Script took strategy YAML file path directly.
         No StrategyDB dependency, no lifecycle_state check.
 
-        Risk: Script can generate signals for any strategy (draft/rejected/etc.)
-        without checking prototype_passed state.
-
-        Mitigation: C0 Task 2 will add admission gate in signal generation flow.
+        C0 Task 2 result: Script now has StrategyDB import and lifecycle_state check.
+        This test documents that the admission gate has been added.
         """
         # Read generate_planned_signals.py source
         import backend.scripts.generate_planned_signals as gen_script
@@ -26,16 +24,15 @@ class TestC0AdmissionBoundary(unittest.TestCase):
 
         source = inspect.getsource(gen_script)
 
-        # Verify no StrategyDB import
-        self.assertNotIn("StrategyDB", source)
-        self.assertNotIn("from backend.db.strategy", source)
+        # C0 Task 2 added StrategyDB and CAdmissionGate
+        self.assertIn("StrategyDB", source)
+        self.assertIn("CAdmissionGate", source)
 
-        # Verify no lifecycle_state check
-        self.assertNotIn("lifecycle_state", source)
-        self.assertNotIn("prototype_passed", source)
+        # C0 Task 2 added lifecycle_state check
+        self.assertIn("lifecycle_state", source)
+        self.assertIn("prototype_passed", source)
 
-        # This is EXPECTED for current implementation (not a bug yet)
-        # C0 Task 2 will add admission gate
+        # Admission gate has been integrated (C0 Task 2 complete)
 
     def test_signal_board_api_has_no_strategy_admission_filter(self):
         """
