@@ -95,7 +95,7 @@ class TestC0AdmissionBoundary(unittest.TestCase):
         Current entry point: generate_planned_signals.py script.
 
         C0 Task 2 strategy:
-        1. Add strategy_revision_id parameter to generate_planned_signals.py
+        1. Require strategy_revision_id parameter in generate_planned_signals.py
         2. Add StrategyDB lookup for lifecycle_state
         3. Call CAdmissionGate.require_prototype_passed() before generation
         4. Reject with ValueError if not prototype_passed
@@ -106,8 +106,14 @@ class TestC0AdmissionBoundary(unittest.TestCase):
         - Signals already exist in DB at that point
         - Better to reject at generation time (fail early)
         """
-        # This test documents the decision
-        self.assertTrue(True, "C0 admission boundary identified: signal generation entry point")
+        import backend.scripts.generate_planned_signals as gen_script
+        import inspect
+
+        source = inspect.getsource(gen_script)
+
+        self.assertIn("strategy_revision_id is required for C module admission", source)
+        self.assertIn("strategy_db_path is required for C module admission", source)
+        self.assertNotIn("optional, enables prototype_passed validation", source)
 
 
 if __name__ == "__main__":

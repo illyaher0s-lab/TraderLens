@@ -2,7 +2,7 @@
 
 **Purpose**: Record C0 acceptance state, what C0 proves, and known boundaries.
 
-**Status**: C0 Tasks 1-3 completed and verified. This integrates B6 prototype_passed validation into C module entry points. NOT full Signal Board integration, NOT UI completion, NOT live trading.
+**Status**: C0 Tasks 1-3 completed and post-review hardened. This integrates B6 prototype_passed validation into the signal generation entry point. NOT full Signal Board integration, NOT UI completion, NOT live trading.
 
 ---
 
@@ -13,6 +13,7 @@
 | **C0 Task 1** | `063529d` | test: C0 Task 1 - identify C admission boundary |
 | **C0 Task 2** | `e8682e0` | feat: C0 Task 2 - enforce C admission gate for B-approved strategies |
 | **C0 Task 3** | `8ccec2c` | feat: C0 Task 3 - anti-bypass tests for C admission gate |
+| **C0 Review Fix** | `623852e` | fix: require C admission metadata for signal generation |
 
 **Verification Date**: 2026-06-28  
 **C0 Focused Tests**: 15 tests (4 boundary + 4 integration + 7 anti-bypass)  
@@ -32,10 +33,10 @@ C0 demonstrates B-to-C admission integration:
 
 ### 2.2 C Admission Gate Integration (Task 2)
 - **Only prototype_passed strategies generate signals**: Draft/rejected/needs_review/candidate states hard blocked
-- **Backward compatible CLI**: `--strategy-revision-id` and `--strategy-db` are optional parameters
+- **Mandatory admission metadata**: `--strategy-revision-id` and `--strategy-db` are required parameters
 - **Lifecycle state checked before generation**: CAdmissionGate.require_prototype_passed() called before signal generation
 - **Missing strategy rejected**: strategy_revision_id not found in StrategyDB causes ValueError
-- **Missing DB path rejected**: strategy_db_path required when strategy_revision_id provided
+- **Missing DB path rejected**: strategy_db_path required for every C signal generation request
 
 ### 2.3 Anti-Bypass Tests (Task 3)
 - **candidate_for_prototype_passed rejected**: Gate candidate is NOT equivalent to prototype_passed
@@ -43,7 +44,7 @@ C0 demonstrates B-to-C admission integration:
 - **Direct strategy_id bypass prevented**: Integration tests verify CAdmissionGate call is not removed
 - **Forged prototype_passed prevented**: Append-only architecture + triggers prevent direct writes
 - **Missing strategy_db_path rejected**: Cannot bypass lifecycle_state check by omitting DB path
-- **Manual YAML usage allowed**: Backward compatibility - users can provide strategy YAML directly without lifecycle_state check (acceptable boundary)
+- **Missing strategy_revision_id rejected**: Manual YAML generation without lifecycle_state validation is a bypass and is hard rejected
 
 ---
 
@@ -87,7 +88,7 @@ C0 is a **B-to-C admission integration proof**. It does NOT:
 **What Task 2 guarantees**:
 - CAdmissionGate integrated into `generate_planned_signals.py`
 - Only prototype_passed strategies can generate signals via this script
-- Backward compatible (optional CLI parameters)
+- Mandatory admission metadata (`strategy_revision_id` + `strategy_db_path`)
 
 **What Task 2 does NOT solve**:
 - **Existing Signal Board integration**: Task 2 creates standalone integration in signal generation script. Existing Signal Board API may still read strategies without calling CAdmissionGate.
@@ -121,7 +122,7 @@ C0 is a **B-to-C admission integration proof**. It does NOT:
 **C0 scope**:
 - B-to-C admission integration at signal generation entry point
 - Only prototype_passed strategies can generate signals
-- Backward compatible CLI for manual YAML usage
+- No manual YAML bypass path for C signal generation
 - Anti-bypass tests for common attack vectors
 
 **Out of C0 scope**:

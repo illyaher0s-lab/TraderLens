@@ -161,15 +161,13 @@ class TestC0AntiBypass(unittest.TestCase):
         Attack vector: Attacker calls generate_planned_signals without
         strategy_revision_id, bypassing lifecycle_state check entirely.
 
-        Expected: Signal generation works (backward compatibility),
-        but this is acceptable because the strategy YAML is manually provided
-        (not from StrategyDB). This test documents the boundary.
+        Expected: Signal generation is rejected before data loading.
+        C module admission cannot have a manual YAML path that skips
+        lifecycle_state validation.
         """
         from backend.scripts.generate_planned_signals import generate_planned_signals_from_snapshot
 
-        # Signal generation without strategy_revision_id should work
-        # (backward compatibility for manual YAML usage)
-        try:
+        with self.assertRaises(ValueError) as ctx:
             generate_planned_signals_from_snapshot(
                 snapshot_dir=Path("nonexistent"),
                 strategy_config=None,
@@ -177,13 +175,8 @@ class TestC0AntiBypass(unittest.TestCase):
                 strategy_revision_id=None,  # No admission gate check
                 strategy_db_path=None,
             )
-        except (TypeError, FileNotFoundError, AttributeError):
-            # Expected - will fail at data loading or config validation
-            # But admission gate was NOT called (no ValueError about prototype_passed)
-            pass
 
-        # This is acceptable: manual YAML usage bypasses admission gate
-        # Real usage: users must provide strategy_revision_id for gated strategies
+        self.assertIn("strategy_revision_id is required", str(ctx.exception))
 
     def test_direct_strategy_id_bypass_prevented_by_integration(self):
         """

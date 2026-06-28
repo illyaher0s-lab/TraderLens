@@ -268,35 +268,37 @@ def generate_planned_signals_from_snapshot(
         snapshot_dir: Path to Tushare snapshot directory
         strategy_config: Parsed strategy configuration
         signal_date: Date when signals are generated (EOD)
-        strategy_revision_id: Strategy revision ID for C admission gate check (optional for backward compatibility)
-        strategy_db_path: Path to StrategyDB for lifecycle state lookup (required if strategy_revision_id provided)
+        strategy_revision_id: Strategy revision ID for C admission gate check
+        strategy_db_path: Path to StrategyDB for lifecycle state lookup
 
     Returns:
         List of PlannedSignal objects
 
     Raises:
         FileNotFoundError: If snapshot not found
-        ValueError: If signal_date is not a trading day, or if strategy not prototype_passed
+        ValueError: If admission metadata is missing, signal_date is not a trading day,
+            or strategy is not prototype_passed
     """
     # C0 admission gate: only prototype_passed strategies can generate signals
-    if strategy_revision_id is not None:
-        if strategy_db_path is None:
-            raise ValueError("strategy_db_path is required when strategy_revision_id is provided")
+    if not strategy_revision_id:
+        raise ValueError("strategy_revision_id is required for C module admission")
+    if strategy_db_path is None:
+        raise ValueError("strategy_db_path is required for C module admission")
 
-        strategy_db = StrategyDB(strategy_db_path)
-        try:
-            lifecycle_state = strategy_db.get_latest_lifecycle_state(strategy_revision_id)
-            if lifecycle_state is None:
-                raise ValueError(f"Strategy revision '{strategy_revision_id}' not found in StrategyDB")
+    strategy_db = StrategyDB(strategy_db_path)
+    try:
+        lifecycle_state = strategy_db.get_latest_lifecycle_state(strategy_revision_id)
+        if lifecycle_state is None:
+            raise ValueError(f"Strategy revision '{strategy_revision_id}' not found in StrategyDB")
 
-            # Call C admission gate
-            admission_gate = CAdmissionGate()
-            admission_gate.require_prototype_passed(
-                strategy_revision_id=strategy_revision_id,
-                lifecycle_state=lifecycle_state.state,
-            )
-        finally:
-            strategy_db.close()
+        # Call C admission gate
+        admission_gate = CAdmissionGate()
+        admission_gate.require_prototype_passed(
+            strategy_revision_id=strategy_revision_id,
+            lifecycle_state=lifecycle_state.state,
+        )
+    finally:
+        strategy_db.close()
     # Load TushareDataSource
     tushare_config = TushareConfig(snapshot_dir=snapshot_dir)
     data_source = TushareDataSource(tushare_config)
@@ -378,22 +380,17 @@ def main():
     parser.add_argument(
         "--strategy-revision-id",
         type=str,
-        required=False,
-        help="Strategy revision ID for C admission gate check (optional, enables prototype_passed validation)",
+        required=True,
+        help="Strategy revision ID for C admission gate check",
     )
     parser.add_argument(
         "--strategy-db",
         type=str,
-        required=False,
-        help="Path to StrategyDB (required if --strategy-revision-id provided)",
+        required=True,
+        help="Path to StrategyDB",
     )
 
     args = parser.parse_args()
-
-    # Validate C admission gate arguments
-    if args.strategy_revision_id and not args.strategy_db:
-        print("Error: --strategy-db is required when --strategy-revision-id is provided", file=sys.stderr)
-        sys.exit(1)
 
     # Parse signal_date
     try:
