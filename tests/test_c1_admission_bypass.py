@@ -225,8 +225,8 @@ class TestC1AdmissionBypass(unittest.TestCase):
             self.assertEqual(len(signals), 1)
             self.assertEqual(signals[0]["signal_id"], "sig_prototype")
 
-    def test_api_signals_with_include_missing_admission(self):
-        """API /api/signals?include_missing_admission=true returns all signals."""
+    def test_api_signals_cannot_bypass_admission_filter_via_query_param(self):
+        """API /api/signals cannot bypass admission filter via query parameter."""
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = Path(tmpdir) / "test.db"
             init_signal_board_api(str(db_path))
@@ -240,16 +240,22 @@ class TestC1AdmissionBypass(unittest.TestCase):
                 self._make_signal("sig_draft", "draft")
             )
 
-            # Test API with audit mode
+            # Test API - try to bypass with query param (should not work)
             app = FastAPI()
             app.include_router(router)
             client = TestClient(app)
 
-            response = client.get("/api/signals?include_missing_admission=true")
-            self.assertEqual(response.status_code, 200)
-
-            signals = response.json()["items"]
-            self.assertEqual(len(signals), 2)
+            # These attempts should all return only 1 signal (prototype_passed)
+            response1 = client.get("/api/signals?include_missing_admission=true")
+            response2 = client.get("/api/signals?include_missing_admission=True")
+            response3 = client.get("/api/signals?include_missing_admission=1")
+            
+            # All should return only the admitted signal
+            for response in [response1, response2, response3]:
+                self.assertEqual(response.status_code, 200)
+                signals = response.json()["items"]
+                self.assertEqual(len(signals), 1, "API should not accept include_missing_admission parameter")
+                self.assertEqual(signals[0]["signal_id"], "sig_prototype")
 
     def test_api_strategies_default_no_unadmitted_strategies(self):
         """API /api/signals/strategies defaults to not counting unadmitted strategies."""
