@@ -16,6 +16,7 @@
 | C2 Task 4 | `295aa3b` | feat: C2 lock Signal Board user-facing decision boundary |
 | C2 Task 5 | `fa8fcba` | docs: C2 Signal Board decision boundary verification |
 | C2 Fix | `ed7748a` | fix: C2 enforce admission in review endpoints and expand tests |
+| C2 Fix | `f4131c0` | fix: C2 add review rejection tests and expand forbidden terms |
 
 ---
 
@@ -54,7 +55,7 @@
 
 **Result:**
 ```
-33 passed, 1 warning, 30 subtests passed in 2.05s
+35 passed, 1 warning, 30 subtests passed in 2.00s
 ```
 
 ### C1 Focused Tests
@@ -124,7 +125,7 @@ OK
 
 **Result:**
 ```
-1379 passed, 2 skipped, 3 warnings, 52 subtests passed in 28.36s
+1381 passed, 2 skipped, 3 warnings, 52 subtests passed in 57.55s
 ```
 
 ---
@@ -181,9 +182,7 @@ git status --short
 
 **Result:**
 ```
-M docs/verification/C2_VERIFICATION.md
-M tests/test_c2_signal_board_decision_boundary.py
-M tests/test_signal_api.py
+(clean)
 ```
 
 ---
