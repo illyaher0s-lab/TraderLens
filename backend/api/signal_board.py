@@ -29,7 +29,13 @@ from contracts.signal_board import (
     SignalBatchReviewRequest,
     SignalSummary
 )
+from contracts.action_plan import (
+    ActionPlan,
+    ActionPlanDecisionRequest,
+    UserActionDecision
+)
 from backend.db.signal_board import SignalBoardDB
+from backend.services.action_plan_builder import build_action_plan
 
 
 # Router instance (to be included in main FastAPI app)
@@ -329,3 +335,147 @@ def batch_review_signals(request: SignalBatchReviewRequest):
         updated_count=updated_count,
         signal_ids=request.signal_ids
     )
+
+
+@router.get("/{signal_id}/action-plan", response_model=ActionPlan)
+def get_action_plan(signal_id: str):
+    """
+    Get Action Plan for an admitted signal.
+
+    Generates deterministic Action Plan from signal metadata.
+    Does not mutate signal or review_status.
+
+    Args:
+        signal_id: Signal UUID
+
+    Returns:
+        ActionPlan with pre-action checks, invalidation checks, and risk warnings
+
+    Raises:
+        404: Signal not found or not admitted
+
+    Examples:
+        GET /api/signals/{signal_id}/action-plan
+    """
+    db = get_db()
+
+    # C3: Must call get_admitted_signal first
+    signal = db.get_admitted_signal(signal_id)
+    if signal is None:
+        raise HTTPException(status_code=404, detail=f"Signal {signal_id} not found")
+
+    # Build Action Plan (deterministic, no mutation)
+    action_plan = build_action_plan(signal)
+
+    # Load existing decision if any
+    decision_record = db.get_action_plan_decision(action_plan.action_plan_id)
+    if decision_record:
+        action_plan.user_decision = UserActionDecision(
+            decision=decision_record["decision"],
+            decided_at=decision_record["decided_at"],
+            decided_by=decision_record["decided_by"],
+            reason=decision_record["reason"],
+            manual_notes=decision_record["manual_notes"]
+        )
+
+    return action_plan
+
+
+@router.post("/{signal_id}/action-plan/decision", response_model=ActionPlan)
+def submit_action_plan_decision(signal_id: str, request: ActionPlanDecisionRequest):
+    """
+    Record user decision on Action Plan.
+
+    Updates or inserts decision record and maps to review_status:
+    - execute → watching
+    - partial → watching
+    - skip → ignored
+    - expired → expired
+
+    Args:
+        signal_id: Signal UUID
+        request: Decision request (decision, decided_by, optional reason, manual_notes)
+
+    Returns:
+        Updated ActionPlan with user_decision
+
+    Raises:
+        404: Signal not found or not admitted
+        400: Missing required reason for skip/partial/expired
+
+    Examples:
+        POST /api/signals/{signal_id}/action-plan/decision
+        {
+            "decision": "execute",
+            "decided_by": "trader1"
+        }
+
+        POST /api/signals/{signal_id}/action-plan/decision
+        {
+            "decision": "skip",
+            "decided_by": "trader1",
+            "reason": "Low liquidity today"
+        }
+    """
+    db = get_db()
+
+    # C3: Must call get_admitted_signal first
+    signal = db.get_admitted_signal(signal_id)
+    if signal is None:
+        raise HTTPException(status_code=404, detail=f"Signal {signal_id} not found")
+
+    # Validate: reason required for skip/partial/expired
+    if request.decision in ["skip", "partial", "expired"] and not request.reason:
+        raise HTTPException(
+            status_code=400,
+            detail=f"reason is required when decision is '{request.decision}'"
+        )
+
+    # Build Action Plan to get action_plan_id
+    action_plan = build_action_plan(signal)
+
+    # Save decision
+    from datetime import datetime, timezone
+    decided_at = datetime.now(timezone.utc)
+    db.save_action_plan_decision(
+        action_plan_id=action_plan.action_plan_id,
+        signal_id=signal_id,
+        decision=request.decision,
+        decided_by=request.decided_by,
+        decided_at=decided_at,
+        reason=request.reason,
+        manual_notes=request.manual_notes
+    )
+
+    # Map decision to review_status
+    decision_to_review_status = {
+        "execute": "watching",
+        "partial": "watching",
+        "skip": "ignored",
+        "expired": "expired"
+    }
+    new_review_status = decision_to_review_status[request.decision]
+
+    # Update signal review_status
+    db.update_review_status(
+        signal_id=signal_id,
+        review_status=new_review_status,
+        reviewed_by=request.decided_by,
+        rejection_reason=request.reason if request.decision in ["skip", "expired"] else None
+    )
+
+    # Rebuild Action Plan with decision
+    signal = db.get_admitted_signal(signal_id)
+    if signal is None:
+        raise HTTPException(status_code=404, detail=f"Signal {signal_id} not found")
+
+    action_plan = build_action_plan(signal)
+    action_plan.user_decision = UserActionDecision(
+        decision=request.decision,
+        decided_at=decided_at,
+        decided_by=request.decided_by,
+        reason=request.reason,
+        manual_notes=request.manual_notes
+    )
+
+    return action_plan

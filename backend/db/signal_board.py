@@ -150,8 +150,29 @@ class SignalBoardDB:
             """)
             
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_intended_execution_date 
+                CREATE INDEX IF NOT EXISTS idx_intended_execution_date
                 ON planned_signals(intended_execution_date)
+            """)
+
+            # C3 Action Plan decisions table
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS action_plan_decisions (
+                    action_plan_id TEXT PRIMARY KEY,
+                    signal_id TEXT NOT NULL,
+                    decision TEXT NOT NULL,
+                    reason TEXT,
+                    manual_notes TEXT,
+                    decided_by TEXT NOT NULL,
+                    decided_at TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    FOREIGN KEY (signal_id) REFERENCES planned_signals(signal_id)
+                )
+            """)
+
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_action_plan_signal_id
+                ON action_plan_decisions(signal_id)
             """)
     
     def create_signal(self, signal: PlannedSignal) -> None:
@@ -612,3 +633,82 @@ class SignalBoardDB:
             evidence_status=row["evidence_status"],
             evidence_checked_at=datetime.fromisoformat(row["evidence_checked_at"]) if row["evidence_checked_at"] else None
         )
+
+    def save_action_plan_decision(
+        self,
+        action_plan_id: str,
+        signal_id: str,
+        decision: str,
+        decided_by: str,
+        decided_at: datetime,
+        reason: str | None = None,
+        manual_notes: str | None = None
+    ) -> None:
+        """
+        Save or update Action Plan decision.
+
+        Args:
+            action_plan_id: Action Plan ID
+            signal_id: Signal ID this decision is for
+            decision: Decision type (execute/skip/partial/expired)
+            decided_by: Username who made decision
+            decided_at: When decision was made
+            reason: Optional reason for decision
+            manual_notes: Optional manual notes
+
+        Note:
+            Uses INSERT OR REPLACE to allow updating existing decisions.
+        """
+        with self._get_conn() as conn:
+            now = datetime.now().isoformat()
+            conn.execute("""
+                INSERT OR REPLACE INTO action_plan_decisions (
+                    action_plan_id, signal_id, decision, reason, manual_notes,
+                    decided_by, decided_at, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?,
+                    COALESCE((SELECT created_at FROM action_plan_decisions WHERE action_plan_id = ?), ?),
+                    ?)
+            """, (
+                action_plan_id,
+                signal_id,
+                decision,
+                reason,
+                manual_notes,
+                decided_by,
+                decided_at.isoformat(),
+                action_plan_id,  # for COALESCE lookup
+                now,  # created_at if new
+                now   # updated_at always
+            ))
+
+    def get_action_plan_decision(self, action_plan_id: str) -> dict | None:
+        """
+        Get Action Plan decision by action_plan_id.
+
+        Args:
+            action_plan_id: Action Plan ID
+
+        Returns:
+            Dict with decision fields or None if not found
+        """
+        with self._get_conn() as conn:
+            cursor = conn.execute("""
+                SELECT * FROM action_plan_decisions
+                WHERE action_plan_id = ?
+            """, (action_plan_id,))
+            row = cursor.fetchone()
+
+            if row is None:
+                return None
+
+            return {
+                "action_plan_id": row["action_plan_id"],
+                "signal_id": row["signal_id"],
+                "decision": row["decision"],
+                "reason": row["reason"],
+                "manual_notes": row["manual_notes"],
+                "decided_by": row["decided_by"],
+                "decided_at": datetime.fromisoformat(row["decided_at"]),
+                "created_at": datetime.fromisoformat(row["created_at"]),
+                "updated_at": datetime.fromisoformat(row["updated_at"])
+            }

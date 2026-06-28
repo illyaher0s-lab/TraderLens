@@ -1,24 +1,31 @@
 """
 C3 Action Plan Boundary Tests
 
-Tests for Action Plan builder and boundary enforcement.
+Tests for Action Plan builder and API boundary enforcement.
 
-C3-2 scope (this file):
+C3-2 scope:
 - Builder logic tests (freshness, blocking, warning rules)
 - Admission enforcement tests
 - Deterministic generation tests
 
-C3-3 scope (to be added):
+C3-3 scope:
 - API endpoint tests (GET/POST action-plan)
 - Direct-id bypass tests
-- Batch endpoint tests (if added)
+- Decision validation tests
+- Forbidden fields tests
 """
 
 import unittest
 from datetime import date, datetime, timedelta, timezone
+import tempfile
+import os
 
 from contracts.signal_board import PlannedSignal
 from backend.services.action_plan_builder import build_action_plan
+from backend.db.signal_board import SignalBoardDB
+from backend.api.signal_board import router, init_signal_board_api
+from fastapi.testclient import TestClient
+from fastapi import FastAPI
 
 
 class TestActionPlanBuilder(unittest.TestCase):
@@ -369,6 +376,256 @@ class TestActionPlanBuilder(unittest.TestCase):
         self.assertEqual(plan1.updated_at, plan2.updated_at)
         self.assertEqual(plan1.created_at, now)
         self.assertEqual(plan1.updated_at, now)
+
+
+class TestActionPlanAPI(unittest.TestCase):
+    """Tests for Action Plan API endpoints (C3-3)."""
+
+    def setUp(self):
+        """Set up test database and API client."""
+        self.db_fd, self.db_path = tempfile.mkstemp()
+        self.db = SignalBoardDB(self.db_path)
+
+        # Initialize API
+        init_signal_board_api(self.db_path)
+
+        # Create FastAPI app with router
+        app = FastAPI()
+        app.include_router(router)
+        self.client = TestClient(app)
+
+    def tearDown(self):
+        """Clean up test database."""
+        os.close(self.db_fd)
+        os.unlink(self.db_path)
+
+    def _create_test_signal(
+        self,
+        signal_id: str = "test-signal-api",
+        lifecycle_state: str = "prototype_passed",
+        evidence_status: str = "clean",
+        review_status: str = "pending",
+        **kwargs
+    ) -> PlannedSignal:
+        """Create and insert test signal."""
+        signal = PlannedSignal(
+            signal_id=signal_id,
+            strategy_id="test_strategy",
+            strategy_version="v1.0.0",
+            strategy_revision_id="rev-001",
+            lifecycle_state_at_generation=lifecycle_state,
+            admission_source="c_admission_gate",
+            snapshot_hash="abc123def456",
+            signal_date=date.today(),
+            intended_execution_date=date.today() + timedelta(days=1),
+            symbol="600519.SH",
+            direction="buy",
+            planned_action="enter",
+            quantity=100,
+            trigger_reason="Test trigger",
+            review_status=review_status,
+            reviewed_at=None,
+            reviewed_by=None,
+            rejection_reason=None,
+            current_price=100.0,
+            position_before=0,
+            created_at=datetime.now(timezone.utc),
+            metadata={},
+            risk_flags=[],
+            evidence_status=evidence_status,
+            evidence_checked_at=datetime.now(timezone.utc),
+            **kwargs
+        )
+        self.db.create_signal(signal)
+        return signal
+
+    def test_get_action_plan_requires_admitted_signal(self):
+        """GET action-plan returns 404 for unadmitted signals."""
+        # Create draft signal
+        signal = self._create_test_signal(
+            signal_id="draft-signal",
+            lifecycle_state="draft"
+        )
+
+        response = self.client.get(f"/api/signals/draft-signal/action-plan")
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_action_plan_rejects_rejected_signal(self):
+        """GET action-plan returns 404 for rejected signals."""
+        signal = self._create_test_signal(
+            signal_id="rejected-signal",
+            lifecycle_state="rejected"
+        )
+
+        response = self.client.get(f"/api/signals/rejected-signal/action-plan")
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_action_plan_rejects_needs_review_signal(self):
+        """GET action-plan returns 404 for needs_review signals."""
+        signal = self._create_test_signal(
+            signal_id="needs-review-signal",
+            lifecycle_state="needs_review"
+        )
+
+        response = self.client.get(f"/api/signals/needs-review-signal/action-plan")
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_action_plan_for_admitted_signal_returns_checks(self):
+        """GET action-plan returns 200 with checks for admitted signal."""
+        signal = self._create_test_signal()
+
+        response = self.client.get(f"/api/signals/{signal.signal_id}/action-plan")
+
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        # Contains signal_id
+        self.assertEqual(data["signal_id"], signal.signal_id)
+
+        # Contains pre_action_checks
+        self.assertIn("pre_action_checks", data)
+        self.assertEqual(len(data["pre_action_checks"]), 6)
+
+        # Contains invalidation_checks
+        self.assertIn("invalidation_checks", data)
+        self.assertEqual(len(data["invalidation_checks"]), 4)
+
+        # No user_decision yet
+        self.assertIsNone(data["user_decision"])
+
+    def test_post_action_decision_skip_requires_reason(self):
+        """POST decision returns 400 if skip without reason."""
+        signal = self._create_test_signal()
+
+        response = self.client.post(
+            f"/api/signals/{signal.signal_id}/action-plan/decision",
+            json={
+                "decision": "skip",
+                "decided_by": "trader1"
+            }
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("reason", response.json()["detail"].lower())
+
+    def test_post_action_decision_partial_requires_reason(self):
+        """POST decision returns 400 if partial without reason."""
+        signal = self._create_test_signal()
+
+        response = self.client.post(
+            f"/api/signals/{signal.signal_id}/action-plan/decision",
+            json={
+                "decision": "partial",
+                "decided_by": "trader1"
+            }
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("reason", response.json()["detail"].lower())
+
+    def test_post_action_decision_expired_requires_reason(self):
+        """POST decision returns 400 if expired without reason."""
+        signal = self._create_test_signal()
+
+        response = self.client.post(
+            f"/api/signals/{signal.signal_id}/action-plan/decision",
+            json={
+                "decision": "expired",
+                "decided_by": "trader1"
+            }
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("reason", response.json()["detail"].lower())
+
+    def test_post_action_decision_does_not_accept_order_fields(self):
+        """POST decision ignores broker/order/fill fields if present."""
+        signal = self._create_test_signal()
+
+        # Attempt to send forbidden fields
+        response = self.client.post(
+            f"/api/signals/{signal.signal_id}/action-plan/decision",
+            json={
+                "decision": "execute",
+                "decided_by": "trader1",
+                "order_id": "order-123",  # Forbidden
+                "broker": "broker-x",  # Forbidden
+                "fill_price": 100.5,  # Forbidden
+                "fill_qty": 100,  # Forbidden
+                "realized_pnl": 500.0  # Forbidden
+            }
+        )
+
+        # Should succeed (fields ignored)
+        self.assertEqual(response.status_code, 200)
+
+        # Verify no forbidden fields stored in decision
+        decision_record = self.db.get_action_plan_decision(response.json()["action_plan_id"])
+        self.assertIsNotNone(decision_record)
+        self.assertNotIn("order_id", decision_record)
+        self.assertNotIn("broker", decision_record)
+        self.assertNotIn("fill_price", decision_record)
+        self.assertNotIn("fill_qty", decision_record)
+        self.assertNotIn("realized_pnl", decision_record)
+
+    def test_post_action_decision_updates_review_status_mapping(self):
+        """POST decision maps to correct review_status."""
+        # Test execute -> watching
+        signal1 = self._create_test_signal(signal_id="signal-execute")
+        response = self.client.post(
+            f"/api/signals/signal-execute/action-plan/decision",
+            json={"decision": "execute", "decided_by": "trader1"}
+        )
+        self.assertEqual(response.status_code, 200)
+        signal_after = self.db.get_signal("signal-execute")
+        self.assertEqual(signal_after.review_status, "watching")
+
+        # Test partial -> watching
+        signal2 = self._create_test_signal(signal_id="signal-partial")
+        response = self.client.post(
+            f"/api/signals/signal-partial/action-plan/decision",
+            json={"decision": "partial", "decided_by": "trader1", "reason": "Only 50 shares"}
+        )
+        self.assertEqual(response.status_code, 200)
+        signal_after = self.db.get_signal("signal-partial")
+        self.assertEqual(signal_after.review_status, "watching")
+
+        # Test skip -> ignored
+        signal3 = self._create_test_signal(signal_id="signal-skip")
+        response = self.client.post(
+            f"/api/signals/signal-skip/action-plan/decision",
+            json={"decision": "skip", "decided_by": "trader1", "reason": "Low liquidity"}
+        )
+        self.assertEqual(response.status_code, 200)
+        signal_after = self.db.get_signal("signal-skip")
+        self.assertEqual(signal_after.review_status, "ignored")
+
+        # Test expired -> expired
+        signal4 = self._create_test_signal(signal_id="signal-expired")
+        response = self.client.post(
+            f"/api/signals/signal-expired/action-plan/decision",
+            json={"decision": "expired", "decided_by": "trader1", "reason": "Too late"}
+        )
+        self.assertEqual(response.status_code, 200)
+        signal_after = self.db.get_signal("signal-expired")
+        self.assertEqual(signal_after.review_status, "expired")
+
+    def test_post_action_decision_rejects_unadmitted_direct_id(self):
+        """POST decision returns 404 for unadmitted signals."""
+        signal = self._create_test_signal(
+            signal_id="unadmitted-decision",
+            lifecycle_state="draft"
+        )
+
+        response = self.client.post(
+            f"/api/signals/unadmitted-decision/action-plan/decision",
+            json={"decision": "execute", "decided_by": "trader1"}
+        )
+
+        self.assertEqual(response.status_code, 404)
 
 
 if __name__ == "__main__":
