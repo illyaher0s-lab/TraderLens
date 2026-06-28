@@ -47,6 +47,13 @@ def test_signal_board_visible_copy_has_no_profit_or_live_trading_claims():
         "推荐卖出",
         "最佳策略",
         "一键下单",
+        "策略排名",
+        "支持自动交易",
+        "开启自动交易",
+        "自动交易已启用",
+        "一键自动交易",
+        "可自动交易",
+        "自动执行交易",
     ]
 
     for phrase in forbidden:

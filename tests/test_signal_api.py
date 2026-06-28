@@ -465,6 +465,54 @@ class TestSignalBoardAPI(unittest.TestCase):
         self.assertEqual(signal_after.review_status, "pending")
         self.assertIsNone(signal_after.reviewed_by)
 
+    def test_post_review_rejects_rejected_signal(self):
+        """POST review rejects rejected signals and does not modify them."""
+        signal = self._create_test_signal(
+            signal_id="rejected-signal",
+            lifecycle_state_at_generation="rejected",
+            review_status="pending",
+        )
+        self.db.create_signal(signal)
+
+        response = self.client.post(
+            "/api/signals/rejected-signal/review",
+            json={
+                "review_status": "watching",
+                "reviewed_by": "trader1"
+            }
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+        # Verify database was not modified
+        signal_after = self.db.get_signal("rejected-signal")
+        self.assertEqual(signal_after.review_status, "pending")
+        self.assertIsNone(signal_after.reviewed_by)
+
+    def test_post_review_rejects_needs_review_signal(self):
+        """POST review rejects needs_review signals and does not modify them."""
+        signal = self._create_test_signal(
+            signal_id="needs-review-signal",
+            lifecycle_state_at_generation="needs_review",
+            review_status="pending",
+        )
+        self.db.create_signal(signal)
+
+        response = self.client.post(
+            "/api/signals/needs-review-signal/review",
+            json={
+                "review_status": "watching",
+                "reviewed_by": "trader1"
+            }
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+        # Verify database was not modified
+        signal_after = self.db.get_signal("needs-review-signal")
+        self.assertEqual(signal_after.review_status, "pending")
+        self.assertIsNone(signal_after.reviewed_by)
+
     def test_batch_review_does_not_update_unadmitted_signals(self):
         """Batch review only updates admitted signals, ignores unadmitted."""
         admitted = self._create_test_signal(

@@ -14,18 +14,22 @@
 | C2 Task 2 | `fdd5415` | feat: C2 enforce admission on Signal Board detail lookup |
 | C2 Task 3 | `866ca39` | feat: C2 expose admission metadata to Signal Board frontend type |
 | C2 Task 4 | `295aa3b` | feat: C2 lock Signal Board user-facing decision boundary |
-| C2 Task 5 | (this doc) | docs: C2 Signal Board decision boundary verification |
+| C2 Task 5 | `fa8fcba` | docs: C2 Signal Board decision boundary verification |
+| C2 Fix | `ed7748a` | fix: C2 enforce admission in review endpoints and expand tests |
 
 ---
 
 ## What C2 Proves
 
 - Direct signal detail lookup cannot show unadmitted signals.
+- Review endpoints (POST /api/signals/{id}/review) enforce admission before allowing updates.
+- Batch review endpoint filters to only update admitted signals.
 - Frontend signal type includes C1 admission metadata (strategy_revision_id, lifecycle_state_at_generation, admission_source).
 - User-facing Signal Board copy says the output is a validated planned signal, not buy/sell advice.
 - User-facing Signal Board copy does not claim future profit, live trading readiness, one-click execution, or automatic trading.
 - Signal Board detail/list pages have no mojibake markers covered by tests.
 - Detail API endpoint `/api/signals/{signal_id}` enforces admission filtering via `get_admitted_signal()`.
+- Review API endpoints reject draft, rejected, needs_review, and legacy signals (404).
 
 ---
 
@@ -50,7 +54,7 @@
 
 **Result:**
 ```
-27 passed, 1 warning, 24 subtests passed in 1.76s
+33 passed, 1 warning, 30 subtests passed in 2.05s
 ```
 
 ### C1 Focused Tests
@@ -72,7 +76,7 @@
 
 **Result:**
 ```
-11 passed in 2.65s
+11 passed in 2.90s
 ```
 
 ### B6 Focused Tests
@@ -83,7 +87,7 @@
 
 **Result:**
 ```
-26 passed, 4 subtests passed in 0.65s
+26 passed, 4 subtests passed in 0.63s
 ```
 
 ### B5 Full Focused Suite
@@ -94,7 +98,7 @@
 
 **Result:**
 ```
-Ran 112 tests in 0.082s
+Ran 112 tests in 0.095s
 
 OK
 ```
@@ -107,7 +111,7 @@ OK
 
 **Result:**
 ```
-Ran 131 tests in 1.267s
+Ran 131 tests in 1.186s
 
 OK
 ```
@@ -120,7 +124,7 @@ OK
 
 **Result:**
 ```
-1373 passed, 2 skipped, 3 warnings, 46 subtests passed in 52.05s
+1379 passed, 2 skipped, 3 warnings, 52 subtests passed in 28.36s
 ```
 
 ---
@@ -138,12 +142,12 @@ OK
 ## Modified Files
 
 - `backend/db/signal_board.py` - Added `get_admitted_signal()` method
-- `backend/api/signal_board.py` - Changed detail endpoint to use `get_admitted_signal()`
+- `backend/api/signal_board.py` - Changed detail endpoint to use `get_admitted_signal()`, review endpoints enforce admission
 - `frontend/lib/api-client.ts` - Added C1 admission metadata to PlannedSignal type
 - `frontend/app/signals/page.tsx` - Updated disclaimer text
 - `frontend/app/signals/[signal_id]/page.tsx` - Added disclaimer text
-- `tests/test_signal_api.py` - Added direct ID bypass test
-- `tests/test_c2_signal_board_decision_boundary.py` - Created C2 boundary tests
+- `tests/test_signal_api.py` - Added direct ID bypass test, review endpoint admission tests (rejected/needs_review), batch review admission test
+- `tests/test_c2_signal_board_decision_boundary.py` - Created C2 boundary tests, expanded forbidden terms
 - `tests/test_signal_board_ux_polish.py` - Expanded prohibited terms and added mojibake check
 
 ---
@@ -177,7 +181,9 @@ git status --short
 
 **Result:**
 ```
-(clean - only this verification doc is untracked)
+M docs/verification/C2_VERIFICATION.md
+M tests/test_c2_signal_board_decision_boundary.py
+M tests/test_signal_api.py
 ```
 
 ---
