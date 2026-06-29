@@ -32,6 +32,15 @@ class StrategyTemplate(BaseModel):
     default_fill_model: str = "market_open"
     default_risk_rules: dict = {}
     
+    # V1 PRD fields
+    market_fit: str = ""
+    forbidden_market: tuple[str, ...] = ()
+    entry_rules: str = ""
+    exit_rules: str = ""
+    risk_rules: str = ""
+    position_sizing_rules: str = ""
+    validation_gate_profile: str = ""
+    
     @property
     def template_hash(self) -> str:
         """Compute stable hash from semantic content only."""
@@ -52,6 +61,23 @@ class StrategyTemplate(BaseModel):
         }
         payload = json.dumps(canonical, sort_keys=True).encode("utf-8")
         return hashlib.sha256(payload).hexdigest()[:32]
+    
+    @property
+    def frozen_template_hash(self) -> str:
+        """V1 semantic hash covering all rules and config."""
+        canonical = {
+            "template_id": self.template_id,
+            "version": self.version,
+            "entry_rules": self.entry_rules,
+            "exit_rules": self.exit_rules,
+            "risk_rules": self.risk_rules,
+            "position_sizing_rules": self.position_sizing_rules,
+            "strategy_config_payload": self.strategy_config_payload,
+            "market_fit": self.market_fit,
+            "forbidden_market": self.forbidden_market,
+        }
+        payload = json.dumps(canonical, sort_keys=True).encode("utf-8")
+        return hashlib.sha256(payload).hexdigest()
 
 
 # Hard-coded templates with conservative fixed parameters
@@ -59,25 +85,24 @@ _TEMPLATES = (
     StrategyTemplate(
         template_id="theme_momentum_breakout_v1",
         version="v1",
-        hypothesis_types=("theme_momentum", "bottleneck_breakout"),
-        core_entry_rule_id="breakout_entry",
+        hypothesis_types=("momentum", "macd_crossover"),
+        core_entry_rule_id="macd_crossover_entry",
         supported_universe_rule_types=("sector_plus_tags",),
         sample_split_rule_ids=("fixed_ratio_70_30",),
         benchmark_rule_id="theme_then_industry_then_equal_weight",
         strategy_config_payload={
             "entry": {
-                "relative_strength_rank_pct_max": 10,
-                "breakout_lookback_days": 60,
-                "volume_multiple_vs_20d": 1.5,
+                "macd_fast": 12,
+                "macd_slow": 26,
+                "macd_signal": 9,
+                "confirm_days": 2,
             },
             "exit": {
-                "max_holding_days": 10,
-                "close_below_ma_days": 20,
+                "max_holding_days": 15,
                 "stop_loss_pct": 8,
             },
             "risk": {
                 "market_regime_allowed": ["green", "yellow"],
-                "reject_market_regime": ["red"],
                 "min_avg_amount_20d": 50000000,
             },
             "rebalance": {
@@ -87,6 +112,14 @@ _TEMPLATES = (
         },
         forbidden_fields=("status", "hash", "oos_start", "oos_end", "gate_verdict"),
         forbidden_evidence_terms=("announcement", "disclosure", "report"),
+        # V1 PRD fields
+        market_fit="A-share momentum with MACD confirmation",
+        forbidden_market=("limit_up", "st_stock", "delisting_risk"),
+        entry_rules="MACD golden cross confirmed by 2-day price strength",
+        exit_rules="Max 15 days hold or 8% stop-loss",
+        risk_rules="Green/yellow market regime, min 50M avg daily volume",
+        position_sizing_rules="Equal weight across max 5 positions, daily rebalance",
+        validation_gate_profile="standard",
     ),
     StrategyTemplate(
         template_id="relative_strength_rotation_v1",
@@ -117,6 +150,14 @@ _TEMPLATES = (
         },
         forbidden_fields=("status", "hash", "oos_start", "oos_end", "gate_verdict"),
         forbidden_evidence_terms=("announcement", "disclosure", "report"),
+        # V1 PRD fields
+        market_fit="A-share relative strength rotation",
+        forbidden_market=("limit_up", "st_stock", "delisting_risk"),
+        entry_rules="Top 15% relative strength confirmed over 3 days",
+        exit_rules="Exit when rank drops below 40% or max 15 days or 8% stop-loss",
+        risk_rules="Green/yellow market regime, min 50M avg daily volume",
+        position_sizing_rules="Equal weight across max 5 positions, weekly rebalance",
+        validation_gate_profile="standard",
     ),
     StrategyTemplate(
         template_id="volume_breakout_followthrough_v1",
@@ -148,66 +189,102 @@ _TEMPLATES = (
         },
         forbidden_fields=("status", "hash", "oos_start", "oos_end", "gate_verdict"),
         forbidden_evidence_terms=("announcement", "disclosure", "report"),
+        # V1 PRD fields
+        market_fit="A-share volume breakout with price confirmation",
+        forbidden_market=("limit_up_entry", "st_stock", "delisting_risk"),
+        entry_rules="40-day breakout with 2x volume, 2-day followthrough confirmation",
+        exit_rules="Exit if close below 10-day MA or max 8 days or 7% stop-loss",
+        risk_rules="Min 80M avg daily volume, reject limit-up entry",
+        position_sizing_rules="Equal weight across max 4 positions, daily rebalance",
+        validation_gate_profile="standard",
     ),
     StrategyTemplate(
         template_id="trend_pullback_watch_v1",
         version="v1",
-        hypothesis_types=("trend_pullback", "strong_trend_retest"),
-        core_entry_rule_id="trend_pullback_entry",
+        hypothesis_types=("trend", "pullback"),
+        core_entry_rule_id="pullback_entry",
         supported_universe_rule_types=("sector_plus_tags",),
         sample_split_rule_ids=("fixed_ratio_70_30",),
         benchmark_rule_id="theme_then_industry_then_equal_weight",
         strategy_config_payload={
             "entry": {
-                "trend_ma_days": 60,
-                "pullback_ma_days": 20,
-                "rebound_confirm_days": 2,
+                "trend_ma_days": 50,
+                "pullback_pct": 5,
+                "confirm_days": 2,
             },
             "exit": {
                 "max_holding_days": 12,
-                "close_below_ma_days": 20,
-                "stop_loss_pct": 7,
+                "stop_loss_pct": 6,
             },
             "risk": {
-                "min_avg_amount_20d": 50000000,
-                "reject_market_regime": ["red"],
+                "market_regime_allowed": ["green"],
+                "min_avg_amount_20d": 60000000,
             },
             "rebalance": {
                 "frequency": "daily",
-                "max_positions": 5,
+                "max_positions": 4,
             },
         },
         forbidden_fields=("status", "hash", "oos_start", "oos_end", "gate_verdict"),
         forbidden_evidence_terms=("announcement", "disclosure", "report"),
+        # V1 PRD fields
+        market_fit="A-share trend pullback entry",
+        forbidden_market=("limit_up", "st_stock", "delisting_risk"),
+        entry_rules="5% pullback from 50-day MA trend, 2-day confirmation",
+        exit_rules="Max 12 days hold or 6% stop-loss",
+        risk_rules="Green market regime only, min 60M avg daily volume",
+        position_sizing_rules="Equal weight across max 4 positions, daily rebalance",
+        validation_gate_profile="standard",
     ),
 )
 
-_TEMPLATE_INDEX = {t.template_id: t for t in _TEMPLATES}
+APPROVED_TEMPLATES = _TEMPLATES
 
 
+def get_template_by_id(template_id: str) -> StrategyTemplate | None:
+    """Get approved template by ID. Returns None if not found."""
+    for template in APPROVED_TEMPLATES:
+        if template.template_id == template_id:
+            return template
+    return None
+
+
+def list_approved_templates() -> tuple[StrategyTemplate, ...]:
+    """List all approved templates."""
+    return APPROVED_TEMPLATES
+
+
+def convert_to_frozen_contract(template: StrategyTemplate, created_at: datetime) -> StrategyTemplateDefinition:
+    """Convert StrategyTemplate to frozen B-module contract."""
+    return StrategyTemplateDefinition(
+        template_id=template.template_id,
+        version=template.version,
+        template_hash=template.template_hash,
+        hypothesis_types=template.hypothesis_types,
+        core_entry_rule_id=template.core_entry_rule_id,
+        supported_universe_rule_types=template.supported_universe_rule_types,
+        sample_split_rule_ids=template.sample_split_rule_ids,
+        benchmark_rule_id=template.benchmark_rule_id,
+        created_at=created_at,
+    )
+
+
+# B2 backward compatibility wrapper
 class StrategyTemplateLibrary:
-    """Immutable library of hard-coded strategy templates."""
+    """Backward compatibility wrapper for B2 tests."""
     
     def list_templates(self) -> tuple[StrategyTemplate, ...]:
-        """Return all registered templates."""
-        return _TEMPLATES
+        """List all approved templates."""
+        return APPROVED_TEMPLATES
     
     def get_template(self, template_id: str) -> StrategyTemplate:
-        """Get template by ID. Raises KeyError if unknown."""
-        return _TEMPLATE_INDEX[template_id]
+        """Get template by ID. Raises KeyError if not found."""
+        template = get_template_by_id(template_id)
+        if template is None:
+            raise KeyError(f"Template not found: {template_id}")
+        return template
     
     def to_b1_definition(self, template_id: str) -> StrategyTemplateDefinition:
-        """Convert template to B1 StrategyTemplateDefinition contract."""
+        """Convert template to frozen B1 definition."""
         template = self.get_template(template_id)
-        return StrategyTemplateDefinition(
-            template_id=template.template_id,
-            version=template.version,
-            template_hash=template.template_hash,
-            hypothesis_types=template.hypothesis_types,
-            core_entry_rule_id=template.core_entry_rule_id,
-            supported_universe_rule_types=template.supported_universe_rule_types,
-            sample_split_rule_ids=template.sample_split_rule_ids,
-            benchmark_rule_id=template.benchmark_rule_id,
-            created_at=datetime.now(),
-            frozen=True,
-        )
+        return convert_to_frozen_contract(template, datetime.now())
