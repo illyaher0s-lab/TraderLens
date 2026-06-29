@@ -9,7 +9,9 @@
 
 TraderLens is an A-share strategy research, validation, and live-trading decision assistant.
 
-The user interacts mainly through an agent conversation and result-level approval cards. The system performs research, verification, backtests, signal generation, market observation, execution interpretation, and discipline review with deterministic code and auditable evidence.
+The purpose of TraderLens V1 is profitable live-trading decision support. It is not a demo-only system, not a trial playground, and not a strategy notebook.
+
+The user interacts mainly through an agent conversation and result-level approval cards. The system performs research, verification, backtests, signal generation, market observation, execution interpretation, P&L recording, and discipline review with deterministic code and auditable evidence.
 
 TraderLens is not a broker, not an automatic order-placement system, and not a profit-guarantee engine.
 
@@ -25,7 +27,7 @@ Allowed approval card actions:
 - Continue.
 - Stop.
 - Downgrade to observation.
-- Enter small-capital live observation.
+- Enter risk-capped live execution.
 - Accept execution-record interpretation.
 
 The user must not be asked to judge:
@@ -42,7 +44,7 @@ The user must not be asked to judge:
 
 The user may provide understandable context:
 - A theme or idea to research.
-- A small-capital trial amount or capital pool.
+- A capital pool or maximum live-trade amount.
 - Natural-language execution feedback.
 - User-observed intraday behavior from the broker app.
 
@@ -50,11 +52,58 @@ The system must convert that context into structured data only after agent inter
 
 ---
 
-## 3. Product Goal
+## 3. V1 Minimum Profitable Loop
 
-V1 should support this end-to-end user story:
+V1 is not defined by feature count. It is defined by two profitable-trading workflows that must work end to end.
+
+### 3.1 Friend-Recommended Single Stock
+
+User input:
+
+> "My friend recommended this company/stock. Help me check whether it is worth attention and whether I should trade it."
+
+Required workflow:
+1. The agent identifies the company and ticker.
+2. The agent runs industry-chain research around the company.
+3. The system evaluates company value, potential, risks, and counter-evidence.
+4. The system presents a result-level approval card: continue, stop, or downgrade to observation.
+5. If continued, the system validates tradeability through approved templates and backtests.
+6. The system gives an entry timing decision and execution strategy only if validation passes.
+7. If the user buys manually, the position enters the observation pool.
+8. The system gives daily hold/sell/risk/invalidated signals until exit.
+9. During the day, the system observes current price and allowed ranges; user-provided broker-app minute-line observations may downgrade risk only.
+10. After exit, the agent records execution, user-reported P&L, plan adherence, mistakes, and lessons.
+
+The user must not choose strategy parameters, backtest settings, entry thresholds, stop-loss values, or manual record fields.
+
+### 3.2 Short-Video Strategy Idea
+
+User input:
+
+> "I saw a strategy on Douyin: buy after 14:30 and sell the next morning. Check whether it works and whether it can be added."
+
+Required workflow:
+1. The agent parses the idea into a `strategy_idea`.
+2. The system treats it as untrusted until validated.
+3. The idea may map to an approved frozen template, or enter candidate-template evaluation.
+4. The LLM must not directly add it to the live strategy library.
+5. The system runs deterministic validation, OOS, cost stress, control comparison, multiple-comparison correction, and trade distribution checks.
+6. Passing ideas may become approved frozen templates only through the strategy-template approval path.
+7. Failed, blocked, and needs-review ideas enter `RejectedStrategyRegistry`.
+
+The goal is profitable strategy admission, not entertainment-driven idea collection.
+
+---
+
+## 4. Product Goal
+
+V1 should support these end-to-end user stories:
 
 > "I saw a video saying the storage-device industry is heating up. Investigate it, find whether there is an opportunity, screen companies, validate strategies, and if a strategy passes, give me a clear live-trading action plan and follow-up review."
+
+> "A friend recommended a stock. Investigate the company, decide whether it is worth attention, validate whether there is a tradable setup, give me entry and execution guidance, track it after I buy, and review the result after I sell."
+
+> "I saw a stock strategy on Douyin. Evaluate whether it is valid and whether it can enter the strategy library."
 
 The agent should:
 1. Turn the user's theme into a research task.
@@ -73,13 +122,14 @@ The agent should:
 14. Observe market facts through Tushare or approved data adapters.
 15. Let the user execute manually in a broker app.
 16. Parse the user's natural-language execution feedback into structured records after user approval.
-17. Produce discipline review without asking the user to maintain fields.
+17. Record user-reported execution result and P&L after approval.
+18. Produce discipline review without asking the user to maintain fields.
 
 ---
 
-## 4. Hard Boundaries
+## 5. Hard Boundaries
 
-### 4.1 LLM Boundaries
+### 5.1 LLM Boundaries
 
 LLM may:
 - Summarize sourced research.
@@ -100,7 +150,7 @@ LLM must not:
 - Rewrite failed validation results into passing results.
 - Fill missing market data.
 
-### 4.2 Trading Boundaries
+### 5.2 Trading Boundaries
 
 The system may give clear strategy-backed recommendations such as:
 - Continue research / stop research.
@@ -109,7 +159,7 @@ The system may give clear strategy-backed recommendations such as:
 - Signal valid / blocked / expired.
 - Action Plan ready / not ready.
 - Strongly execute / executable / do not execute / pause observation / abandon.
-- Enter small-capital live observation.
+- Enter risk-capped live execution.
 
 The system must not:
 - Promise profit.
@@ -117,11 +167,11 @@ The system must not:
 - Connect to broker in V1.
 - Place orders automatically.
 - Treat Tushare market data as broker fill proof.
-- Calculate realized P&L before an explicitly designed accounting module exists.
+- Treat user-reported P&L as broker-verified accounting truth.
 
 Clear recommendation is required, but recommendation must come from deterministic rules, validation gates, approved templates, and cited evidence. It cannot come from LLM intuition.
 
-### 4.3 Live-Trading Boundary
+### 5.3 Live-Trading Boundary
 
 V1 is built for real-money trading decisions, but without broker connection.
 
@@ -129,7 +179,7 @@ The user executes manually in a broker app. The user then tells the agent in nat
 
 The system must not ask the user to manually maintain execution fields. The agent parses the user's statement, proposes a structured interpretation, and asks the user to approve or correct it in plain language.
 
-### 4.4 Market Data Failure Boundary
+### 5.4 Market Data Failure Boundary
 
 Key market data incompleteness is a system failure, not a user judgment task.
 
@@ -143,7 +193,7 @@ Non-critical display data may be missing only if deterministic trading eligibili
 
 ---
 
-## 5. Anti-Self-Deception Principles
+## 6. Anti-Self-Deception Principles
 
 TraderLens prefers false negatives over false positives.
 
@@ -170,9 +220,9 @@ No agent may bypass these defenses for convenience.
 
 ---
 
-## 6. Module A: Selection Research
+## 7. Module A: Selection Research
 
-### 6.1 Flow
+### 7.1 Flow
 
 ```text
 主题输入 / 市场扫描 / 人工股票
@@ -188,7 +238,7 @@ ticker verification + 硬过滤
 confirmed_candidate_pool
 ```
 
-### 6.2 Output
+### 7.2 Output
 
 `confirmed_candidate_pool` is a forward-only research snapshot. It is not a historical backtest universe.
 
@@ -202,7 +252,7 @@ It must preserve:
 - source provenance
 - approval card decision
 
-### 6.3 User Interaction
+### 7.3 User Interaction
 
 The user approves whether to continue, stop, or downgrade to observation.
 
@@ -210,7 +260,7 @@ The user does not approve candidate pool technical quality and does not choose f
 
 ---
 
-## 7. Strategy Template Library
+## 8. Strategy Template Library
 
 Only system-approved and version-frozen strategy templates may generate `StrategyDraft`.
 
@@ -242,9 +292,9 @@ If no approved frozen template fits the research hypothesis, the system must sto
 
 ---
 
-## 8. Module B: Strategy Validation
+## 9. Module B: Strategy Validation
 
-### 8.1 Flow
+### 9.1 Flow
 
 ```text
 confirmed_candidate_pool + hypothesis_draft
@@ -298,16 +348,16 @@ StrategyPromotionReducer
 prototype_passed
 ```
 
-### 8.2 User Interaction
+### 9.2 User Interaction
 
 The user can approve a result-level promotion card:
 - Stop.
 - Downgrade to observation.
-- Enter small-capital live observation.
+- Enter risk-capped live execution.
 
 The user does not choose OOS dates, threshold values, ranking cuts, stop-loss values, or gate internals.
 
-### 8.3 Output
+### 9.3 Output
 
 Only `prototype_passed` strategies may enter C.
 
@@ -315,7 +365,7 @@ Rejected, blocked, and needs-review strategies must not disappear from records.
 
 ---
 
-## 9. RejectedStrategyRegistry
+## 10. RejectedStrategyRegistry
 
 All rejected, needs-review, and blocked strategies must be preserved to prevent survivorship bias.
 
@@ -341,14 +391,14 @@ The registry must support future audits that answer:
 
 ---
 
-## 10. Capital Context
+## 11. Capital Context
 
 V1 supports live trading with a user-understandable capital context.
 
 The user may provide:
-- a small-capital trial amount
+- a maximum live-trade amount
 - a named capital pool
-- a maximum amount they are willing to observe live
+- a maximum amount they are willing to commit to this live execution path
 
 The user must not choose:
 - position sizing formula
@@ -369,7 +419,7 @@ If the capital context is missing for a real-money action, the system may ask fo
 
 ---
 
-## 11. Recommendation Level Deterministic Rules
+## 12. Recommendation Level Deterministic Rules
 
 Recommendation levels must be deterministic.
 
@@ -389,7 +439,7 @@ Inputs may include only:
 
 LLM must not decide the recommendation level.
 
-### 11.1 Strongly Execute
+### 12.1 Strongly Execute
 
 `强建议执行` is allowed only when:
 - strategy is `prototype_passed`
@@ -403,7 +453,7 @@ LLM must not decide the recommendation level.
 - capital context can fund the minimum executable plan
 - no user-provided intraday observation downgrades the action
 
-### 11.2 Executable
+### 12.2 Executable
 
 `可执行` is allowed when:
 - all hard eligibility checks pass
@@ -413,7 +463,7 @@ LLM must not decide the recommendation level.
 - cost stress remains within the template's allowed profile
 - at least one non-critical caution exists, or the setup is valid but not top-confidence
 
-### 11.3 Pause Observation
+### 12.3 Pause Observation
 
 `暂停观察` is required when:
 - non-critical data is partial
@@ -423,7 +473,7 @@ LLM must not decide the recommendation level.
 - capital context is incomplete for live execution
 - the system needs updated daily/current-price facts before allowing action
 
-### 11.4 Do Not Execute
+### 12.4 Do Not Execute
 
 `不执行` is required when:
 - signal is inactive, stale, expired, or not admitted
@@ -433,7 +483,7 @@ LLM must not decide the recommendation level.
 - cost stress violates the frozen gate profile
 - capital is insufficient and template rules do not allow a smaller valid execution
 
-### 11.5 Abandon
+### 12.5 Abandon
 
 `放弃` is required when:
 - strategy is rejected or blocked
@@ -445,7 +495,7 @@ LLM must not decide the recommendation level.
 
 ---
 
-## 12. MarketDataFault State Machine
+## 13. MarketDataFault State Machine
 
 Market data state must be explicit.
 
@@ -475,9 +525,9 @@ Current V1 data boundary:
 
 ---
 
-## 13. Module C: Live-Trading Action and Discipline Review
+## 14. Module C: Live-Trading Action and Discipline Review
 
-### 13.1 Flow
+### 14.1 Flow
 
 ```text
 prototype_passed
@@ -501,13 +551,13 @@ Agent 生成结构化 Execution Observation Log 草案
 盘后纪律复盘
 ```
 
-### 13.2 Signal Board
+### 14.2 Signal Board
 
 Signal Board displays strategy_core planned signals from admitted strategies.
 
 It must not generate signals itself.
 
-### 13.3 Action Plan
+### 14.3 Action Plan
 
 Action Plan translates an admitted planned signal into a human-readable live-trading handling plan.
 
@@ -524,7 +574,7 @@ It must not:
 - Promise profit.
 - Auto-execute.
 
-### 13.4 Live-Trading Execution Card
+### 14.4 Live-Trading Execution Card
 
 For every actionable signal, the system should present a complete execution card:
 - symbol and name
@@ -552,7 +602,7 @@ The execution card must be derived from:
 
 The LLM may explain the card but must not invent the card's trading content.
 
-### 13.5 Market Observation
+### 14.5 Market Observation
 
 V1 supports:
 - pre-market and post-market daily-level recommendations
@@ -567,7 +617,7 @@ V1 does not claim:
 
 The system may keep an extension point for future minute-line adapters. Until a verified adapter exists, minute-line data must not be treated as available.
 
-### 13.6 User-Provided Intraday Observation
+### 14.6 User-Provided Intraday Observation
 
 The user may inspect minute-line behavior in the broker app and tell the agent what they saw.
 
@@ -582,7 +632,7 @@ User-provided intraday observation must not:
 - Replace missing system market data.
 - Rewrite validation or backtest results.
 
-### 13.7 Execution Observation
+### 14.7 Execution Observation
 
 The user must not maintain execution fields.
 
@@ -595,9 +645,11 @@ The agent and system should:
 
 Without broker integration, the system must not claim it knows the user's exact broker fill.
 
-### 13.8 Discipline Review
+### 14.8 Discipline Review and P&L Record
 
-V1 post-market review is a discipline review, not realized P&L accounting.
+V1 post-market review is a discipline review plus user-reported P&L record.
+
+Because V1 does not connect to a broker, P&L is not broker-verified accounting truth. The system may calculate and display P&L only from user-approved execution details, such as buy price, sell price, quantity, fees if provided, and execution timestamps.
 
 The review must compare:
 - original Action Plan
@@ -605,17 +657,19 @@ The review must compare:
 - market facts
 - MarketDataFault state
 - user-approved execution feedback
+- user-approved buy/sell details
+- user-reported or system-calculated P&L from approved details
 - user-provided intraday observations, if any
 - invalidation conditions
 - whether the user followed the plan
 - skip or partial-execution reason
 - whether future observation should continue, downgrade, or stop
 
-It must not calculate realized P&L until a later accounting module defines valid inputs and rules.
+It must clearly label P&L as user-reported or system-calculated from user-approved details, not broker-verified.
 
 ---
 
-## 14. Agentic Web App Requirement
+## 15. Agentic Web App Requirement
 
 V1 must feel like one agent-driven workflow, not disconnected screens.
 
@@ -640,7 +694,7 @@ The UI may contain pages and panels, but the primary control surface should be a
 
 ---
 
-## 15. Current Implementation Status To Audit
+## 16. Current Implementation Status To Audit
 
 Known implemented areas from verification records:
 - A module has research contracts, Serenity candidate pools, evidence snapshots, confirmed candidates, and tests.
@@ -656,6 +710,11 @@ Known incomplete areas:
 - Capital Context.
 - Deterministic recommendation reducer.
 - MarketDataFault state machine.
+- Friend-recommended single-stock profitable loop.
+- Short-video strategy idea validation loop.
+- Observation pool after accepted buy.
+- Daily hold/sell/risk signal records.
+- User-approved P&L record after exit.
 - C4 Execution Observation Log.
 - C5 Discipline Review.
 - Tushare-powered C-module observation loop.
@@ -665,10 +724,11 @@ Known incomplete areas:
 
 ---
 
-## 16. V1 Acceptance Criteria
+## 17. V1 Acceptance Criteria
 
 V1 is acceptable only when:
-- A user can start with a theme in chat.
+- A user can start with a recommended company/stock in chat.
+- A user can start with a short-video strategy idea in chat.
 - The agent can produce a sourced research result.
 - The user sees only result-level approval cards.
 - The system can create and validate strategies without user technical parameter selection.
@@ -681,29 +741,33 @@ V1 is acceptable only when:
 - The agent can produce live-trading execution cards without user technical parameter selection.
 - The user can execute manually in a broker app and report the result in natural language.
 - The agent can observe market facts and draft execution/review summaries without user field maintenance.
+- The system can maintain an observation pool after buy and produce daily hold/sell/risk signals until exit.
+- The system can record user-approved execution details and user-reported or system-calculated P&L after exit.
 - Critical market-data failures block or downgrade trading recommendations and create system/data fault records.
 - User-provided intraday observations can downgrade but not upgrade trading recommendations.
-- Discipline review compares plan, market facts, execution feedback, invalidation conditions, and plan adherence.
+- Discipline review compares plan, market facts, execution feedback, invalidation conditions, plan adherence, and P&L record.
 - All uncertainty is visible.
 - No LLM-generated signal, hidden parameter choice, future-data leakage, overfit shortcut, or survivorship-only record is introduced.
 
 ---
 
-## 17. E2E Demo Acceptance Script
+## 18. E2E Acceptance Scripts
 
-V1 minimum demo starts from this exact user message:
+V1 minimum profitable loop requires two accepted E2E scripts.
 
-> "存储设备行业最近很火，帮我调查一下有没有机会，如果有机会，帮我筛选公司、验证策略，最后给我今天能不能实盘观察的行动建议。"
+### 18.1 Friend-Recommended Single Stock
 
-The demo must produce audit evidence at every step. User-facing UI may stay simple, but acceptance must verify artifacts, database records, logs, and test output.
+This script starts from this exact user message:
+
+> "朋友给我推荐了这家公司/这只股票，说是产业链挖掘出来的。帮我调查它值不值得关注，如果值得，帮我看有没有入场机会；我买入后每天告诉我该怎么处理，卖出后帮我复盘盈亏和执行情况。"
 
 Required acceptance path:
-1. Theme intake creates a research task artifact ID.
-2. Serenity research creates sourced evidence artifact IDs.
+1. Company/ticker intake creates a research task artifact ID.
+2. Serenity industry-chain research creates sourced evidence artifact IDs.
 3. Ticker verification and hard filters create validation records.
-4. Evidence and counter-evidence are attached to the candidate snapshot.
+4. Company value, potential, risks, and counter-evidence are attached to the research snapshot.
 5. Approval card records continue/stop/downgrade decision.
-6. `confirmed_candidate_pool` snapshot is stored as forward-only research state.
+6. `confirmed_candidate_pool` snapshot is stored as forward-only research state if continued.
 7. Hypothesis Builder reads the research snapshot and maps to an approved frozen template.
 8. StrategyDraft stores template ID, version, and frozen template hash.
 9. BacktestUniverseSpec is point-in-time.
@@ -719,9 +783,36 @@ Required acceptance path:
 19. Capital Context produces planned cash amount and share count.
 20. MarketDataFault state is recorded.
 21. Execution card recommendation level is produced by deterministic reducer.
-22. User natural-language execution feedback is parsed into Execution Observation Log draft.
+22. User natural-language buy feedback is parsed into Execution Observation Log draft.
 23. User accepts or corrects the execution-record interpretation.
-24. Discipline Review compares original plan, market facts, execution feedback, invalidation conditions, and plan adherence.
+24. Position enters the observation pool after accepted buy interpretation.
+25. Daily observation produces hold/sell/risk/invalidated signal records until exit.
+26. User natural-language sell feedback is parsed and accepted.
+27. Discipline Review compares original plan, market facts, execution feedback, invalidation conditions, plan adherence, and P&L record.
+
+### 18.2 Short-Video Strategy Idea
+
+This script starts from this exact user message:
+
+> "我在抖音看到一个股票策略：下午两点半后买入，第二天早上卖出。帮我评估它到底能不能赚钱，能不能加入策略里。"
+
+Required acceptance path:
+1. Strategy idea intake creates a `strategy_idea` artifact ID.
+2. Agent extracts the claim, entry timing, exit timing, and claimed edge.
+3. System marks the idea as untrusted before validation.
+4. LLM maps the idea to an approved frozen template or candidate-template evaluation path.
+5. If no approved template fits, the system blocks live use and records why.
+6. If candidate-template evaluation is used, template candidate metadata is stored separately from approved live templates.
+7. StrategyDraft cannot be created unless the template path is approved and frozen.
+8. BacktestUniverseSpec is point-in-time.
+9. Validator and canary records are stored.
+10. IS and OOS backtests produce immutable reports.
+11. OOS controller records `oos_draw_index` and `shared_oos_window_id`.
+12. Cost stress and control comparison reports are stored.
+13. Multiple-comparison correction, alpha gate, and trade distribution checks are recorded.
+14. Failed or blocked strategy ideas enter RejectedStrategyRegistry.
+15. Passing ideas may enter Strategy Template Library only through the approved frozen-template process.
+16. No short-video strategy may generate live signals before approval, freeze, validation, and promotion.
 
 For each step, acceptance evidence must include:
 - artifact ID
@@ -729,11 +820,11 @@ For each step, acceptance evidence must include:
 - log entry
 - relevant test or verification output
 
-The demo must not be accepted with text-only explanation.
+Neither script may be accepted with text-only explanation.
 
 ---
 
-## 18. Immediate Next Documents
+## 19. Immediate Next Documents
 
 Before implementing more code:
 
@@ -741,7 +832,7 @@ Before implementing more code:
    - Map A/B/C desired flow to actual files, APIs, tests, and missing product surfaces.
 
 2. **Agent workflow design**
-   - Define how the conversation orchestrates research, validation, approval cards, Signal Board, observation, execution-card handling, and discipline review.
+   - Define how the conversation orchestrates the friend-recommended stock loop and the short-video strategy loop through research, validation, approval cards, Signal Board, observation, execution-card handling, P&L record, and discipline review.
 
 3. **Revised C roadmap**
    - Rewrite C4/C5/C6 after the GAP audit, not before.
@@ -749,11 +840,11 @@ Before implementing more code:
 
 ---
 
-## 19. Open Product Decisions
+## 20. Open Product Decisions
 
 These are product-level decisions, not technical-parameter decisions:
 
 1. What exact wording should distinguish 强建议执行 from 可执行 in approval-card UI?
-2. What is the smallest acceptable live-observation capital context for V1 demos?
-3. What level of discipline review is useful before realized P&L exists?
+2. What minimum user-provided execution details are enough for V1 P&L record without broker integration?
+3. What daily observation cadence is acceptable for bought positions: once per day, pre-market plus close, or current-price checks on demand?
 4. Should broker statement import be considered after V1, without automatic order placement?
