@@ -38,6 +38,10 @@ BLOCKED_TECHNICAL_DECISIONS = {
     "stop_loss",
     "liquidity_rules",
     "manual_execution_fields",
+    # PRD-level forbidden concepts
+    "ranking_cutoffs",
+    "position_sizing_formulas",
+    "incomplete_market_data_usable",
 }
 
 
