@@ -32,6 +32,72 @@ from backend.services.approval_card_reducer import (
 class TestApprovalCardContract(unittest.TestCase):
     """Test ApprovalCard contract structure."""
 
+    def test_approval_card_rejects_unknown_decision_in_allowed_decisions(self):
+        """ApprovalCard construction rejects unknown decisions in allowed_decisions."""
+        now = datetime.now(timezone.utc)
+
+        with self.assertRaises(ValueError) as ctx:
+            ApprovalCard(
+                approval_card_id="card_001",
+                workflow_id="workflow_001",
+                stage="research_confirmation",
+                title="Research Confirmation",
+                plain_language_summary="Summary",
+                allowed_decisions=["buy"],  # Unknown decision
+                blocked_technical_decisions=[],
+                artifact_ids=["research_001"],
+                created_at=now,
+                decided_at=None,
+                decision=None,
+                decided_by=None,
+            )
+
+        self.assertIn("unknown", str(ctx.exception).lower())
+
+    def test_approval_card_rejects_technical_decision_in_allowed_decisions(self):
+        """ApprovalCard construction rejects technical decisions in allowed_decisions."""
+        now = datetime.now(timezone.utc)
+
+        with self.assertRaises(ValueError) as ctx:
+            ApprovalCard(
+                approval_card_id="card_002",
+                workflow_id="workflow_001",
+                stage="research_confirmation",
+                title="Research Confirmation",
+                plain_language_summary="Summary",
+                allowed_decisions=["strategy_parameters"],  # Technical decision
+                blocked_technical_decisions=["strategy_parameters"],
+                artifact_ids=["research_001"],
+                created_at=now,
+                decided_at=None,
+                decision=None,
+                decided_by=None,
+            )
+
+        self.assertIn("technical", str(ctx.exception).lower())
+
+    def test_approval_card_rejects_empty_allowed_decisions(self):
+        """ApprovalCard construction rejects empty allowed_decisions."""
+        now = datetime.now(timezone.utc)
+
+        with self.assertRaises(ValueError) as ctx:
+            ApprovalCard(
+                approval_card_id="card_003",
+                workflow_id="workflow_001",
+                stage="research_confirmation",
+                title="Research Confirmation",
+                plain_language_summary="Summary",
+                allowed_decisions=[],  # Empty
+                blocked_technical_decisions=[],
+                artifact_ids=["research_001"],
+                created_at=now,
+                decided_at=None,
+                decision=None,
+                decided_by=None,
+            )
+
+        self.assertIn("empty", str(ctx.exception).lower())
+
     def test_approval_card_has_required_fields(self):
         """ApprovalCard must have all required fields."""
         now = datetime.now(timezone.utc)
@@ -176,8 +242,57 @@ class TestBlockedTechnicalDecisions(unittest.TestCase):
 class TestApprovalCardReducer(unittest.TestCase):
     """Test approval card reducer."""
 
+    def test_create_approval_card_requires_created_at(self):
+        """Reducer requires explicit created_at (no default now)."""
+        with self.assertRaises(TypeError):
+            # Missing created_at should fail
+            create_approval_card(
+                workflow_id="workflow_001",
+                stage="research_confirmation",
+                title="Research Confirmation",
+                plain_language_summary="Summary",
+                allowed_decisions=["continue", "stop"],
+                artifact_ids=["research_001"],
+                # created_at missing
+            )
+
+    def test_apply_decision_requires_decided_at(self):
+        """apply_decision requires explicit decided_at (no default now)."""
+        now = datetime(2026, 6, 29, 12, 0, 0, tzinfo=timezone.utc)
+        card = create_approval_card(
+            workflow_id="workflow_001",
+            stage="research_confirmation",
+            title="Research Confirmation",
+            plain_language_summary="Summary",
+            allowed_decisions=["continue", "stop"],
+            artifact_ids=["research_001"],
+            created_at=now,
+        )
+
+        with self.assertRaises(TypeError):
+            # Missing decided_at should fail
+            apply_decision(
+                card=card,
+                decision="continue",
+                decided_by="user",
+                # decided_at missing
+            )
+
+    def test_reducer_source_has_no_datetime_now(self):
+        """Reducer source must not call datetime.now or time.time."""
+        import backend.services.approval_card_reducer as reducer_module
+        import inspect
+
+        source = inspect.getsource(reducer_module)
+
+        # Should not call datetime.now() or datetime.utcnow() or time.time()
+        self.assertNotIn("datetime.now(", source)
+        self.assertNotIn("datetime.utcnow(", source)
+        self.assertNotIn("time.time(", source)
+
     def test_create_approval_card_requires_artifact_id(self):
         """Reducer rejects creating card without artifact_id."""
+        now = datetime.now(timezone.utc)
         with self.assertRaises(ValueError) as ctx:
             create_approval_card(
                 workflow_id="workflow_001",
@@ -186,6 +301,7 @@ class TestApprovalCardReducer(unittest.TestCase):
                 plain_language_summary="Summary",
                 allowed_decisions=["continue", "stop"],
                 artifact_ids=[],  # No artifacts - should fail
+                created_at=now,
             )
 
         self.assertIn("artifact_id", str(ctx.exception).lower())
@@ -265,7 +381,9 @@ class TestApprovalCardReducer(unittest.TestCase):
                 decided_at=now,
             )
 
-        self.assertIn("not allowed", str(ctx.exception).lower())
+        # Either "not allowed" or "not in allowed_decisions"
+        error_msg = str(ctx.exception).lower()
+        self.assertTrue("not allowed" in error_msg or "not in" in error_msg)
 
     def test_reducer_does_not_call_llm(self):
         """Reducer must be deterministic and not call LLM."""

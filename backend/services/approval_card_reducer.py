@@ -13,9 +13,13 @@ Hard rules:
 """
 
 import hashlib
-from datetime import datetime, timezone
+from datetime import datetime
 
-from contracts.approval_card import ApprovalCard, ALLOWED_DECISIONS
+from contracts.approval_card import (
+    ApprovalCard,
+    ALLOWED_DECISIONS,
+    BLOCKED_TECHNICAL_DECISIONS,
+)
 
 
 def create_approval_card(
@@ -25,7 +29,7 @@ def create_approval_card(
     plain_language_summary: str,
     allowed_decisions: list[str],
     artifact_ids: list[str],
-    created_at: datetime | None = None,
+    created_at: datetime,
     blocked_technical_decisions: list[str] | None = None,
 ) -> ApprovalCard:
     """
@@ -38,7 +42,7 @@ def create_approval_card(
         plain_language_summary: Plain-language summary
         allowed_decisions: Allowed decisions for this card
         artifact_ids: Backing artifact IDs
-        created_at: Creation timestamp (defaults to UTC now)
+        created_at: Creation timestamp (required, no default)
         blocked_technical_decisions: Technical decisions blocked for this card
 
     Returns:
@@ -59,10 +63,6 @@ def create_approval_card(
                 f"Allowed decisions: {', '.join(sorted(ALLOWED_DECISIONS))}"
             )
 
-    # Default created_at
-    if created_at is None:
-        created_at = datetime.now(timezone.utc)
-
     # Generate deterministic approval_card_id
     components = [
         workflow_id,
@@ -76,15 +76,7 @@ def create_approval_card(
 
     # Default blocked_technical_decisions
     if blocked_technical_decisions is None:
-        blocked_technical_decisions = [
-            "candidate_pool_technical_quality",
-            "strategy_parameters",
-            "oos_windows",
-            "thresholds",
-            "stop_loss",
-            "liquidity_rules",
-            "manual_execution_fields",
-        ]
+        blocked_technical_decisions = list(BLOCKED_TECHNICAL_DECISIONS)
 
     return ApprovalCard(
         approval_card_id=approval_card_id,
@@ -125,7 +117,14 @@ def validate_decision(
             f"User cannot approve technical decisions."
         )
 
-    # Check if decision is in allowed_decisions
+    # Check if decision is in ALLOWED_DECISIONS
+    if proposed_decision not in ALLOWED_DECISIONS:
+        raise ValueError(
+            f"Decision '{proposed_decision}' is not in ALLOWED_DECISIONS. "
+            f"Allowed decisions: {', '.join(sorted(ALLOWED_DECISIONS))}"
+        )
+
+    # Check if decision is in allowed_decisions for this card
     if proposed_decision not in allowed_decisions:
         raise ValueError(
             f"Decision '{proposed_decision}' is not allowed for this card. "
@@ -137,7 +136,7 @@ def apply_decision(
     card: ApprovalCard,
     decision: str,
     decided_by: str,
-    decided_at: datetime | None = None,
+    decided_at: datetime,
 ) -> ApprovalCard:
     """
     Apply user decision to approval card.
@@ -146,7 +145,7 @@ def apply_decision(
         card: Original approval card
         decision: User's decision
         decided_by: User who made decision
-        decided_at: Decision timestamp (defaults to UTC now)
+        decided_at: Decision timestamp (required, no default)
 
     Returns:
         Updated approval card with decision applied
@@ -160,10 +159,6 @@ def apply_decision(
         blocked_technical_decisions=card.blocked_technical_decisions,
         proposed_decision=decision,
     )
-
-    # Default decided_at
-    if decided_at is None:
-        decided_at = datetime.now(timezone.utc)
 
     # Return updated card
     return card.model_copy(

@@ -16,7 +16,6 @@ Allowed approval decisions:
 """
 
 from datetime import datetime
-from typing import Literal
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -27,6 +26,18 @@ ALLOWED_DECISIONS = {
     "downgrade_to_observation",
     "enter_risk_capped_live_execution",
     "accept_execution_record_interpretation",
+}
+
+
+# Blocked technical decisions (user cannot approve)
+BLOCKED_TECHNICAL_DECISIONS = {
+    "candidate_pool_technical_quality",
+    "strategy_parameters",
+    "oos_windows",
+    "thresholds",
+    "stop_loss",
+    "liquidity_rules",
+    "manual_execution_fields",
 }
 
 
@@ -126,6 +137,35 @@ class ApprovalCard(BaseModel):
         """Every approval card requires at least one artifact_id."""
         if not v or len(v) == 0:
             raise ValueError("Approval card requires at least one artifact_id")
+        return v
+
+    @field_validator("allowed_decisions")
+    @classmethod
+    def validate_allowed_decisions(cls, v):
+        """
+        Validate allowed_decisions.
+
+        Must be non-empty, all items must be in ALLOWED_DECISIONS,
+        no item may be in BLOCKED_TECHNICAL_DECISIONS.
+        """
+        if not v or len(v) == 0:
+            raise ValueError("allowed_decisions cannot be empty")
+
+        for decision in v:
+            # Check if decision is a blocked technical decision (check first)
+            if decision in BLOCKED_TECHNICAL_DECISIONS:
+                raise ValueError(
+                    f"Technical decision in allowed_decisions: {decision}. "
+                    f"User cannot approve technical decisions."
+                )
+
+            # Check if decision is unknown
+            if decision not in ALLOWED_DECISIONS:
+                raise ValueError(
+                    f"Unknown decision in allowed_decisions: {decision}. "
+                    f"Allowed decisions: {', '.join(sorted(ALLOWED_DECISIONS))}"
+                )
+
         return v
 
     @field_validator("decision")
