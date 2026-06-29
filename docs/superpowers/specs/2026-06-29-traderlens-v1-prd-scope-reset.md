@@ -1,4 +1,4 @@
-# TraderLens V1 PRD Scope Reset
+﻿# TraderLens V1 PRD Scope Reset
 
 **Date:** 2026-06-29  
 **Purpose:** Re-state TraderLens V1 as an agent-driven A-share research, validation, and live-trading decision assistant. This document supersedes scattered milestone assumptions when they conflict with the product goal below.
