@@ -132,11 +132,13 @@ class TestCapitalContext(unittest.TestCase):
             cash_available=80000.0,
             max_risk_budget=10000.0,
             capital_unit="CNY",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime(2026, 6, 1, 12, 0, 0, tzinfo=timezone.utc),
             source="manual",
             confirmed_by_user=False,  # Not confirmed
         )
-        context = build_capital_context(profile)
+        context = build_capital_context(
+            profile, created_at=datetime(2026, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
+        )
         self.assertFalse(context.is_live_capable)
         self.assertIn("not confirmed", context.blocking_reason.lower())
 
@@ -148,11 +150,13 @@ class TestCapitalContext(unittest.TestCase):
             cash_available=80000.0,
             max_risk_budget=10000.0,
             capital_unit="CNY",
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime(2026, 6, 1, 12, 0, 0, tzinfo=timezone.utc),
             source="manual",
             confirmed_by_user=True,
         )
-        context = build_capital_context(profile)
+        context = build_capital_context(
+            profile, created_at=datetime(2026, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
+        )
         self.assertTrue(context.is_live_capable)
         self.assertIsNone(context.blocking_reason)
 
@@ -162,6 +166,8 @@ class TestPositionSizingRules(unittest.TestCase):
 
     def test_max_total_live_capital_capped_at_30_percent_and_cash(self):
         """max_total_live_capital = min(cash_available, total_capital * 0.30)."""
+        fixed_time = datetime(2026, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
+        
         # Case 1: cash is limiting factor
         profile1 = CapitalProfile(
             profile_id="test1",
@@ -169,11 +175,11 @@ class TestPositionSizingRules(unittest.TestCase):
             cash_available=20000.0,  # Less than 30%
             max_risk_budget=10000.0,
             capital_unit="CNY",
-            created_at=datetime.now(timezone.utc),
+            created_at=fixed_time,
             source="manual",
             confirmed_by_user=True,
         )
-        plan1 = build_position_sizing_plan(profile1)
+        plan1 = build_position_sizing_plan(profile1, created_at=fixed_time)
         self.assertEqual(plan1.max_total_live_capital, 20000.0)
 
         # Case 2: 30% is limiting factor
@@ -183,61 +189,88 @@ class TestPositionSizingRules(unittest.TestCase):
             cash_available=50000.0,  # More than 30%
             max_risk_budget=10000.0,
             capital_unit="CNY",
-            created_at=datetime.now(timezone.utc),
+            created_at=fixed_time,
             source="manual",
             confirmed_by_user=True,
         )
-        plan2 = build_position_sizing_plan(profile2)
+        plan2 = build_position_sizing_plan(profile2, created_at=fixed_time)
         self.assertEqual(plan2.max_total_live_capital, 30000.0)  # 30% of 100k
 
     def test_max_single_position_capped_at_25_percent_live_and_10_percent_total(self):
         """max_single_position_capital = min(max_total_live * 0.25, total * 0.10)."""
+        fixed_time = datetime(2026, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
         profile = CapitalProfile(
             profile_id="test",
             total_capital=100000.0,
             cash_available=50000.0,
             max_risk_budget=10000.0,
             capital_unit="CNY",
-            created_at=datetime.now(timezone.utc),
+            created_at=fixed_time,
             source="manual",
             confirmed_by_user=True,
         )
-        plan = build_position_sizing_plan(profile)
+        plan = build_position_sizing_plan(profile, created_at=fixed_time)
         # max_total_live = min(50000, 30000) = 30000
         # max_single = min(30000 * 0.25, 100000 * 0.10) = min(7500, 10000) = 7500
         self.assertEqual(plan.max_single_position_capital, 7500.0)
 
     def test_max_position_count_is_exactly_4(self):
         """max_position_count must be exactly 4."""
+        fixed_time = datetime(2026, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
         profile = CapitalProfile(
             profile_id="test",
             total_capital=100000.0,
             cash_available=80000.0,
             max_risk_budget=10000.0,
             capital_unit="CNY",
-            created_at=datetime.now(timezone.utc),
+            created_at=fixed_time,
             source="manual",
             confirmed_by_user=True,
         )
-        plan = build_position_sizing_plan(profile)
+        plan = build_position_sizing_plan(profile, created_at=fixed_time)
         self.assertEqual(plan.max_position_count, 4)
 
     def test_risk_cap_per_trade_capped_at_8_percent_single_and_1_percent_total(self):
         """risk_cap_per_trade = min(max_single * 0.08, total * 0.01)."""
+        fixed_time = datetime(2026, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
         profile = CapitalProfile(
             profile_id="test",
             total_capital=100000.0,
             cash_available=50000.0,
             max_risk_budget=10000.0,
             capital_unit="CNY",
-            created_at=datetime.now(timezone.utc),
+            created_at=fixed_time,
             source="manual",
             confirmed_by_user=True,
         )
-        plan = build_position_sizing_plan(profile)
+        plan = build_position_sizing_plan(profile, created_at=fixed_time)
         # max_single = 7500 (from previous test)
         # risk_cap = min(7500 * 0.08, 100000 * 0.01) = min(600, 1000) = 600
         self.assertEqual(plan.risk_cap_per_trade, 600.0)
+
+    def test_deterministic_timestamp_produces_same_output(self):
+        """Repeated calls with same profile and timestamp produce identical output."""
+        fixed_time = datetime(2026, 6, 1, 12, 0, 0, tzinfo=timezone.utc)
+        profile = CapitalProfile(
+            profile_id="test",
+            total_capital=100000.0,
+            cash_available=50000.0,
+            max_risk_budget=10000.0,
+            capital_unit="CNY",
+            created_at=fixed_time,
+            source="manual",
+            confirmed_by_user=True,
+        )
+        
+        plan1 = build_position_sizing_plan(profile, created_at=fixed_time)
+        plan2 = build_position_sizing_plan(profile, created_at=fixed_time)
+        
+        self.assertEqual(plan1.created_at, fixed_time)
+        self.assertEqual(plan2.created_at, fixed_time)
+        self.assertEqual(plan1.max_total_live_capital, plan2.max_total_live_capital)
+        self.assertEqual(plan1.max_single_position_capital, plan2.max_single_position_capital)
+        self.assertEqual(plan1.max_position_count, plan2.max_position_count)
+        self.assertEqual(plan1.risk_cap_per_trade, plan2.risk_cap_per_trade)
 
 
 class TestNoForbiddenFields(unittest.TestCase):
@@ -307,6 +340,23 @@ class TestNoForbiddenLogic(unittest.TestCase):
                 module,
                 source,
                 f"backend/services/capital_context.py must not import {module}",
+            )
+
+    def test_no_current_timestamp_generation_in_service(self):
+        """backend/services/capital_context.py must not generate current timestamps."""
+        from backend.services import capital_context
+
+        source = inspect.getsource(capital_context)
+        forbidden_time_apis = [
+            "datetime.now",
+            "datetime.utcnow",
+            "time.time",
+        ]
+        for api in forbidden_time_apis:
+            self.assertNotIn(
+                api,
+                source,
+                f"backend/services/capital_context.py must not call {api}",
             )
 
 

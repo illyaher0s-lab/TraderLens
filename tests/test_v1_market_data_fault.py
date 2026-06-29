@@ -82,6 +82,36 @@ class TestMarketDataFault(unittest.TestCase):
             )
         self.assertIn("evidence", str(ctx.exception))
 
+    def test_ok_state_cannot_have_message(self):
+        """ok state must have message=None."""
+        with self.assertRaises(ValidationError) as ctx:
+            MarketDataFault(
+                state=MarketDataFaultState.ok,
+                source="test_source",
+                dataset="test_dataset",
+                symbol="000001.SZ",
+                as_of=date(2026, 6, 1),
+                message="provider failed",  # Error-like message not allowed
+                recoverable=True,
+                evidence=None,
+            )
+        self.assertIn("message", str(ctx.exception).lower())
+
+    def test_ok_state_cannot_have_evidence(self):
+        """ok state must have evidence=None or empty."""
+        with self.assertRaises(ValidationError) as ctx:
+            MarketDataFault(
+                state=MarketDataFaultState.ok,
+                source="test_source",
+                dataset="test_dataset",
+                symbol="000001.SZ",
+                as_of=date(2026, 6, 1),
+                message=None,
+                recoverable=True,
+                evidence={"error": "x"},  # Evidence not allowed for ok
+            )
+        self.assertIn("evidence", str(ctx.exception).lower())
+
     def test_adapter_unsupported_must_be_non_recoverable(self):
         """adapter_unsupported must have recoverable=False."""
         with self.assertRaises(ValidationError) as ctx:
@@ -119,8 +149,8 @@ class TestMarketDataFault(unittest.TestCase):
             )
         self.assertIn("data", str(ctx.exception).lower())
 
-    def test_ok_fault_must_have_data(self):
-        """ok fault must have data in MarketDataResult."""
+    def test_ok_fault_must_have_non_empty_data(self):
+        """ok fault must have non-empty data in MarketDataResult."""
         fault = MarketDataFault(
             state=MarketDataFaultState.ok,
             source="test_source",
@@ -131,12 +161,24 @@ class TestMarketDataFault(unittest.TestCase):
             recoverable=True,
             evidence=None,
         )
+        # Test None data
         with self.assertRaises(ValidationError) as ctx:
             MarketDataResult(
                 symbol="000001.SZ",
                 dataset="test_dataset",
                 as_of=date(2026, 6, 1),
                 data=None,  # Should have data
+                fault=fault,
+            )
+        self.assertIn("data", str(ctx.exception).lower())
+
+        # Test empty dict
+        with self.assertRaises(ValidationError) as ctx:
+            MarketDataResult(
+                symbol="000001.SZ",
+                dataset="test_dataset",
+                as_of=date(2026, 6, 1),
+                data={},  # Empty dict not allowed
                 fault=fault,
             )
         self.assertIn("data", str(ctx.exception).lower())
@@ -192,6 +234,21 @@ class TestLiveMarketDataAdapter(unittest.TestCase):
         self.assertIsNotNone(result.data)
         self.assertEqual(result.data["close"], 10.5)
 
+    def test_daily_snapshot_returns_unavailable_when_provider_returns_empty(self):
+        """Daily snapshot returns unavailable when provider returns empty dict."""
+
+        def empty_provider(symbol: str, as_of: date) -> dict[str, Any]:
+            return {}
+
+        result = get_daily_basic_snapshot(
+            symbol="000001.SZ",
+            as_of=date(2026, 6, 1),
+            provider=empty_provider,
+        )
+        self.assertEqual(result.fault.state, MarketDataFaultState.unavailable)
+        self.assertIsNone(result.data)
+        self.assertIn("empty", result.fault.message.lower())
+
     def test_daily_snapshot_returns_source_error_when_provider_fails(self):
         """Daily snapshot returns source_error when provider raises exception."""
 
@@ -228,6 +285,23 @@ class TestLiveMarketDataAdapter(unittest.TestCase):
         self.assertEqual(result.fault.state, MarketDataFaultState.ok)
         self.assertIsNotNone(result.data)
         self.assertEqual(result.data["price"], 10.5)
+
+    def test_current_price_snapshot_returns_unavailable_when_provider_returns_empty(
+        self,
+    ):
+        """Current price snapshot returns unavailable when provider returns empty dict."""
+
+        def empty_provider(symbol: str, as_of: date) -> dict[str, Any]:
+            return {}
+
+        result = get_current_price_snapshot(
+            symbol="000001.SZ",
+            as_of=date(2026, 6, 1),
+            provider=empty_provider,
+        )
+        self.assertEqual(result.fault.state, MarketDataFaultState.unavailable)
+        self.assertIsNone(result.data)
+        self.assertIn("empty", result.fault.message.lower())
 
 
 class TestNoForbiddenLogic(unittest.TestCase):

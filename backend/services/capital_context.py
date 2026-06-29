@@ -11,9 +11,10 @@ V1 Conservative Rules:
 - risk_cap_per_trade = min(max_single_position_capital * 0.08, total_capital * 0.01)
 
 No LLM, no Tushare, no market data, no recommendations, no execution logic.
+No current time generation - all timestamps passed explicitly.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
 
 from contracts.capital_context import (
     CapitalProfile,
@@ -22,12 +23,15 @@ from contracts.capital_context import (
 )
 
 
-def build_position_sizing_plan(profile: CapitalProfile) -> PositionSizingPlan:
+def build_position_sizing_plan(
+    profile: CapitalProfile, created_at: datetime
+) -> PositionSizingPlan:
     """
     Build position sizing plan using V1 conservative defaults.
 
     Args:
         profile: Capital profile
+        created_at: Explicit timestamp for plan creation
 
     Returns:
         PositionSizingPlan with deterministic V1 rules
@@ -60,7 +64,7 @@ def build_position_sizing_plan(profile: CapitalProfile) -> PositionSizingPlan:
         max_total_live_capital=max_total_live_capital,
         max_position_count=max_position_count,
         risk_cap_per_trade=risk_cap_per_trade,
-        created_at=datetime.now(timezone.utc),
+        created_at=created_at,
         basis="V1_conservative_defaults",
     )
 
@@ -81,17 +85,20 @@ def validate_live_capability(context: CapitalContext) -> tuple[bool, str | None]
     return True, None
 
 
-def build_capital_context(profile: CapitalProfile) -> CapitalContext:
+def build_capital_context(
+    profile: CapitalProfile, created_at: datetime
+) -> CapitalContext:
     """
     Build complete capital context with live-trading capability assessment.
 
     Args:
         profile: Capital profile
+        created_at: Explicit timestamp for context creation
 
     Returns:
         CapitalContext with position sizing plan and capability assessment
     """
-    position_sizing_plan = build_position_sizing_plan(profile)
+    position_sizing_plan = build_position_sizing_plan(profile, created_at)
 
     # Assess live-trading capability
     if not profile.confirmed_by_user:

@@ -47,6 +47,16 @@ class MarketDataFault(BaseModel, frozen=True, extra="forbid"):
         return self
 
     @model_validator(mode="after")
+    def validate_ok_cannot_carry_error_message(self):
+        """ok state must not have error-like message or evidence."""
+        if self.state == MarketDataFaultState.ok:
+            if self.message is not None:
+                raise ValueError("ok fault state must have message=None")
+            if self.evidence is not None and self.evidence:
+                raise ValueError("ok fault state must have evidence=None or empty dict")
+        return self
+
+    @model_validator(mode="after")
     def validate_adapter_unsupported_not_recoverable(self):
         """adapter_unsupported must be non-recoverable."""
         if self.state == MarketDataFaultState.adapter_unsupported:
@@ -66,11 +76,11 @@ class MarketDataResult(BaseModel, frozen=True, extra="forbid"):
 
     @model_validator(mode="after")
     def validate_data_fault_consistency(self):
-        """Non-ok faults cannot have data, ok faults must have data."""
+        """Non-ok faults cannot have data, ok faults must have non-empty data."""
         if self.fault.state != MarketDataFaultState.ok:
-            if self.data is not None:
-                raise ValueError("Non-ok faults cannot have data")
+            if self.data is not None and self.data:
+                raise ValueError("Non-ok faults must have data=None or empty dict")
         else:
-            if self.data is None:
-                raise ValueError("ok faults must have data")
+            if self.data is None or not self.data:
+                raise ValueError("ok faults must have non-empty data dict")
         return self

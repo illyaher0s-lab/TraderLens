@@ -55,6 +55,27 @@ def get_daily_basic_snapshot(
 
     try:
         data = provider(symbol, as_of)
+        
+        # Provider returned empty data - treat as unavailable
+        if not data:
+            fault = MarketDataFault(
+                state=MarketDataFaultState.unavailable,
+                source="tushare_private",
+                dataset="daily_basic",
+                symbol=symbol,
+                as_of=as_of,
+                message="Provider returned empty data",
+                recoverable=False,
+                evidence={"reason": "empty_data_from_provider"},
+            )
+            return MarketDataResult(
+                symbol=symbol,
+                dataset="daily_basic",
+                as_of=as_of,
+                data=None,
+                fault=fault,
+            )
+        
         fault = MarketDataFault(
             state=MarketDataFaultState.ok,
             source="tushare_private",
@@ -129,6 +150,27 @@ def get_current_price_snapshot(
 
     try:
         data = provider(symbol, as_of)
+        
+        # Provider returned empty data - treat as unavailable
+        if not data:
+            fault = MarketDataFault(
+                state=MarketDataFaultState.unavailable,
+                source="tushare_private",
+                dataset="current_price",
+                symbol=symbol,
+                as_of=as_of,
+                message="Provider returned empty data",
+                recoverable=False,
+                evidence={"reason": "empty_data_from_provider"},
+            )
+            return MarketDataResult(
+                symbol=symbol,
+                dataset="current_price",
+                as_of=as_of,
+                data=None,
+                fault=fault,
+            )
+        
         fault = MarketDataFault(
             state=MarketDataFaultState.ok,
             source="tushare_private",
