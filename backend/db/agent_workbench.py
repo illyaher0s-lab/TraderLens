@@ -23,7 +23,7 @@ from contracts.agent_workbench import (
     WorkflowKind,
     WorkflowState,
 )
-from contracts.approval_card import ApprovalCard
+from contracts.approval_card import ApprovalCard, ALLOWED_DECISIONS, BLOCKED_TECHNICAL_DECISIONS
 
 
 def init_agent_workbench_db(conn: sqlite3.Connection):
@@ -44,6 +44,18 @@ def init_agent_workbench_db(conn: sqlite3.Connection):
             title TEXT NOT NULL,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
+        )
+    """)
+
+    # Timeline items table (global ordering)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS agent_timeline_items (
+            timeline_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id TEXT NOT NULL,
+            item_type TEXT NOT NULL,
+            item_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (session_id) REFERENCES agent_sessions(session_id)
         )
     """)
 
@@ -155,6 +167,7 @@ def append_message(conn: sqlite3.Connection, message: AgentMessage):
     """
     cursor = conn.cursor()
 
+    # Insert into messages table
     cursor.execute(
         """
         INSERT INTO agent_messages (message_id, session_id, role, content, created_at)
@@ -165,6 +178,20 @@ def append_message(conn: sqlite3.Connection, message: AgentMessage):
             message.session_id,
             message.role,
             message.content,
+            message.created_at.isoformat(),
+        ),
+    )
+
+    # Insert into timeline
+    cursor.execute(
+        """
+        INSERT INTO agent_timeline_items (session_id, item_type, item_id, created_at)
+        VALUES (?, ?, ?, ?)
+        """,
+        (
+            message.session_id,
+            "message",
+            message.message_id,
             message.created_at.isoformat(),
         ),
     )
@@ -187,10 +214,11 @@ def list_messages(conn: sqlite3.Connection, session_id: str) -> list[AgentMessag
 
     cursor.execute(
         """
-        SELECT message_id, session_id, role, content, created_at
-        FROM agent_messages
-        WHERE session_id = ?
-        ORDER BY rowid ASC
+        SELECT m.message_id, m.session_id, m.role, m.content, m.created_at
+        FROM agent_messages m
+        JOIN agent_timeline_items t ON m.message_id = t.item_id AND t.item_type = 'message'
+        WHERE m.session_id = ?
+        ORDER BY t.timeline_id ASC
         """,
         (session_id,),
     )
@@ -219,6 +247,7 @@ def attach_artifact_ref(conn: sqlite3.Connection, artifact_ref: ArtifactRef):
     """
     cursor = conn.cursor()
 
+    # Insert into artifact_refs table
     cursor.execute(
         """
         INSERT INTO agent_artifact_refs (artifact_ref_id, session_id, artifact_id, artifact_type, created_at)
@@ -229,6 +258,20 @@ def attach_artifact_ref(conn: sqlite3.Connection, artifact_ref: ArtifactRef):
             artifact_ref.session_id,
             artifact_ref.artifact_id,
             artifact_ref.artifact_type,
+            artifact_ref.created_at.isoformat(),
+        ),
+    )
+
+    # Insert into timeline
+    cursor.execute(
+        """
+        INSERT INTO agent_timeline_items (session_id, item_type, item_id, created_at)
+        VALUES (?, ?, ?, ?)
+        """,
+        (
+            artifact_ref.session_id,
+            "artifact_ref",
+            artifact_ref.artifact_ref_id,
             artifact_ref.created_at.isoformat(),
         ),
     )
@@ -251,10 +294,11 @@ def list_artifact_refs(conn: sqlite3.Connection, session_id: str) -> list[Artifa
 
     cursor.execute(
         """
-        SELECT artifact_ref_id, session_id, artifact_id, artifact_type, created_at
-        FROM agent_artifact_refs
-        WHERE session_id = ?
-        ORDER BY rowid ASC
+        SELECT a.artifact_ref_id, a.session_id, a.artifact_id, a.artifact_type, a.created_at
+        FROM agent_artifact_refs a
+        JOIN agent_timeline_items t ON a.artifact_ref_id = t.item_id AND t.item_type = 'artifact_ref'
+        WHERE a.session_id = ?
+        ORDER BY t.timeline_id ASC
         """,
         (session_id,),
     )
@@ -279,16 +323,58 @@ def attach_approval_card(
     """
     Attach approval card to session.
 
+    Validates:
+    - workflow_id == session_id
+    - artifact_ids is non-empty
+    - allowed_decisions is non-empty
+    - every allowed decision is in ALLOWED_DECISIONS
+    - no allowed decision is in BLOCKED_TECHNICAL_DECISIONS
+
     Args:
         conn: SQLite connection
         session_id: Session ID
         approval_card: ApprovalCard to attach
+
+    Raises:
+        ValueError: If validation fails
     """
+    # Validate workflow_id matches session_id
+    if approval_card.workflow_id != session_id:
+        raise ValueError(
+            f"Approval card workflow_id '{approval_card.workflow_id}' "
+            f"does not match session_id '{session_id}'"
+        )
+
+    # Validate artifact_ids is non-empty
+    if not approval_card.artifact_ids or len(approval_card.artifact_ids) == 0:
+        raise ValueError("Approval card requires at least one artifact_id")
+
+    # Validate allowed_decisions is non-empty
+    if not approval_card.allowed_decisions or len(approval_card.allowed_decisions) == 0:
+        raise ValueError("Approval card requires at least one allowed decision")
+
+    # Validate no allowed decision is in BLOCKED_TECHNICAL_DECISIONS (check first)
+    for decision in approval_card.allowed_decisions:
+        if decision in BLOCKED_TECHNICAL_DECISIONS:
+            raise ValueError(
+                f"Technical decision in allowed_decisions: {decision}. "
+                f"User cannot approve technical decisions."
+            )
+
+    # Validate every allowed decision is in ALLOWED_DECISIONS
+    for decision in approval_card.allowed_decisions:
+        if decision not in ALLOWED_DECISIONS:
+            raise ValueError(
+                f"Unknown decision in allowed_decisions: {decision}. "
+                f"Allowed decisions: {', '.join(sorted(ALLOWED_DECISIONS))}"
+            )
+
     cursor = conn.cursor()
 
     # Serialize approval card to JSON
     card_data = approval_card.model_dump_json()
 
+    # Insert into approval_cards table
     cursor.execute(
         """
         INSERT INTO agent_approval_cards (approval_card_id, session_id, card_data, created_at)
@@ -298,6 +384,20 @@ def attach_approval_card(
             approval_card.approval_card_id,
             session_id,
             card_data,
+            approval_card.created_at.isoformat(),
+        ),
+    )
+
+    # Insert into timeline
+    cursor.execute(
+        """
+        INSERT INTO agent_timeline_items (session_id, item_type, item_id, created_at)
+        VALUES (?, ?, ?, ?)
+        """,
+        (
+            session_id,
+            "approval_card",
+            approval_card.approval_card_id,
             approval_card.created_at.isoformat(),
         ),
     )
@@ -320,10 +420,11 @@ def list_approval_cards(conn: sqlite3.Connection, session_id: str) -> list[Appro
 
     cursor.execute(
         """
-        SELECT card_data
-        FROM agent_approval_cards
-        WHERE session_id = ?
-        ORDER BY rowid ASC
+        SELECT a.card_data
+        FROM agent_approval_cards a
+        JOIN agent_timeline_items t ON a.approval_card_id = t.item_id AND t.item_type = 'approval_card'
+        WHERE a.session_id = ?
+        ORDER BY t.timeline_id ASC
         """,
         (session_id,),
     )
@@ -339,6 +440,8 @@ def get_session_timeline(conn: sqlite3.Connection, session_id: str) -> list[dict
 
     Returns messages, artifact refs, and approval cards with type information.
 
+    Uses agent_timeline_items table for global ordering across all item types.
+
     Args:
         conn: SQLite connection
         session_id: Session ID
@@ -348,23 +451,15 @@ def get_session_timeline(conn: sqlite3.Connection, session_id: str) -> list[dict
     """
     cursor = conn.cursor()
 
-    # Union all timeline items with rowid for ordering
+    # Read timeline items in global insertion order
     cursor.execute(
         """
-        SELECT 'message' as type, message_id as id, created_at, rowid
-        FROM agent_messages
+        SELECT item_type, item_id
+        FROM agent_timeline_items
         WHERE session_id = ?
-        UNION ALL
-        SELECT 'artifact_ref' as type, artifact_ref_id as id, created_at, rowid
-        FROM agent_artifact_refs
-        WHERE session_id = ?
-        UNION ALL
-        SELECT 'approval_card' as type, approval_card_id as id, created_at, rowid
-        FROM agent_approval_cards
-        WHERE session_id = ?
-        ORDER BY rowid ASC
+        ORDER BY timeline_id ASC
         """,
-        (session_id, session_id, session_id),
+        (session_id,),
     )
 
     rows = cursor.fetchall()

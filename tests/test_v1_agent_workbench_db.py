@@ -379,17 +379,28 @@ class TestAgentWorkbenchDB(unittest.TestCase):
         )
         create_session(self.conn, session)
 
-        # Append message
-        msg = AgentMessage(
+        # Mixed insertion order to test global timeline
+        # message_1
+        msg1 = AgentMessage(
             message_id="msg_timeline_001",
             session_id="session_014",
             role="user",
-            content="Test message",
+            content="First message",
             created_at=now,
         )
-        append_message(self.conn, msg)
+        append_message(self.conn, msg1)
 
-        # Attach artifact
+        # message_2
+        msg2 = AgentMessage(
+            message_id="msg_timeline_002",
+            session_id="session_014",
+            role="agent",
+            content="Second message",
+            created_at=now,
+        )
+        append_message(self.conn, msg2)
+
+        # artifact_1
         artifact = ArtifactRef(
             artifact_ref_id="ref_timeline_001",
             session_id="session_014",
@@ -399,7 +410,17 @@ class TestAgentWorkbenchDB(unittest.TestCase):
         )
         attach_artifact_ref(self.conn, artifact)
 
-        # Attach approval card
+        # message_3
+        msg3 = AgentMessage(
+            message_id="msg_timeline_003",
+            session_id="session_014",
+            role="user",
+            content="Third message",
+            created_at=now,
+        )
+        append_message(self.conn, msg3)
+
+        # approval_card_1
         approval = ApprovalCard(
             approval_card_id="approval_timeline_001",
             workflow_id="session_014",
@@ -419,20 +440,133 @@ class TestAgentWorkbenchDB(unittest.TestCase):
         # Get timeline
         timeline = get_session_timeline(self.conn, "session_014")
 
-        # Timeline should have 3 items in order
-        self.assertEqual(len(timeline), 3)
+        # Timeline should have 5 items in exact insertion order
+        self.assertEqual(len(timeline), 5)
 
-        # First item is message
+        # First item is message_1
         self.assertEqual(timeline[0]["type"], "message")
-        self.assertEqual(timeline[0]["content"]["content"], "Test message")
+        self.assertEqual(timeline[0]["content"]["message_id"], "msg_timeline_001")
+        self.assertEqual(timeline[0]["content"]["content"], "First message")
 
-        # Second item is artifact_ref
-        self.assertEqual(timeline[1]["type"], "artifact_ref")
-        self.assertEqual(timeline[1]["content"]["artifact_id"], "research_001")
+        # Second item is message_2
+        self.assertEqual(timeline[1]["type"], "message")
+        self.assertEqual(timeline[1]["content"]["message_id"], "msg_timeline_002")
+        self.assertEqual(timeline[1]["content"]["content"], "Second message")
 
-        # Third item is approval_card
-        self.assertEqual(timeline[2]["type"], "approval_card")
-        self.assertEqual(timeline[2]["content"]["approval_card_id"], "approval_timeline_001")
+        # Third item is artifact_ref
+        self.assertEqual(timeline[2]["type"], "artifact_ref")
+        self.assertEqual(timeline[2]["content"]["artifact_id"], "research_001")
+
+        # Fourth item is message_3
+        self.assertEqual(timeline[3]["type"], "message")
+        self.assertEqual(timeline[3]["content"]["message_id"], "msg_timeline_003")
+        self.assertEqual(timeline[3]["content"]["content"], "Third message")
+
+        # Fifth item is approval_card
+        self.assertEqual(timeline[4]["type"], "approval_card")
+        self.assertEqual(timeline[4]["content"]["approval_card_id"], "approval_timeline_001")
+
+    def test_attach_approval_card_rejects_workflow_mismatch(self):
+        """DB rejects approval card with workflow_id != session_id."""
+        now = datetime(2026, 6, 29, 12, 0, 0, tzinfo=timezone.utc)
+        session = AgentSession(
+            session_id="session_015",
+            workflow_kind=WorkflowKind.FRIEND_STOCK,
+            workflow_state=WorkflowState.CREATED,
+            title="Test",
+            created_at=now,
+            updated_at=now,
+        )
+        create_session(self.conn, session)
+
+        # Card belongs to different workflow
+        approval_card = ApprovalCard(
+            approval_card_id="approval_mismatch",
+            workflow_id="other_session",  # Mismatch
+            stage="research_confirmation",
+            title="Confirmation",
+            plain_language_summary="Summary",
+            allowed_decisions=["continue"],
+            blocked_technical_decisions=[],
+            artifact_ids=["research_001"],
+            created_at=now,
+            decided_at=None,
+            decision=None,
+            decided_by=None,
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            attach_approval_card(self.conn, "session_015", approval_card)
+
+        self.assertIn("workflow_id", str(ctx.exception).lower())
+
+    def test_attach_contaminated_approval_card_rejected(self):
+        """DB rejects contaminated approval card with technical decisions."""
+        now = datetime(2026, 6, 29, 12, 0, 0, tzinfo=timezone.utc)
+        session = AgentSession(
+            session_id="session_016",
+            workflow_kind=WorkflowKind.FRIEND_STOCK,
+            workflow_state=WorkflowState.CREATED,
+            title="Test",
+            created_at=now,
+            updated_at=now,
+        )
+        create_session(self.conn, session)
+
+        # Bypass Pydantic validators to create contaminated card
+        contaminated_card = ApprovalCard.model_construct(
+            approval_card_id="approval_contaminated",
+            workflow_id="session_016",
+            stage="validation",
+            title="Validation",
+            plain_language_summary="Summary",
+            allowed_decisions=["strategy_parameters"],  # Technical decision
+            blocked_technical_decisions=[],
+            artifact_ids=["validation_001"],
+            created_at=now,
+            decided_at=None,
+            decision=None,
+            decided_by=None,
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            attach_approval_card(self.conn, "session_016", contaminated_card)
+
+        self.assertIn("technical", str(ctx.exception).lower())
+
+    def test_attach_contaminated_approval_card_with_prd_forbidden(self):
+        """DB rejects contaminated approval card with PRD-level forbidden concepts."""
+        now = datetime(2026, 6, 29, 12, 0, 0, tzinfo=timezone.utc)
+        session = AgentSession(
+            session_id="session_017",
+            workflow_kind=WorkflowKind.FRIEND_STOCK,
+            workflow_state=WorkflowState.CREATED,
+            title="Test",
+            created_at=now,
+            updated_at=now,
+        )
+        create_session(self.conn, session)
+
+        # Bypass Pydantic validators to create contaminated card
+        contaminated_card = ApprovalCard.model_construct(
+            approval_card_id="approval_contaminated_prd",
+            workflow_id="session_017",
+            stage="execution",
+            title="Execution",
+            plain_language_summary="Summary",
+            allowed_decisions=["position_sizing_formulas"],  # PRD-level forbidden
+            blocked_technical_decisions=[],
+            artifact_ids=["execution_001"],
+            created_at=now,
+            decided_at=None,
+            decision=None,
+            decided_by=None,
+        )
+
+        with self.assertRaises(ValueError) as ctx:
+            attach_approval_card(self.conn, "session_017", contaminated_card)
+
+        self.assertIn("technical", str(ctx.exception).lower())
 
     def test_db_does_not_call_llm(self):
         """DB layer must not import or call LLM clients."""
