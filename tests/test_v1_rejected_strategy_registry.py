@@ -403,3 +403,67 @@ class TestRejectedStrategyRegistry(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestRejectedStrategyExtraFieldsRejection(unittest.TestCase):
+    """Test rejected strategy rejects extra execution/P&L fields."""
+
+    def test_rejects_pnl_field(self):
+        """Constructing with pnl field raises validation error."""
+        now = datetime.now(timezone.utc)
+        
+        with self.assertRaises(Exception):  # Pydantic ValidationError
+            RejectedStrategyRecord(
+                registry_id="bad_pnl",
+                strategy_revision_id="rev_001",
+                template_id="template_001",
+                template_version="v1",
+                status=RejectedStrategyStatus.REJECTED,
+                failed_gate="gate",
+                rejection_reason="Reason",
+                data_quality_status=DataQualityStatus.OK,
+                artifact_ids=["art_001"],
+                created_at=now,
+                actor="system",
+                pnl=123.45,  # Extra field - should fail
+            )
+
+    def test_rejects_recommendation_level_field(self):
+        """Constructing with recommendation_level raises validation error."""
+        now = datetime.now(timezone.utc)
+        
+        with self.assertRaises(Exception):
+            RejectedStrategyRecord(
+                registry_id="bad_rec",
+                strategy_revision_id="rev_001",
+                template_id="template_001",
+                template_version="v1",
+                status=RejectedStrategyStatus.REJECTED,
+                failed_gate="gate",
+                rejection_reason="Reason",
+                data_quality_status=DataQualityStatus.OK,
+                artifact_ids=["art_001"],
+                created_at=now,
+                actor="system",
+                recommendation_level="strongly_execute",  # Extra field
+            )
+
+    def test_rejects_execution_price_field(self):
+        """Constructing with execution_price raises validation error."""
+        now = datetime.now(timezone.utc)
+        
+        with self.assertRaises(Exception):
+            RejectedStrategyRecord(
+                registry_id="bad_exec",
+                strategy_revision_id="rev_001",
+                template_id="template_001",
+                template_version="v1",
+                status=RejectedStrategyStatus.REJECTED,
+                failed_gate="gate",
+                rejection_reason="Reason",
+                data_quality_status=DataQualityStatus.OK,
+                artifact_ids=["art_001"],
+                created_at=now,
+                actor="system",
+                execution_price=10.5,  # Extra field
+            )

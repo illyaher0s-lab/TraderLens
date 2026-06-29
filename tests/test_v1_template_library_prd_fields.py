@@ -174,3 +174,99 @@ class TestV1TemplateHashSemantics(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestV1TemplateHashMutation(unittest.TestCase):
+    """Test hash changes when semantic fields change."""
+
+    def test_hash_changes_when_entry_rules_changes(self):
+        """Hash changes when entry_rules changes."""
+        from backend.services.strategy_template_library import StrategyTemplate
+        
+        template = get_template_by_id("theme_momentum_breakout_v1")
+        original_hash = template.frozen_template_hash
+        
+        # Use model_construct to bypass validators for test
+        modified = StrategyTemplate.model_construct(**{
+            **template.model_dump(),
+            "entry_rules": "Modified entry logic"
+        })
+        
+        self.assertNotEqual(modified.frozen_template_hash, original_hash)
+
+    def test_hash_changes_when_exit_rules_changes(self):
+        """Hash changes when exit_rules changes."""
+        from backend.services.strategy_template_library import StrategyTemplate
+        
+        template = get_template_by_id("theme_momentum_breakout_v1")
+        original_hash = template.frozen_template_hash
+        
+        modified = StrategyTemplate.model_construct(**{
+            **template.model_dump(),
+            "exit_rules": "Modified exit logic"
+        })
+        
+        self.assertNotEqual(modified.frozen_template_hash, original_hash)
+
+    def test_hash_changes_when_risk_rules_changes(self):
+        """Hash changes when risk_rules changes."""
+        from backend.services.strategy_template_library import StrategyTemplate
+        
+        template = get_template_by_id("theme_momentum_breakout_v1")
+        original_hash = template.frozen_template_hash
+        
+        modified = StrategyTemplate.model_construct(**{
+            **template.model_dump(),
+            "risk_rules": "Modified risk logic"
+        })
+        
+        self.assertNotEqual(modified.frozen_template_hash, original_hash)
+
+    def test_hash_changes_when_position_sizing_rules_changes(self):
+        """Hash changes when position_sizing_rules changes."""
+        from backend.services.strategy_template_library import StrategyTemplate
+        
+        template = get_template_by_id("theme_momentum_breakout_v1")
+        original_hash = template.frozen_template_hash
+        
+        modified = StrategyTemplate.model_construct(**{
+            **template.model_dump(),
+            "position_sizing_rules": "Modified sizing"
+        })
+        
+        self.assertNotEqual(modified.frozen_template_hash, original_hash)
+
+    def test_hash_changes_when_validation_gate_profile_changes(self):
+        """Hash changes when validation_gate_profile changes."""
+        from backend.services.strategy_template_library import StrategyTemplate
+        
+        template = get_template_by_id("theme_momentum_breakout_v1")
+        original_hash = template.frozen_template_hash
+        
+        modified = StrategyTemplate.model_construct(**{
+            **template.model_dump(),
+            "validation_gate_profile": "strict"
+        })
+        
+        self.assertNotEqual(modified.frozen_template_hash, original_hash)
+
+    def test_nested_config_immutable(self):
+        """Attempting to mutate nested strategy_config_payload fails."""
+        template = get_template_by_id("theme_momentum_breakout_v1")
+        
+        # strategy_config_payload is now immutable (MappingProxyType)
+        with self.assertRaises(TypeError):
+            template.strategy_config_payload["entry"]["macd_fast"] = 99
+
+    def test_convert_to_frozen_contract_uses_v1_hash(self):
+        """convert_to_frozen_contract uses V1 semantic frozen hash."""
+        from backend.services.strategy_template_library import convert_to_frozen_contract
+        from datetime import datetime, timezone
+        
+        template = get_template_by_id("theme_momentum_breakout_v1")
+        now = datetime.now(timezone.utc)
+        
+        contract = convert_to_frozen_contract(template, now)
+        
+        # Contract must use frozen_template_hash (V1 semantic hash)
+        self.assertEqual(contract.template_hash, template.frozen_template_hash)

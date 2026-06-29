@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import types
 from datetime import datetime
 from typing import Literal
 
@@ -41,6 +42,21 @@ class StrategyTemplate(BaseModel):
     position_sizing_rules: str = ""
     validation_gate_profile: str = ""
     
+    def model_post_init(self, __context):
+        """Deep-freeze nested dicts to ensure immutability."""
+        # Convert strategy_config_payload to immutable nested structure
+        object.__setattr__(self, 'strategy_config_payload', self._make_immutable(self.strategy_config_payload))
+        object.__setattr__(self, 'default_risk_rules', self._make_immutable(self.default_risk_rules))
+    
+    @staticmethod
+    def _make_immutable(obj):
+        """Recursively convert dicts/lists to immutable equivalents."""
+        if isinstance(obj, dict):
+            return types.MappingProxyType({k: StrategyTemplate._make_immutable(v) for k, v in obj.items()})
+        elif isinstance(obj, list):
+            return tuple(StrategyTemplate._make_immutable(item) for item in obj)
+        return obj
+    
     @property
     def template_hash(self) -> str:
         """Compute stable hash from semantic content only."""
@@ -52,12 +68,12 @@ class StrategyTemplate(BaseModel):
             "supported_universe_rule_types": self.supported_universe_rule_types,
             "sample_split_rule_ids": self.sample_split_rule_ids,
             "benchmark_rule_id": self.benchmark_rule_id,
-            "strategy_config_payload": self.strategy_config_payload,
+            "strategy_config_payload": self._serialize_for_hash(self.strategy_config_payload),
             "forbidden_fields": self.forbidden_fields,
             "forbidden_evidence_terms": self.forbidden_evidence_terms,
             "default_cost_model": self.default_cost_model,
             "default_fill_model": self.default_fill_model,
-            "default_risk_rules": self.default_risk_rules,
+            "default_risk_rules": self._serialize_for_hash(self.default_risk_rules),
         }
         payload = json.dumps(canonical, sort_keys=True).encode("utf-8")
         return hashlib.sha256(payload).hexdigest()[:32]
@@ -72,12 +88,22 @@ class StrategyTemplate(BaseModel):
             "exit_rules": self.exit_rules,
             "risk_rules": self.risk_rules,
             "position_sizing_rules": self.position_sizing_rules,
-            "strategy_config_payload": self.strategy_config_payload,
+            "validation_gate_profile": self.validation_gate_profile,
+            "strategy_config_payload": self._serialize_for_hash(self.strategy_config_payload),
             "market_fit": self.market_fit,
             "forbidden_market": self.forbidden_market,
         }
         payload = json.dumps(canonical, sort_keys=True).encode("utf-8")
         return hashlib.sha256(payload).hexdigest()
+    
+    @staticmethod
+    def _serialize_for_hash(obj):
+        """Convert immutable proxy objects back to serializable form."""
+        if isinstance(obj, types.MappingProxyType):
+            return {k: StrategyTemplate._serialize_for_hash(v) for k, v in obj.items()}
+        elif isinstance(obj, tuple):
+            return [StrategyTemplate._serialize_for_hash(item) for item in obj]
+        return obj
 
 
 # Hard-coded templates with conservative fixed parameters
@@ -259,7 +285,7 @@ def convert_to_frozen_contract(template: StrategyTemplate, created_at: datetime)
     return StrategyTemplateDefinition(
         template_id=template.template_id,
         version=template.version,
-        template_hash=template.template_hash,
+        template_hash=template.frozen_template_hash,  # Use V1 semantic hash
         hypothesis_types=template.hypothesis_types,
         core_entry_rule_id=template.core_entry_rule_id,
         supported_universe_rule_types=template.supported_universe_rule_types,

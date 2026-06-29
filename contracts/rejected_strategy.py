@@ -7,7 +7,7 @@ Prevents survivorship bias.
 
 from datetime import datetime
 from enum import Enum
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 class RejectedStrategyStatus(str, Enum):
@@ -34,6 +34,8 @@ class RejectedStrategyRecord(BaseModel):
     
     Append-only. No live execution or P&L fields.
     """
+    
+    model_config = ConfigDict(frozen=True, extra="forbid")
     
     registry_id: str = Field(..., description="Unique registry ID")
     strategy_revision_id: str = Field(..., description="Strategy revision ID")
