@@ -348,3 +348,105 @@ def test_orchestration_not_reimplementation(flow_service):
     
     # Should call existing services (stub check)
     assert "R1:" in source or "orchestrate" in source.lower()
+
+
+def test_pool_persists_to_db_and_read_back():
+    """Test 18: Pool writes to DB and can be read back with consistent snapshot_hash."""
+    from datetime import date
+    from backend.db.research import ResearchDB
+    from backend.services.friend_stock_flow import FriendStockFlowService
+    
+    # Setup
+    db = ResearchDB(db_path=":memory:")
+    flow_service = FriendStockFlowService()
+    
+    # Mock market data provider
+    def mock_provider(symbol: str, as_of: date) -> dict:
+        return {"close": 10.5, "volume": 1000000}
+    
+    flow_service.market_data_provider = mock_provider
+    
+    # Mock research output
+    research_output = {
+        "theme_id": "flow_001",
+        "candidate_rationales": {
+            "600000.SH": {
+                "rationale": "核心玩家，业绩稳定",
+                "supporting_source_ids": ["evidence_001"],
+                "counter_evidence": [
+                    {"description": "市场竞争加剧", "source_record_id": "counter_001"}
+                ],
+            }
+        },
+    }
+    
+    # Create pool
+    pool = flow_service.create_confirmed_pool(
+        flow_id="flow_001",
+        ticker="600000.SH",
+        name="浦发银行",
+        exchange="SSE",
+        approval_card_id="card_001",
+        research_output=research_output,
+        snapshot_date=date.today(),
+    )
+    
+    original_hash = pool.snapshot_hash
+    
+    # Persist to DB (need to create candidate first)
+    from contracts.research import CandidateStock
+    candidate = CandidateStock(
+        candidate_id="cand_001",
+        theme_id=pool.flow_id,
+        symbol=pool.ticker,
+        company_name=pool.name,
+        verification_id="",
+        source_type="manual_stock",  # Use allowed enum value
+        chain_layer="",
+        match_reason="Friend recommendation",
+        match_confidence="high",
+        status="raw",  # Use allowed enum value
+        hard_filter_flags=[],
+        created_at=pool.created_at,
+    )
+    db.add_candidate(candidate)
+    
+    # Confirm candidate
+    confirmed = db.confirm_candidate(
+        candidate_id="cand_001",
+        confirmation_reason="Test",
+        evidence_level="medium",
+        confirmed_by="test",
+        pool_snapshot_date=pool.confirmation_date.date(),
+        thesis_snapshot=pool.thesis_snapshot,
+        invalidation_rules=pool.invalidation_rules,
+        price_snapshot=pool.price_snapshot,
+        benchmark_snapshot=pool.benchmark_snapshot,
+        evidence_snapshot_ids=pool.evidence_snapshot_ids,
+        primary_evidence_snapshot_id=None,
+    )
+    
+    # Read back from DB using the confirmed_id returned by confirm_candidate
+    retrieved = db.get_confirmed_candidate(confirmed.confirmed_id)
+    
+    # Verify read back succeeded
+    assert retrieved is not None
+    assert retrieved.symbol == "600000.SH"
+    assert retrieved.company_name == "浦发银行"
+    assert retrieved.thesis_snapshot == pool.thesis_snapshot
+    
+    # Verify semantic fields match
+    assert retrieved.invalidation_rules == pool.invalidation_rules
+    assert retrieved.price_snapshot == pool.price_snapshot
+    assert retrieved.benchmark_snapshot == pool.benchmark_snapshot
+    assert retrieved.evidence_snapshot_ids == pool.evidence_snapshot_ids
+    
+    # Reconstruct snapshot_hash from DB fields (use same logic as friend_stock_flow.py)
+    import hashlib
+    # friend_stock_flow.py uses: f"{ticker}{name}{pool_data['confirmation_date']}{pool_data['thesis_snapshot']}"
+    # But confirmation_date is datetime, need to use same format
+    hash_input = f"{retrieved.symbol}{retrieved.company_name}{confirmed.confirmed_at}{retrieved.thesis_snapshot}"
+    reconstructed_hash = hashlib.sha256(hash_input.encode()).hexdigest()[:16]
+    
+    # Verify hash consistency (proves frozen snapshot)
+    assert reconstructed_hash == original_hash

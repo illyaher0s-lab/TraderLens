@@ -601,6 +601,7 @@ def create_research_app(
         Returns ticker verification result.
         """
         from backend.services.friend_stock_flow import FriendStockFlowService
+        import uuid
         
         flow_service = FriendStockFlowService(
             validator=validator,
@@ -611,6 +612,16 @@ def create_research_app(
         result = flow_service.verify_ticker(
             raw_company_input=request.raw_company_input,
             raw_code_input=request.raw_code_input,
+        )
+        
+        # Store flow state
+        flow_id = result.flow_id
+        db.store_friend_stock_flow(
+            flow_id=flow_id,
+            raw_company_input=request.raw_company_input,
+            raw_code_input=request.raw_code_input,
+            source_note=request.source_note,
+            ticker_verification_result=result.model_dump(),
         )
         
         return result.model_dump()
@@ -624,12 +635,30 @@ def create_research_app(
         
         flow_service = FriendStockFlowService()
         
-        # Retrieve original candidates from session/DB (simplified for now)
-        # In real implementation, fetch from DB by flow_id
+        # Fetch flow state from DB
+        flow_state = db.get_friend_stock_flow(flow_id)
+        if not flow_state:
+            raise HTTPException(status_code=404, detail="Flow not found")
+        
+        verification_result = flow_state.get("ticker_verification_result")
+        if not verification_result or verification_result.get("status") != "ambiguous":
+            raise HTTPException(status_code=400, detail="Flow is not in ambiguous state")
+        
+        original_candidates = verification_result.get("candidates", [])
+        
         result = flow_service.resolve_ambiguous_ticker(
             flow_id=flow_id,
             chosen_ticker=request.chosen_ticker,
-            original_candidates=[],  # TODO: fetch from DB
+            original_candidates=original_candidates,
+        )
+        
+        # Update flow state
+        db.store_friend_stock_flow(
+            flow_id=flow_id,
+            raw_company_input=flow_state["raw_company_input"],
+            raw_code_input=flow_state["raw_code_input"],
+            source_note=flow_state["source_note"],
+            ticker_verification_result=result.model_dump(),
         )
         
         return result.model_dump()
@@ -642,6 +671,11 @@ def create_research_app(
         Returns research synthesis output.
         """
         from backend.services.friend_stock_flow import FriendStockFlowService
+        
+        # Fetch flow state from DB
+        flow_state = db.get_friend_stock_flow(flow_id)
+        if not flow_state:
+            raise HTTPException(status_code=404, detail="Flow not found")
         
         # Wire real Serenity runner if in real mode
         if conversation_mode == "real" and hasattr(serenity_runner, 'run'):
@@ -660,6 +694,16 @@ def create_research_app(
             company_name=company_name,
         )
         
+        # Update flow state with research output
+        db.store_friend_stock_flow(
+            flow_id=flow_id,
+            raw_company_input=flow_state["raw_company_input"],
+            raw_code_input=flow_state["raw_code_input"],
+            source_note=flow_state["source_note"],
+            ticker_verification_result=flow_state.get("ticker_verification_result"),
+            research_output=research_output,
+        )
+        
         return research_output
 
     @app.post("/api/research/friend-stock/{flow_id}/create-pool")
@@ -671,6 +715,15 @@ def create_research_app(
         """
         from backend.services.friend_stock_flow import FriendStockFlowService
         from datetime import date
+        
+        # Fetch flow state from DB
+        flow_state = db.get_friend_stock_flow(flow_id)
+        if not flow_state:
+            raise HTTPException(status_code=404, detail="Flow not found")
+        
+        research_output = flow_state.get("research_output")
+        if not research_output:
+            raise HTTPException(status_code=400, detail="Research not completed for this flow")
         
         # Wire services
         if conversation_mode == "real" and hasattr(serenity_runner, 'run'):
@@ -691,9 +744,6 @@ def create_research_app(
         # Parse snapshot date
         snapshot_date = date.fromisoformat(request.snapshot_date)
         
-        # Fetch research output from previous step (simplified - should be from DB)
-        research_output = {"candidate_rationales": {}, "theme_id": flow_id}
-        
         pool = flow_service.create_confirmed_pool(
             flow_id=flow_id,
             ticker=request.ticker,
@@ -707,7 +757,7 @@ def create_research_app(
         # Persist to DB
         from contracts.research import ConfirmedCandidate
         confirmed = ConfirmedCandidate(
-            candidate_id=pool.pool_id,
+            confirmed_id=pool.pool_id,
             theme_id=flow_id,
             symbol=pool.ticker,
             company_name=pool.name,

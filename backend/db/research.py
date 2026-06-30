@@ -245,6 +245,20 @@ class ResearchDB:
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_verification_symbol ON ticker_verification_records(symbol)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_verification_expires ON ticker_verification_records(expires_at)")
 
+        # friend_stock_flows (flow state persistence)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS friend_stock_flows (
+                flow_id TEXT PRIMARY KEY,
+                raw_company_input TEXT,
+                raw_code_input TEXT,
+                source_note TEXT,
+                ticker_verification_result TEXT,
+                research_output TEXT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+        """)
+
         self.conn.commit()
 
     def _ensure_column(self, table_name: str, column_name: str, column_definition: str):
@@ -516,6 +530,36 @@ class ResearchDB:
             )
             for row in cursor.fetchall()
         ]
+
+    def get_confirmed_candidate(self, confirmed_id: str) -> Optional[ConfirmedCandidate]:
+        """Get a confirmed candidate by pool_id (confirmed_id)."""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM confirmed_candidates WHERE confirmed_id = ?", (confirmed_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return ConfirmedCandidate(
+            confirmed_id=row["confirmed_id"],
+            theme_id=row["theme_id"],
+            candidate_id=row["candidate_id"],
+            source_serenity_run_id=row["source_serenity_run_id"],
+            source_evidence_run_id=row["source_evidence_run_id"],
+            symbol=row["symbol"],
+            company_name=row["company_name"],
+            verification_id=row["verification_id"],
+            chain_layer=row["chain_layer"],
+            thesis_snapshot=row["thesis_snapshot"],
+            invalidation_rules=json.loads(row["invalidation_rules"]),
+            price_snapshot=json.loads(row["price_snapshot"]),
+            benchmark_snapshot=json.loads(row["benchmark_snapshot"]),
+            confirmation_reason=row["confirmation_reason"],
+            evidence_level=row["evidence_level"],
+            evidence_snapshot_ids=json.loads(row["evidence_snapshot_ids"]),
+            primary_evidence_snapshot_id=row["primary_evidence_snapshot_id"],
+            confirmed_by=row["confirmed_by"],
+            confirmed_at=datetime.fromisoformat(row["confirmed_at"]),
+            pool_snapshot_date=date.fromisoformat(row["pool_snapshot_date"]),
+        )
 
     def store_conversation_message(self, message: ConversationMessage):
         """Store a conversation message."""
@@ -955,3 +999,74 @@ class ResearchDB:
             WHERE verification_id = ? AND expires_at > ?
         """, (verification_id, datetime.now().isoformat()))
         return cursor.fetchone() is not None
+
+    def store_friend_stock_flow(
+        self,
+        flow_id: str,
+        raw_company_input: str,
+        raw_code_input: Optional[str],
+        source_note: str,
+        ticker_verification_result: Optional[dict] = None,
+        research_output: Optional[dict] = None,
+    ):
+        """Store or update friend stock flow state."""
+        cursor = self.conn.cursor()
+        now = datetime.now().isoformat()
+        
+        # Check if exists
+        cursor.execute("SELECT 1 FROM friend_stock_flows WHERE flow_id = ?", (flow_id,))
+        exists = cursor.fetchone() is not None
+        
+        if exists:
+            # Update
+            cursor.execute("""
+                UPDATE friend_stock_flows
+                SET ticker_verification_result = ?,
+                    research_output = ?,
+                    updated_at = ?
+                WHERE flow_id = ?
+            """, (
+                json.dumps(ticker_verification_result) if ticker_verification_result else None,
+                json.dumps(research_output) if research_output else None,
+                now,
+                flow_id,
+            ))
+        else:
+            # Insert
+            cursor.execute("""
+                INSERT INTO friend_stock_flows
+                (flow_id, raw_company_input, raw_code_input, source_note,
+                 ticker_verification_result, research_output, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                flow_id,
+                raw_company_input,
+                raw_code_input,
+                source_note,
+                json.dumps(ticker_verification_result) if ticker_verification_result else None,
+                json.dumps(research_output) if research_output else None,
+                now,
+                now,
+            ))
+        
+        self.conn.commit()
+
+    def get_friend_stock_flow(self, flow_id: str) -> Optional[dict]:
+        """Get friend stock flow state by flow_id."""
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT * FROM friend_stock_flows WHERE flow_id = ?", (flow_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        
+        return {
+            "flow_id": row["flow_id"],
+            "raw_company_input": row["raw_company_input"],
+            "raw_code_input": row["raw_code_input"],
+            "source_note": row["source_note"],
+            "ticker_verification_result": json.loads(row["ticker_verification_result"]) if row["ticker_verification_result"] else None,
+            "research_output": json.loads(row["research_output"]) if row["research_output"] else None,
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"],
+        }
+
