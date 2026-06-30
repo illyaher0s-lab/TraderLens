@@ -268,16 +268,30 @@ class FriendStockFlowService:
         # Call real Serenity runner
         output = self.serenity_runner.run(theme, manual_candidates=[])
         
-        # Convert candidate_pool_raw from list to dict for backward compatibility
+        # Convert Serenity's contract objects to the friend-stock response shape.
+        # Older fixtures used dicts, so keep that path for compatibility.
         if isinstance(output.candidate_pool_raw, list):
-            candidate_rationales = {
-                c["symbol"]: {
-                    "rationale": c["rationale"],
-                    "supporting_source_ids": c.get("supporting_source_ids", []),
-                    "counter_evidence": c.get("counter_evidence", []),
+            candidate_rationales = {}
+            for candidate in output.candidate_pool_raw:
+                if isinstance(candidate, dict):
+                    symbol = candidate["symbol"]
+                    rationale = candidate.get("rationale") or candidate.get("match_reason", "")
+                    supporting_source_ids = candidate.get("supporting_source_ids", [])
+                    counter_evidence = candidate.get("counter_evidence", [])
+                else:
+                    symbol = candidate.symbol
+                    rationale = candidate.match_reason
+                    supporting_source_ids = candidate.supporting_source_ids
+                    counter_evidence = [
+                        item.model_dump(mode="json")
+                        for item in candidate.counter_evidence
+                    ]
+
+                candidate_rationales[symbol] = {
+                    "rationale": rationale,
+                    "supporting_source_ids": supporting_source_ids,
+                    "counter_evidence": counter_evidence,
                 }
-                for c in output.candidate_pool_raw
-            }
         else:
             # Already dict format
             candidate_rationales = output.candidate_pool_raw
@@ -370,12 +384,12 @@ class FriendStockFlowService:
         from backend.services.live_market_data import MarketDataFaultState
         if price_result.fault.state != MarketDataFaultState.ok:
             raise ValueError(
-                f"Price data fault: {price_result.fault.state.value} - {price_result.fault.description}"
+                f"Price data fault: {price_result.fault.state.value} - {price_result.fault.message}"
             )
         
         if benchmark_result.fault.state != MarketDataFaultState.ok:
             raise ValueError(
-                f"Benchmark data fault: {benchmark_result.fault.state.value} - {benchmark_result.fault.description}"
+                f"Benchmark data fault: {benchmark_result.fault.state.value} - {benchmark_result.fault.message}"
             )
         
         # R5: source field must equal actual adapter call, not hand-filled string

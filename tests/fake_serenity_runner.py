@@ -2,7 +2,7 @@
 Fake SerenityRunner for testing friend-stock flow.
 """
 
-from contracts.research import ThemeInput
+from contracts.research import AgentHarnessConfig, CandidateStock, ThemeInput
 from backend.services.serenity_agent import SerenityOutput
 from datetime import datetime
 
@@ -16,6 +16,23 @@ class FakeSerenityRunner:
         """
         Return a fake SerenityOutput with minimal valid structure.
         """
+        now = datetime.now()
+        candidate = CandidateStock(
+            candidate_id=f"fake_cand_{theme.theme_id}",
+            theme_id=theme.theme_id,
+            symbol="600000.SH",
+            company_name="Test Company",
+            source_type="manual_stock",
+            chain_layer="banking",
+            match_reason="Strong player in sector",
+            match_confidence="high",
+            status="raw",
+            hard_filter_flags=[],
+            created_at=now,
+            supporting_source_ids=["src_001"],
+            counter_evidence=[],
+        )
+
         return SerenityOutput(
             theme_id=theme.theme_id,
             demand_driver="Test demand driver",
@@ -26,18 +43,16 @@ class FakeSerenityRunner:
             ],
             suspected_bottleneck_layers=[{"layer": "midstream", "reason": "capacity constraint"}],
             hypothesis_draft=[{"hypothesis": "Test hypothesis"}],
-            candidate_pool_raw=[
-                {
-                    "symbol": "600000.SH",
-                    "company_name": "Test Company",
-                    "rationale": "Strong player in sector",
-                    "supporting_source_ids": ["src_001"],
-                    "counter_evidence": [],
-                }
-            ],
+            candidate_pool_raw=[candidate],
             candidate_shortlist=[],
             evidence_gaps=["Need more financial data"],
-            harness={},
-            run_id=f"run_{theme.theme_id}",
-            created_at=datetime.now(),
+            harness=AgentHarnessConfig(
+                execution_engine="two_phase",
+                llm_provider="fake-provider",
+                tool_whitelist=["fake_serenity"],
+                max_steps=1,
+                token_budget=1,
+                replayable=True,
+            ),
+            created_at=now,
         )

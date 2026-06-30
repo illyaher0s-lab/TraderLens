@@ -89,6 +89,7 @@ def create_research_app(
     validator: ResearchValidator | None = None,
     serenity_runner=None,
     market_data_provider=None,
+    allow_test_serenity_runner: bool = False,
 ) -> FastAPI:
     """
     Create Research API app.
@@ -100,6 +101,7 @@ def create_research_app(
         validator: ResearchValidator (if None, creates default with env config)
         serenity_runner: SerenityRunner (if provided, must match mode constraints)
         market_data_provider: Market data provider function (symbol, as_of) -> dict
+        allow_test_serenity_runner: Allows tests to inject a fake runner without real credentials
     
     Returns:
         FastAPI app
@@ -137,8 +139,8 @@ def create_research_app(
                 f"but got '{serenity_execution_mode}'. No silent fallback allowed."
             )
         
-        # Check LLM API key (skip if serenity_runner provided for testing)
-        if serenity_runner is None:
+        # Check LLM API key (skip only for explicit test runner injection)
+        if not (allow_test_serenity_runner and serenity_runner is not None):
             import os
             llm_key = os.getenv("RESEARCH_LLM_API_KEY")
             if not llm_key:
@@ -165,7 +167,13 @@ def create_research_app(
     if validator is None:
         validator = ResearchValidator()
     reducer = ResearchActionReducer(db, validator)
-    conversation = ResearchConversationService(db, mode=conversation_mode)
+    conversation: ResearchConversationService | None = None
+
+    def get_conversation_service() -> ResearchConversationService:
+        nonlocal conversation
+        if conversation is None:
+            conversation = ResearchConversationService(db, mode=conversation_mode)
+        return conversation
     
     # Build or validate Serenity runner
     if serenity_runner is not None:
@@ -174,10 +182,16 @@ def create_research_app(
         from backend.services.serenity_agent import SerenityAgentRunner
         
         if conversation_mode == "real":
-            # Allow any runner with a run() method for testing
-            if not hasattr(serenity_runner, 'run'):
+            is_allowed_test_runner = (
+                allow_test_serenity_runner
+                and type(serenity_runner).__module__ == "tests.fake_serenity_runner"
+                and type(serenity_runner).__name__ == "FakeSerenityRunner"
+                and hasattr(serenity_runner, "run")
+            )
+
+            if not isinstance(serenity_runner, SerenityAgentRunner) and not is_allowed_test_runner:
                 raise ValueError(
-                    f"conversation_mode='real' requires a runner with run() method, "
+                    f"conversation_mode='real' requires SerenityAgentRunner, "
                     f"but got {type(serenity_runner).__name__}."
                 )
         
@@ -452,7 +466,7 @@ def create_research_app(
     @app.post("/api/research/themes/{theme_id}/conversation")
     def send_message(theme_id: str, request: ConversationRequest):
         """Send a message and get agent reply with optional proposed actions."""
-        result = conversation.process_user_message(
+        result = get_conversation_service().process_user_message(
             theme_id=theme_id,
             user_content=request.content,
         )
@@ -776,15 +790,18 @@ def create_research_app(
         snapshot_date = date.fromisoformat(request.snapshot_date)
         
         # Create pool
-        pool = flow_service.create_confirmed_pool(
-            flow_id=flow_id,
-            ticker=request.ticker,
-            name=resolved_name,
-            exchange=request.exchange,
-            approval_card_id=request.approval_card_id,
-            research_output=research_output,
-            snapshot_date=snapshot_date,
-        )
+        try:
+            pool = flow_service.create_confirmed_pool(
+                flow_id=flow_id,
+                ticker=request.ticker,
+                name=resolved_name,
+                exchange=request.exchange,
+                approval_card_id=request.approval_card_id,
+                research_output=research_output,
+                snapshot_date=snapshot_date,
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=503, detail=str(e))
         
         # Create or get candidate
         from contracts.research import CandidateStock, ThemeInput

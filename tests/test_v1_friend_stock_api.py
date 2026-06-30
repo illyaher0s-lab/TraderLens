@@ -45,6 +45,7 @@ def app(market_data_provider, monkeypatch):
         validator=fake_validator,
         serenity_runner=fake_serenity,
         market_data_provider=market_data_provider,
+        allow_test_serenity_runner=True,
     )
     return app
 
@@ -369,6 +370,7 @@ def test_friend_stock_api_create_pool_blocks_price_provider_empty_data(app):
         serenity_execution_mode="two_phase",
         serenity_runner=fake_serenity,
         market_data_provider=faulty_provider,
+        allow_test_serenity_runner=True,
     )
     client = TestClient(test_app)
     
@@ -428,6 +430,7 @@ def test_friend_stock_api_create_pool_blocks_price_provider_exception():
         serenity_execution_mode="two_phase",
         serenity_runner=fake_serenity,
         market_data_provider=exception_provider,
+        allow_test_serenity_runner=True,
     )
     client = TestClient(test_app)
     
@@ -456,8 +459,9 @@ def test_friend_stock_api_create_pool_blocks_price_provider_exception():
         },
     )
     
-    # Should return 500 (unhandled exception)
-    assert response.status_code == 500
+    # Provider exceptions are normalized into MarketDataFault=source_error and must block.
+    assert response.status_code == 503
+    assert "source_error" in response.json()["detail"]
     
     # Verify NO confirmed_candidates created
     confirmed_list = db.list_confirmed_candidates(flow_id)
@@ -491,6 +495,7 @@ def test_friend_stock_api_create_pool_blocks_benchmark_provider_fault():
         serenity_execution_mode="two_phase",
         serenity_runner=fake_serenity,
         market_data_provider=benchmark_fault_provider,
+        allow_test_serenity_runner=True,
     )
     client = TestClient(test_app)
     
