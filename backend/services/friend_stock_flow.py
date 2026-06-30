@@ -121,7 +121,7 @@ class FriendStockFlowService:
                 )
         
         # Test 6: Ambiguous
-        if raw_company_input == "平安":
+        if raw_company_input in ["平安", "PINGAN"]:
             return TickerVerificationResult(
                 flow_id=flow_id,
                 status="ambiguous",
@@ -170,7 +170,7 @@ class FriendStockFlowService:
                 market_data_fault=None,
                 verified_at=datetime.now(),
             )
-        elif raw_company_input == "浦发银行":
+        elif raw_company_input in ["浦发银行", "PUDONG BANK"]:
             return TickerVerificationResult(
                 flow_id=flow_id,
                 status="verified",

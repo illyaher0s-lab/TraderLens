@@ -88,6 +88,7 @@ def create_research_app(
     serenity_execution_mode: str = "stub",
     validator: ResearchValidator | None = None,
     serenity_runner=None,
+    market_data_provider=None,
 ) -> FastAPI:
     """
     Create Research API app.
@@ -98,6 +99,7 @@ def create_research_app(
         serenity_execution_mode: Serenity execution mode ("stub" or "two_phase", default "stub")
         validator: ResearchValidator (if None, creates default with env config)
         serenity_runner: SerenityRunner (if provided, must match mode constraints)
+        market_data_provider: Market data provider function (symbol, as_of) -> dict
     
     Returns:
         FastAPI app
@@ -116,6 +118,9 @@ def create_research_app(
 
     if db is None:
         db = ResearchDB()
+    
+    # Store DB in app.state for test access
+    app.state.db = db
 
     # Strict conversation_mode validation
     if conversation_mode not in ("real", "deterministic"):
@@ -646,11 +651,14 @@ def create_research_app(
         
         original_candidates = verification_result.get("candidates", [])
         
-        result = flow_service.resolve_ambiguous_ticker(
-            flow_id=flow_id,
-            chosen_ticker=request.chosen_ticker,
-            original_candidates=original_candidates,
-        )
+        try:
+            result = flow_service.resolve_ambiguous_ticker(
+                flow_id=flow_id,
+                chosen_ticker=request.chosen_ticker,
+                original_candidates=original_candidates,
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
         
         # Update flow state
         db.store_friend_stock_flow(
@@ -689,10 +697,13 @@ def create_research_app(
             market_data_provider=None,
         )
         
-        research_output = flow_service.run_industry_research(
-            ticker=ticker,
-            company_name=company_name,
-        )
+        try:
+            research_output = flow_service.run_industry_research(
+                ticker=ticker,
+                company_name=company_name,
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=503, detail=str(e))
         
         # Update flow state with research output
         db.store_friend_stock_flow(
@@ -739,69 +750,111 @@ def create_research_app(
                 detail=f"Request ticker '{request.ticker}' does not match verified ticker '{verification_result.get('resolved_ticker')}'"
             )
         
-        if request.name != verification_result.get("resolved_name"):
-            raise HTTPException(
-                status_code=400,
-                detail=f"Request name '{request.name}' does not match verified name '{verification_result.get('resolved_name')}'"
-            )
-        
         if request.exchange != verification_result.get("exchange"):
             raise HTTPException(
                 status_code=400,
                 detail=f"Request exchange '{request.exchange}' does not match verified exchange '{verification_result.get('exchange')}'"
             )
         
+        # Use resolved_name from verification, not request.name (may be English alias)
+        resolved_name = verification_result.get("resolved_name")
+        
         research_output = flow_state.get("research_output")
         if not research_output:
             raise HTTPException(status_code=400, detail="Research not completed for this flow")
         
-        # Market data unavailable blocks pool creation
-        raise HTTPException(
-            status_code=503,
-            detail="Market data adapter unavailable. Cannot create pool without live price snapshot."
+        # Check if market data provider available
+        if market_data_provider is None:
+            raise HTTPException(
+                status_code=503,
+                detail="Market data adapter unavailable. Cannot create pool without live price snapshot."
+            )
+        
+        # Wire services
+        if conversation_mode == "real" and hasattr(serenity_runner, 'run'):
+            serenity = serenity_runner
+        else:
+            serenity = None
+        
+        flow_service = FriendStockFlowService(
+            validator=validator,
+            serenity_runner=serenity,
+            market_data_provider=market_data_provider,
         )
         
-        # Note: The code below would execute if market data were available
-        # Wire services
-        # if conversation_mode == "real" and hasattr(serenity_runner, 'run'):
-        #     serenity = serenity_runner
-        # else:
-        #     serenity = None
-        #
-        # flow_service = FriendStockFlowService(
-        #     validator=validator,
-        #     serenity_runner=serenity,
-        #     market_data_provider=real_market_data_provider,  # Must be real, not mock
-        # )
-        #
-        # # Parse snapshot date
-        # snapshot_date = date.fromisoformat(request.snapshot_date)
-        #
-        # pool = flow_service.create_confirmed_pool(
-        #     flow_id=flow_id,
-        #     ticker=request.ticker,
-        #     name=request.name,
-        #     exchange=request.exchange,
-        #     approval_card_id=request.approval_card_id,
-        #     research_output=research_output,
-        #     snapshot_date=snapshot_date,
-        # )
-        #
-        # # Persist to DB with real verification_id
-        # confirmed = db.confirm_candidate(
-        #     candidate_id="cand_" + pool.pool_id,
-        #     confirmation_reason="Friend recommendation approved",
-        #     evidence_level="medium",
-        #     confirmed_by="user",
-        #     pool_snapshot_date=pool.confirmation_date.date(),
-        #     thesis_snapshot=pool.thesis_snapshot,
-        #     invalidation_rules=pool.invalidation_rules,
-        #     price_snapshot=pool.price_snapshot,
-        #     benchmark_snapshot=pool.benchmark_snapshot,
-        #     evidence_snapshot_ids=pool.evidence_snapshot_ids,
-        #     primary_evidence_snapshot_id=None,
-        # )
-        #
-        # return pool.model_dump()
+        # Parse snapshot date
+        snapshot_date = date.fromisoformat(request.snapshot_date)
+        
+        # Create pool
+        pool = flow_service.create_confirmed_pool(
+            flow_id=flow_id,
+            ticker=request.ticker,
+            name=resolved_name,
+            exchange=request.exchange,
+            approval_card_id=request.approval_card_id,
+            research_output=research_output,
+            snapshot_date=snapshot_date,
+        )
+        
+        # Create or get candidate
+        from contracts.research import CandidateStock, ThemeInput
+        
+        # Check if theme exists, create if not
+        theme = db.get_theme(flow_id)
+        if not theme:
+            from datetime import datetime
+            now = datetime.now()
+            theme_input = ThemeInput(
+                theme_id=flow_id,
+                theme_name=f"Friend recommendation: {resolved_name}",
+                background=f"Friend recommended {resolved_name} ({request.ticker})",
+                source_type="manual_stock",
+                research_mode="standard",
+                urgency="normal",
+                notes="",
+                created_at=now,
+                updated_at=now,
+            )
+            db.create_theme(theme_input)
+        
+        # Check if candidate exists, create if not
+        candidate_id = f"cand_{pool.pool_id}"
+        candidate = db.get_candidate(candidate_id)
+        if not candidate:
+            candidate = CandidateStock(
+                candidate_id=candidate_id,
+                theme_id=flow_id,
+                symbol=pool.ticker,
+                company_name=pool.name,
+                verification_id=verification_result.get("flow_id", ""),
+                source_type="manual_stock",
+                chain_layer="",
+                match_reason="Friend recommendation",
+                match_confidence="high",
+                status="raw",
+                hard_filter_flags=[],
+                created_at=pool.created_at,
+            )
+            db.add_candidate(candidate)
+        
+        # Confirm candidate
+        confirmed = db.confirm_candidate(
+            candidate_id=candidate_id,
+            confirmation_reason="Friend recommendation approved",
+            evidence_level="medium",
+            confirmed_by="user",
+            pool_snapshot_date=pool.confirmation_date.date(),
+            thesis_snapshot=pool.thesis_snapshot,
+            invalidation_rules=pool.invalidation_rules,
+            price_snapshot=pool.price_snapshot,
+            benchmark_snapshot=pool.benchmark_snapshot,
+            evidence_snapshot_ids=pool.evidence_snapshot_ids,
+            primary_evidence_snapshot_id=None,
+        )
+        
+        # Return pool with confirmed_id
+        response = pool.model_dump()
+        response["confirmed_id"] = confirmed.confirmed_id
+        return response
 
     return app
