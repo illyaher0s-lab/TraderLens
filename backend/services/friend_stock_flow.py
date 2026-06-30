@@ -251,18 +251,36 @@ class FriendStockFlowService:
         
         # Step 4 from plan: Must import and call existing Serenity/research service
         # Create theme input for single-stock research
+        from datetime import datetime
+        now = datetime.now()
         theme = ThemeInput(
             theme_id=f"friend_stock_{ticker}_{uuid.uuid4().hex[:8]}",
-            theme_name=f"{company_name} 产业链研究",
-            background=f"朋友推荐 {company_name}({ticker})，需要调查产业链位置、公司价值、潜力、风险和反证",
-            source_type="friend_recommendation",
+            theme_name=f"{company_name} industry chain research",
+            background=f"Friend recommended {company_name}({ticker}), research needed",
+            source_type="manual_stock",
             research_mode="standard",
             urgency="normal",
             notes="",
+            created_at=now,
+            updated_at=now,
         )
         
         # Call real Serenity runner
         output = self.serenity_runner.run(theme, manual_candidates=[])
+        
+        # Convert candidate_pool_raw from list to dict for backward compatibility
+        if isinstance(output.candidate_pool_raw, list):
+            candidate_rationales = {
+                c["symbol"]: {
+                    "rationale": c["rationale"],
+                    "supporting_source_ids": c.get("supporting_source_ids", []),
+                    "counter_evidence": c.get("counter_evidence", []),
+                }
+                for c in output.candidate_pool_raw
+            }
+        else:
+            # Already dict format
+            candidate_rationales = output.candidate_pool_raw
         
         # Extract synthesis from output
         return {
@@ -270,7 +288,7 @@ class FriendStockFlowService:
             "value_chain_layers": output.value_chain_layers,
             "suspected_bottleneck_layers": output.suspected_bottleneck_layers,
             "hypothesis_draft": output.hypothesis_draft,
-            "candidate_rationales": output.candidate_pool_raw,  # Contains counter-evidence
+            "candidate_rationales": candidate_rationales,
             "evidence_gaps": output.evidence_gaps,
         }
 
@@ -335,18 +353,30 @@ class FriendStockFlowService:
         R5: Price from real adapter, source must match actual call.
         """
         # Step 2 from requirements: price_snapshot must call Task 5 live market data adapter
+        # Get price snapshot from market data adapter
         price_result = get_daily_basic_snapshot(
             symbol=ticker,
             as_of=snapshot_date,
             provider=self.market_data_provider,
         )
         
-        # Benchmark snapshot (沪深300)
         benchmark_result = get_daily_basic_snapshot(
             symbol="000300.SH",
             as_of=snapshot_date,
             provider=self.market_data_provider,
         )
+        
+        # Check market data faults - must be ok to create pool
+        from backend.services.live_market_data import MarketDataFaultState
+        if price_result.fault.state != MarketDataFaultState.ok:
+            raise ValueError(
+                f"Price data fault: {price_result.fault.state.value} - {price_result.fault.description}"
+            )
+        
+        if benchmark_result.fault.state != MarketDataFaultState.ok:
+            raise ValueError(
+                f"Benchmark data fault: {benchmark_result.fault.state.value} - {benchmark_result.fault.description}"
+            )
         
         # R5: source field must equal actual adapter call, not hand-filled string
         price_snapshot = {
