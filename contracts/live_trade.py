@@ -59,6 +59,15 @@ class ExplanationSource(str, Enum):
     llm_assisted = "llm_assisted"
 
 
+class PnlSource(str, Enum):
+    """P&L source (Task 10)."""
+
+    user_reported = "user_reported"
+    calculated_from_confirmed_details = "calculated_from_confirmed_details"
+    incomplete = "incomplete"
+    # NOTE: broker_verified intentionally NOT included (red line 1)
+
+
 class RecommendationLevel(str, Enum):
     """Recommendation level for execution decisions."""
 
@@ -395,3 +404,68 @@ class DailyObservationSignal(BaseModel, frozen=True, extra="forbid"):
         """triggered_invalidations must be empty for hold signals."""
         # Note: validator runs before we can access signal_type, so we validate in service layer
         return v
+
+
+class PnlRecord(BaseModel, frozen=True, extra="forbid"):
+    """
+    P&L record (Task 10).
+    
+    Red line 1: Only from user-confirmed execution details, never fabricated.
+    """
+
+    pnl_record_id: str
+    position_id: str
+    # From confirmed logs (None if missing)
+    buy_price: Optional[float]
+    sell_price: Optional[float]
+    quantity: Optional[int]
+    fees: Optional[float]
+    # Calculated P&L (None if incomplete)
+    pnl_amount: Optional[float]
+    pnl_pct: Optional[float]
+    # Source and completeness
+    pnl_source: PnlSource
+    missing_fields: list[str]
+    computed_at: datetime
+
+
+class PlanAdherenceResult(BaseModel, frozen=True, extra="forbid"):
+    """
+    Plan adherence result.
+    
+    Red line 4: Determined by deterministic rules, not LLM.
+    """
+
+    followed_plan: Optional[bool]  # None = undetermined
+    deviations: list[dict]  # [{"type": "late_exit", "signal_date": "D+2", ...}]
+    adherence_trace: dict  # Audit trail
+
+
+class DisciplineReview(BaseModel, frozen=True, extra="forbid"):
+    """
+    Discipline review for a closed position.
+    
+    Red lines:
+    2. Complete input chain required, missing parts explicitly marked
+    3. LLM only explains, never recommends forward-looking actions
+    4. Plan adherence by rules, not LLM
+    """
+
+    review_id: str
+    position_id: str
+    # Evidence chain (延续证据链)
+    execution_card_id: str
+    signal_id: str
+    daily_signal_ids: list[str]
+    buy_log_id: str
+    sell_log_id: str
+    # Input completeness
+    input_completeness: dict  # {"execution_card": "present", "sell_log": "missing", ...}
+    # P&L and adherence
+    pnl_record: PnlRecord
+    plan_adherence: PlanAdherenceResult
+    # LLM narrative (optional)
+    plain_narrative: Optional[str]
+    narrative_source: ExplanationSource
+    forward_looking_guard_passed: bool
+    created_at: datetime
