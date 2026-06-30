@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev frontend",
+    "build": "next build frontend",
+    "start": "next start frontend",
     "test:backend": "python -m unittest discover -s tests -v"
   },
   "dependencies": {

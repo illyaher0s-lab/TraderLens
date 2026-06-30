@@ -260,3 +260,132 @@ export async function submitActionDecision(
 
   return response.json();
 }
+
+// ============================================================================
+// Agent Workbench API (Task 13/14)
+// ============================================================================
+
+export interface WorkbenchMessageRequest {
+  conversation_id?: string;
+  message: string;
+  context?: Record<string, any>;
+}
+
+export interface WorkbenchMessageResponse {
+  conversation_id: string;
+  workflow_type: string;
+  stage: string;
+  agent_reply: string;
+  approval_card: ApprovalCardData | null;
+  artifact_ids: string[];
+  next_required_user_action: string;
+}
+
+export interface ApprovalCardData {
+  approval_card_id: string;
+  workflow_id: string;
+  stage: string;
+  title: string;
+  plain_language_summary: string;
+  allowed_decisions: string[];
+  blocked_technical_decisions: string[];
+  artifact_ids: string[];
+  created_at: string;
+  decided_at: string | null;
+  decision: string | null;
+  decided_by: string | null;
+}
+
+export interface WorkbenchSession {
+  session: {
+    session_id: string;
+    workflow_kind: string;
+    workflow_state: string;
+    title: string;
+    created_at: string;
+    updated_at: string;
+  };
+  timeline: Array<{
+    type: string;
+    content: any;
+  }>;
+}
+
+export interface ApprovalDecisionRequest {
+  decision: string;
+  decided_by: string;
+}
+
+export interface ApprovalDecisionResponse {
+  approval_card_id: string;
+  decision: string;
+  decided_by: string;
+  decided_at: string | null;
+}
+
+/**
+ * Send message to agent workbench.
+ */
+export async function sendWorkbenchMessage(
+  request: WorkbenchMessageRequest
+): Promise<WorkbenchMessageResponse> {
+  const url = `${API_BASE_URL}/api/agent/workbench/message`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to send message: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Get workbench session with timeline.
+ */
+export async function getWorkbenchSession(
+  conversationId: string
+): Promise<WorkbenchSession> {
+  const url = `${API_BASE_URL}/api/agent/workbench/${conversationId}`;
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(`Session not found: ${conversationId}`);
+    }
+    throw new Error(`Failed to get session: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Decide on approval card.
+ */
+export async function decideApprovalCard(
+  conversationId: string,
+  cardId: string,
+  request: ApprovalDecisionRequest
+): Promise<ApprovalDecisionResponse> {
+  const url = `${API_BASE_URL}/api/agent/workbench/${conversationId}/approval-cards/${cardId}/decide`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to decide: ${response.statusText}`);
+  }
+
+  return response.json();
+}
