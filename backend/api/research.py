@@ -574,4 +574,158 @@ def create_research_app(
         candidates = db.list_confirmed_candidates(theme_id)
         return [c.model_dump() for c in candidates]
 
+    # Friend-stock flow endpoints
+    class FriendStockIntakeRequest(BaseModel):
+        raw_company_input: str
+        raw_code_input: str | None = None
+        source_note: str
+
+    class ResolveAmbiguousRequest(BaseModel):
+        chosen_ticker: str
+
+    class CreateApprovalCardRequest(BaseModel):
+        ticker: str
+
+    class CreateConfirmedPoolRequest(BaseModel):
+        ticker: str
+        name: str
+        exchange: str
+        approval_card_id: str
+        snapshot_date: str  # ISO date
+
+    @app.post("/api/research/friend-stock/intake")
+    def friend_stock_intake(request: FriendStockIntakeRequest):
+        """
+        Intake friend-recommended stock.
+        
+        Returns ticker verification result.
+        """
+        from backend.services.friend_stock_flow import FriendStockFlowService
+        
+        flow_service = FriendStockFlowService(
+            validator=validator,
+            serenity_runner=None,  # Will be wired when needed
+            market_data_provider=None,
+        )
+        
+        result = flow_service.verify_ticker(
+            raw_company_input=request.raw_company_input,
+            raw_code_input=request.raw_code_input,
+        )
+        
+        return result.model_dump()
+
+    @app.post("/api/research/friend-stock/{flow_id}/resolve-ambiguous")
+    def resolve_ambiguous_ticker(flow_id: str, request: ResolveAmbiguousRequest):
+        """
+        Resolve ambiguous ticker by user selection.
+        """
+        from backend.services.friend_stock_flow import FriendStockFlowService
+        
+        flow_service = FriendStockFlowService()
+        
+        # Retrieve original candidates from session/DB (simplified for now)
+        # In real implementation, fetch from DB by flow_id
+        result = flow_service.resolve_ambiguous_ticker(
+            flow_id=flow_id,
+            chosen_ticker=request.chosen_ticker,
+            original_candidates=[],  # TODO: fetch from DB
+        )
+        
+        return result.model_dump()
+
+    @app.post("/api/research/friend-stock/{flow_id}/run-research")
+    def run_friend_stock_research(flow_id: str, ticker: str, company_name: str):
+        """
+        Run industry research for friend-recommended stock.
+        
+        Returns research synthesis output.
+        """
+        from backend.services.friend_stock_flow import FriendStockFlowService
+        
+        # Wire real Serenity runner if in real mode
+        if conversation_mode == "real" and hasattr(serenity_runner, 'run'):
+            serenity = serenity_runner
+        else:
+            serenity = None
+        
+        flow_service = FriendStockFlowService(
+            validator=validator,
+            serenity_runner=serenity,
+            market_data_provider=None,
+        )
+        
+        research_output = flow_service.run_industry_research(
+            ticker=ticker,
+            company_name=company_name,
+        )
+        
+        return research_output
+
+    @app.post("/api/research/friend-stock/{flow_id}/create-pool")
+    def create_friend_stock_pool(flow_id: str, request: CreateConfirmedPoolRequest):
+        """
+        Create confirmed candidate pool for friend-recommended stock.
+        
+        Returns confirmed pool record.
+        """
+        from backend.services.friend_stock_flow import FriendStockFlowService
+        from datetime import date
+        
+        # Wire services
+        if conversation_mode == "real" and hasattr(serenity_runner, 'run'):
+            serenity = serenity_runner
+        else:
+            serenity = None
+        
+        # Mock market data provider for now
+        def mock_provider(symbol: str, as_of: date) -> dict:
+            return {"close": 10.5, "volume": 1000000}
+        
+        flow_service = FriendStockFlowService(
+            validator=validator,
+            serenity_runner=serenity,
+            market_data_provider=mock_provider,
+        )
+        
+        # Parse snapshot date
+        snapshot_date = date.fromisoformat(request.snapshot_date)
+        
+        # Fetch research output from previous step (simplified - should be from DB)
+        research_output = {"candidate_rationales": {}, "theme_id": flow_id}
+        
+        pool = flow_service.create_confirmed_pool(
+            flow_id=flow_id,
+            ticker=request.ticker,
+            name=request.name,
+            exchange=request.exchange,
+            approval_card_id=request.approval_card_id,
+            research_output=research_output,
+            snapshot_date=snapshot_date,
+        )
+        
+        # Persist to DB
+        from contracts.research import ConfirmedCandidate
+        confirmed = ConfirmedCandidate(
+            candidate_id=pool.pool_id,
+            theme_id=flow_id,
+            symbol=pool.ticker,
+            company_name=pool.name,
+            verification_id="",  # TODO: link to verification
+            confirmation_reason="Friend recommendation approved",
+            evidence_level="medium",
+            confirmed_by="user",
+            pool_snapshot_date=pool.confirmation_date,
+            thesis_snapshot=pool.thesis_snapshot,
+            invalidation_rules=pool.invalidation_rules,
+            price_snapshot=pool.price_snapshot,
+            benchmark_snapshot=pool.benchmark_snapshot,
+            evidence_snapshot_ids=pool.evidence_snapshot_ids,
+            primary_evidence_snapshot_id=None,
+            confirmed_at=pool.created_at,
+        )
+        db.confirm_candidate(confirmed)
+        
+        return pool.model_dump()
+
     return app

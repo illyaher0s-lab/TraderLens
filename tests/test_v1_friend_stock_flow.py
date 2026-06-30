@@ -168,9 +168,21 @@ def test_llm_cannot_inject_code(flow_service):
 
 def test_approval_card_structure(flow_service):
     """Test 12: Approval card structure."""
+    # Mock research output with counter-evidence
+    research_output = {
+        "candidate_rationales": {
+            "600000.SH": {
+                "rationale": "核心玩家",
+                "counter_evidence": ["反证1", "反证2"],
+            }
+        },
+        "hypothesis_draft": [{"hypothesis": "假设1"}],
+    }
+    
     card = flow_service.create_approval_card(
         flow_id="flow_001",
         ticker="600000.SH",
+        research_output=research_output,
     )
     
     # R3: Three decisions, has counter-evidence, no tech fields
@@ -181,13 +193,38 @@ def test_approval_card_structure(flow_service):
 
 
 def test_confirmed_pool_complete_fields(flow_service):
-    """Test 13: Pool has all 8 field types."""
+    """Test 13: Pool has all 8 field types - end-to-end with real flow."""
+    from datetime import date
+    
+    # Mock market data provider
+    def mock_provider(symbol: str, as_of: date) -> dict:
+        return {"close": 10.5, "volume": 1000000}
+    
+    flow_service.market_data_provider = mock_provider
+    
+    # Mock research output (would come from real Serenity in production)
+    research_output = {
+        "theme_id": "flow_001",
+        "demand_driver": "产业链需求",
+        "candidate_rationales": {
+            "600000.SH": {
+                "rationale": "核心玩家，业绩稳定",
+                "supporting_source_ids": ["evidence_001"],
+                "counter_evidence": [
+                    {"description": "市场竞争加剧", "source_record_id": "counter_001"}
+                ],
+            }
+        },
+    }
+    
     pool = flow_service.create_confirmed_pool(
         flow_id="flow_001",
         ticker="600000.SH",
         name="浦发银行",
         exchange="SSE",
         approval_card_id="card_001",
+        research_output=research_output,
+        snapshot_date=date.today(),
     )
     
     # R4: All 8 types present
@@ -203,12 +240,34 @@ def test_confirmed_pool_complete_fields(flow_service):
 
 def test_pool_frozen_after_write(flow_service):
     """Test 14: Pool frozen after write."""
+    from datetime import date
+    
+    # Mock market data provider
+    def mock_provider(symbol: str, as_of: date) -> dict:
+        return {"close": 10.5, "volume": 1000000}
+    
+    flow_service.market_data_provider = mock_provider
+    
+    # Mock research output
+    research_output = {
+        "theme_id": "flow_001",
+        "candidate_rationales": {
+            "600000.SH": {
+                "rationale": "核心玩家",
+                "supporting_source_ids": ["evidence_001"],
+                "counter_evidence": [],
+            }
+        },
+    }
+    
     pool = flow_service.create_confirmed_pool(
         flow_id="flow_001",
         ticker="600000.SH",
         name="浦发银行",
         exchange="SSE",
         approval_card_id="card_001",
+        research_output=research_output,
+        snapshot_date=date.today(),
     )
     
     # R4: Frozen (Pydantic frozen=True raises ValidationError)
@@ -219,17 +278,39 @@ def test_pool_frozen_after_write(flow_service):
 
 def test_price_from_adapter_not_llm(flow_service):
     """Test 15: Price/benchmark from adapter, not LLM."""
+    from datetime import date
+    
+    # Mock market data provider
+    def mock_provider(symbol: str, as_of: date) -> dict:
+        return {"close": 10.5, "volume": 1000000}
+    
+    flow_service.market_data_provider = mock_provider
+    
+    # Mock research output
+    research_output = {
+        "theme_id": "flow_001",
+        "candidate_rationales": {
+            "600000.SH": {
+                "rationale": "核心玩家",
+                "supporting_source_ids": ["evidence_001"],
+                "counter_evidence": [],
+            }
+        },
+    }
+    
     pool = flow_service.create_confirmed_pool(
         flow_id="flow_001",
         ticker="600000.SH",
         name="浦发银行",
         exchange="SSE",
         approval_card_id="card_001",
+        research_output=research_output,
+        snapshot_date=date.today(),
     )
     
-    # R5: Price from Tushare adapter
-    assert pool.price_snapshot["source"] == "tushare"
-    assert pool.benchmark_snapshot["source"] == "tushare"
+    # R5: Price from Tushare adapter, source must match actual call
+    assert pool.price_snapshot["source"] == "tushare_private"  # From actual adapter
+    assert pool.benchmark_snapshot["source"] == "tushare_private"  # From actual adapter
     
     # Fault case
     if pool.price_snapshot.get("fault_state"):
