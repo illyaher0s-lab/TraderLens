@@ -14,6 +14,16 @@ from pydantic import BaseModel, field_validator, model_validator
 from contracts.market_data_fault import MarketDataFaultState
 
 
+class ExecutionInterpretationStatus(str, Enum):
+    """Execution observation interpretation status."""
+
+    draft_pending_confirmation = "draft_pending_confirmation"
+    needs_more_info = "needs_more_info"
+    confirmed = "confirmed"
+    corrected = "corrected"
+    rejected = "rejected"
+
+
 class RecommendationLevel(str, Enum):
     """Recommendation level for execution decisions."""
 
@@ -174,3 +184,97 @@ class ExecutionCard(BaseModel, frozen=True, extra="forbid"):
         if low > high:
             raise ValueError("allowed_price_range low must be <= high")
         return self
+
+
+class ExecutionObservationDraft(BaseModel, frozen=True, extra="forbid"):
+    """
+    Execution observation draft from natural-language user feedback.
+    
+    Red lines:
+    1. Draft never auto-promotes to log — user must confirm/correct.
+    2. broker_verified is always False, cannot be set True.
+    3. No fabricated price/quantity — missing fields → needs_more_info.
+    """
+
+    draft_id: str
+    # Evidence chain (Task 7 linkage, all required non-empty)
+    execution_card_id: str
+    signal_id: str
+    action_plan_id: str
+    capital_context_id: str
+    market_snapshot_id: str
+    # User input
+    raw_user_text: str
+    # Parsed fields
+    parsed_action: str  # buy / sell / none
+    parsed_execution_status: str  # executed_full / executed_partial / skipped / forgot / abandoned
+    parsed_price: Optional[float]
+    parsed_quantity: Optional[int]
+    parsed_reason: Optional[str]
+    # Follow-up
+    missing_fields: list[str]
+    follow_up_question: Optional[str]
+    # Metadata
+    interpretation_source: str  # deterministic / llm_assisted
+    status: ExecutionInterpretationStatus
+    broker_verified: bool
+    created_at: datetime
+
+    @field_validator("broker_verified")
+    @classmethod
+    def broker_verified_must_be_false(cls, v: bool) -> bool:
+        """Red line 2: broker_verified must always be False in draft."""
+        if v is not False:
+            raise ValueError("broker_verified must be False (no broker verification in V1)")
+        return v
+
+    @field_validator("execution_card_id", "signal_id", "action_plan_id", "capital_context_id", "market_snapshot_id")
+    @classmethod
+    def evidence_chain_must_be_non_empty(cls, v: str, info) -> str:
+        """Evidence chain fields must all be non-empty."""
+        if not v or not v.strip():
+            raise ValueError(f"{info.field_name} must be non-empty (evidence chain required)")
+        return v
+
+
+class ExecutionObservationLog(BaseModel, frozen=True, extra="forbid"):
+    """
+    Confirmed execution observation log.
+    
+    Only created after user confirm/correct, never auto-generated from draft.
+    """
+
+    log_id: str
+    draft_id: str
+    # Evidence chain (same as draft)
+    execution_card_id: str
+    signal_id: str
+    action_plan_id: str
+    capital_context_id: str
+    market_snapshot_id: str
+    # Confirmed fields
+    confirmed_action: str  # buy / sell / none
+    confirmed_execution_status: str  # executed_full / executed_partial / skipped / forgot / abandoned
+    confirmed_price: Optional[float]
+    confirmed_quantity: Optional[int]
+    reason: Optional[str]
+    # Metadata
+    confirmed_by_user: bool
+    broker_verified: bool
+    confirmed_at: datetime
+
+    @field_validator("broker_verified")
+    @classmethod
+    def broker_verified_must_be_false_in_log(cls, v: bool) -> bool:
+        """Red line 2: broker_verified must always be False (no broker in V1)."""
+        if v is not False:
+            raise ValueError("broker_verified must be False (no broker verification in V1)")
+        return v
+
+    @field_validator("confirmed_by_user")
+    @classmethod
+    def confirmed_by_user_must_be_true(cls, v: bool) -> bool:
+        """Log must be user-confirmed."""
+        if v is not True:
+            raise ValueError("confirmed_by_user must be True (no auto-promotion)")
+        return v
