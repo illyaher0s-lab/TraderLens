@@ -14,7 +14,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -28,7 +28,7 @@ import {
 
 const PAGE_SIZE = 50;
 
-export default function SignalsPage() {
+function SignalsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -587,6 +587,21 @@ export default function SignalsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignalsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#fafafa] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[#ebebeb] border-t-[#171717] mx-auto mb-4"></div>
+          <p className="text-sm text-[#666666]">加载中...</p>
+        </div>
+      </div>
+    }>
+      <SignalsPageContent />
+    </Suspense>
   );
 }
 

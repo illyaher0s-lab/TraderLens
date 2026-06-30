@@ -2,10 +2,11 @@
  * Approval Card Component
  *
  * Task 14: Display result-level approval cards.
+ * Design: Vercel style - shadow-as-border, subtle status colors, clear hierarchy.
  *
  * Hard constraints:
- * - Only result-level decisions (continue, stop, downgrade_to_observation, etc.)
- * - No technical parameters (OOS, threshold, stop_loss, liquidity_rule, position_size, backtest_param)
+ * - Only result-level decisions
+ * - No technical parameters
  * - Plain language summary
  */
 
@@ -28,12 +29,12 @@ const DECISION_LABELS: Record<string, string> = {
   accept_execution_record_interpretation: "接受记录解释",
 };
 
-const DECISION_COLORS: Record<string, string> = {
-  continue: "bg-green-600 hover:bg-green-700",
-  stop: "bg-red-600 hover:bg-red-700",
-  downgrade_to_observation: "bg-gray-600 hover:bg-gray-700",
-  enter_risk_capped_live_execution: "bg-blue-600 hover:bg-blue-700",
-  accept_execution_record_interpretation: "bg-blue-600 hover:bg-blue-700",
+const DECISION_STYLES: Record<string, string> = {
+  continue: "bg-[#171717] text-white hover:bg-[#000000]",
+  stop: "bg-white text-[#171717] hover:bg-[#fafafa]",
+  downgrade_to_observation: "bg-white text-[#171717] hover:bg-[#fafafa]",
+  enter_risk_capped_live_execution: "bg-white text-[#171717] hover:bg-[#fafafa]",
+  accept_execution_record_interpretation: "bg-white text-[#171717] hover:bg-[#fafafa]",
 };
 
 export default function ApprovalCard({
@@ -59,25 +60,25 @@ export default function ApprovalCard({
   // Already decided
   if (card.decision) {
     return (
-      <div className="bg-white rounded-lg border border-[#ebebeb] p-6">
+      <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0px 0px 0px 1px rgba(0,0,0,0.08)' }}>
         <div className="flex items-start gap-3 mb-4">
-          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-            <span className="text-green-700 text-lg">✓</span>
+          <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#f0fdf4] flex items-center justify-center">
+            <span className="text-[#16a34a] text-sm">✓</span>
           </div>
           <div className="flex-1">
-            <h3 className="text-base font-semibold text-[#171717]">{card.title}</h3>
-            <p className="text-sm text-[#666666] mt-1">
+            <h3 className="text-[16px] font-semibold text-[#171717] tracking-tight">{card.title}</h3>
+            <p className="text-[14px] text-[#666666] mt-1 font-normal leading-relaxed">
               {card.plain_language_summary}
             </p>
           </div>
         </div>
 
-        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-          <p className="text-sm font-medium text-green-900">
+        <div className="bg-[#f0fdf4] rounded-lg p-3" style={{ boxShadow: '0px 0px 0px 1px rgba(34,197,94,0.2)' }}>
+          <p className="text-[14px] font-medium text-[#16a34a]">
             已决策: {DECISION_LABELS[card.decision] || card.decision}
           </p>
           {card.decided_at && (
-            <p className="text-xs text-green-700 mt-1">
+            <p className="text-[12px] text-[#22c55e] mt-1">
               {new Date(card.decided_at).toLocaleString("zh-CN")}
             </p>
           )}
@@ -88,54 +89,58 @@ export default function ApprovalCard({
 
   // Pending decision
   return (
-    <div className="bg-white rounded-lg border border-[#ebebeb] p-6">
+    <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0px 0px 0px 1px rgba(0,0,0,0.08)' }}>
       <div className="flex items-start gap-3 mb-4">
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-          <span className="text-blue-700 text-lg">?</span>
+        <div className="flex-shrink-0 w-6 h-6 rounded-full bg-[#fef3c7] flex items-center justify-center">
+          <span className="text-[#f59e0b] text-sm font-medium">?</span>
         </div>
         <div className="flex-1">
-          <h3 className="text-base font-semibold text-[#171717]">{card.title}</h3>
-          <p className="text-sm text-[#666666] mt-1 whitespace-pre-wrap">
+          <h3 className="text-[16px] font-semibold text-[#171717] tracking-tight">{card.title}</h3>
+          <p className="text-[14px] text-[#666666] mt-1 font-normal leading-relaxed whitespace-pre-wrap">
             {card.plain_language_summary}
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200">
-          <p className="text-sm text-red-700">{error}</p>
+        <div className="mb-4 p-3 rounded-lg bg-[#fef2f2]" style={{ boxShadow: '0px 0px 0px 1px rgba(254,202,202,0.5)' }}>
+          <p className="text-[14px] text-[#991b1b]">{error}</p>
         </div>
       )}
 
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-[#666666] uppercase tracking-wide mb-3">
+      <div className="space-y-3">
+        <p className="text-[12px] font-medium text-[#808080] uppercase tracking-wide">
           选择操作
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {card.allowed_decisions.map((decision) => (
-            <button
-              key={decision}
-              onClick={() => handleDecide(decision)}
-              disabled={isSubmitting || selectedDecision !== null}
-              className={`px-4 py-3 text-sm font-medium rounded-md text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                DECISION_COLORS[decision] || "bg-gray-600 hover:bg-gray-700"
-              }`}
-            >
-              {selectedDecision === decision ? (
-                <span className="flex items-center justify-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  提交中...
-                </span>
-              ) : (
-                DECISION_LABELS[decision] || decision
-              )}
-            </button>
-          ))}
+          {card.allowed_decisions.map((decision) => {
+            const isStop = decision === "stop";
+            return (
+              <button
+                key={decision}
+                onClick={() => handleDecide(decision)}
+                disabled={isSubmitting || selectedDecision !== null}
+                className={`px-4 py-3 text-[14px] font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  DECISION_STYLES[decision] || "bg-white text-[#171717] hover:bg-[#fafafa]"
+                }`}
+                style={{ boxShadow: '0px 0px 0px 1px rgba(0,0,0,0.08)' }}
+              >
+                {selectedDecision === decision ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#ebebeb] border-t-[#171717]"></div>
+                    提交中...
+                  </span>
+                ) : (
+                  DECISION_LABELS[decision] || decision
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-[#ebebeb]">
-        <p className="text-xs text-[#808080]">
+      <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+        <p className="text-[12px] text-[#808080]">
           阶段: {card.stage} · 关联证据: {card.artifact_ids.length} 项
         </p>
       </div>

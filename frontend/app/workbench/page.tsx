@@ -2,6 +2,7 @@
  * Agent Workbench Page
  *
  * Task 14: V1 Minimum Profitable Loop - unified agent conversation interface.
+ * Design: Vercel-inspired - shadow-as-border, minimal color, information-dense.
  *
  * User can:
  * - Chat with agent using natural language
@@ -9,13 +10,8 @@
  * - Approve result-level decisions via approval cards
  *
  * User cannot:
- * - Fill technical parameters (OOS, threshold, stop_loss, liquidity_rule, position_size, backtest_param)
+ * - Fill technical parameters
  * - Access automatic trading or broker connections
- *
- * Hard constraints:
- * - No landing page, first screen is usable agent workbench
- * - No technical field inputs
- * - Approval cards only show result-level decisions
  */
 
 "use client";
@@ -158,37 +154,38 @@ export default function WorkbenchPage() {
 
   return (
     <div className="min-h-screen bg-[#fafafa]">
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Page Header */}
+      <div className="max-w-[1280px] mx-auto px-6 py-6">
+        {/* Page Header - Vercel style */}
         <div className="mb-6">
-          <h1 className="text-3xl font-semibold text-[#171717] tracking-tight">
+          <h1 className="text-[32px] font-semibold text-[#171717] tracking-[-0.96px] leading-tight">
             Agent Workbench
           </h1>
-          <p className="text-sm text-[#666666] mt-2">
+          <p className="text-[14px] text-[#666666] mt-2 font-normal">
             和助手对话，启动朋友推荐股票或抖音策略验证流程
           </p>
-          <p className="text-xs text-[#808080] mt-1">
-            不是买卖建议｜不会自动交易｜需要人工审核
+          <p className="text-[12px] text-[#808080] mt-1">
+            不是买卖建议 · 不会自动交易 · 需要人工审核
           </p>
         </div>
 
         {/* Error Banner */}
         {error && (
-          <div className="mb-6 p-4 rounded-lg bg-red-50 border border-red-200">
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="mb-6 p-4 rounded-lg bg-[#fef2f2] border border-[#fecaca]" style={{ boxShadow: '0px 0px 0px 1px rgba(254,202,202,0.5)' }}>
+            <p className="text-[14px] text-[#991b1b]">{error}</p>
             <button
               onClick={() => setError(null)}
-              className="mt-2 text-sm text-red-600 hover:underline"
+              className="mt-2 text-[12px] text-[#dc2626] hover:underline"
             >
               关闭
             </button>
           </div>
         )}
 
-        {/* Main Layout */}
+        {/* Main Layout - 2/3 left, 1/3 right */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column: Chat */}
-          <div className="lg:col-span-2">
+          {/* Left Column: Chat + Approval Card */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Chat Panel */}
             <div className="h-[600px]">
               <AgentChatPanel
                 messages={messages}
@@ -199,13 +196,11 @@ export default function WorkbenchPage() {
 
             {/* Approval Card */}
             {currentApprovalCard && !currentApprovalCard.decision && (
-              <div className="mt-6">
-                <ApprovalCard
-                  card={currentApprovalCard}
-                  onDecide={handleDecide}
-                  isSubmitting={isDeciding}
-                />
-              </div>
+              <ApprovalCard
+                card={currentApprovalCard}
+                onDecide={handleDecide}
+                isSubmitting={isDeciding}
+              />
             )}
           </div>
 

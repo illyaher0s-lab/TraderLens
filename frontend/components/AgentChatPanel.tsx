@@ -2,6 +2,7 @@
  * Agent Chat Panel
  *
  * Task 14: Main chat interface for V1 agent workbench.
+ * Design: Vercel style - shadow-as-border, minimal color, clean typography.
  *
  * User inputs natural language, agent replies without exposing technical parameters.
  */
@@ -48,15 +49,15 @@ export default function AgentChatPanel({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg border border-[#ebebeb]">
+    <div className="flex flex-col h-full bg-white rounded-lg" style={{ boxShadow: '0px 0px 0px 1px rgba(0,0,0,0.08)' }}>
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {messages.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-[#666666] text-sm mb-4">
+            <p className="text-[#666666] text-[14px] mb-4 font-normal">
               你好，我可以帮你：
             </p>
-            <ul className="text-[#808080] text-sm space-y-2">
+            <ul className="text-[#808080] text-[14px] space-y-2 font-normal">
               <li>• 调查朋友推荐的股票（告诉我公司名或股票代码）</li>
               <li>• 验证抖音/视频看到的交易策略</li>
             </ul>
@@ -68,15 +69,16 @@ export default function AgentChatPanel({
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                className={`max-w-[80%] rounded-lg px-4 py-3 ${
                   msg.role === "user"
-                    ? "bg-[#0072f5] text-white"
-                    : "bg-[#fafafa] text-[#171717] border border-[#ebebeb]"
+                    ? "bg-[#171717] text-white"
+                    : "bg-[#fafafa] text-[#171717]"
                 }`}
+                style={msg.role === "agent" ? { boxShadow: '0px 0px 0px 1px rgba(0,0,0,0.08)' } : {}}
               >
-                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                <p className="text-[14px] whitespace-pre-wrap font-normal leading-relaxed">{msg.content}</p>
                 {msg.created_at && (
-                  <p className={`text-xs mt-1 ${msg.role === "user" ? "text-blue-100" : "text-[#808080]"}`}>
+                  <p className={`text-[12px] mt-2 ${msg.role === "user" ? "text-white/70" : "text-[#808080]"}`}>
                     {new Date(msg.created_at).toLocaleTimeString("zh-CN")}
                   </p>
                 )}
@@ -86,10 +88,10 @@ export default function AgentChatPanel({
         )}
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-[#fafafa] rounded-lg px-4 py-2 border border-[#ebebeb]">
+            <div className="bg-[#fafafa] rounded-lg px-4 py-3" style={{ boxShadow: '0px 0px 0px 1px rgba(0,0,0,0.08)' }}>
               <div className="flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-[#ebebeb] border-t-[#171717]"></div>
-                <span className="text-sm text-[#666666]">思考中...</span>
+                <span className="text-[14px] text-[#666666] font-normal">思考中...</span>
               </div>
             </div>
           </div>
@@ -97,8 +99,8 @@ export default function AgentChatPanel({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <form onSubmit={handleSubmit} className="border-t border-[#ebebeb] p-4">
+      {/* Input - Vercel style with shadow-border */}
+      <form onSubmit={handleSubmit} className="p-4" style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
         <div className="flex gap-2">
           <input
             type="text"
@@ -106,12 +108,13 @@ export default function AgentChatPanel({
             onChange={(e) => setInput(e.target.value)}
             placeholder="输入消息..."
             disabled={isLoading}
-            className="flex-1 px-4 py-2 text-sm border border-[#ebebeb] rounded-md focus:outline-none focus:ring-2 focus:ring-[#0072f5] focus:border-transparent disabled:bg-[#fafafa] disabled:text-[#808080]"
+            className="flex-1 px-4 py-2 text-[14px] rounded-md focus:outline-none disabled:bg-[#fafafa] disabled:text-[#808080] font-normal"
+            style={{ boxShadow: '0px 0px 0px 1px rgba(0,0,0,0.08)' }}
           />
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="px-6 py-2 text-sm font-medium rounded-md bg-[#0072f5] text-white hover:bg-[#0061d5] disabled:bg-[#ebebeb] disabled:text-[#808080] disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-2 text-[14px] font-medium rounded-md bg-[#171717] text-white hover:bg-[#000000] disabled:bg-[#ebebeb] disabled:text-[#808080] disabled:cursor-not-allowed transition-colors"
           >
             发送
           </button>
