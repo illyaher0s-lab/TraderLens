@@ -868,13 +868,42 @@ def create_research_app(
     # Task 13: Unified Agent Workbench API
     # ========================================================================
 
+    # Import agent_workbench DB functions
+    from backend.db.agent_workbench import (
+        init_agent_workbench_db,
+        create_session,
+        get_session,
+        append_message,
+        list_messages,
+        attach_artifact_ref,
+        list_artifact_refs,
+        attach_approval_card,
+        list_approval_cards,
+        get_session_timeline,
+    )
+    from contracts.agent_workbench import (
+        AgentSession,
+        AgentMessage,
+        ArtifactRef,
+        WorkflowKind,
+        WorkflowState,
+    )
+    from backend.services.approval_card_reducer import (
+        create_approval_card,
+        apply_decision,
+    )
+
+    # Initialize agent_workbench schema on app.state.db connection
+    init_agent_workbench_db(db.conn)
+
     class WorkbenchMessageRequest(BaseModel):
         conversation_id: str | None = None
         message: str
         context: dict | None = None
 
-    # Store conversation state in memory for deterministic testing
-    _workbench_conversations: dict[str, dict] = {}
+    class ApprovalDecisionRequest(BaseModel):
+        decision: str
+        decided_by: str
 
     @app.post("/api/agent/workbench/message")
     def workbench_message(request: WorkbenchMessageRequest):
@@ -885,93 +914,247 @@ def create_research_app(
         without exposing technical parameters.
         
         Task 13: Deterministic routing without LLM dependency.
+        Persists to agent_workbench DB.
         """
         import uuid
+        import re
         from datetime import datetime
         
-        # Get or create conversation
-        conversation_id = request.conversation_id or f"conv_{uuid.uuid4().hex[:12]}"
+        now = datetime.now()
         
-        if conversation_id not in _workbench_conversations:
-            _workbench_conversations[conversation_id] = {
-                "messages": [],
-                "workflow_type": None,
-                "workflow_state": {},
-            }
+        # Get or create session
+        conversation_id = request.conversation_id
+        session_exists = False
         
-        conv = _workbench_conversations[conversation_id]
+        if conversation_id:
+            try:
+                session = get_session(db.conn, conversation_id)
+                session_exists = True
+            except ValueError:
+                session_exists = False
+        
+        if not session_exists:
+            # Create new session
+            conversation_id = f"sess_{uuid.uuid4().hex[:12]}"
+            
+            # Deterministic routing rules (no LLM)
+            message_lower = request.message.lower()
+            workflow_kind = None
+            workflow_state = WorkflowState.CREATED
+            session_title = "未知会话"
+            
+            # Friend stock detection
+            friend_stock_keywords = [
+                "朋友", "推荐", "股票", "公司", "帮我看", "帮我查",
+                "pudong", "浦发", "招商", "平安",
+            ]
+            stock_code_pattern = r"\d{6}\.(SH|SZ|sh|sz)"
+            
+            has_stock_code = bool(re.search(stock_code_pattern, request.message))
+            has_friend_stock_keyword = any(kw in message_lower for kw in friend_stock_keywords)
+            
+            if has_stock_code or has_friend_stock_keyword:
+                workflow_kind = WorkflowKind.FRIEND_STOCK
+                session_title = "朋友推荐股票调查"
+                workflow_state = WorkflowState.RESEARCHING
+            else:
+                # Strategy idea detection
+                strategy_keywords = [
+                    "抖音", "视频", "策略", "两点半", "第二天", "买入", "卖出",
+                    "douyin", "下午", "早上",
+                ]
+                
+                has_strategy_keyword = any(kw in message_lower for kw in strategy_keywords)
+                
+                if has_strategy_keyword:
+                    workflow_kind = WorkflowKind.STRATEGY_IDEA
+                    session_title = "抖音策略验证"
+                    workflow_state = WorkflowState.VALIDATING
+            
+            # Create session in DB
+            if workflow_kind:
+                session = AgentSession(
+                    session_id=conversation_id,
+                    workflow_kind=workflow_kind,
+                    workflow_state=workflow_state,
+                    title=session_title,
+                    created_at=now,
+                    updated_at=now,
+                )
+                create_session(db.conn, session)
+            else:
+                # Unknown intent - create generic session
+                session = AgentSession(
+                    session_id=conversation_id,
+                    workflow_kind=WorkflowKind.FRIEND_STOCK,  # Default, will clarify
+                    workflow_state=WorkflowState.CREATED,
+                    title="待确认会话",
+                    created_at=now,
+                    updated_at=now,
+                )
+                create_session(db.conn, session)
+        else:
+            # Existing session
+            session = get_session(db.conn, conversation_id)
         
         # Store user message
-        conv["messages"].append({
-            "role": "user",
-            "content": request.message,
-            "timestamp": datetime.now().isoformat(),
-        })
+        user_message_id = f"msg_{uuid.uuid4().hex[:12]}"
+        user_message = AgentMessage(
+            message_id=user_message_id,
+            session_id=conversation_id,
+            role="user",
+            content=request.message,
+            created_at=now,
+        )
+        append_message(db.conn, user_message)
         
-        # Deterministic routing rules (no LLM)
-        message_lower = request.message.lower()
-        workflow_type = "unknown"
-        agent_reply = ""
-        stage = "initial"
+        # Generate agent reply based on workflow
+        workflow_type = session.workflow_kind.value
+        stage = session.workflow_state.value
         approval_card = None
         artifact_ids = []
         next_required_user_action = "provide_more_context"
         
-        # Friend stock detection
-        friend_stock_keywords = [
-            "朋友", "推荐", "股票", "公司", "帮我看", "帮我查",
-            "pudong", "浦发", "招商", "平安",
-        ]
-        stock_code_pattern = r"\d{6}\.(SH|SZ|sh|sz)"
-        
-        import re
-        has_stock_code = bool(re.search(stock_code_pattern, request.message))
-        has_friend_stock_keyword = any(kw in message_lower for kw in friend_stock_keywords)
-        
-        if has_stock_code or has_friend_stock_keyword:
-            workflow_type = "friend_stock"
-            stage = "ticker_identification"
+        if session.workflow_kind == WorkflowKind.FRIEND_STOCK:
             agent_reply = "收到，这是朋友推荐的股票。我会帮你调查这家公司的产业链位置、价值和风险。稍等片刻。"
             next_required_user_action = "wait_for_research"
             
-        # Strategy idea detection
-        strategy_keywords = [
-            "抖音", "视频", "策略", "两点半", "第二天", "买入", "卖出",
-            "douyin", "下午", "早上",
-        ]
-        
-        has_strategy_keyword = any(kw in message_lower for kw in strategy_keywords)
-        
-        if has_strategy_keyword and not has_friend_stock_keyword:
-            workflow_type = "strategy_idea"
-            stage = "idea_extraction"
+        elif session.workflow_kind == WorkflowKind.STRATEGY_IDEA:
             agent_reply = "收到，这是一个策略想法。我会帮你验证它的有效性，评估是否可以加入策略库。需要先提取策略规则并进行回测验证。"
             next_required_user_action = "wait_for_validation"
-        
-        # Unknown intent
-        if workflow_type == "unknown":
+        else:
             agent_reply = "你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？"
             next_required_user_action = "clarify_intent"
         
-        # Update conversation state
-        conv["workflow_type"] = workflow_type
-        conv["workflow_state"]["stage"] = stage
-        
         # Store agent message
-        conv["messages"].append({
-            "role": "agent",
-            "content": agent_reply,
-            "timestamp": datetime.now().isoformat(),
-        })
+        agent_message_id = f"msg_{uuid.uuid4().hex[:12]}"
+        agent_message = AgentMessage(
+            message_id=agent_message_id,
+            session_id=conversation_id,
+            role="agent",
+            content=agent_reply,
+            created_at=now,
+        )
+        append_message(db.conn, agent_message)
+        
+        # Create artifact refs for this exchange
+        user_msg_artifact = ArtifactRef(
+            artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+            session_id=conversation_id,
+            artifact_id=user_message_id,
+            artifact_type="user_message",
+            created_at=now,
+        )
+        attach_artifact_ref(db.conn, user_msg_artifact)
+        artifact_ids.append(user_message_id)
+        
+        agent_msg_artifact = ArtifactRef(
+            artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+            session_id=conversation_id,
+            artifact_id=agent_message_id,
+            artifact_type="agent_message",
+            created_at=now,
+        )
+        attach_artifact_ref(db.conn, agent_msg_artifact)
+        artifact_ids.append(agent_message_id)
+        
+        # Create workflow intent artifact
+        workflow_intent_id = f"intent_{conversation_id}"
+        intent_artifact = ArtifactRef(
+            artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+            session_id=conversation_id,
+            artifact_id=workflow_intent_id,
+            artifact_type="workflow_intent",
+            created_at=now,
+        )
+        attach_artifact_ref(db.conn, intent_artifact)
+        artifact_ids.append(workflow_intent_id)
         
         return {
             "conversation_id": conversation_id,
             "workflow_type": workflow_type,
             "stage": stage,
             "agent_reply": agent_reply,
-            "approval_card": approval_card,
+            "approval_card": approval_card.model_dump() if approval_card else None,
             "artifact_ids": artifact_ids,
             "next_required_user_action": next_required_user_action,
+        }
+
+    @app.get("/api/agent/workbench/{conversation_id}")
+    def get_workbench_session(conversation_id: str):
+        """
+        Get agent workbench session with timeline.
+        
+        Returns:
+        - session metadata
+        - timeline (messages, artifact_refs, approval_cards in insertion order)
+        """
+        try:
+            session = get_session(db.conn, conversation_id)
+        except ValueError:
+            raise HTTPException(status_code=404, detail=f"Session not found: {conversation_id}")
+        
+        timeline = get_session_timeline(db.conn, conversation_id)
+        
+        return {
+            "session": session.model_dump(),
+            "timeline": timeline,
+        }
+
+    @app.post("/api/agent/workbench/{conversation_id}/approval-cards/{card_id}/decide")
+    def decide_approval_card(conversation_id: str, card_id: str, request: ApprovalDecisionRequest):
+        """
+        Apply user decision to approval card.
+        
+        Uses approval_card_reducer for deterministic validation.
+        """
+        from datetime import datetime
+        
+        # Verify session exists
+        try:
+            session = get_session(db.conn, conversation_id)
+        except ValueError:
+            raise HTTPException(status_code=404, detail=f"Session not found: {conversation_id}")
+        
+        # Get all approval cards for this session
+        cards = list_approval_cards(db.conn, conversation_id)
+        
+        # Find the card
+        card = None
+        for c in cards:
+            if c.approval_card_id == card_id:
+                card = c
+                break
+        
+        if not card:
+            raise HTTPException(status_code=404, detail=f"Approval card not found: {card_id}")
+        
+        # Check if already decided
+        if card.decision is not None:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Approval card already decided: {card.decision} by {card.decided_by}"
+            )
+        
+        # Apply decision using reducer
+        try:
+            decided_card = apply_decision(
+                card=card,
+                decision=request.decision,
+                decided_by=request.decided_by,
+                decided_at=datetime.now(),
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        
+        # TODO: Persist decided card back to DB (currently approval cards are immutable after creation)
+        # For now, return the decided card
+        
+        return {
+            "approval_card_id": decided_card.approval_card_id,
+            "decision": decided_card.decision,
+            "decided_by": decided_card.decided_by,
+            "decided_at": decided_card.decided_at.isoformat() if decided_card.decided_at else None,
         }
 
     return app
