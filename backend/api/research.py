@@ -621,7 +621,7 @@ def create_research_app(
             raw_company_input=request.raw_company_input,
             raw_code_input=request.raw_code_input,
             source_note=request.source_note,
-            ticker_verification_result=result.model_dump(),
+            ticker_verification_result=result.model_dump(mode="json"),  # Serialize to dict
         )
         
         return result.model_dump()
@@ -658,7 +658,7 @@ def create_research_app(
             raw_company_input=flow_state["raw_company_input"],
             raw_code_input=flow_state["raw_code_input"],
             source_note=flow_state["source_note"],
-            ticker_verification_result=result.model_dump(),
+            ticker_verification_result=result.model_dump(mode="json"),  # Serialize to dict
         )
         
         return result.model_dump()
@@ -721,61 +721,87 @@ def create_research_app(
         if not flow_state:
             raise HTTPException(status_code=404, detail="Flow not found")
         
+        # Verify ticker was verified
+        verification_result = flow_state.get("ticker_verification_result")
+        if not verification_result:
+            raise HTTPException(status_code=400, detail="Ticker not verified for this flow")
+        
+        if verification_result.get("status") != "verified":
+            raise HTTPException(
+                status_code=400,
+                detail=f"Ticker verification status is '{verification_result.get('status')}', must be 'verified'"
+            )
+        
+        # Verify request matches verification result
+        if request.ticker != verification_result.get("resolved_ticker"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Request ticker '{request.ticker}' does not match verified ticker '{verification_result.get('resolved_ticker')}'"
+            )
+        
+        if request.name != verification_result.get("resolved_name"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Request name '{request.name}' does not match verified name '{verification_result.get('resolved_name')}'"
+            )
+        
+        if request.exchange != verification_result.get("exchange"):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Request exchange '{request.exchange}' does not match verified exchange '{verification_result.get('exchange')}'"
+            )
+        
         research_output = flow_state.get("research_output")
         if not research_output:
             raise HTTPException(status_code=400, detail="Research not completed for this flow")
         
+        # Market data unavailable blocks pool creation
+        raise HTTPException(
+            status_code=503,
+            detail="Market data adapter unavailable. Cannot create pool without live price snapshot."
+        )
+        
+        # Note: The code below would execute if market data were available
         # Wire services
-        if conversation_mode == "real" and hasattr(serenity_runner, 'run'):
-            serenity = serenity_runner
-        else:
-            serenity = None
-        
-        # Mock market data provider for now
-        def mock_provider(symbol: str, as_of: date) -> dict:
-            return {"close": 10.5, "volume": 1000000}
-        
-        flow_service = FriendStockFlowService(
-            validator=validator,
-            serenity_runner=serenity,
-            market_data_provider=mock_provider,
-        )
-        
-        # Parse snapshot date
-        snapshot_date = date.fromisoformat(request.snapshot_date)
-        
-        pool = flow_service.create_confirmed_pool(
-            flow_id=flow_id,
-            ticker=request.ticker,
-            name=request.name,
-            exchange=request.exchange,
-            approval_card_id=request.approval_card_id,
-            research_output=research_output,
-            snapshot_date=snapshot_date,
-        )
-        
-        # Persist to DB
-        from contracts.research import ConfirmedCandidate
-        confirmed = ConfirmedCandidate(
-            confirmed_id=pool.pool_id,
-            theme_id=flow_id,
-            symbol=pool.ticker,
-            company_name=pool.name,
-            verification_id="",  # TODO: link to verification
-            confirmation_reason="Friend recommendation approved",
-            evidence_level="medium",
-            confirmed_by="user",
-            pool_snapshot_date=pool.confirmation_date,
-            thesis_snapshot=pool.thesis_snapshot,
-            invalidation_rules=pool.invalidation_rules,
-            price_snapshot=pool.price_snapshot,
-            benchmark_snapshot=pool.benchmark_snapshot,
-            evidence_snapshot_ids=pool.evidence_snapshot_ids,
-            primary_evidence_snapshot_id=None,
-            confirmed_at=pool.created_at,
-        )
-        db.confirm_candidate(confirmed)
-        
-        return pool.model_dump()
+        # if conversation_mode == "real" and hasattr(serenity_runner, 'run'):
+        #     serenity = serenity_runner
+        # else:
+        #     serenity = None
+        #
+        # flow_service = FriendStockFlowService(
+        #     validator=validator,
+        #     serenity_runner=serenity,
+        #     market_data_provider=real_market_data_provider,  # Must be real, not mock
+        # )
+        #
+        # # Parse snapshot date
+        # snapshot_date = date.fromisoformat(request.snapshot_date)
+        #
+        # pool = flow_service.create_confirmed_pool(
+        #     flow_id=flow_id,
+        #     ticker=request.ticker,
+        #     name=request.name,
+        #     exchange=request.exchange,
+        #     approval_card_id=request.approval_card_id,
+        #     research_output=research_output,
+        #     snapshot_date=snapshot_date,
+        # )
+        #
+        # # Persist to DB with real verification_id
+        # confirmed = db.confirm_candidate(
+        #     candidate_id="cand_" + pool.pool_id,
+        #     confirmation_reason="Friend recommendation approved",
+        #     evidence_level="medium",
+        #     confirmed_by="user",
+        #     pool_snapshot_date=pool.confirmation_date.date(),
+        #     thesis_snapshot=pool.thesis_snapshot,
+        #     invalidation_rules=pool.invalidation_rules,
+        #     price_snapshot=pool.price_snapshot,
+        #     benchmark_snapshot=pool.benchmark_snapshot,
+        #     evidence_snapshot_ids=pool.evidence_snapshot_ids,
+        #     primary_evidence_snapshot_id=None,
+        # )
+        #
+        # return pool.model_dump()
 
     return app
