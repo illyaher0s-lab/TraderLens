@@ -864,4 +864,114 @@ def create_research_app(
         response["confirmed_id"] = confirmed.confirmed_id
         return response
 
+    # ========================================================================
+    # Task 13: Unified Agent Workbench API
+    # ========================================================================
+
+    class WorkbenchMessageRequest(BaseModel):
+        conversation_id: str | None = None
+        message: str
+        context: dict | None = None
+
+    # Store conversation state in memory for deterministic testing
+    _workbench_conversations: dict[str, dict] = {}
+
+    @app.post("/api/agent/workbench/message")
+    def workbench_message(request: WorkbenchMessageRequest):
+        """
+        Unified agent workbench endpoint.
+        
+        Routes natural language to friend-stock or strategy-idea flows
+        without exposing technical parameters.
+        
+        Task 13: Deterministic routing without LLM dependency.
+        """
+        import uuid
+        from datetime import datetime
+        
+        # Get or create conversation
+        conversation_id = request.conversation_id or f"conv_{uuid.uuid4().hex[:12]}"
+        
+        if conversation_id not in _workbench_conversations:
+            _workbench_conversations[conversation_id] = {
+                "messages": [],
+                "workflow_type": None,
+                "workflow_state": {},
+            }
+        
+        conv = _workbench_conversations[conversation_id]
+        
+        # Store user message
+        conv["messages"].append({
+            "role": "user",
+            "content": request.message,
+            "timestamp": datetime.now().isoformat(),
+        })
+        
+        # Deterministic routing rules (no LLM)
+        message_lower = request.message.lower()
+        workflow_type = "unknown"
+        agent_reply = ""
+        stage = "initial"
+        approval_card = None
+        artifact_ids = []
+        next_required_user_action = "provide_more_context"
+        
+        # Friend stock detection
+        friend_stock_keywords = [
+            "朋友", "推荐", "股票", "公司", "帮我看", "帮我查",
+            "pudong", "浦发", "招商", "平安",
+        ]
+        stock_code_pattern = r"\d{6}\.(SH|SZ|sh|sz)"
+        
+        import re
+        has_stock_code = bool(re.search(stock_code_pattern, request.message))
+        has_friend_stock_keyword = any(kw in message_lower for kw in friend_stock_keywords)
+        
+        if has_stock_code or has_friend_stock_keyword:
+            workflow_type = "friend_stock"
+            stage = "ticker_identification"
+            agent_reply = "收到，这是朋友推荐的股票。我会帮你调查这家公司的产业链位置、价值和风险。稍等片刻。"
+            next_required_user_action = "wait_for_research"
+            
+        # Strategy idea detection
+        strategy_keywords = [
+            "抖音", "视频", "策略", "两点半", "第二天", "买入", "卖出",
+            "douyin", "下午", "早上",
+        ]
+        
+        has_strategy_keyword = any(kw in message_lower for kw in strategy_keywords)
+        
+        if has_strategy_keyword and not has_friend_stock_keyword:
+            workflow_type = "strategy_idea"
+            stage = "idea_extraction"
+            agent_reply = "收到，这是一个策略想法。我会帮你验证它的有效性，评估是否可以加入策略库。需要先提取策略规则并进行回测验证。"
+            next_required_user_action = "wait_for_validation"
+        
+        # Unknown intent
+        if workflow_type == "unknown":
+            agent_reply = "你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？"
+            next_required_user_action = "clarify_intent"
+        
+        # Update conversation state
+        conv["workflow_type"] = workflow_type
+        conv["workflow_state"]["stage"] = stage
+        
+        # Store agent message
+        conv["messages"].append({
+            "role": "agent",
+            "content": agent_reply,
+            "timestamp": datetime.now().isoformat(),
+        })
+        
+        return {
+            "conversation_id": conversation_id,
+            "workflow_type": workflow_type,
+            "stage": stage,
+            "agent_reply": agent_reply,
+            "approval_card": approval_card,
+            "artifact_ids": artifact_ids,
+            "next_required_user_action": next_required_user_action,
+        }
+
     return app
