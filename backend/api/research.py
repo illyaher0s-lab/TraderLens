@@ -874,10 +874,8 @@ def create_research_app(
         create_session,
         get_session,
         append_message,
-        list_messages,
         attach_artifact_ref,
-        list_artifact_refs,
-        attach_approval_card,
+        update_approval_card,
         list_approval_cards,
         get_session_timeline,
     )
@@ -889,7 +887,6 @@ def create_research_app(
         WorkflowState,
     )
     from backend.services.approval_card_reducer import (
-        create_approval_card,
         apply_decision,
     )
 
@@ -972,27 +969,18 @@ def create_research_app(
                     workflow_state = WorkflowState.VALIDATING
             
             # Create session in DB
-            if workflow_kind:
-                session = AgentSession(
-                    session_id=conversation_id,
-                    workflow_kind=workflow_kind,
-                    workflow_state=workflow_state,
-                    title=session_title,
-                    created_at=now,
-                    updated_at=now,
-                )
-                create_session(db.conn, session)
-            else:
-                # Unknown intent - create generic session
-                session = AgentSession(
-                    session_id=conversation_id,
-                    workflow_kind=WorkflowKind.FRIEND_STOCK,  # Default, will clarify
-                    workflow_state=WorkflowState.CREATED,
-                    title="待确认会话",
-                    created_at=now,
-                    updated_at=now,
-                )
-                create_session(db.conn, session)
+            if workflow_kind is None:
+                workflow_kind = WorkflowKind.UNKNOWN
+
+            session = AgentSession(
+                session_id=conversation_id,
+                workflow_kind=workflow_kind,
+                workflow_state=workflow_state,
+                title=session_title,
+                created_at=now,
+                updated_at=now,
+            )
+            create_session(db.conn, session)
         else:
             # Existing session
             session = get_session(db.conn, conversation_id)
@@ -1022,6 +1010,10 @@ def create_research_app(
         elif session.workflow_kind == WorkflowKind.STRATEGY_IDEA:
             agent_reply = "收到，这是一个策略想法。我会帮你验证它的有效性，评估是否可以加入策略库。需要先提取策略规则并进行回测验证。"
             next_required_user_action = "wait_for_validation"
+        elif session.workflow_kind == WorkflowKind.UNKNOWN:
+            workflow_type = "unknown"
+            agent_reply = "你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？"
+            next_required_user_action = "clarify_intent"
         else:
             agent_reply = "你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？"
             next_required_user_action = "clarify_intent"
@@ -1147,8 +1139,7 @@ def create_research_app(
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
         
-        # TODO: Persist decided card back to DB (currently approval cards are immutable after creation)
-        # For now, return the decided card
+        update_approval_card(db.conn, decided_card)
         
         return {
             "approval_card_id": decided_card.approval_card_id,

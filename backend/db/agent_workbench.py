@@ -434,6 +434,37 @@ def list_approval_cards(conn: sqlite3.Connection, session_id: str) -> list[Appro
     return [ApprovalCard.model_validate_json(row[0]) for row in rows]
 
 
+def update_approval_card(conn: sqlite3.Connection, approval_card: ApprovalCard):
+    """
+    Replace stored approval-card data without adding a new timeline item.
+
+    Args:
+        conn: SQLite connection
+        approval_card: ApprovalCard with updated decision fields
+
+    Raises:
+        ValueError: If approval card does not exist
+    """
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE agent_approval_cards
+        SET card_data = ?
+        WHERE approval_card_id = ?
+        """,
+        (
+            approval_card.model_dump_json(),
+            approval_card.approval_card_id,
+        ),
+    )
+
+    if cursor.rowcount == 0:
+        raise ValueError(f"Approval card not found: {approval_card.approval_card_id}")
+
+    conn.commit()
+
+
 def get_session_timeline(conn: sqlite3.Connection, session_id: str) -> list[dict]:
     """
     Get session timeline in insertion order.

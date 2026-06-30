@@ -148,7 +148,7 @@ def test_unknown_message_asks_plain_clarification(app):
     
     Input: "你好"
     Expected:
-    - workflow_type == "friend_stock" (default until clarified)
+    - workflow_type == "unknown"
     - next_required_user_action is plain clarification, not technical parameters
     """
     client = TestClient(app)
@@ -163,8 +163,7 @@ def test_unknown_message_asks_plain_clarification(app):
     assert response.status_code == 200
     data = response.json()
     
-    # Unknown intent still creates session, defaults to friend_stock
-    assert data["workflow_type"] == "friend_stock"
+    assert data["workflow_type"] == "unknown"
     assert "agent_reply" in data
     
     # Should ask for clarification in plain language
@@ -371,8 +370,9 @@ def test_approval_card_decide_endpoint(app):
     Uses approval_card_reducer for deterministic validation.
     Returns 404 if card not found.
     """
-    from backend.services.approval_card_reducer import create_approval_card
     from datetime import datetime
+    from backend.db.agent_workbench import attach_approval_card
+    from backend.services.approval_card_reducer import create_approval_card
     
     client = TestClient(app)
     
@@ -398,7 +398,41 @@ def test_approval_card_decide_endpoint(app):
     # Should return 404 for non-existent card
     assert response_decide.status_code == 404
     assert "Approval card not found" in response_decide.json()["detail"]
-    
-    # Note: Creating and attaching actual approval cards requires
-    # completing research flow, which is beyond Task 13 scope.
-    # Task 13 only implements the decision endpoint.
+
+    artifact_id = response.json()["artifact_ids"][0]
+    card = create_approval_card(
+        workflow_id=conversation_id,
+        stage="research_confirmation",
+        title="是否继续",
+        plain_language_summary="请决定是否继续调查这只股票。",
+        allowed_decisions=["continue", "stop", "downgrade_to_observation"],
+        artifact_ids=[artifact_id],
+        created_at=datetime.now(),
+    )
+    attach_approval_card(app.state.db.conn, conversation_id, card)
+
+    response_decide = client.post(
+        f"/api/agent/workbench/{conversation_id}/approval-cards/{card.approval_card_id}/decide",
+        json={
+            "decision": "continue",
+            "decided_by": "test_user",
+        },
+    )
+
+    assert response_decide.status_code == 200
+    decision_data = response_decide.json()
+    assert decision_data["approval_card_id"] == card.approval_card_id
+    assert decision_data["decision"] == "continue"
+    assert decision_data["decided_by"] == "test_user"
+    assert decision_data["decided_at"] is not None
+
+    response_get = client.get(f"/api/agent/workbench/{conversation_id}")
+    assert response_get.status_code == 200
+    approval_cards = [
+        item["content"]
+        for item in response_get.json()["timeline"]
+        if item["type"] == "approval_card"
+    ]
+    assert approval_cards[0]["approval_card_id"] == card.approval_card_id
+    assert approval_cards[0]["decision"] == "continue"
+    assert approval_cards[0]["decided_by"] == "test_user"

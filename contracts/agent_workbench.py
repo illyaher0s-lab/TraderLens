@@ -20,6 +20,7 @@ class WorkflowKind(str, Enum):
 
     FRIEND_STOCK = "friend_stock"
     STRATEGY_IDEA = "strategy_idea"
+    UNKNOWN = "unknown"
 
 
 class WorkflowState(str, Enum):
