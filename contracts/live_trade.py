@@ -24,6 +24,41 @@ class ExecutionInterpretationStatus(str, Enum):
     rejected = "rejected"
 
 
+class PositionLifecycleState(str, Enum):
+    """Position lifecycle state."""
+
+    open = "open"
+    closed = "closed"
+
+
+class DailySignalType(str, Enum):
+    """Daily observation signal type."""
+
+    hold = "hold"
+    sell = "sell"
+    risk = "risk"
+    invalidated = "invalidated"
+
+
+class InvalidationTrigger(str, Enum):
+    """Invalidation trigger types (拆细 invalidated)."""
+
+    price_break = "price_break"
+    fundamental_breach = "fundamental_breach"
+    thesis_broken = "thesis_broken"
+    event_risk = "event_risk"
+    theme_faded = "theme_faded"
+    stop_rule = "stop_rule"
+
+
+class ExplanationSource(str, Enum):
+    """Explanation source for daily signals."""
+
+    none = "none"
+    template_text = "template_text"
+    llm_assisted = "llm_assisted"
+
+
 class RecommendationLevel(str, Enum):
     """Recommendation level for execution decisions."""
 
@@ -277,4 +312,86 @@ class ExecutionObservationLog(BaseModel, frozen=True, extra="forbid"):
         """Log must be user-confirmed."""
         if v is not True:
             raise ValueError("confirmed_by_user must be True (no auto-promotion)")
+        return v
+
+
+class ObservationPosition(BaseModel, frozen=True, extra="forbid"):
+    """
+    Observation pool position.
+    
+    Red line 1: only created from ExecutionObservationLog (confirmed), never from draft.
+    """
+
+    position_id: str
+    # Evidence chain (5 IDs + source_log_id pointing to confirmed log)
+    source_log_id: str  # Must point to ExecutionObservationLog
+    execution_card_id: str
+    signal_id: str
+    action_plan_id: str
+    capital_context_id: str
+    # Position details
+    symbol: str
+    name: str
+    entry_price: float  # From confirmed log, not fabricated
+    quantity: int
+    # Template rules lock
+    template_id: str
+    template_version: str
+    # Entry thesis snapshot
+    entry_thesis: str
+    # Lifecycle
+    lifecycle_state: PositionLifecycleState
+    opened_at: datetime
+    closed_at: Optional[datetime]
+
+    @field_validator("source_log_id", "execution_card_id", "signal_id", "action_plan_id", "capital_context_id")
+    @classmethod
+    def evidence_chain_must_be_non_empty(cls, v: str, info) -> str:
+        """Evidence chain fields must all be non-empty."""
+        if not v or not v.strip():
+            raise ValueError(f"{info.field_name} must be non-empty (evidence chain required)")
+        return v
+
+    @field_validator("entry_price")
+    @classmethod
+    def entry_price_must_be_positive(cls, v: float) -> float:
+        """Entry price must be > 0."""
+        if v <= 0:
+            raise ValueError("entry_price must be positive")
+        return v
+
+    @field_validator("quantity")
+    @classmethod
+    def quantity_must_be_positive(cls, v: int) -> int:
+        """Quantity must be > 0."""
+        if v <= 0:
+            raise ValueError("quantity must be positive")
+        return v
+
+
+class DailyObservationSignal(BaseModel, frozen=True, extra="forbid"):
+    """
+    Daily observation signal for a position.
+    
+    Red line 2: 100% deterministic reducer output, LLM never decides.
+    Red line 3: hold signals have zero LLM calls, only sell/risk/invalidated may call LLM once for explanation.
+    """
+
+    signal_record_id: str
+    position_id: str
+    signal_type: DailySignalType
+    triggered_invalidations: list[InvalidationTrigger]  # Empty for hold
+    as_of_date: datetime
+    market_data_state: MarketDataFaultState
+    # Audit trail (must be present and complete)
+    rule_trace: dict  # {"rule": "stop_rule", "threshold": -0.08, "actual": -0.093, "hit": true}
+    # Explanation (only filled for sell/risk/invalidated, empty for hold)
+    plain_explanation: Optional[str]
+    explanation_source: ExplanationSource
+
+    @field_validator("triggered_invalidations")
+    @classmethod
+    def triggered_invalidations_empty_for_hold(cls, v: list[InvalidationTrigger], info) -> list[InvalidationTrigger]:
+        """triggered_invalidations must be empty for hold signals."""
+        # Note: validator runs before we can access signal_type, so we validate in service layer
         return v

@@ -99,6 +99,48 @@ class LiveTradeDB:
                 """
             )
 
+            # Task 9: Observation positions and daily signals
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS observation_positions (
+                    position_id TEXT PRIMARY KEY,
+                    source_log_id TEXT NOT NULL,
+                    execution_card_id TEXT NOT NULL,
+                    signal_id TEXT NOT NULL,
+                    action_plan_id TEXT NOT NULL,
+                    capital_context_id TEXT NOT NULL,
+                    symbol TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    entry_price REAL NOT NULL CHECK(entry_price > 0),
+                    quantity INTEGER NOT NULL CHECK(quantity > 0),
+                    template_id TEXT NOT NULL,
+                    template_version TEXT NOT NULL,
+                    entry_thesis TEXT NOT NULL,
+                    lifecycle_state TEXT NOT NULL,
+                    opened_at TEXT NOT NULL,
+                    closed_at TEXT,
+                    FOREIGN KEY (source_log_id) REFERENCES execution_observation_logs(log_id)
+                )
+                """
+            )
+
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS daily_observation_signals (
+                    signal_record_id TEXT PRIMARY KEY,
+                    position_id TEXT NOT NULL,
+                    signal_type TEXT NOT NULL,
+                    triggered_invalidations TEXT NOT NULL,
+                    as_of_date TEXT NOT NULL,
+                    market_data_state TEXT NOT NULL,
+                    rule_trace TEXT NOT NULL,
+                    plain_explanation TEXT,
+                    explanation_source TEXT NOT NULL,
+                    FOREIGN KEY (position_id) REFERENCES observation_positions(position_id)
+                )
+                """
+            )
+
             # Indexes for common queries
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_drafts_execution_card ON execution_observation_drafts(execution_card_id)"
@@ -108,6 +150,12 @@ class LiveTradeDB:
             )
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_logs_draft ON execution_observation_logs(draft_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_positions_lifecycle ON observation_positions(lifecycle_state)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_signals_position_date ON daily_observation_signals(position_id, as_of_date)"
             )
 
     def save_draft(self, draft: ExecutionObservationDraft) -> None:
