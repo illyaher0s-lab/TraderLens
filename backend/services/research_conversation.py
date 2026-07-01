@@ -73,8 +73,6 @@ class ResearchConversationService:
         if mode == "real":
             self.llm_client = llm_client or LLMClient(
                 api_key=os.getenv("RESEARCH_LLM_API_KEY"),
-                base_url="https://cc-vibe.com",
-                model="claude-sonnet-4-6",
             )
             self.validator = validator or ResearchValidator()
         else:

@@ -29,8 +29,8 @@ class LLMClient:
     def __init__(
         self,
         api_key: str | None = None,
-        base_url: str = "https://cc-vibe.com",
-        model: str = "claude-sonnet-4-6",
+        base_url: str | None = None,
+        model: str | None = None,
     ):
         """
         Initialize LLM client.
@@ -50,12 +50,12 @@ class LLMClient:
                 "Set RESEARCH_LLM_API_KEY environment variable or pass api_key explicitly."
             )
         
-        self.base_url = base_url
-        self.model = model
+        self.base_url = base_url or os.getenv("RESEARCH_LLM_BASE_URL", "https://cc-vibe.com")
+        self.model = model or os.getenv("RESEARCH_LLM_MODEL", "claude-sonnet-4-6")
         
         self.client = Anthropic(
             api_key=self.api_key,
-            base_url=base_url,
+            base_url=self.base_url,
         )
 
     def create_message(

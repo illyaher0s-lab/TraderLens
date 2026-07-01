@@ -14,8 +14,8 @@ Environment variables:
 - TUSHARE_TOKEN: Tushare API token (required)
 - TUSHARE_API_URL: Optional private Tushare endpoint
 - RESEARCH_LLM_API_KEY: LLM API key (required)
-- RESEARCH_LLM_BASE_URL: Optional LLM base URL
-- RESEARCH_LLM_MODEL: Optional LLM model name
+- RESEARCH_LLM_BASE_URL: Optional LLM base URL for production LLMClient
+- RESEARCH_LLM_MODEL: Optional LLM model name for production LLMClient
 
 Purpose:
 - Verify connectivity and authentication
@@ -26,6 +26,7 @@ Purpose:
 """
 
 import os
+import pathlib
 import pytest
 
 
@@ -224,39 +225,33 @@ class TestLLMSmokeVerification:
         """
         # Get credentials from environment
         api_key = os.environ.get("RESEARCH_LLM_API_KEY")
-        base_url = os.environ.get("RESEARCH_LLM_BASE_URL", "https://cc-vibe.com/v1")
-        model = os.environ.get("RESEARCH_LLM_MODEL", "gpt-4o-mini")
+        base_url = os.environ.get("RESEARCH_LLM_BASE_URL")
+        model = os.environ.get("RESEARCH_LLM_MODEL")
         
         assert api_key, "RESEARCH_LLM_API_KEY environment variable not set"
         
-        # Import OpenAI client
-        from openai import OpenAI
-        
-        # Initialize client
-        client = OpenAI(
+        from backend.services.llm_client import LLMClient
+
+        client = LLMClient(
             api_key=api_key,
             base_url=base_url,
-        )
-        
-        # Simple smoke test prompt (no trading content)
-        response = client.chat.completions.create(
             model=model,
+        )
+
+        response = client.create_message(
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "What is 2+2? Reply with just the number."}
             ],
+            system="You are a helpful assistant.",
             max_tokens=10,
-            temperature=0,
         )
         
         # Verify response structure
         assert response is not None, "LLM returned None"
-        assert hasattr(response, 'choices'), "Response missing choices"
-        assert len(response.choices) > 0, "Response has no choices"
-        assert hasattr(response.choices[0], 'message'), "Choice missing message"
-        assert hasattr(response.choices[0].message, 'content'), "Message missing content"
+        assert "content" in response, "Response missing content"
+        assert response["content"], "Response has no content blocks"
         
-        content = response.choices[0].message.content
+        content = response["content"][0].get("text", "")
         assert content, "LLM returned empty content"
         
         # Verify no API key in output
@@ -274,15 +269,15 @@ class TestLLMSmokeVerification:
         - Extraction pattern works (claimed_* fields)
         """
         api_key = os.environ.get("RESEARCH_LLM_API_KEY")
-        base_url = os.environ.get("RESEARCH_LLM_BASE_URL", "https://cc-vibe.com/v1")
-        model = os.environ.get("RESEARCH_LLM_MODEL", "gpt-4o-mini")
+        base_url = os.environ.get("RESEARCH_LLM_BASE_URL")
+        model = os.environ.get("RESEARCH_LLM_MODEL")
         
         assert api_key, "RESEARCH_LLM_API_KEY environment variable not set"
         
-        from openai import OpenAI
         import json
+        from backend.services.llm_client import LLMClient
         
-        client = OpenAI(api_key=api_key, base_url=base_url)
+        client = LLMClient(api_key=api_key, base_url=base_url, model=model)
         
         # Extraction prompt (strategy idea pattern)
         prompt = """
@@ -296,17 +291,15 @@ class TestLLMSmokeVerification:
         }
         """
         
-        response = client.chat.completions.create(
-            model=model,
+        response = client.create_message(
             messages=[
-                {"role": "system", "content": "Extract trading rules as JSON. Use 'claimed_' prefix for unverified claims."},
                 {"role": "user", "content": prompt}
             ],
+            system="Extract trading rules as JSON. Use 'claimed_' prefix for unverified claims.",
             max_tokens=200,
-            temperature=0,
         )
         
-        content = response.choices[0].message.content
+        content = response["content"][0].get("text", "")
         
         # Try to parse as JSON
         try:
@@ -455,3 +448,19 @@ class TestNoSecretsInCode:
                     pytest.fail(f"Potential hardcoded secret: {line.strip()}")
         
         print("✓ No hardcoded secrets detected in test file")
+
+
+class TestLLMSmokeUsesProductionClient:
+    """
+    Meta test: LLM smoke must exercise the same client used by production research.
+    """
+
+    def test_llm_smoke_does_not_bypass_production_client(self):
+        content = pathlib.Path(__file__).read_text(encoding="utf-8")
+
+        assert "from backend.services.llm_client import LLMClient" in content
+        forbidden_openai_import = "from openai import " + "OpenAI"
+        forbidden_openai_call = "chat." + "completions.create"
+
+        assert forbidden_openai_import not in content
+        assert forbidden_openai_call not in content
