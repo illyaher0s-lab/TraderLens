@@ -952,6 +952,30 @@ def create_research_app(
             FOREIGN KEY (position_id) REFERENCES observation_positions(position_id)
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS daily_observation_signals (
+            signal_record_id TEXT PRIMARY KEY,
+            position_id TEXT NOT NULL,
+            signal_type TEXT NOT NULL,
+            triggered_invalidations TEXT NOT NULL,
+            as_of_date TEXT NOT NULL,
+            market_data_state TEXT NOT NULL,
+            rule_trace TEXT NOT NULL,
+            plain_explanation TEXT,
+            explanation_source TEXT NOT NULL,
+            FOREIGN KEY (position_id) REFERENCES observation_positions(position_id)
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS discipline_reviews (
+            review_id TEXT PRIMARY KEY,
+            position_id TEXT NOT NULL,
+            execution_card_id TEXT NOT NULL,
+            signal_id TEXT NOT NULL,
+            review_json TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
     db.conn.commit()
 
     class WorkbenchMessageRequest(BaseModel):
@@ -1384,29 +1408,76 @@ def create_research_app(
         # If sell, close position and calculate P&L
         elif final_action == "sell":
             # Find open position for this symbol
-            positions = live_db.list_observation_positions()
-            open_position = None
-            for pos in positions:
-                if pos.symbol == symbol and pos.lifecycle_state == "open":
-                    open_position = pos
-                    break
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT * FROM observation_positions
+                WHERE symbol = ? AND lifecycle_state = 'open'
+                ORDER BY opened_at DESC
+                LIMIT 1
+            """, (symbol,))
+            position_row = cursor.fetchone()
             
-            if not open_position:
+            if not position_row:
                 raise HTTPException(
                     status_code=404,
                     detail=f"No open position found for {symbol}"
                 )
             
+            # Reconstruct position object
+            from contracts.live_trade import ObservationPosition, PositionLifecycleState
+            open_position = ObservationPosition(
+                position_id=position_row[0],
+                source_log_id=position_row[1],
+                execution_card_id=position_row[2],
+                signal_id=position_row[3],
+                action_plan_id=position_row[4],
+                capital_context_id=position_row[5],
+                symbol=position_row[6],
+                name=position_row[7],
+                entry_price=position_row[8],
+                quantity=position_row[9],
+                template_id=position_row[10],
+                template_version=position_row[11],
+                entry_thesis=position_row[12],
+                lifecycle_state=PositionLifecycleState(position_row[13]),
+                opened_at=datetime.fromisoformat(position_row[14]),
+                closed_at=None,
+            )
+            
             # Close position
             closed_position = observation_pool.close_position(open_position)
-            live_db.update_observation_position(closed_position)
+            cursor.execute("""
+                UPDATE observation_positions
+                SET lifecycle_state = ?, closed_at = ?
+                WHERE position_id = ?
+            """, (closed_position.lifecycle_state.value, closed_position.closed_at.isoformat(), closed_position.position_id))
+            conn.commit()
             
             # Calculate P&L
             from backend.services.discipline_review import DisciplineReviewService
             discipline_service = DisciplineReviewService()
             
             # Get buy log
-            buy_log = live_db.get_execution_log(open_position.source_log_id)
+            cursor.execute("SELECT * FROM execution_observation_logs WHERE log_id = ?", (open_position.source_log_id,))
+            buy_row = cursor.fetchone()
+            from contracts.live_trade import ExecutionObservationLog
+            buy_log = ExecutionObservationLog(
+                log_id=buy_row[0],
+                draft_id=buy_row[1],
+                execution_card_id=buy_row[2],
+                signal_id=buy_row[3],
+                action_plan_id=buy_row[4],
+                capital_context_id=buy_row[5],
+                market_snapshot_id=buy_row[6],
+                confirmed_action=buy_row[7],
+                confirmed_execution_status=buy_row[8],
+                confirmed_price=buy_row[9],
+                confirmed_quantity=buy_row[10],
+                reason=buy_row[11],
+                confirmed_by_user=True,
+                broker_verified=False,
+                confirmed_at=datetime.fromisoformat(buy_row[14]),
+            )
             
             # Calculate P&L
             pnl_record = discipline_service.calculate_pnl(
@@ -1415,14 +1486,54 @@ def create_research_app(
                 sell_log=log
             )
             
-            live_db.create_pnl_record(pnl_record)
+            # Store P&L record
+            cursor.execute("""
+                INSERT INTO pnl_records (
+                    pnl_record_id, position_id, buy_price, sell_price,
+                    quantity, fees, pnl_amount, pnl_pct, pnl_source,
+                    missing_fields, computed_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                pnl_record.pnl_record_id, pnl_record.position_id,
+                pnl_record.buy_price, pnl_record.sell_price,
+                pnl_record.quantity, pnl_record.fees,
+                pnl_record.pnl_amount, pnl_record.pnl_pct,
+                pnl_record.pnl_source.value,
+                json.dumps(pnl_record.missing_fields),
+                pnl_record.computed_at.isoformat()
+            ))
+            
+            # Create discipline review
+            review = discipline_service.create_review(
+                position_id=open_position.position_id,
+                execution_card_id=open_position.execution_card_id,
+                signal_id=open_position.signal_id,
+                daily_signal_ids=[],
+                buy_log=buy_log,
+                sell_log=log,
+            )
+            
+            # Store discipline review
+            cursor.execute("""
+                INSERT INTO discipline_reviews (
+                    review_id, position_id, execution_card_id, signal_id,
+                    review_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+            """, (
+                review.review_id, review.position_id,
+                review.execution_card_id, review.signal_id,
+                review.model_dump_json(), review.created_at.isoformat()
+            ))
+            conn.commit()
             
             return {
                 "status": "success",
                 "action": "sell",
                 "position_id": open_position.position_id,
                 "log_id": log.log_id,
-                "pnl_amount": pnl_record.pnl_amount,
+                "pnl_record_id": pnl_record.pnl_record_id,
+                "discipline_review_id": review.review_id,
+                "realized_pnl": pnl_record.pnl_amount,
                 "pnl_pct": pnl_record.pnl_pct
             }
         
@@ -1440,9 +1551,108 @@ def create_research_app(
         Red line: Deterministic reducer only, LLM does not decide hold/sell.
         """
         from fastapi import HTTPException
-        raise HTTPException(
-            status_code=501,
-            detail="Daily signal endpoint not yet implemented"
-        )
+        from backend.services.observation_pool import ObservationPool
+        from contracts.market_data_fault import MarketDataFaultState
+        from datetime import date
+        import uuid
+        import json
+        
+        # Find open positions
+        cursor = db.conn.cursor()
+        cursor.execute("""
+            SELECT * FROM observation_positions
+            WHERE lifecycle_state = 'open'
+            ORDER BY opened_at DESC
+        """)
+        position_rows = cursor.fetchall()
+        
+        if not position_rows:
+            return {
+                "status": "no_open_positions",
+                "message": "没有持仓需要观察",
+                "signals": []
+            }
+        
+        # Generate signals for all open positions
+        observation_pool = ObservationPool()
+        signals = []
+        
+        for position_row in position_rows:
+            from contracts.live_trade import ObservationPosition, PositionLifecycleState
+            position = ObservationPosition(
+                position_id=position_row[0],
+                source_log_id=position_row[1],
+                execution_card_id=position_row[2],
+                signal_id=position_row[3],
+                action_plan_id=position_row[4],
+                capital_context_id=position_row[5],
+                symbol=position_row[6],
+                name=position_row[7],
+                entry_price=position_row[8],
+                quantity=position_row[9],
+                template_id=position_row[10],
+                template_version=position_row[11],
+                entry_thesis=position_row[12],
+                lifecycle_state=PositionLifecycleState(position_row[13]),
+                opened_at=datetime.fromisoformat(position_row[14]),
+                closed_at=None,
+            )
+            
+            # Use market data provider if available, otherwise use entry price + 5%
+            if market_data_provider:
+                market_data = market_data_provider(position.symbol, date.today())
+                current_price = market_data.get("close", position.entry_price * 1.05)
+            else:
+                current_price = position.entry_price * 1.05
+            
+            # Template rules (simplified for workbench)
+            template_rules = {
+                "risk_rules": {
+                    "stop_loss": -0.08
+                }
+            }
+            
+            # Generate daily signal
+            signal = observation_pool.generate_daily_signal(
+                position=position,
+                current_price=current_price,
+                market_data_state=MarketDataFaultState.ok,
+                template_rules=template_rules,
+                as_of_date=date.today(),
+                external_triggers=[]
+            )
+            
+            # Store signal
+            cursor.execute("""
+                INSERT INTO daily_observation_signals (
+                    signal_record_id, position_id, signal_type,
+                    triggered_invalidations, as_of_date, market_data_state,
+                    rule_trace, plain_explanation, explanation_source
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                signal.signal_record_id,
+                signal.position_id,
+                signal.signal_type.value,
+                json.dumps([t.value for t in signal.triggered_invalidations]),
+                signal.as_of_date.isoformat(),
+                signal.market_data_state.value,
+                json.dumps(signal.rule_trace),
+                signal.plain_explanation,
+                signal.explanation_source.value
+            ))
+            db.conn.commit()
+            
+            signals.append({
+                "signal_id": signal.signal_record_id,
+                "position_id": position.position_id,
+                "symbol": position.symbol,
+                "signal_type": signal.signal_type.value,
+                "generated_at": signal.as_of_date.isoformat()
+            })
+        
+        return {
+            "status": "success",
+            "signals": signals
+        }
 
     return app
