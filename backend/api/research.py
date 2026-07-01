@@ -1091,119 +1091,122 @@ def create_research_app(
         
         if session.workflow_kind == WorkflowKind.FRIEND_STOCK:
             # Task 21: Orchestrate friend-stock flow (fix P0-1)
-            # Extract company name or ticker from user message
-            from backend.services.friend_stock_flow import FriendStockFlowService
-            import re
-            
-            # Simple extraction: look for company name or stock code
-            stock_code_pattern = r"(\d{6}\.(SH|SZ|sh|sz))"
-            code_match = re.search(stock_code_pattern, request.message)
-            
-            raw_code_input = code_match.group(1) if code_match else None
-            raw_company_input = request.message if not code_match else None
-            
-            # Call friend-stock intake (ticker verification)
-            flow_service = FriendStockFlowService(
-                validator=validator,
-                serenity_runner=None,
-                market_data_provider=None,
+            # Task 24A: Extract ticker and company from natural language
+            from backend.services.friend_stock_flow import (
+                FriendStockFlowService,
+                extract_ticker_and_company_from_natural_language,
             )
             
-            try:
-                verification_result = flow_service.verify_ticker(
-                    raw_company_input=raw_company_input or "",
-                    raw_code_input=raw_code_input,
-                )
-                
-                # Store flow state in DB
-                flow_id = verification_result.flow_id
-                db.store_friend_stock_flow(
-                    flow_id=flow_id,
-                    raw_company_input=raw_company_input or "",
-                    raw_code_input=raw_code_input,
-                    source_note=f"Workbench conversation {conversation_id}",
-                    ticker_verification_result=verification_result.model_dump(mode="json"),
-                )
-                
-                # Create friend_stock_flow artifact
-                flow_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=flow_id,
-                    artifact_type="friend_stock_flow",
-                    created_at=now,
-                )
-                attach_artifact_ref(db.conn, flow_artifact)
-                artifact_ids.append(flow_id)
-                
-                # Handle verification result
-                if verification_result.status == "verified":
-                    # Ticker verified - attempt research if serenity available
-                    if conversation_mode == "real" and serenity_runner and hasattr(serenity_runner, 'run'):
-                        # Attempt research
-                        try:
-                            research_output = flow_service.run_industry_research(
-                                ticker=verification_result.resolved_ticker,
-                                company_name=verification_result.resolved_name,
-                            )
-                            
-                            # Store research output
-                            db.store_friend_stock_flow(
-                                flow_id=flow_id,
-                                raw_company_input=raw_company_input or "",
-                                raw_code_input=raw_code_input,
-                                source_note=f"Workbench conversation {conversation_id}",
-                                ticker_verification_result=verification_result.model_dump(mode="json"),
-                                research_output=research_output,
-                            )
-                            
-                            # Create research_report artifact
-                            research_artifact = ArtifactRef(
-                                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                                session_id=conversation_id,
-                                artifact_id=f"research_{flow_id}",
-                                artifact_type="research_report",
-                                created_at=now,
-                            )
-                            attach_artifact_ref(db.conn, research_artifact)
-                            artifact_ids.append(f"research_{flow_id}")
-                            
-                            agent_reply = f"已完成对 {verification_result.resolved_name} ({verification_result.resolved_ticker}) 的调查。\n\n研究结果已生成，等待你的审批决定。"
-                            workflow_state = WorkflowState.WAITING_FOR_APPROVAL
-                            next_required_user_action = "review_research_and_approve"
-                            
-                        except Exception as e:
-                            # Research failed
-                            agent_reply = f"已识别 {verification_result.resolved_name} ({verification_result.resolved_ticker})，但研究执行失败：{str(e)}\n\n请稍后重试或手动调用研究流程。"
-                            workflow_state = WorkflowState.STOPPED
-                            next_required_user_action = "retry_or_manual_research"
-                    else:
-                        # No serenity runner - mark as waiting
-                        agent_reply = f"已识别 {verification_result.resolved_name} ({verification_result.resolved_ticker})。\n\n当前环境未配置研究服务，需要人工介入或配置 Serenity runner。"
-                        workflow_state = WorkflowState.STOPPED
-                        next_required_user_action = "configure_research_service"
-                
-                elif verification_result.status == "ambiguous":
-                    # Multiple candidates - need user clarification
-                    candidates_text = "\n".join([
-                        f"{i+1}. {c['name']} ({c['ticker']})"
-                        for i, c in enumerate(verification_result.candidates)
-                    ])
-                    agent_reply = f"找到多个匹配结果：\n{candidates_text}\n\n请明确告诉我是哪一个公司。"
-                    workflow_state = WorkflowState.CREATED
-                    next_required_user_action = "clarify_company"
-                
-                else:
-                    # Verification failed
-                    agent_reply = f"无法识别公司或股票代码：{request.message}\n\n请提供更明确的公司名称或完整的股票代码（如 600000.SH）。"
-                    workflow_state = WorkflowState.STOPPED
-                    next_required_user_action = "provide_clear_company_name"
-                
-            except Exception as e:
-                # Intake failed
-                agent_reply = f"处理失败：{str(e)}\n\n请检查输入格式或稍后重试。"
+            # Extract ticker and company name from user input
+            raw_code_input, raw_company_input = extract_ticker_and_company_from_natural_language(request.message)
+            
+            # Check for Beijing Stock Exchange (not supported)
+            if raw_code_input and raw_code_input.endswith(".BJ"):
+                agent_reply = f"识别到北交所代码 {raw_code_input}，当前系统暂不支持北交所股票。\n\n请提供上交所或深交所的股票。"
                 workflow_state = WorkflowState.STOPPED
-                next_required_user_action = "retry_with_clear_input"
+                next_required_user_action = "provide_supported_exchange"
+            else:
+                flow_service = FriendStockFlowService(
+                    validator=validator,
+                    serenity_runner=None,
+                    market_data_provider=None,
+                )
+                
+                try:
+                    verification_result = flow_service.verify_ticker(
+                        raw_company_input=raw_company_input or "",
+                        raw_code_input=raw_code_input,
+                    )
+                    
+                    # Store flow state in DB
+                    flow_id = verification_result.flow_id
+                    db.store_friend_stock_flow(
+                        flow_id=flow_id,
+                        raw_company_input=raw_company_input or "",
+                        raw_code_input=raw_code_input,
+                        source_note=f"Workbench conversation {conversation_id}",
+                        ticker_verification_result=verification_result.model_dump(mode="json"),
+                    )
+                    
+                    # Create friend_stock_flow artifact
+                    flow_artifact = ArtifactRef(
+                        artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                        session_id=conversation_id,
+                        artifact_id=flow_id,
+                        artifact_type="friend_stock_flow",
+                        created_at=now,
+                    )
+                    attach_artifact_ref(db.conn, flow_artifact)
+                    artifact_ids.append(flow_id)
+                    
+                    # Handle verification result
+                    if verification_result.status == "verified":
+                        # Ticker verified - attempt research if serenity available
+                        if conversation_mode == "real" and serenity_runner and hasattr(serenity_runner, 'run'):
+                            # Attempt research
+                            try:
+                                research_output = flow_service.run_industry_research(
+                                    ticker=verification_result.resolved_ticker,
+                                    company_name=verification_result.resolved_name,
+                                )
+                                
+                                # Store research output
+                                db.store_friend_stock_flow(
+                                    flow_id=flow_id,
+                                    raw_company_input=raw_company_input or "",
+                                    raw_code_input=raw_code_input,
+                                    source_note=f"Workbench conversation {conversation_id}",
+                                    ticker_verification_result=verification_result.model_dump(mode="json"),
+                                    research_output=research_output,
+                                )
+                                
+                                # Create research_report artifact
+                                research_artifact = ArtifactRef(
+                                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                                    session_id=conversation_id,
+                                    artifact_id=f"research_{flow_id}",
+                                    artifact_type="research_report",
+                                    created_at=now,
+                                )
+                                attach_artifact_ref(db.conn, research_artifact)
+                                artifact_ids.append(f"research_{flow_id}")
+                                
+                                agent_reply = f"已完成对 {verification_result.resolved_name} ({verification_result.resolved_ticker}) 的调查。\n\n研究结果已生成，等待你的审批决定。"
+                                workflow_state = WorkflowState.WAITING_FOR_APPROVAL
+                                next_required_user_action = "review_research_and_approve"
+                                
+                            except Exception as e:
+                                # Research failed
+                                agent_reply = f"已识别 {verification_result.resolved_name} ({verification_result.resolved_ticker})，但研究执行失败：{str(e)}\n\n请稍后重试或手动调用研究流程。"
+                                workflow_state = WorkflowState.STOPPED
+                                next_required_user_action = "retry_or_manual_research"
+                        else:
+                            # No serenity runner - mark as waiting
+                            agent_reply = f"已识别 {verification_result.resolved_name} ({verification_result.resolved_ticker})。\n\n当前环境未配置研究服务，需要人工介入或配置 Serenity runner。"
+                            workflow_state = WorkflowState.STOPPED
+                            next_required_user_action = "configure_research_service"
+                    
+                    elif verification_result.status == "ambiguous":
+                        # Multiple candidates - need user clarification
+                        candidates_text = "\n".join([
+                            f"{i+1}. {c['name']} ({c['ticker']})"
+                            for i, c in enumerate(verification_result.candidates)
+                        ])
+                        agent_reply = f"找到多个匹配结果：\n{candidates_text}\n\n请明确告诉我是哪一个公司。"
+                        workflow_state = WorkflowState.CREATED
+                        next_required_user_action = "clarify_company"
+                    
+                    else:
+                        # Verification failed
+                        agent_reply = f"无法识别公司或股票代码：{request.message}\n\n请提供更明确的公司名称或完整的股票代码（如 600000.SH）。"
+                        workflow_state = WorkflowState.STOPPED
+                        next_required_user_action = "provide_clear_company_name"
+                    
+                except Exception as e:
+                    # Intake failed
+                    agent_reply = f"处理失败：{str(e)}\n\n请检查输入格式或稍后重试。"
+                    workflow_state = WorkflowState.STOPPED
+                    next_required_user_action = "retry_with_clear_input"
             
         elif session.workflow_kind == WorkflowKind.STRATEGY_IDEA:
             # Task 22: Orchestrate strategy-idea flow (fix P0-2)

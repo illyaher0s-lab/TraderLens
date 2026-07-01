@@ -11,8 +11,9 @@ R5. Data fault only downgrades
 
 import uuid
 import hashlib
+import re
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, Tuple
 
 from contracts.friend_stock import (
     FriendStockIntake,
@@ -26,6 +27,78 @@ from backend.services.live_market_data import (
     get_daily_basic_snapshot,
     get_current_price_snapshot,
 )
+
+
+def extract_ticker_and_company_from_natural_language(user_input: str) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Extract ticker code and company name from natural language input.
+    
+    Task 24A: Lightweight deterministic extraction before ticker verification.
+    
+    Args:
+        user_input: Natural language user input
+        
+    Returns:
+        (raw_code_input, raw_company_input) tuple
+        
+    Examples:
+        "帮我看一下宏昌电子是否值得买入?603002" -> ("603002.SH", "宏昌电子")
+        "603002" -> ("603002.SH", None)
+        "宏昌电子" -> (None, "宏昌电子")
+        "603002.SH" -> ("603002.SH", None)
+    """
+    # Extract 6-digit code with optional exchange suffix
+    code_pattern_with_suffix = r"(\d{6})\.(SH|SZ|sh|sz)"
+    code_match_with_suffix = re.search(code_pattern_with_suffix, user_input)
+    
+    if code_match_with_suffix:
+        code = code_match_with_suffix.group(1)
+        exchange = code_match_with_suffix.group(2).upper()
+        raw_code_input = f"{code}.{exchange}"
+    else:
+        # Extract bare 6-digit code (with word boundary or Chinese char boundary)
+        bare_code_pattern = r"(?:^|[^\d])(\d{6})(?:[^\d]|$)"
+        bare_code_match = re.search(bare_code_pattern, user_input)
+        
+        if bare_code_match:
+            code = bare_code_match.group(1)
+            # Auto-infer exchange from code prefix
+            if code.startswith(("600", "601", "603", "605", "688")):
+                raw_code_input = f"{code}.SH"
+            elif code.startswith(("000", "001", "002", "003", "300", "301")):
+                raw_code_input = f"{code}.SZ"
+            elif code.startswith(("430", "8", "9")):
+                # Beijing Stock Exchange - not supported yet
+                raw_code_input = f"{code}.BJ"  # Mark as BJ for rejection
+            else:
+                # Unknown prefix, try SH as default
+                raw_code_input = f"{code}.SH"
+        else:
+            raw_code_input = None
+    
+    # Extract company name: Chinese characters (2-12 chars), excluding noise words
+    # Remove code from input first
+    text_without_code = re.sub(r"\d{6}(\.(SH|SZ|sh|sz))?", "", user_input)
+    
+    # Noise words to remove
+    noise_words = [
+        "帮我看一下", "是否值得买入", "朋友推荐", "代码", "查一下", 
+        "值不值得关注", "帮我查", "看看", "分析", "研究", "怎么样",
+        "如何", "好不好", "能不能买", "可以买吗", "？", "?", "，", ",",
+        "。", ".", "！", "!", "：", ":", "、"
+    ]
+    
+    for noise in noise_words:
+        text_without_code = text_without_code.replace(noise, " ")
+    
+    # Extract Chinese company name (2-12 continuous Chinese characters)
+    company_pattern = r"[\u4e00-\u9fa5]{2,12}"
+    company_matches = re.findall(company_pattern, text_without_code)
+    
+    # Pick the longest match as company name
+    raw_company_input = max(company_matches, key=len) if company_matches else None
+    
+    return (raw_code_input, raw_company_input)
 
 
 class FriendStockFlowService:
