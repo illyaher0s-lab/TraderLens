@@ -15,8 +15,10 @@
 
 import { useState } from "react";
 import {
+  createExecutionCard,
   submitExecutionFeedback,
   generateDailySignal,
+  type ExecutionCardResponse,
   type ExecutionFeedbackResponse,
   type DailySignalResponse,
 } from "@/lib/api-client";
@@ -34,8 +36,27 @@ export default function LiveLoopPanel({
   const [symbol, setSymbol] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingSignal, setIsGeneratingSignal] = useState(false);
+  const [isCreatingCard, setIsCreatingCard] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastResult, setLastResult] = useState<ExecutionFeedbackResponse | DailySignalResponse | null>(null);
+  const [lastResult, setLastResult] = useState<ExecutionCardResponse | ExecutionFeedbackResponse | DailySignalResponse | null>(null);
+
+  const handleCreateExecutionCard = async () => {
+    if (!conversationId) return;
+
+    setIsCreatingCard(true);
+    setError(null);
+    setLastResult(null);
+
+    try {
+      const result = await createExecutionCard(conversationId);
+      setLastResult(result);
+      onUpdate();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "生成执行计划失败");
+    } finally {
+      setIsCreatingCard(false);
+    }
+  };
 
   const handleSubmitFeedback = async () => {
     if (!conversationId || !feedback.trim()) return;
@@ -94,6 +115,25 @@ export default function LiveLoopPanel({
 
   const renderResult = () => {
     if (!lastResult) return null;
+
+    // Execution card result
+    if ("execution_card_id" in lastResult) {
+      return (
+        <div className="mt-4 p-4 rounded-lg bg-[#f0fdf4]" style={{ boxShadow: '0px 0px 0px 1px rgba(34,197,94,0.2)' }}>
+          <p className="text-[14px] font-medium text-[#16a34a] mb-2">
+            ✓ 执行计划已生成
+          </p>
+          <p className="text-[12px] text-[#22c55e] font-mono">
+            ID: {lastResult.execution_card_id}
+          </p>
+          {lastResult.agent_reply && (
+            <p className="text-[14px] text-[#171717] mt-2">
+              {lastResult.agent_reply}
+            </p>
+          )}
+        </div>
+      );
+    }
 
     // Execution feedback result
     if ("action" in lastResult && lastResult.status === "success") {
@@ -198,6 +238,18 @@ export default function LiveLoopPanel({
           </button>
         </div>
       )}
+
+      {/* Execution Card Button */}
+      <div className="mb-4">
+        <button
+          onClick={handleCreateExecutionCard}
+          disabled={isCreatingCard}
+          className="w-full px-4 py-2 text-[14px] font-medium rounded-md bg-white text-[#171717] hover:bg-[#fafafa] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          style={{ boxShadow: '0px 0px 0px 1px rgba(0,0,0,0.08)' }}
+        >
+          {isCreatingCard ? "生成中..." : "生成执行计划"}
+        </button>
+      </div>
 
       {/* Feedback Input */}
       <div className="space-y-3">
