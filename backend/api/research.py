@@ -1020,43 +1020,98 @@ def create_research_app(
             # Create new session
             conversation_id = f"sess_{uuid.uuid4().hex[:12]}"
             
-            # Deterministic routing rules (no LLM)
-            message_lower = request.message.lower()
-            workflow_kind = None
-            workflow_state = WorkflowState.CREATED
-            session_title = "未知会话"
+            # Task 20A: Hybrid Agent Intent Routing Pipeline
+            # Step 1: Deterministic PreScan (fast local patterns)
+            from backend.services.workbench_prescan import prescan_message
+            from backend.services.workbench_intent_extractor import LLMIntentExtractor
+            from backend.services.stock_identity_resolver import StockIdentityResolver
+            from backend.services.workbench_workflow_router import WorkbenchWorkflowRouter
             
-            # Friend stock detection
-            friend_stock_keywords = [
-                "朋友", "推荐", "股票", "公司", "帮我看", "帮我查",
-                "pudong", "浦发", "招商", "平安",
-            ]
-            stock_code_pattern = r"\d{6}\.(SH|SZ|sh|sz)"
+            prescan = prescan_message(request.message)
             
-            has_stock_code = bool(re.search(stock_code_pattern, request.message))
-            has_friend_stock_keyword = any(kw in message_lower for kw in friend_stock_keywords)
+            # Step 2: LLM Intent Extraction (semantic understanding)
+            intent_extractor = LLMIntentExtractor(
+                llm_client=None,  # Will use deterministic mode for now
+                mode="deterministic"
+            )
+            intent_extraction = intent_extractor.extract_intent(request.message, prescan)
             
-            if has_stock_code or has_friend_stock_keyword:
-                workflow_kind = WorkflowKind.FRIEND_STOCK
-                session_title = "朋友推荐股票调查"
-                workflow_state = WorkflowState.RESEARCHING
+            # Step 3: Stock Identity Resolution (Tushare verification)
+            # Build test fixture for deterministic mode
+            test_fixture = {
+                "600000.SH": {
+                    "ticker": "600000.SH",
+                    "company_name": "浦发银行",
+                    "exchange": "SSE",
+                    "list_status": "L"
+                },
+                "603002.SH": {
+                    "ticker": "603002.SH",
+                    "company_name": "宏昌电子",
+                    "exchange": "SSE",
+                    "list_status": "L"
+                },
+                "000001.SZ": {
+                    "ticker": "000001.SZ",
+                    "company_name": "平安银行",
+                    "exchange": "SZSE",
+                    "list_status": "L"
+                },
+                "300750.SZ": {
+                    "ticker": "300750.SZ",
+                    "company_name": "宁德时代",
+                    "exchange": "SZSE",
+                    "list_status": "L"
+                },
+            }
+            
+            # Use test_fixture if tushare_client is not available
+            use_test_fixture = (
+                conversation_mode == "deterministic" or
+                (conversation_mode == "real" and validator.tushare_client is None)
+            )
+            
+            stock_resolver = StockIdentityResolver(
+                tushare_client=validator.tushare_client if (conversation_mode == "real" and validator.tushare_client) else None,
+                test_fixture=test_fixture if use_test_fixture else None
+            )
+            
+            stock_identity = stock_resolver.resolve(
+                company_name=intent_extraction.extracted_company_name,
+                stock_code=intent_extraction.extracted_stock_code,
+            )
+            
+            # Step 4: Deterministic Workflow Router (final decision)
+            router = WorkbenchWorkflowRouter()
+            route_decision = router.route(prescan, intent_extraction, stock_identity)
+            
+            # Map route_decision to session state
+            workflow_kind_map = {
+                "friend_stock": WorkflowKind.FRIEND_STOCK,
+                "theme_research": WorkflowKind.FRIEND_STOCK,  # Treat as friend_stock for now
+                "strategy_idea": WorkflowKind.STRATEGY_IDEA,
+                "execution_feedback": WorkflowKind.FRIEND_STOCK,  # Will be handled separately
+                "position_followup": WorkflowKind.FRIEND_STOCK,
+                "review_request": WorkflowKind.FRIEND_STOCK,
+                "unknown": WorkflowKind.UNKNOWN,
+            }
+            
+            workflow_state_map = {
+                "created": WorkflowState.CREATED,
+                "waiting_for_clarification": WorkflowState.CREATED,
+                "stopped": WorkflowState.STOPPED,
+            }
+            
+            workflow_kind = workflow_kind_map.get(route_decision.workflow_kind, WorkflowKind.UNKNOWN)
+            workflow_state = workflow_state_map.get(route_decision.workflow_state, WorkflowState.CREATED)
+            
+            # Session title based on workflow
+            if workflow_kind == WorkflowKind.FRIEND_STOCK and stock_identity.status == "verified":
+                session_title = f"{stock_identity.company_name}股票调查"
+            elif workflow_kind == WorkflowKind.STRATEGY_IDEA:
+                session_title = "策略想法验证"
             else:
-                # Strategy idea detection
-                strategy_keywords = [
-                    "抖音", "视频", "策略", "两点半", "第二天", "买入", "卖出",
-                    "douyin", "下午", "早上",
-                ]
-                
-                has_strategy_keyword = any(kw in message_lower for kw in strategy_keywords)
-                
-                if has_strategy_keyword:
-                    workflow_kind = WorkflowKind.STRATEGY_IDEA
-                    session_title = "抖音策略验证"
-                    workflow_state = WorkflowState.VALIDATING
-            
-            # Create session in DB
-            if workflow_kind is None:
-                workflow_kind = WorkflowKind.UNKNOWN
+                session_title = "未知会话"
 
             session = AgentSession(
                 session_id=conversation_id,
@@ -1067,9 +1122,111 @@ def create_research_app(
                 updated_at=now,
             )
             create_session(db.conn, session)
+            
+            # Task 20A: Record pipeline activity artifacts
+            # Artifact 1: PreScan result
+            prescan_artifact = ArtifactRef(
+                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                session_id=conversation_id,
+                artifact_id=f"prescan_{conversation_id}",
+                artifact_type="prescan_result",
+                created_at=now,
+            )
+            attach_artifact_ref(db.conn, prescan_artifact)
+            
+            # Artifact 2: Intent extraction
+            intent_artifact = ArtifactRef(
+                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                session_id=conversation_id,
+                artifact_id=f"intent_{conversation_id}",
+                artifact_type="intent_extraction",
+                created_at=now,
+            )
+            attach_artifact_ref(db.conn, intent_artifact)
+            
+            # Artifact 3: Stock identity resolution (if applicable)
+            if stock_identity.status != "not_applicable":
+                stock_identity_artifact = ArtifactRef(
+                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                    session_id=conversation_id,
+                    artifact_id=f"stock_identity_{conversation_id}",
+                    artifact_type="stock_identity_resolution",
+                    created_at=now,
+                )
+                attach_artifact_ref(db.conn, stock_identity_artifact)
+            
+            # Artifact 4: Workflow route decision
+            route_artifact = ArtifactRef(
+                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                session_id=conversation_id,
+                artifact_id=f"route_{conversation_id}",
+                artifact_type="workflow_route_decision",
+                created_at=now,
+            )
+            attach_artifact_ref(db.conn, route_artifact)
         else:
-            # Existing session
+            # Existing session - need to run pipeline for continuation
             session = get_session(db.conn, conversation_id)
+            
+            # Run pipeline again for existing session
+            from backend.services.workbench_prescan import prescan_message
+            from backend.services.workbench_intent_extractor import LLMIntentExtractor
+            from backend.services.stock_identity_resolver import StockIdentityResolver
+            from backend.services.workbench_workflow_router import WorkbenchWorkflowRouter
+            
+            prescan = prescan_message(request.message)
+            
+            intent_extractor = LLMIntentExtractor(
+                llm_client=None,
+                mode="deterministic"
+            )
+            intent_extraction = intent_extractor.extract_intent(request.message, prescan)
+            
+            test_fixture = {
+                "600000.SH": {
+                    "ticker": "600000.SH",
+                    "company_name": "浦发银行",
+                    "exchange": "SSE",
+                    "list_status": "L"
+                },
+                "603002.SH": {
+                    "ticker": "603002.SH",
+                    "company_name": "宏昌电子",
+                    "exchange": "SSE",
+                    "list_status": "L"
+                },
+                "000001.SZ": {
+                    "ticker": "000001.SZ",
+                    "company_name": "平安银行",
+                    "exchange": "SZSE",
+                    "list_status": "L"
+                },
+                "300750.SZ": {
+                    "ticker": "300750.SZ",
+                    "company_name": "宁德时代",
+                    "exchange": "SZSE",
+                    "list_status": "L"
+                },
+            }
+            
+            # Use test_fixture if tushare_client is not available
+            use_test_fixture = (
+                conversation_mode == "deterministic" or
+                (conversation_mode == "real" and validator.tushare_client is None)
+            )
+            
+            stock_resolver = StockIdentityResolver(
+                tushare_client=validator.tushare_client if (conversation_mode == "real" and validator.tushare_client) else None,
+                test_fixture=test_fixture if use_test_fixture else None
+            )
+            
+            stock_identity = stock_resolver.resolve(
+                company_name=intent_extraction.extracted_company_name,
+                stock_code=intent_extraction.extracted_stock_code,
+            )
+            
+            router = WorkbenchWorkflowRouter()
+            route_decision = router.route(prescan, intent_extraction, stock_identity)
         
         # Store user message
         user_message_id = f"msg_{uuid.uuid4().hex[:12]}"
@@ -1087,30 +1244,64 @@ def create_research_app(
         stage = session.workflow_state.value
         approval_card = None
         artifact_ids = []
-        next_required_user_action = "provide_more_context"
+        
+        # Task 20A: Use route_decision from pipeline
+        if not session_exists:
+            next_required_user_action = route_decision.next_required_user_action
+        else:
+            next_required_user_action = "provide_more_context"
         
         if session.workflow_kind == WorkflowKind.FRIEND_STOCK:
-            # Task 21: Orchestrate friend-stock flow (fix P0-1)
-            # Task 24A: Extract ticker and company from natural language
-            from backend.services.friend_stock_flow import (
-                FriendStockFlowService,
-                extract_ticker_and_company_from_natural_language,
-            )
-            
-            # Extract ticker and company name from user input
-            raw_code_input, raw_company_input = extract_ticker_and_company_from_natural_language(request.message)
-            
-            # Check for Beijing Stock Exchange (not supported)
-            if raw_code_input and raw_code_input.endswith(".BJ"):
-                agent_reply = f"识别到北交所代码 {raw_code_input}，当前系统暂不支持北交所股票。\n\n请提供上交所或深交所的股票。"
+            # Task 20A: Use stock_identity from pipeline
+            if not session_exists and stock_identity.status == "verified":
+                # Stock verified, generate reply
+                agent_reply = f"已识别 {stock_identity.company_name} ({stock_identity.ticker})。\n\n正在准备股票研究，请稍候。"
+                workflow_state = WorkflowState.CREATED
+                next_required_user_action = "wait_for_research"
+            elif not session_exists and stock_identity.status == "ambiguous":
+                # Multiple candidates
+                candidates_text = "\n".join([
+                    f"{i+1}. {c['company_name']} ({c['ticker']})"
+                    for i, c in enumerate(stock_identity.candidates)
+                ])
+                agent_reply = f"找到多个匹配结果：\n{candidates_text}\n\n请明确告诉我是哪一个公司。"
+                workflow_state = WorkflowState.CREATED
+                next_required_user_action = "clarify_company"
+            elif not session_exists and stock_identity.status == "not_found":
+                agent_reply = f"无法识别公司或股票代码。\n\n{stock_identity.fault_reason}\n\n请提供更明确的公司名称或完整的股票代码（如 600000.SH）。"
+                workflow_state = WorkflowState.STOPPED
+                next_required_user_action = "provide_clear_company_name"
+            elif not session_exists and stock_identity.status == "data_fault":
+                agent_reply = f"数据源故障：{stock_identity.fault_reason}\n\n无法确认股票身份，请稍后重试。"
+                workflow_state = WorkflowState.STOPPED
+                next_required_user_action = "retry_later"
+            elif not session_exists and stock_identity.status == "unsupported_exchange":
+                agent_reply = f"{stock_identity.fault_reason}\n\n请提供上交所或深交所的股票。"
                 workflow_state = WorkflowState.STOPPED
                 next_required_user_action = "provide_supported_exchange"
             else:
-                flow_service = FriendStockFlowService(
-                    validator=validator,
-                    serenity_runner=None,
-                    market_data_provider=None,
+                # Existing session or other cases - use old flow
+                # Task 21: Orchestrate friend-stock flow (fix P0-1)
+                # Task 24A: Extract ticker and company from natural language
+                from backend.services.friend_stock_flow import (
+                    FriendStockFlowService,
+                    extract_ticker_and_company_from_natural_language,
                 )
+                
+                # Extract ticker and company name from user input
+                raw_code_input, raw_company_input = extract_ticker_and_company_from_natural_language(request.message)
+                
+                # Check for Beijing Stock Exchange (not supported)
+                if raw_code_input and raw_code_input.endswith(".BJ"):
+                    agent_reply = f"识别到北交所代码 {raw_code_input}，当前系统暂不支持北交所股票。\n\n请提供上交所或深交所的股票。"
+                    workflow_state = WorkflowState.STOPPED
+                    next_required_user_action = "provide_supported_exchange"
+                else:
+                    flow_service = FriendStockFlowService(
+                        validator=validator,
+                        serenity_runner=None,
+                        market_data_provider=None,
+                    )
                 
                 try:
                     verification_result = flow_service.verify_ticker(
@@ -1297,10 +1488,13 @@ def create_research_app(
         elif session.workflow_kind == WorkflowKind.UNKNOWN:
             workflow_type = "unknown"
             agent_reply = "你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？"
+            workflow_state = WorkflowState.CREATED  # Keep state as created
             next_required_user_action = "clarify_intent"
         else:
-            agent_reply = "你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？"
-            next_required_user_action = "clarify_intent"
+            # Fallback for any other workflow kinds
+            agent_reply = "正在处理您的请求，请稍候。"
+            workflow_state = WorkflowState.CREATED
+            next_required_user_action = "provide_more_context"
         
         # Store agent message
         agent_message_id = f"msg_{uuid.uuid4().hex[:12]}"

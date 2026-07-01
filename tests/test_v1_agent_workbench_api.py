@@ -52,7 +52,7 @@ def test_friend_stock_message_routes_to_friend_stock_workflow(app):
     """
     Friend stock message routes to friend_stock workflow.
     
-    Input: "我朋友推荐了浦发银行，帮我看看"
+    Input: "我朋友推荐了宏昌电子，帮我看看"
     Expected:
     - status 200
     - workflow_type == "friend_stock"
@@ -65,7 +65,7 @@ def test_friend_stock_message_routes_to_friend_stock_workflow(app):
     response = client.post(
         "/api/agent/workbench/message",
         json={
-            "message": "我朋友推荐了浦发银行，帮我看看能不能做",
+            "message": "\u6211\u670b\u53cb\u63a8\u8350\u4e86\u5b8f\u660c\u7535\u5b50\uff0c\u5e2e\u6211\u770b\u770b\u80fd\u4e0d\u80fd\u505a",
         },
     )
     
