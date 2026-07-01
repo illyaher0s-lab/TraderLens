@@ -389,3 +389,121 @@ export async function decideApprovalCard(
 
   return response.json();
 }
+
+// ============================================================================
+// Task 19: Workbench Live Loop API (人工执行记录)
+// ============================================================================
+
+export interface ExecutionCardResponse {
+  execution_card_id: string;
+  agent_reply: string;
+  next_required_user_action: string;
+}
+
+export interface ExecutionFeedbackRequest {
+  feedback: string;
+  symbol?: string;
+  name?: string;
+}
+
+export interface ExecutionFeedbackResponse {
+  status: string;
+  action?: string;
+  position_id?: string;
+  log_id?: string;
+  execution_log_id?: string;
+  pnl_record_id?: string;
+  discipline_review_id?: string;
+  realized_pnl?: number;
+  pnl_pct?: number;
+  follow_up_question?: string;
+  agent_reply?: string;
+  next_required_user_action?: string;
+}
+
+export interface DailySignalResponse {
+  status: string;
+  message?: string;
+  signals: Array<{
+    signal_id: string;
+    position_id: string;
+    symbol: string;
+    signal_type: string;
+    generated_at: string;
+  }>;
+  agent_reply?: string;
+  next_required_user_action?: string;
+}
+
+/**
+ * Create execution card from qualified artifact.
+ * Task 19: 生成执行计划
+ */
+export async function createExecutionCard(
+  conversationId: string
+): Promise<ExecutionCardResponse> {
+  const url = `${API_BASE_URL}/api/agent/workbench/${conversationId}/execution-card`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to create execution card: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Submit execution feedback (natural language buy/sell record).
+ * Task 19: 记录买入/卖出
+ */
+export async function submitExecutionFeedback(
+  conversationId: string,
+  request: ExecutionFeedbackRequest
+): Promise<ExecutionFeedbackResponse> {
+  const url = `${API_BASE_URL}/api/agent/workbench/${conversationId}/execution-feedback`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(request),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to submit feedback: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Generate daily signal for open positions.
+ * Task 19: 生成今日信号
+ */
+export async function generateDailySignal(
+  conversationId: string
+): Promise<DailySignalResponse> {
+  const url = `${API_BASE_URL}/api/agent/workbench/${conversationId}/daily-signal`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({}),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Failed to generate daily signal: ${response.statusText}`);
+  }
+
+  return response.json();
+}

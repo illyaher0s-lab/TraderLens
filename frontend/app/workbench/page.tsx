@@ -21,6 +21,7 @@ import AgentChatPanel from "@/components/AgentChatPanel";
 import ApprovalCard from "@/components/ApprovalCard";
 import WorkbenchTimeline from "@/components/WorkbenchTimeline";
 import WorkflowStatusPanel from "@/components/WorkflowStatusPanel";
+import LiveLoopPanel from "@/components/LiveLoopPanel";
 import {
   sendWorkbenchMessage,
   getWorkbenchSession,
@@ -204,11 +205,17 @@ export default function WorkbenchPage() {
             )}
           </div>
 
-          {/* Right Column: Status & Timeline */}
+          {/* Right Column: Status & Timeline & Live Loop */}
           <div className="space-y-6">
             <WorkflowStatusPanel
               session={session?.session || null}
               artifactCount={artifactCount}
+            />
+
+            {/* Task 19: Live Loop Panel */}
+            <LiveLoopPanel
+              conversationId={conversationId}
+              onUpdate={loadSession}
             />
 
             {session && session.timeline.length > 0 && (

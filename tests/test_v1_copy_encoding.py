@@ -44,6 +44,7 @@ class TestV1CopyEncoding(unittest.TestCase):
             cls.root / "frontend" / "components" / "ApprovalCard.tsx",
             cls.root / "frontend" / "components" / "WorkbenchTimeline.tsx",
             cls.root / "frontend" / "components" / "WorkflowStatusPanel.tsx",
+            cls.root / "frontend" / "components" / "LiveLoopPanel.tsx",
         ]
 
         # Backend contracts (user-visible copy in defaults)

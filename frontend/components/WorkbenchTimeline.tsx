@@ -51,6 +51,17 @@ export default function WorkbenchTimeline({ timeline }: WorkbenchTimelineProps) 
         );
 
       case "artifact_ref":
+        // Task 19: Support live loop artifacts with readable labels
+        const artifactType = item.content.artifact_type || "artifact";
+        const getArtifactLabel = (type: string) => {
+          if (type.includes("execution_log")) return "执行记录";
+          if (type.includes("observation_position")) return "持仓观察";
+          if (type.includes("daily_signal")) return "今日信号";
+          if (type.includes("discipline_review")) return "纪律复盘";
+          if (type.includes("pnl_record")) return "盈亏记录";
+          return type;
+        };
+        
         return (
           <div key={idx} className="flex items-start gap-3">
             <div className="flex-shrink-0 w-5 h-5 rounded-full bg-[#f3e8ff] flex items-center justify-center text-[10px] font-medium text-[#7c3aed]">
@@ -58,7 +69,7 @@ export default function WorkbenchTimeline({ timeline }: WorkbenchTimelineProps) 
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[12px] font-medium text-[#171717]">
-                {item.content.artifact_type || "artifact"}
+                {getArtifactLabel(artifactType)}
               </p>
               <p className="text-[11px] text-[#666666] mt-1 font-mono truncate">
                 {item.content.artifact_id}
