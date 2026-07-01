@@ -114,7 +114,7 @@ class TestTushareSmokeVerification:
         output_str = str(df.head())
         assert token not in output_str, "Token leaked in DataFrame output"
         
-        print(f"✓ Tushare authentication successful, retrieved {len(df)} stocks")
+        print(f"[OK] Tushare authentication successful, retrieved {len(df)} stocks")
     
     def test_tushare_daily_data_smoke(self):
         """
@@ -147,14 +147,14 @@ class TestTushareSmokeVerification:
         if df.empty:
             # Empty data is acceptable (might be no trading days in range)
             # This should map to MarketDataFault in production
-            print("⚠ Daily data empty (acceptable if no trading days in range)")
+            print("[WARN] Daily data empty (acceptable if no trading days in range)")
         else:
             # Verify expected fields
             assert 'close' in df.columns, "Daily data missing close price"
             assert 'vol' in df.columns or 'volume' in df.columns, "Daily data missing volume"
             assert 'trade_date' in df.columns, "Daily data missing trade_date"
             
-            print(f"✓ Daily data retrieved: {len(df)} records")
+            print(f"[OK] Daily data retrieved: {len(df)} records")
     
     def test_tushare_connection_to_adapter(self):
         """
@@ -178,6 +178,7 @@ class TestTushareSmokeVerification:
             os.environ["TUSHARE_API_URL"] = api_url
         
         # Import production adapter
+        from contracts.market_data_fault import MarketDataFaultState, MarketDataResult
         from backend.services.live_market_data import get_daily_basic_snapshot
         from datetime import date
         
@@ -185,19 +186,25 @@ class TestTushareSmokeVerification:
         snapshot = get_daily_basic_snapshot("600000.SH", date(2026, 6, 30))
         
         # Verify snapshot structure
-        assert isinstance(snapshot, dict), "Adapter returned non-dict"
-        
+        assert isinstance(snapshot, MarketDataResult), "Adapter returned non-MarketDataResult"
+
         # Check for either data or fault
-        if "fault_state" in snapshot:
+        if snapshot.fault.state != MarketDataFaultState.ok:
             # Fault state should be properly mapped
-            assert snapshot["fault_state"] in [
-                "unavailable", "stale", "inconsistent", "source_error", "adapter_unsupported"
-            ], f"Unknown fault_state: {snapshot.get('fault_state')}"
-            print(f"⚠ Adapter returned fault: {snapshot['fault_state']}")
+            assert snapshot.fault.state in {
+                MarketDataFaultState.unavailable,
+                MarketDataFaultState.stale,
+                MarketDataFaultState.inconsistent,
+                MarketDataFaultState.source_error,
+                MarketDataFaultState.adapter_unsupported,
+            }, f"Unknown fault_state: {snapshot.fault.state.value}"
+            assert snapshot.data is None
+            print(f"[WARN] Adapter returned fault: {snapshot.fault.state.value}")
         else:
             # Data should have required fields
-            assert "close" in snapshot or "price" in snapshot, "Snapshot missing price field"
-            print(f"✓ Adapter returned valid snapshot")
+            assert snapshot.data is not None
+            assert "close" in snapshot.data or "price" in snapshot.data, "Snapshot missing price field"
+            print(f"[OK] Adapter returned valid snapshot")
 
 
 @skip_unless_smoke_enabled
@@ -257,7 +264,7 @@ class TestLLMSmokeVerification:
         # Verify no API key in output
         assert api_key not in str(response), "API key leaked in response"
         
-        print(f"✓ LLM authentication successful, response: {content[:50]}")
+        print(f"[OK] LLM authentication successful, response: {content[:50]}")
     
     def test_llm_structured_extraction_smoke(self):
         """
@@ -320,12 +327,12 @@ class TestLLMSmokeVerification:
             has_claimed_fields = any(key.startswith("claimed_") for key in data.keys())
             
             if has_claimed_fields:
-                print(f"✓ LLM extraction successful with claimed_* pattern: {list(data.keys())}")
+                print(f"[OK] LLM extraction successful with claimed_* pattern: {list(data.keys())}")
             else:
-                print(f"⚠ LLM extraction succeeded but no claimed_* fields: {list(data.keys())}")
+                print(f"[WARN] LLM extraction succeeded but no claimed_* fields: {list(data.keys())}")
             
         except json.JSONDecodeError as e:
-            print(f"⚠ LLM response not valid JSON: {content[:100]}")
+            print(f"[WARN] LLM response not valid JSON: {content[:100]}")
             # Not a hard failure - LLM might return prose instead of JSON
             # In production, this would need retry with better prompting
     
@@ -351,7 +358,7 @@ class TestLLMSmokeVerification:
         for term in forbidden_imports:
             assert term.lower() not in source.lower(), f"Reducer imports {term} (should be deterministic)"
         
-        print("✓ Recommendation reducer is deterministic (no LLM imports)")
+        print("[OK] Recommendation reducer is deterministic (no LLM imports)")
         
         # Verify LLM usage is clearly marked
         from contracts.strategy_idea import StrategyIdeaExtraction
@@ -360,7 +367,7 @@ class TestLLMSmokeVerification:
         assert hasattr(StrategyIdeaExtraction, 'model_fields'), "Contract missing Pydantic fields"
         assert 'extraction_source' in StrategyIdeaExtraction.model_fields, "Missing extraction_source field"
         
-        print("✓ LLM extraction marked with extraction_source field")
+        print("[OK] LLM extraction marked with extraction_source field")
 
 
 class TestRealAPISmokeDefaultBehavior:
@@ -377,9 +384,9 @@ class TestRealAPISmokeDefaultBehavior:
         This ensures no accidental real API calls in CI/local development.
         """
         if os.environ.get("RUN_REAL_API_SMOKE") == "1":
-            print("⚠ RUN_REAL_API_SMOKE=1, real API tests are ENABLED")
+            print("[WARN] RUN_REAL_API_SMOKE=1, real API tests are ENABLED")
         else:
-            print("✓ RUN_REAL_API_SMOKE not set, real API tests are SKIPPED (expected)")
+            print("[OK] RUN_REAL_API_SMOKE not set, real API tests are SKIPPED (expected)")
         
         # This test always passes - it just documents the default behavior
         assert True
@@ -447,7 +454,7 @@ class TestNoSecretsInCode:
                     # If we reach here, it's a potential secret
                     pytest.fail(f"Potential hardcoded secret: {line.strip()}")
         
-        print("✓ No hardcoded secrets detected in test file")
+        print("[OK] No hardcoded secrets detected in test file")
 
 
 class TestLLMSmokeUsesProductionClient:
