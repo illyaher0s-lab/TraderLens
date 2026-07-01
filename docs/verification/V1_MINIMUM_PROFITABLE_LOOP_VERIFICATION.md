@@ -8,20 +8,26 @@
 
 ## Executive Summary
 
-TraderLens V1 Minimum Profitable Loop has been implemented and verified with **118 automated tests** covering the complete chain from user chat to P&L recording. The system is designed for **profitable live-trading decision support** (not a demo-only system), with deterministic trading decisions, LLM-assisted research/extraction, and manual execution boundaries.
+TraderLens V1 Minimum Profitable Loop has been implemented and verified with **118 automated tests** covering key entry paths: user chat -> research -> confirmed candidate pool (friend stock), and user chat -> strategy idea extraction -> rejection registry. The system is designed for **profitable live-trading decision support** (not a demo-only system), with deterministic trading decisions, LLM-assisted research/extraction, and manual execution boundaries.
 
 **Key Verification Results:**
-- ✅ **Complete chains implemented:** Friend-stock research → confirmed candidate pool, Strategy-idea extraction → rejection registry
-- ✅ **Automated test coverage:** 118 tests passed (E2E, API, service, contract layers)
-- ✅ **Real API capability:** Tushare and LLM smoke tests exist, skipped due to environment variables not set (not a failure, by design)
-- ✅ **Boundaries enforced:** No technical parameters exposed to users, no automatic order placement, LLM cannot decide trading recommendations
-- ✅ **Audit trail:** Every step creates artifact IDs or DB records
+- [OK] **Entry chains implemented:** Friend-stock research -> confirmed candidate pool, Strategy-idea extraction -> rejection registry
+- [OK] **Automated test coverage:** 118 tests passed (E2E entry paths, API, service, contract layers)
+- [WARN] **Real API capability:** Tushare and LLM smoke tests exist but SKIPPED (environment variables not configured in current run)
+- [OK] **Boundaries enforced:** No technical parameters exposed to users, no automatic order placement, LLM cannot decide trading recommendations
+- [OK] **Audit trail:** Every step creates artifact IDs or DB records
 
 **Current Implementation Status:**
-- **Fully verified:** Workbench → research → approval → confirmed candidate pool (friend stock)
-- **Fully verified:** Workbench → strategy idea → extraction → rejection registry (strategy idea)
-- **Service-layer ready:** Observation pool, discipline review, execution interpreter (tested, not yet wired into E2E workflow)
-- **Not yet integrated:** Live execution card → buy/sell feedback → P&L recording (services exist, orchestration pending)
+- **Fully verified (E2E):** Workbench -> research -> approval -> confirmed candidate pool (friend stock)
+- **Fully verified (E2E):** Workbench -> strategy idea -> extraction -> rejection registry (strategy idea)
+- **Service-layer ready (not E2E):** Observation pool, discipline review, execution interpreter (36 tests passed, not wired into workflow)
+- **Not yet integrated:** Execution card -> buy/sell feedback -> observation position -> P&L recording (services exist, orchestration and UI integration pending)
+
+**What This Means:**
+- [OK] User can chat with agent and get research results stored in confirmed candidate pool
+- [OK] User can submit strategy ideas and see rejection reasons in registry
+- [X] User CANNOT yet see execution cards, submit buy/sell feedback, or view P&L in Web UI
+- [X] Complete profitable loop (chat -> P&L) is NOT yet wired end-to-end
 
 ---
 
@@ -29,7 +35,7 @@ TraderLens V1 Minimum Profitable Loop has been implemented and verified with **1
 
 ### Complete Verified Paths
 
-#### Path 1: Friend-Recommended Stock (Research → Pool)
+#### Path 1: Friend-Recommended Stock (Research -> Pool)
 ```
 User Message
     ↓
@@ -45,11 +51,11 @@ DB Readback Verification
 ```
 
 **Evidence:** `test_v1_e2e_profitable_loop.py::TestFriendStockProfitableLoop::test_e2e_friend_stock_from_chat_to_confirmed_pool`  
-**Status:** ✅ Passed (deterministic, with fake Serenity)
+**Status:** [OK] Passed (deterministic, with fake Serenity)
 
 ---
 
-#### Path 2: Strategy Idea (Extraction → Rejection)
+#### Path 2: Strategy Idea (Extraction -> Rejection)
 ```
 User Message
     ↓
@@ -65,7 +71,7 @@ Rejected Strategy Registry (permanent record, no signals generated)
 ```
 
 **Evidence:** `test_v1_e2e_profitable_loop.py::TestStrategyIdeaProfitableLoop::test_e2e_strategy_idea_rejected_enters_registry`  
-**Status:** ✅ Passed (deterministic)
+**Status:** [OK] Passed (deterministic)
 
 ---
 
@@ -83,7 +89,7 @@ Position Close (confirmed sell)
 ```
 
 **Evidence:** `test_v1_observation_pool.py` (36 tests)  
-**Status:** ✅ Passed (service layer only, not wired into E2E orchestration)
+**Status:** [OK] Passed (service layer only, not wired into E2E orchestration)
 
 ---
 
@@ -99,7 +105,7 @@ DisciplineReview Record (retrospective only, no forward prediction)
 ```
 
 **Evidence:** `test_v1_discipline_review.py` (part of 36 passed)  
-**Status:** ✅ Passed (service layer only)
+**Status:** [OK] Passed (service layer only)
 
 ---
 
@@ -113,7 +119,7 @@ ExecutionObservationLog (confirmed_price, confirmed_quantity, confirmed_at)
 ```
 
 **Evidence:** `test_v1_execution_interpreter.py` (part of 36 passed)  
-**Status:** ✅ Passed (service layer only)
+**Status:** [OK] Passed (service layer only)
 
 ---
 
@@ -123,14 +129,14 @@ ExecutionObservationLog (confirmed_price, confirmed_quantity, confirmed_at)
 **Coverage:** 42 tests passed
 
 **Verified Behaviors:**
-1. ✅ Ticker verification (600000.SH → verified)
-2. ✅ Ticker ambiguity handling (multiple matches → user clarification required)
-3. ✅ Delisted/suspended rejection
-4. ✅ Research execution via fake Serenity (real Serenity API smoke exists)
-5. ✅ Confirmed candidate pool creation (forward-only, 8 field types)
-6. ✅ Price snapshot from deterministic market data provider
-7. ✅ Benchmark snapshot (000300.SH)
-8. ✅ MarketDataFault blocking (empty provider → pool creation rejected)
+1. [OK] Ticker verification (600000.SH -> verified)
+2. [OK] Ticker ambiguity handling (multiple matches -> user clarification required)
+3. [OK] Delisted/suspended rejection
+4. [OK] Research execution via fake Serenity (real Serenity API smoke exists)
+5. [OK] Confirmed candidate pool creation (forward-only, 8 field types)
+6. [OK] Price snapshot from deterministic market data provider
+7. [OK] Benchmark snapshot (000300.SH)
+8. [OK] MarketDataFault blocking (empty provider -> pool creation rejected)
 
 **Key Contracts Verified:**
 - `FriendStockIntake` (ticker verification result)
@@ -150,13 +156,13 @@ ExecutionObservationLog (confirmed_price, confirmed_quantity, confirmed_at)
 **Coverage:** Part of 42 tests passed
 
 **Verified Behaviors:**
-1. ✅ Strategy idea defaults to `untrusted` (no signals before validation)
-2. ✅ LLM-assisted extraction (claimed_entry, claimed_exit, claimed_edge)
-3. ✅ Extraction marked with `extraction_source="llm_assisted"` (honest labeling)
-4. ✅ Template mapping (approved_template_match / no_template_fit / candidate_evaluation)
-5. ✅ `live_eligible=False` until validated
-6. ✅ Rejected ideas enter `RejectedStrategyRegistry`
-7. ✅ No planned_signals for untrusted/rejected ideas
+1. [OK] Strategy idea defaults to `untrusted` (no signals before validation)
+2. [OK] LLM-assisted extraction (claimed_entry, claimed_exit, claimed_edge)
+3. [OK] Extraction marked with `extraction_source="llm_assisted"` (honest labeling)
+4. [OK] Template mapping (approved_template_match / no_template_fit / candidate_evaluation)
+5. [OK] `live_eligible=False` until validated
+6. [OK] Rejected ideas enter `RejectedStrategyRegistry`
+7. [OK] No planned_signals for untrusted/rejected ideas
 
 **Key Contracts Verified:**
 - `StrategyIdea` (trust_status: untrusted/candidate/approved)
@@ -164,9 +170,9 @@ ExecutionObservationLog (confirmed_price, confirmed_quantity, confirmed_at)
 - `TemplateMappingResult` (path_type, live_eligible)
 
 **Red Lines Enforced:**
-- ❌ LLM cannot change `live_eligible` (deterministic code only)
-- ❌ No signals before validation pass
-- ❌ Rejected strategies cannot produce execution cards
+- [X] LLM cannot change `live_eligible` (deterministic code only)
+- [X] No signals before validation pass
+- [X] Rejected strategies cannot produce execution cards
 
 ---
 
@@ -178,27 +184,27 @@ ExecutionObservationLog (confirmed_price, confirmed_quantity, confirmed_at)
 **Verified Behaviors:**
 
 #### Observation Pool
-1. ✅ Position creation from confirmed buy log only (never from draft)
-2. ✅ DailyObservationSignal generation (100% deterministic reducer)
-3. ✅ Signal types: hold / sell / risk / invalidated (no LLM for hold signals)
-4. ✅ Position lifecycle: open → observing → closed
-5. ✅ MarketDataFault downgrade only (never upgrade)
+1. [OK] Position creation from confirmed buy log only (never from draft)
+2. [OK] DailyObservationSignal generation (100% deterministic reducer)
+3. [OK] Signal types: hold / sell / risk / invalidated (no LLM for hold signals)
+4. [OK] Position lifecycle: open -> observing -> closed
+5. [OK] MarketDataFault downgrade only (never upgrade)
 
 #### Discipline Review
-1. ✅ P&L calculation from confirmed details only (never fabricated)
-2. ✅ Missing fields explicitly marked (`pnl_source=incomplete`)
-3. ✅ Plan adherence by deterministic rules (not LLM)
-4. ✅ Retrospective only (no forward recommendations)
+1. [OK] P&L calculation from confirmed details only (never fabricated)
+2. [OK] Missing fields explicitly marked (`pnl_source=incomplete`)
+3. [OK] Plan adherence by deterministic rules (not LLM)
+4. [OK] Retrospective only (no forward recommendations)
 
 #### Execution Interpreter
-1. ✅ Parse user feedback ("已买入 100 股，成交价 12.34")
-2. ✅ Extract confirmed_price, confirmed_quantity, confirmed_at
-3. ✅ Create ExecutionObservationLog (immutable record)
+1. [OK] Parse user feedback ("已买入 100 股，成交价 12.34")
+2. [OK] Extract confirmed_price, confirmed_quantity, confirmed_at
+3. [OK] Create ExecutionObservationLog (immutable record)
 
 **Red Lines Enforced:**
-- ❌ LLM never decides hold/sell (max 1 call for explanation draft)
-- ❌ P&L never fabricated (incomplete → explicit marking)
-- ❌ Position never created from draft (confirmed log only)
+- [X] LLM never decides hold/sell (max 1 call for explanation draft)
+- [X] P&L never fabricated (incomplete -> explicit marking)
+- [X] Position never created from draft (confirmed log only)
 
 ---
 
@@ -207,9 +213,28 @@ ExecutionObservationLog (confirmed_price, confirmed_quantity, confirmed_at)
 ### Test Suite: `test_v1_real_api_smoke.py`
 **Coverage:** 9 tests (6 real API, 3 meta)
 
-**Current Status:** ⚠️ **Real API tests SKIPPED (environment variables not configured)**
+**Current Status:** [WARN] **Real API tests SKIPPED in current run (environment variables not configured)**
 
-**Reason:** Environment variables required for real API tests are not set:
+**Current Run Result:**
+```
+3 passed, 6 skipped in 0.20s
+```
+
+**What Passed (Meta Tests Only):**
+- [OK] `test_smoke_tests_skipped_by_default` (verified default skip behavior)
+- [OK] `test_no_hardcoded_api_keys` (no secrets in source code)
+- [OK] (1 additional meta test)
+
+**What Skipped (All Real API Tests):**
+- [SKIP] `test_tushare_authentication_and_basic_query`
+- [SKIP] `test_tushare_daily_data_smoke`
+- [SKIP] `test_tushare_connection_to_adapter`
+- [SKIP] `test_llm_authentication_and_basic_completion`
+- [SKIP] `test_llm_structured_extraction_smoke`
+- [SKIP] `test_llm_does_not_decide_trading`
+
+**Why Skipped:**
+Environment variables required for real API tests are not set in current environment:
 - `RUN_REAL_API_SMOKE=1` (opt-in flag)
 - `TUSHARE_TOKEN` (Tushare API token)
 - `TUSHARE_API_URL` (private endpoint)
@@ -217,44 +242,19 @@ ExecutionObservationLog (confirmed_price, confirmed_quantity, confirmed_at)
 - `RESEARCH_LLM_BASE_URL` (LLM endpoint)
 - `RESEARCH_LLM_MODEL` (model name)
 
-**Test Results (Default Run):**
-```
-3 passed, 6 skipped in 0.20s
-```
+**Historical Note (NOT Current Verification):**
 
-**Passed (Meta Tests):**
-- ✅ `test_smoke_tests_skipped_by_default` (verified default behavior)
-- ✅ `test_no_hardcoded_api_keys` (no secrets in source code)
-- ✅ (1 more meta test)
+A previous run (commit baa63e4, 2026-07-01) with environment variables configured showed 7 out of 8 real API tests passed:
 
-**Skipped (Real API Tests):**
-- ⏭️ `test_tushare_authentication_and_basic_query`
-- ⏭️ `test_tushare_daily_data_smoke`
-- ⏭️ `test_tushare_connection_to_adapter`
-- ⏭️ `test_llm_authentication_and_basic_completion`
-- ⏭️ `test_llm_structured_extraction_smoke`
-- ⏭️ `test_llm_does_not_decide_trading`
+- [OK] Tushare authentication successful (5,532 A-share stocks retrieved)
+- [OK] Tushare daily data query successful (116 records for 600000.SH)
+- [OK] LLM authentication successful (claude-sonnet-4-6)
+- [OK] LLM structured extraction successful (claimed_entry, claimed_exit)
+- [X] Adapter type mismatch (expected dict, got MarketDataResult model - non-functional issue)
 
-**Previous Real API Verification (2026-07-01, commit baa63e4):**
+**Current Verification Conclusion:**
 
-When environment variables were configured, **7 out of 8 real API tests passed:**
-
-✅ **Tushare Smoke:**
-- Authentication successful (5,532 A-share stocks retrieved)
-- Daily data query successful (116 records for 600000.SH)
-- Private endpoint: `http://8.163.90.143:8686/`
-
-✅ **LLM Smoke:**
-- Authentication successful (claude-sonnet-4-6)
-- Structured extraction successful (claimed_entry, claimed_exit)
-- LLM client: `backend.services.llm_client.LLMClient`
-- Endpoint: `https://cc-vibe.com`
-
-❌ **Adapter Type Mismatch (1 failed):**
-- `test_tushare_connection_to_adapter` expected `dict`, got `MarketDataResult` model
-- Non-functional issue (adapter works correctly, test assertion wrong)
-
-**Conclusion:** Real API connectivity has been verified in a previous run with proper credentials. Current skip is due to environment configuration, not a system failure.
+Real API connectivity is **NOT verified in current run** due to environment configuration. The tests exist and can be enabled by setting environment variables. Previous verification (baa63e4) is provided as historical reference only, not as current acceptance evidence.
 
 ---
 
@@ -293,25 +293,25 @@ When environment variables were configured, **7 out of 8 real API tests passed:*
 These are **intentionally deterministic** in production (not test doubles):
 
 #### 1. Recommendation Reducer
-**Status:** ✅ 100% deterministic (no LLM, no random)  
+**Status:** [OK] 100% deterministic (no LLM, no random)  
 **Evidence:** `test_v1_approval_card.py::test_reducer_does_not_call_llm`  
 **Red Line:** LLM cannot decide `recommendation_level`
 
 #### 2. Strategy Promotion Reducer
-**Status:** ✅ Deterministic lifecycle state transitions  
+**Status:** [OK] Deterministic lifecycle state transitions  
 **Evidence:** B-module tests verify deterministic promotion logic
 
 #### 3. Action Plan Builder
-**Status:** ✅ Deterministic freshness, blocking, warning logic  
+**Status:** [OK] Deterministic freshness, blocking, warning logic  
 **Evidence:** `test_c3_action_plan_boundary.py`
 
 #### 4. Daily Signal Reducer
-**Status:** ✅ 100% deterministic (hold/sell/risk/invalidated)  
+**Status:** [OK] 100% deterministic (hold/sell/risk/invalidated)  
 **Evidence:** `test_v1_observation_pool.py`  
 **Red Line:** LLM never decides hold/sell (max 1 call for explanation)
 
 #### 5. P&L Calculator
-**Status:** ✅ Deterministic arithmetic from confirmed logs  
+**Status:** [OK] Deterministic arithmetic from confirmed logs  
 **Evidence:** `test_v1_discipline_review.py`  
 **Red Line:** Never fabricated, missing fields explicitly marked
 
@@ -323,7 +323,7 @@ These are **intentionally deterministic** in production (not test doubles):
 
 #### 1. Execution Card Builder
 **Status:** Service exists, tested  
-**Gap:** Not called in E2E chain (research → pool stops here)  
+**Gap:** Not called in E2E chain (research -> pool stops here)  
 **Next Step:** Wire `build_execution_card()` after confirmed candidate
 
 #### 2. Execution Interpreter
@@ -358,13 +358,13 @@ Confirmed Candidate Pool
     ↓  (gap)
 Execution Card Builder
     ↓  (gap)
-User Buy Feedback → Execution Interpreter
+User Buy Feedback -> Execution Interpreter
     ↓  (gap)
 Observation Position Creation
     ↓  (gap)
 Daily Signal Generation (cron)
     ↓  (gap)
-User Sell Feedback → Execution Interpreter
+User Sell Feedback -> Execution Interpreter
     ↓  (gap)
 Position Close + P&L Calculation
 ```
@@ -376,19 +376,19 @@ Position Close + P&L Calculation
 ### Web UI Limitations
 
 #### Implemented in UI:
-- ✅ Agent chat interface (`/workbench`)
-- ✅ Workflow routing (friend_stock / strategy_idea)
-- ✅ Approval card display and decision submission
-- ✅ Timeline readback (messages + artifact refs)
-- ✅ Workflow status panel
+- [OK] Agent chat interface (`/workbench`)
+- [OK] Workflow routing (friend_stock / strategy_idea)
+- [OK] Approval card display and decision submission
+- [OK] Timeline readback (messages + artifact refs)
+- [OK] Workflow status panel
 
 #### Not Yet in UI:
-- ❌ Confirmed candidate pool display
-- ❌ Execution card display
-- ❌ Buy/sell feedback input form
-- ❌ Observation position list
-- ❌ Daily signal display
-- ❌ P&L and discipline review display
+- [X] Confirmed candidate pool display
+- [X] Execution card display
+- [X] Buy/sell feedback input form
+- [X] Observation position list
+- [X] Daily signal display
+- [X] P&L and discipline review display
 
 ---
 
@@ -398,7 +398,7 @@ Position Close + P&L Calculation
 
 **Limit:** E2E tests verify up to confirmed candidate pool (friend stock) and rejection registry (strategy idea), but do not verify the complete loop to P&L recording.
 
-**Impact:** Execution → observation → P&L chain is tested at service layer only, not integrated end-to-end.
+**Impact:** Execution -> observation -> P&L chain is tested at service layer only, not integrated end-to-end.
 
 **Mitigation:** All services exist and pass tests (36 tests). Missing piece is orchestration layer, not service implementation.
 
@@ -482,24 +482,24 @@ Position Close + P&L Calculation
 
 ## Next Task Recommendation
 
-### Priority 1: Wire Execution → Observation Chain
+### Priority 1: Wire Execution -> Observation Chain
 
 **Goal:** Complete the profitable loop from confirmed candidate to P&L.
 
 **Tasks:**
 1. Add execution card display in Web UI (`/workbench` or `/signals/{id}/execute`)
 2. Add buy/sell feedback form in UI (user inputs "已买入 100 股，成交价 12.34")
-3. Wire execution interpreter → observation pool → position creation
+3. Wire execution interpreter -> observation pool -> position creation
 4. Add daily signal generation (cron job or manual trigger)
-5. Wire sell feedback → position close → discipline review → P&L calculation
+5. Wire sell feedback -> position close -> discipline review -> P&L calculation
 6. Update E2E tests to verify complete chain
 
 **Acceptance Criteria:**
 - User can see execution card after confirmed candidate
-- User can submit buy feedback → position created
+- User can submit buy feedback -> position created
 - Daily signal displays next action (hold/sell/risk)
-- User can submit sell feedback → P&L calculated and displayed
-- E2E test verifies complete loop (workbench → P&L)
+- User can submit sell feedback -> P&L calculated and displayed
+- E2E test verifies complete loop (workbench -> P&L)
 
 ---
 
@@ -554,11 +554,11 @@ Position Close + P&L Calculation
 
 ### Priority 5: Add Strategy Idea Approval Path
 
-**Goal:** Complete strategy idea path from extraction → validation → approval → signal admission.
+**Goal:** Complete strategy idea path from extraction -> validation -> approval -> signal admission.
 
 **Tasks:**
-1. Wire template mapping → candidate template evaluation
-2. Wire validation gate (B-module) → prototype_passed
+1. Wire template mapping -> candidate template evaluation
+2. Wire validation gate (B-module) -> prototype_passed
 3. Update E2E test to verify approved path (currently only rejection path tested)
 4. Verify signal only admitted after lifecycle_state == "prototype_passed"
 
@@ -587,18 +587,27 @@ Position Close + P&L Calculation
 
 ## Conclusion
 
-TraderLens V1 Minimum Profitable Loop has achieved **verified foundational capability** for profitable live-trading decision support:
+TraderLens V1 Minimum Profitable Loop has achieved **verified foundational capability** for key entry paths:
 
-✅ **Complete chains implemented and tested:** User chat → research → confirmed candidate pool (friend stock), User chat → extraction → rejection registry (strategy idea)
+[OK] **Entry chains verified:** User chat -> research -> confirmed candidate pool (friend stock), User chat -> extraction -> rejection registry (strategy idea)
 
-✅ **Service-layer components ready:** Execution interpreter, observation pool, discipline review (36 tests passed)
+[OK] **Service-layer components ready:** Execution interpreter, observation pool, discipline review (36 tests passed at service layer)
 
-✅ **Boundary enforcement verified:** No technical parameters exposed, no automatic trading, LLM cannot decide recommendations
+[OK] **Boundary enforcement verified:** No technical parameters exposed, no automatic trading, LLM cannot decide recommendations
 
-✅ **Audit trail complete:** Every step creates artifact IDs or DB records
+[OK] **Audit trail complete:** Every step creates artifact IDs or DB records
 
-⚠️ **Orchestration gap:** Execution → observation → P&L chain exists at service layer but not wired into E2E workflow
+[WARN] **Orchestration gap:** Execution -> observation -> P&L chain exists at service layer but NOT wired into E2E workflow or Web UI
 
-⚠️ **Real API:** Connectivity verified in previous run (commit baa63e4), currently skipped due to environment configuration
+[WARN] **Real API:** Tests exist but SKIPPED in current run (environment variables not configured). Historical verification (commit baa63e4) showed connectivity works, but this is reference only, not current acceptance evidence.
 
-**Next milestone:** Wire execution → observation → P&L chain into Web UI and E2E workflow to complete the profitable loop.
+**Current State Summary:**
+
+This verification proves that TraderLens V1 has a **solid foundation** with entry paths tested and service components ready. However, it is NOT yet a complete profitable loop product:
+
+- [X] User CANNOT see execution cards in UI
+- [X] User CANNOT submit buy/sell feedback
+- [X] User CANNOT view observation positions or P&L
+- [X] Complete loop (chat -> P&L) is NOT wired end-to-end
+
+**Next milestone:** Wire execution -> observation -> P&L chain into Web UI and E2E workflow to complete the profitable loop.
