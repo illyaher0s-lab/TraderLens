@@ -4,7 +4,7 @@
 
 **Goal:** Rebuild TraderLens V1 into a usable product that can run two user journeys end to end: friend-recommended stock to observation/P&L review, and short-video strategy idea to strategy library or rejection registry.
 
-**Architecture:** Keep existing research, strategy-validation, Signal Board, action-plan, live-observation, and review services as reusable infrastructure. Add a real agent orchestration layer above them, with Tushare-backed stock identity, LLM-assisted intent understanding, deterministic workflow routing, visible activity state, and product pages for observation, strategy library, and daily decisions.
+**Architecture:** Keep existing research, strategy-validation, Signal Board, action-plan, live-observation, and review services as reusable infrastructure. Add a real agent orchestration layer above them, with Tushare-backed stock identity, LLM-assisted intent understanding, deterministic workflow routing, visible activity state, product pages for observation, strategy library, daily decisions, and system-owned survival constraints.
 
 **Tech Stack:** FastAPI, SQLite, Pydantic contracts, existing Serenity research services, existing B-module strategy validation services, existing Signal Board/Action Plan APIs, existing live-trade/observation services, Tushare, existing LLMClient, Next.js frontend, pytest.
 
@@ -42,6 +42,7 @@ Agent understands request
 -> industry/company research runs or clearly fails
 -> system decides whether it is worth watching
 -> strategy validation/action plan runs if eligible
+-> survival constraints are checked
 -> user sees entry/no-entry result
 -> user records manual buy
 -> stock appears in observation pool
@@ -89,7 +90,7 @@ Current gap:
 
 - The agent entry has repeatedly been too brittle.
 - Product must not rely on keyword-only routing.
-- A message must never show fake progress such as "researching" unless a real workflow action or queued job exists.
+- A message must never show fake progress such as `researching` unless a real workflow action or queued job exists.
 
 ### Friend Stock / Research
 
@@ -115,7 +116,7 @@ Current gap:
 Current gap:
 
 - There is no complete strategy-library UI.
-- Strategy idea submission from Workbench must not stop at "recorded/rejected" unless that is the deterministic result.
+- Strategy idea submission from Workbench must not stop at `recorded/rejected` unless that is the deterministic result.
 - The user needs to see accepted, validating, blocked, rejected, and approved strategies.
 
 ### Signal Board / Action Plan
@@ -129,7 +130,7 @@ Current gap:
 Current gap:
 
 - Signal Board currently behaves like a planned-signal table.
-- It is not enough for "my observation pool".
+- It is not enough for `my observation pool`.
 - It must be integrated with current observation positions and daily decisions.
 
 ### Live Observation / Execution / Review
@@ -145,11 +146,27 @@ Current gap:
 
 - This is buried inside Workbench.
 - The user needs a first-class observation page and trade/review history page.
+- Daily signal states must distinguish `hold`, `insufficient_data`, `data_fault`, `risk`, `invalidated`, and `exit`.
+- Review attribution must explain whether exit happened because of fixed stop, planned take-profit, planned exit, data fault, insufficient data, or manual deviation.
+
+### Risk Guards / Attribution
+
+- Some risk-related reducers exist, but V1 does not yet have a product-level survival guard layer.
+- Market regime blocking, single-position cap, and fixed stop must be system constraints, not user-selected parameters.
+- These controls must be validated or justified independently before being allowed to block or modify action plans.
+
+Current gap:
+
+- No first-class `MarketRegimeGuard`.
+- No fixed single-position cap wired into capital context and action planning.
+- No fixed-stop plan wired from entry plan into observation and review.
+- Data insufficiency can be semantically confused with a normal hold state.
+- Stop-loss/take-profit wording is not yet a formal attribution system.
 
 ### UI / Navigation
 
 - `/workbench`, `/signals`, `/themes` exist.
-- Home page exists but has mojibake and does not behave as the daily product dashboard.
+- Home page exists but has had mojibake and does not behave as the daily product dashboard.
 
 Current gap:
 
@@ -175,6 +192,7 @@ Must show:
 
 - Open observation positions.
 - Today's generated signals.
+- Market survival guard status when it blocks or downgrades an action.
 - Pending approvals.
 - Active research cases.
 - Active strategy validations.
@@ -251,7 +269,35 @@ Must show:
 - Candidate-pool snapshot ID.
 - Link to strategy validation/action-plan status when created.
 
-### 4.4 Observation Pool
+### 4.4 Risk Guard and Capital Context
+
+Routes:
+
+- No standalone user parameter page in V1.
+- Risk guard status appears inside dashboard, action plan, signal detail, and observation detail.
+
+Purpose:
+
+- Apply survival constraints before action plans become executable.
+
+Must enforce:
+
+- Market extreme circuit guard: blocks only broad selloff, structural breakdown, or liquidity exhaustion. It must not become market timing.
+- Single-stock position cap: V1 default is system-owned. The user may provide a plain-language capital pool or trial amount, but must not choose sizing parameters.
+- Fixed stop: set at entry as a fixed price below confirmed entry price. It does not trail or move.
+
+Validation rules:
+
+- Market extreme thresholds must be backtested/validated independently.
+- Fixed-stop candidates must be validated before becoming the frozen system default.
+- Single-stock position cap is a survival constraint and does not need alpha proof, but it must be auditable and deterministic.
+
+User-facing rules:
+
+- The UI shows result-level language: `市场状态阻断`, `资金约束跳过`, `固定失效价已设置`.
+- The UI must not ask the user to pick thresholds, stop-loss percentages, or sizing formulas.
+
+### 4.5 Observation Pool
 
 Routes:
 
@@ -268,6 +314,7 @@ Must show:
 - Position status: open/closed.
 - Entry record.
 - Current daily signal.
+- Signal state: hold / insufficient_data / data_fault / risk / invalidated / exit.
 - Original thesis.
 - Invalidation reasons.
 - User actions needed today.
@@ -276,7 +323,7 @@ Must show:
 
 This is separate from Signal Board.
 
-### 4.5 Signal Board
+### 4.6 Signal Board
 
 Routes:
 
@@ -300,7 +347,7 @@ Signal Board is not the same as Observation Pool:
 - Signal Board = system-generated planned signals.
 - Observation Pool = user-observed/held positions and daily follow-up.
 
-### 4.6 Strategy Library
+### 4.7 Strategy Library
 
 Routes:
 
@@ -325,7 +372,7 @@ Must show:
 - Rejected/blocked strategies and reasons.
 - Whether future retest is allowed.
 
-### 4.7 Trade Records and Reviews
+### 4.8 Trade Records and Reviews
 
 Routes:
 
@@ -342,6 +389,7 @@ Must show:
 - Manual buy/sell records.
 - Quantity and confirmed price.
 - Realized P&L.
+- Exit attribution: fixed stop, planned take-profit, planned exit, manual deviation, data fault, insufficient data, or unclassified.
 - Whether plan was followed.
 - Skip/deviation reasons.
 - Follow-up adjustment.
@@ -358,7 +406,7 @@ Tasks:
 
 - Remove root-level obsolete Task reports.
 - Remove generated caches from the working tree.
-- Keep `nul` untouched until a separate controlled cleanup decision is made.
+- Keep generated files ignored.
 - Write a current-state audit that maps existing code to product flows.
 
 Acceptance:
@@ -398,7 +446,34 @@ Acceptance examples:
 
 Each message must route correctly or ask a plain-language clarification.
 
-### Phase 2: Friend Stock Product Flow
+### Phase 2: Risk Guard and Attribution Foundation
+
+Goal:
+
+- Add survival constraints and honest attribution into the profitable loop before action/observation pages are finalized.
+
+Tasks:
+
+- Design `MarketRegimeGuard` as an independent validation path.
+- Define the market states it can return: `ok`, `extreme_breadth_selloff`, `structural_breakdown`, `liquidity_exhaustion`, `data_insufficient`, `data_fault`.
+- Define how each state affects action plans: allow, downgrade to observation, or block.
+- Add single-position cap as a deterministic capital-context rule. V1 default: one stock may not exceed 10% of the user-provided trading/trial capital pool unless future validation changes the product default.
+- Add fixed-stop plan as a frozen entry-plan field. V1 candidate set for validation: 6%, 8%, 10%, 12% below confirmed entry price. The final default must be selected by validation and frozen, not by the user or LLM.
+- Add `insufficient_data` as a first-class observation signal state, distinct from `hold`.
+- Add exit attribution vocabulary for review: fixed stop, planned take-profit, planned exit, manual deviation, data fault, insufficient data, unclassified.
+
+Acceptance:
+
+```text
+action plan requested
+-> market survival guard checked
+-> capital cap checked
+-> fixed stop attached if entry is allowed
+-> observation signal never says hold when required data is insufficient
+-> review records why an exit happened without claiming discipline enforcement
+```
+
+### Phase 3: Friend Stock Product Flow
 
 Goal:
 
@@ -411,6 +486,7 @@ Tasks:
 - Research case must run Serenity or return a clear failed/waiting state.
 - Research output must create candidate snapshot only after evidence/counter-evidence exists.
 - User approval must be result-level only.
+- Survival constraints must run before action plan becomes executable.
 - Eligible result must create an action-plan or explicit no-entry decision.
 - Action plan must be reachable from UI.
 
@@ -424,10 +500,11 @@ System:
 3. shows research progress
 4. shows conclusion
 5. creates result-level approval card
-6. creates next action: enter / observe / reject / needs_review
+6. checks market/capital/fixed-stop constraints
+7. creates next action: enter / observe / reject / needs_review
 ```
 
-### Phase 3: Observation Pool Product Flow
+### Phase 4: Observation Pool Product Flow
 
 Goal:
 
@@ -439,6 +516,7 @@ Tasks:
 - Build `/observations/{position_id}` detail page.
 - Connect Workbench manual buy/sell feedback to observation pages.
 - Connect daily signal generation to observation pages.
+- Display `insufficient_data` separately from `hold`.
 - Show open/closed status and P&L.
 - Link discipline review.
 
@@ -451,10 +529,10 @@ record buy
 -> signal appears on dashboard and observation detail
 -> record sell
 -> position closes
--> P&L and discipline review become visible
+-> P&L, fixed-stop/take-profit/manual attribution, and discipline review become visible
 ```
 
-### Phase 4: Strategy Product Flow
+### Phase 5: Strategy Product Flow
 
 Goal:
 
@@ -484,7 +562,7 @@ System:
 6. failed strategies appear in /rejected-strategies
 ```
 
-### Phase 5: Daily Dashboard
+### Phase 6: Daily Dashboard
 
 Goal:
 
@@ -493,7 +571,7 @@ Goal:
 Tasks:
 
 - Replace current home page with daily dashboard.
-- Show open observations, today's signals, pending approvals, active research, active strategy validations, and recent reviews.
+- Show open observations, today's signals, survival guard blocks/downgrades, pending approvals, active research, active strategy validations, and recent reviews.
 - Add links to Workbench, Observation Pool, Signal Board, Strategy Library.
 - Fix any mojibake on home/workbench pages.
 
@@ -503,7 +581,7 @@ Acceptance:
 - Empty state explains what to ask the Agent.
 - Non-technical wording only.
 
-### Phase 6: E2E Product Acceptance
+### Phase 7: E2E Product Acceptance
 
 Goal:
 
@@ -519,6 +597,7 @@ chat input
 -> research case
 -> result-level approval
 -> action/no-action result
+-> market/capital/fixed-stop guard result
 -> manual buy
 -> observation pool
 -> daily signal
@@ -558,6 +637,8 @@ trade review
 - No automatic trading claims.
 - No fake progress state.
 - Tushare data fault blocks or downgrades clearly.
+- Market/data insufficiency is not mislabeled as hold.
+- Fixed-stop and take-profit are recorded as attribution, not profit promises or discipline guarantees.
 - LLM failure asks clarification or records extraction failure; it does not randomly route.
 
 ## 6. Definition of Done
@@ -572,6 +653,7 @@ Open dashboard
 -> see Agent activity
 -> see research case
 -> approve result-level next step
+-> see survival guard result
 -> record buy
 -> see stock in observation pool
 -> generate/view daily signal
@@ -601,7 +683,10 @@ If either demo requires database poking, manual field editing, hidden scripts, o
 - Do not let LLM decide trading action, strategy pass/fail, or P&L.
 - Do not bury observation status in chat timeline only.
 - Do not treat Signal Board as the observation pool.
-- Do not call service-layer tests "product E2E".
+- Do not call service-layer tests `product E2E`.
+- Do not ask the user to choose market guard thresholds, position cap, or stop-loss percentage.
+- Do not describe stop-loss/take-profit attribution as proof of discipline or profit protection.
+- Do not label missing or stale data as hold.
 
 ## 8. Immediate Next Tasks
 
@@ -614,6 +699,7 @@ Create a document listing:
 - Missing files/API/page.
 - Current test coverage.
 - Whether a user can perform the step in browser.
+- Where market guard, position cap, fixed stop, insufficient-data state, and attribution should fit.
 
 ### Task P0-2: Agent Entry Design Freeze
 
@@ -627,9 +713,25 @@ Write a short design for:
 
 No implementation until design is reviewed.
 
+### Task P0-3: Risk and Attribution Design Freeze
+
+Write a short design for:
+
+- Market extreme circuit guard.
+- Single-stock position cap.
+- Fixed stop validation and freeze rule.
+- `insufficient_data` versus `hold`.
+- Exit attribution vocabulary and review display.
+
+No implementation until design is reviewed.
+
 ### Task P1-1: Agent Entry Implementation
 
 Implement only after P0-2 approval.
+
+### Task P1-2: Risk Guard and Attribution Implementation
+
+Implement only after P0-3 approval.
 
 ### Task P2-1: Observation Pool Page
 
@@ -651,12 +753,10 @@ Build the pages that answer:
 
 Make `/` the daily operating page.
 
----
-
 ## 9. Current Cleanup Notes
 
-The root-level Task12 report files are obsolete process reports and should not remain in the project root. Future task reports should either be summarized in the final assistant response or placed under `docs/verification/` when they are durable verification artifacts.
+The root-level Task12 report files were obsolete process reports and should not remain in the project root. Future task reports should either be summarized in the final assistant response or placed under `docs/verification/` when they are durable verification artifacts.
 
-Generated caches such as `.pytest_cache/` and `frontend/.next/` are not source and can be removed locally.
+Generated caches such as `.pytest_cache/`, `frontend/.next/`, and `*.tsbuildinfo` are not source.
 
-Do not touch `nul` in this plan. It has a known Git indexing issue and needs a separate controlled cleanup decision.
+`nul` has been removed from Git tracking and ignored. Do not recreate it.
