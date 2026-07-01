@@ -1206,8 +1206,91 @@ def create_research_app(
                 next_required_user_action = "retry_with_clear_input"
             
         elif session.workflow_kind == WorkflowKind.STRATEGY_IDEA:
-            agent_reply = "收到，这是一个策略想法。我会帮你验证它的有效性，评估是否可以加入策略库。需要先提取策略规则并进行回测验证。"
-            next_required_user_action = "wait_for_validation"
+            # Task 22: Orchestrate strategy-idea flow (fix P0-2)
+            from backend.services.strategy_idea_flow import StrategyIdeaFlowService
+            
+            flow_service = StrategyIdeaFlowService()
+            
+            try:
+                # Create strategy idea (defaults to untrusted)
+                idea = flow_service.create_idea(
+                    raw_source_text=request.message,
+                    source_channel="workbench",
+                )
+                
+                # Create strategy_idea artifact
+                idea_artifact = ArtifactRef(
+                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                    session_id=conversation_id,
+                    artifact_id=idea.idea_id,
+                    artifact_type="strategy_idea",
+                    created_at=now,
+                )
+                attach_artifact_ref(db.conn, idea_artifact)
+                artifact_ids.append(idea.idea_id)
+                
+                # Extract claims (LLM-assisted or deterministic fallback)
+                extraction = flow_service.extract_claims(idea)
+                
+                # Create extraction artifact
+                extraction_artifact = ArtifactRef(
+                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                    session_id=conversation_id,
+                    artifact_id=extraction.extraction_id,
+                    artifact_type="strategy_idea_extraction",
+                    created_at=now,
+                )
+                attach_artifact_ref(db.conn, extraction_artifact)
+                artifact_ids.append(extraction.extraction_id)
+                
+                # Template mapping (deterministic - check if any approved templates exist)
+                # For now, no approved templates exist, so map to no_template_fit
+                mapping = flow_service.map_to_template(
+                    idea=idea,
+                    matched_template_id=None,
+                    template_version=None,
+                    mapping_reason="当前系统暂无已批准模板库。策略想法已记录，但不可用于实盘交易。",
+                )
+                
+                # Create mapping artifact
+                mapping_artifact = ArtifactRef(
+                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                    session_id=conversation_id,
+                    artifact_id=mapping.mapping_id,
+                    artifact_type="template_mapping",
+                    created_at=now,
+                )
+                attach_artifact_ref(db.conn, mapping_artifact)
+                artifact_ids.append(mapping.mapping_id)
+                
+                # Since no template fit, create rejected entry
+                rejected_entry = flow_service.reject_idea(
+                    idea=idea,
+                    reason="无已批准模板匹配，无法进入策略库",
+                )
+                
+                # Create rejection artifact
+                rejection_artifact = ArtifactRef(
+                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                    session_id=conversation_id,
+                    artifact_id=rejected_entry["idea_id"],
+                    artifact_type="rejected_strategy",
+                    created_at=now,
+                )
+                attach_artifact_ref(db.conn, rejection_artifact)
+                artifact_ids.append(rejected_entry["idea_id"] + "_rejected")
+                
+                # Set response
+                agent_reply = f"已提取策略想法：\n\n入场条件：{extraction.claimed_entry}\n出场条件：{extraction.claimed_exit}\n\n{mapping.mapping_reason}\n\n该策略想法已记录到拒绝注册表，不会生成交易信号。"
+                workflow_state = WorkflowState.STOPPED
+                next_required_user_action = "acknowledged_rejection"
+                
+            except Exception as e:
+                # Extraction or mapping failed
+                agent_reply = f"处理策略想法失败：{str(e)}\n\n请检查描述是否完整或稍后重试。"
+                workflow_state = WorkflowState.STOPPED
+                next_required_user_action = "retry_with_clear_description"
+            
         elif session.workflow_kind == WorkflowKind.UNKNOWN:
             workflow_type = "unknown"
             agent_reply = "你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？"

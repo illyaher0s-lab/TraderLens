@@ -138,8 +138,18 @@ def test_strategy_video_routes_to_strategy_idea_workflow(app):
     assert "agent_reply" in data
     
     # Must not promise immediate live execution
+    # Task 22: After orchestration fix, reply includes extraction result and rejection notice
     reply_lower = data["agent_reply"].lower()
-    assert "验证" in reply_lower or "评估" in reply_lower or "检查" in reply_lower
+    # Check for validation/audit keywords OR extraction/rejection keywords
+    has_validation_or_extraction = (
+        "验证" in reply_lower or 
+        "审批" in reply_lower or 
+        "评估" in reply_lower or
+        "提取" in reply_lower or
+        "拒绝" in reply_lower or
+        "记录" in reply_lower
+    )
+    assert has_validation_or_extraction, f"Reply missing validation/extraction keywords: {data['agent_reply']}"
 
 
 def test_unknown_message_asks_plain_clarification(app):

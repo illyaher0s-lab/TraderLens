@@ -122,24 +122,27 @@ class TestWorkbenchOrchestrationGaps:
         assert stage in ["waiting_for_approval", "stopped", "created"], \
             f"Unexpected state: {stage}. Must be honest about outcome."
     
-    def test_strategy_idea_message_sets_validating_state_but_no_action(self, client):
+    def test_strategy_idea_message_creates_real_artifacts_not_fake_progress(self, client):
         """
-        P0 GAP: Strategy idea message sets workflow_state=validating
-        but does not trigger validation.
+        P0-2 FIXED: Strategy idea message creates real action artifacts.
         
-        Expected behavior:
+        Expected behavior (AFTER Task 22 fix):
         - User sends strategy idea message
-        - System sets workflow_state=validating
-        - System should create strategy_idea, extract rules, or create approval card
+        - System sets workflow_state based on actual outcome
+        - Timeline contains real strategy_idea action artifacts
         
-        Actual behavior:
-        - User sends strategy idea message
-        - System sets workflow_state=validating
-        - System returns "wait_for_validation"
-        - Timeline only contains: user_message, agent_message, workflow_intent
-        - NO strategy_idea artifact, NO extraction, NO template_mapping, NO rejection_registry
+        Previously (P0 gap):
+        - System set workflow_state=validating with no action
+        - Timeline only had workflow_intent
         
-        Severity: P0 (user sees fake progress)
+        Now (fixed):
+        - Timeline has strategy_idea artifact
+        - Timeline has strategy_idea_extraction artifact
+        - Timeline has template_mapping artifact (or rejection/blocked)
+        - If extraction succeeded: workflow_state=stopped (honest: no approved templates)
+        - If extraction failed: workflow_state=stopped (honest failure)
+        
+        Severity: P0 (was critical fake progress, now fixed)
         """
         response = client.post(
             "/api/agent/workbench/message",
@@ -149,12 +152,10 @@ class TestWorkbenchOrchestrationGaps:
         assert response.status_code == 200
         data = response.json()
         
-        # State claims "validating"
-        assert data["stage"] == "validating"
+        # Should route to strategy_idea
         assert data["workflow_type"] == "strategy_idea"
-        assert data["next_required_user_action"] == "wait_for_validation"
         
-        # But timeline does NOT contain validation artifacts
+        # Get timeline
         conversation_id = data["conversation_id"]
         session_response = client.get(f"/api/agent/workbench/{conversation_id}")
         assert session_response.status_code == 200
@@ -163,14 +164,31 @@ class TestWorkbenchOrchestrationGaps:
         timeline = session_data["timeline"]
         artifact_types = [item["content"]["artifact_type"] for item in timeline if item["type"] == "artifact_ref"]
         
-        # P0 GAP: No validation-related artifacts
-        assert "strategy_idea" not in artifact_types
-        assert "strategy_idea_extraction" not in artifact_types
-        assert "template_mapping" not in artifact_types
-        assert "rejection_registry" not in artifact_types
+        # FIXED: Must have strategy_idea artifact (proves create_idea was called)
+        assert "strategy_idea" in artifact_types, "Missing strategy_idea artifact - create_idea was not called"
         
-        # Only has intent artifact (no action)
-        assert "workflow_intent" in artifact_types
+        # FIXED: Must have extraction artifact (proves extract_claims was called)
+        assert "strategy_idea_extraction" in artifact_types, "Missing strategy_idea_extraction artifact - extract_claims was not called"
+        
+        # FIXED: Must have template_mapping or rejection artifact (proves map_to_template was called)
+        has_mapping_or_rejection = ("template_mapping" in artifact_types or 
+                                     "rejected_strategy" in artifact_types or
+                                     "blocked_strategy_idea" in artifact_types)
+        assert has_mapping_or_rejection, "Missing template_mapping/rejected_strategy artifact - map_to_template was not called"
+        
+        # Must NOT have fake validating state without action
+        stage = data["stage"]
+        if stage == "validating":
+            # If state is "validating", must have all validation artifacts
+            assert "strategy_idea" in artifact_types, "workflow_state=validating but no strategy_idea artifact"
+            assert "strategy_idea_extraction" in artifact_types, "workflow_state=validating but no extraction artifact"
+        
+        # Acceptable states after orchestration:
+        # - "stopped" (honest: no approved templates, extraction failed, etc.)
+        # - "completed" (if somehow approved template path succeeded, unlikely in current system)
+        # - "created" (ambiguous, need clarification)
+        assert stage in ["stopped", "completed", "created"], \
+            f"Unexpected state: {stage}. Must be honest about outcome."
     
     def test_execution_feedback_does_create_real_artifacts(self, client):
         """
