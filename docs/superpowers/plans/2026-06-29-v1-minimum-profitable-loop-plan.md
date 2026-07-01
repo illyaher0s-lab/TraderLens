@@ -1049,6 +1049,85 @@ git add tests/test_v1_e2e_profitable_loop.py
 git commit -m "test: add V1 profitable loop acceptance tests"
 ```
 
+### Task 16.5: Add Real API Smoke Verification For LLM And Tushare
+
+This task is mandatory before final V1 acceptance, but must stay opt-in so normal tests remain deterministic and do not require secrets, network access, or vendor uptime.
+
+**Files:**
+- Create: `tests/test_v1_real_api_smoke.py`
+- Modify only if required by the smoke tests: existing Tushare adapter/client and existing LLM client configuration code.
+
+- [ ] **Step 1: Write opt-in smoke test guard**
+
+The test file must skip by default unless `RUN_REAL_API_SMOKE=1` is set.
+
+Required environment variables:
+- `TUSHARE_TOKEN`
+- `RESEARCH_LLM_API_KEY`
+
+Optional environment variables:
+- `TUSHARE_API_URL` for private Tushare-compatible endpoints
+- `RESEARCH_LLM_BASE_URL`
+- `RESEARCH_LLM_MODEL`
+
+Never hardcode API keys, private endpoint secrets, or user tokens in source code, tests, docs, commits, or logs.
+
+- [ ] **Step 2: Add Tushare smoke tests**
+
+The smoke tests must verify:
+- the Tushare client can authenticate and return one small known A-share fact set
+- daily/basic market facts used by V1 live observation can be read through the production adapter path
+- current-price observation either returns `ok` with source/time metadata or fails loudly as a `MarketDataFault`
+- minute-line/intraday data remains represented as `adapter_unsupported` unless a real supported adapter exists
+- provider empty data, source exception, stale data, and inconsistent data are mapped to `MarketDataFault` instead of fabricated prices
+
+The tests must not require the user to manually maintain watch fields. If the provider does not return required data, the system must block or downgrade through deterministic fault states.
+
+- [ ] **Step 3: Add LLM smoke tests**
+
+The smoke tests must verify:
+- the configured LLM endpoint accepts authentication and returns a minimal response
+- structured response parsing works for one harmless extraction/classification prompt
+- LLM output is stored or returned as draft/explanation only
+- LLM output cannot route workflows, create strategy rules, set thresholds, set stop rules, set position sizing, create signals, create recommendation levels, or calculate P&L
+
+Use the smallest practical request. The smoke test is for connectivity and contract shape, not for trading quality.
+
+- [ ] **Step 4: Verify default test behavior**
+
+Run without real API environment variables:
+```powershell
+.venv\Scripts\python.exe -m pytest tests/test_v1_real_api_smoke.py -q
+```
+
+Expected: tests are skipped with an explicit reason.
+
+- [ ] **Step 5: Verify real API behavior**
+
+Run only in a local/private environment with secrets provided through environment variables:
+```powershell
+$env:RUN_REAL_API_SMOKE="1"
+$env:TUSHARE_TOKEN="<set locally only>"
+$env:TUSHARE_API_URL="<optional private endpoint>"
+$env:RESEARCH_LLM_API_KEY="<set locally only>"
+$env:RESEARCH_LLM_BASE_URL="<optional>"
+$env:RESEARCH_LLM_MODEL="<optional>"
+.venv\Scripts\python.exe -m pytest tests/test_v1_real_api_smoke.py -q -s
+```
+
+Expected:
+- Tushare supported paths return real data or deterministic `MarketDataFault`
+- unsupported intraday/minute-line paths return `adapter_unsupported`
+- LLM smoke proves auth/connectivity and draft parsing only
+- no secret value appears in test output
+
+- [ ] **Step 6: Commit**
+
+```powershell
+git add tests/test_v1_real_api_smoke.py
+git commit -m "test: add real API smoke checks"
+```
+
 ### Task 17: Full Regression And Verification Document
 
 **Files:**
@@ -1096,17 +1175,38 @@ Run:
 npm --prefix frontend run build
 ```
 
-- [ ] **Step 7: Write verification document**
+- [ ] **Step 7: Run opt-in real API smoke verification**
+
+First run the default skipped check:
+```powershell
+.venv\Scripts\python.exe -m pytest tests/test_v1_real_api_smoke.py -q
+```
+
+Then, for final acceptance only, run the real smoke check with local environment variables:
+```powershell
+$env:RUN_REAL_API_SMOKE="1"
+$env:TUSHARE_TOKEN="<set locally only>"
+$env:TUSHARE_API_URL="<optional private endpoint>"
+$env:RESEARCH_LLM_API_KEY="<set locally only>"
+$env:RESEARCH_LLM_BASE_URL="<optional>"
+$env:RESEARCH_LLM_MODEL="<optional>"
+.venv\Scripts\python.exe -m pytest tests/test_v1_real_api_smoke.py -q -s
+```
+
+If real API smoke cannot be run, V1 final acceptance must say so explicitly and cannot claim real Tushare/LLM integration is verified.
+
+- [ ] **Step 8: Write verification document**
 
 Document:
 - commit list
 - test commands and outputs
 - two E2E script evidence chains
+- real API smoke output, including skipped/default behavior and real-run result
 - artifact IDs produced in test fixtures
 - known limitations
 - explicit no-broker/no-auto-order boundary
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```powershell
 git add docs/verification/V1_MINIMUM_PROFITABLE_LOOP_VERIFICATION.md
@@ -1135,6 +1235,7 @@ Execute in this order:
 14. Web UI Agent Workbench.
 15. Chinese copy and encoding fix.
 16. E2E profitable loop tests.
+16.5. Real API smoke verification for LLM and Tushare.
 17. Full verification.
 
 Reasoning:
@@ -1142,6 +1243,7 @@ Reasoning:
 - User-facing agent/workbench comes after backend contracts exist.
 - UI comes after API is stable.
 - E2E acceptance comes after both loops are implemented.
+- Real API smoke comes after deterministic E2E so external services do not mask product-flow failures.
 
 ---
 
@@ -1168,11 +1270,13 @@ The plan is complete only when:
   - approved strategy-library admission or rejected registry
 - The user is never asked for technical trading parameters.
 - LLM never creates signals, thresholds, strategy rules, recommendation levels, or P&L.
+- Real LLM API smoke proves connectivity and draft parsing only; it does not authorize LLM-driven trading decisions.
 - All rejected/blocked/needs-review strategies are retained.
 - Critical data faults block or downgrade recommendations.
+- Real Tushare API smoke proves supported daily/current-data paths work or fail loudly through `MarketDataFault`.
 - Current Tushare minute-line unsupported state is represented as `adapter_unsupported`.
 - Frontend Chinese copy is readable.
-- Verification document proves artifact IDs, DB records, logs, and test output for both E2E scripts.
+- Verification document proves artifact IDs, DB records, logs, test output for both E2E scripts, and real API smoke results.
 
 ---
 
