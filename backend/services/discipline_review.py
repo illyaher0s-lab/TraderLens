@@ -73,8 +73,8 @@ class DisciplineReviewService:
             )
 
         # All fields present, calculate
-        pnl_amount = (sell_price - buy_price) * quantity - (fees or 0.0)
-        pnl_pct = (sell_price - buy_price) / buy_price
+        pnl_amount = round((sell_price - buy_price) * quantity - (fees or 0.0), 2)
+        pnl_pct = round((sell_price - buy_price) / buy_price, 10)
 
         return PnlRecord(
             pnl_record_id=f"pnl_{uuid.uuid4().hex[:12]}",

@@ -10,16 +10,25 @@ Red lines enforced at DB layer:
 """
 
 import sqlite3
+import json
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 from contextlib import contextmanager
 
 from contracts.live_trade import (
+    DailyObservationSignal,
+    DisciplineReview,
     ExecutionInterpretationStatus,
     ExecutionObservationDraft,
     ExecutionObservationLog,
+    ExplanationSource,
+    InvalidationTrigger,
+    ObservationPosition,
+    PositionLifecycleState,
+    DailySignalType,
 )
+from contracts.market_data_fault import MarketDataFaultState
 
 
 class LiveTradeDB:
@@ -141,6 +150,19 @@ class LiveTradeDB:
                 """
             )
 
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS discipline_reviews (
+                    review_id TEXT PRIMARY KEY,
+                    position_id TEXT NOT NULL,
+                    execution_card_id TEXT NOT NULL,
+                    signal_id TEXT NOT NULL,
+                    review_json TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
+
             # Indexes for common queries
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_drafts_execution_card ON execution_observation_drafts(execution_card_id)"
@@ -156,6 +178,9 @@ class LiveTradeDB:
             )
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_signals_position_date ON daily_observation_signals(position_id, as_of_date)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_reviews_position ON discipline_reviews(position_id)"
             )
 
     def save_draft(self, draft: ExecutionObservationDraft) -> None:
@@ -359,3 +384,156 @@ class LiveTradeDB:
                 )
                 for row in rows
             ]
+
+    def save_position(self, position: ObservationPosition) -> None:
+        """Insert or replace an observation position snapshot."""
+        with self._get_conn() as conn:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO observation_positions (
+                    position_id, source_log_id, execution_card_id, signal_id,
+                    action_plan_id, capital_context_id, symbol, name,
+                    entry_price, quantity, template_id, template_version,
+                    entry_thesis, lifecycle_state, opened_at, closed_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    position.position_id,
+                    position.source_log_id,
+                    position.execution_card_id,
+                    position.signal_id,
+                    position.action_plan_id,
+                    position.capital_context_id,
+                    position.symbol,
+                    position.name,
+                    position.entry_price,
+                    position.quantity,
+                    position.template_id,
+                    position.template_version,
+                    position.entry_thesis,
+                    position.lifecycle_state.value,
+                    position.opened_at.isoformat(),
+                    position.closed_at.isoformat() if position.closed_at else None,
+                ),
+            )
+
+    def get_position(self, position_id: str) -> Optional[ObservationPosition]:
+        """Retrieve an observation position by ID."""
+        with self._get_conn() as conn:
+            row = conn.execute(
+                "SELECT * FROM observation_positions WHERE position_id = ?",
+                (position_id,),
+            ).fetchone()
+
+            if not row:
+                return None
+
+            return ObservationPosition(
+                position_id=row["position_id"],
+                source_log_id=row["source_log_id"],
+                execution_card_id=row["execution_card_id"],
+                signal_id=row["signal_id"],
+                action_plan_id=row["action_plan_id"],
+                capital_context_id=row["capital_context_id"],
+                symbol=row["symbol"],
+                name=row["name"],
+                entry_price=row["entry_price"],
+                quantity=row["quantity"],
+                template_id=row["template_id"],
+                template_version=row["template_version"],
+                entry_thesis=row["entry_thesis"],
+                lifecycle_state=PositionLifecycleState(row["lifecycle_state"]),
+                opened_at=datetime.fromisoformat(row["opened_at"]),
+                closed_at=datetime.fromisoformat(row["closed_at"]) if row["closed_at"] else None,
+            )
+
+    def save_daily_signal(self, signal: DailyObservationSignal) -> None:
+        """Save a deterministic daily observation signal."""
+        with self._get_conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO daily_observation_signals (
+                    signal_record_id, position_id, signal_type,
+                    triggered_invalidations, as_of_date, market_data_state,
+                    rule_trace, plain_explanation, explanation_source
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    signal.signal_record_id,
+                    signal.position_id,
+                    signal.signal_type.value,
+                    json.dumps([trigger.value for trigger in signal.triggered_invalidations], ensure_ascii=False),
+                    signal.as_of_date.isoformat(),
+                    signal.market_data_state.value,
+                    json.dumps(signal.rule_trace, ensure_ascii=False),
+                    signal.plain_explanation,
+                    signal.explanation_source.value,
+                ),
+            )
+
+    def list_daily_signals(self, position_id: str) -> list[DailyObservationSignal]:
+        """List daily signals for a position ordered by signal date."""
+        with self._get_conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT * FROM daily_observation_signals
+                WHERE position_id = ?
+                ORDER BY as_of_date ASC
+                """,
+                (position_id,),
+            ).fetchall()
+
+            signals = []
+            for row in rows:
+                triggered = [
+                    InvalidationTrigger(value)
+                    for value in json.loads(row["triggered_invalidations"])
+                ]
+                signals.append(
+                    DailyObservationSignal(
+                        signal_record_id=row["signal_record_id"],
+                        position_id=row["position_id"],
+                        signal_type=DailySignalType(row["signal_type"]),
+                        triggered_invalidations=triggered,
+                        as_of_date=datetime.fromisoformat(row["as_of_date"]),
+                        market_data_state=MarketDataFaultState(row["market_data_state"]),
+                        rule_trace=json.loads(row["rule_trace"]),
+                        plain_explanation=row["plain_explanation"],
+                        explanation_source=ExplanationSource(row["explanation_source"]),
+                    )
+                )
+
+            return signals
+
+    def save_discipline_review(self, review: DisciplineReview) -> None:
+        """Save a discipline review and nested P&L record as immutable JSON."""
+        with self._get_conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO discipline_reviews (
+                    review_id, position_id, execution_card_id, signal_id,
+                    review_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    review.review_id,
+                    review.position_id,
+                    review.execution_card_id,
+                    review.signal_id,
+                    review.model_dump_json(),
+                    review.created_at.isoformat(),
+                ),
+            )
+
+    def get_discipline_review(self, review_id: str) -> Optional[DisciplineReview]:
+        """Retrieve a discipline review by ID."""
+        with self._get_conn() as conn:
+            row = conn.execute(
+                "SELECT review_json FROM discipline_reviews WHERE review_id = ?",
+                (review_id,),
+            ).fetchone()
+
+            if not row:
+                return None
+
+            return DisciplineReview.model_validate_json(row["review_json"])

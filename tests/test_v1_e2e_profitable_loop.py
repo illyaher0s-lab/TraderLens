@@ -193,6 +193,137 @@ class TestFriendStockProfitableLoop:
         
         # Verify forward_only flag set
         assert confirmed.forward_only is True
+
+    def test_e2e_friend_stock_confirmed_pool_to_sell_review(self, client, app, tmp_path):
+        """
+        E2E test: confirmed pool to execution, observation, sell, P&L and discipline review.
+
+        This is the minimum live-action chain after research approval:
+        prototype_passed → execution card → confirmed buy log → observation position
+        → daily sell signal → confirmed sell log → closed position → P&L + review.
+        """
+        from backend.db.live_trade import LiveTradeDB
+        from backend.services.execution_card_builder import build_execution_card
+        from backend.services.observation_pool import ObservationPool
+        from backend.services.discipline_review import DisciplineReviewService
+        from contracts.live_trade import (
+            DailySignalType,
+            ExecutionObservationLog,
+            PnlSource,
+            PositionLifecycleState,
+            RecommendationLevel,
+        )
+        from contracts.market_data_fault import MarketDataFaultState
+
+        live_db = LiveTradeDB(tmp_path / "live_trade.sqlite")
+
+        execution_card = build_execution_card(
+            symbol="600000.SH",
+            name="浦发银行",
+            direction="buy",
+            recommendation_level=RecommendationLevel.executable,
+            planned_cash_amount=1250.0,
+            planned_share_count=100,
+            allowed_price_range=(12.00, 12.80),
+            maximum_acceptable_deviation=0.02,
+            invalidation_conditions=["跌破风控线"],
+            review_time=datetime(2026, 7, 1, 14, 30),
+            reasons=["prototype_passed", "base_cost_passed", "stress_cost_passed"],
+            risks=["市场波动"],
+            market_data_state=MarketDataFaultState.ok,
+            artifact_ids=["confirmed_pool_001", "prototype_passed_001", "signal_001"],
+        )
+        assert execution_card.recommendation_level == RecommendationLevel.executable
+        assert "prototype_passed_001" in execution_card.artifact_ids
+
+        buy_log = ExecutionObservationLog(
+            log_id="buy_log_001",
+            draft_id="buy_draft_001",
+            execution_card_id="exec_card_001",
+            signal_id="signal_001",
+            action_plan_id="plan_001",
+            capital_context_id="capital_001",
+            market_snapshot_id="market_snap_001",
+            confirmed_action="buy",
+            confirmed_execution_status="executed_full",
+            confirmed_price=12.50,
+            confirmed_quantity=100,
+            reason=None,
+            confirmed_by_user=True,
+            broker_verified=False,
+            confirmed_at=datetime(2026, 7, 1, 14, 40),
+        )
+        live_db.save_log(buy_log)
+        assert live_db.get_log("buy_log_001") is not None
+
+        pool = ObservationPool()
+        position = pool.create_position_from_log(
+            log=buy_log,
+            symbol="600000.SH",
+            name="浦发银行",
+            template_id="template_v1_value_reversal",
+            template_version="1.0.0",
+            entry_thesis="产业链研究通过后的小资金观察",
+        )
+        live_db.save_position(position)
+        stored_position = live_db.get_position(position.position_id)
+        assert stored_position is not None
+        assert stored_position.lifecycle_state == PositionLifecycleState.open
+
+        daily_signal = pool.generate_daily_signal(
+            position=stored_position,
+            current_price=11.40,
+            market_data_state=MarketDataFaultState.ok,
+            template_rules={"risk_rules": {"stop_loss": -0.08}},
+            as_of_date=date(2026, 7, 2),
+        )
+        live_db.save_daily_signal(daily_signal)
+        stored_signals = live_db.list_daily_signals(position.position_id)
+        assert len(stored_signals) == 1
+        assert stored_signals[0].signal_type == DailySignalType.sell
+
+        sell_log = ExecutionObservationLog(
+            log_id="sell_log_001",
+            draft_id="sell_draft_001",
+            execution_card_id="exec_card_001",
+            signal_id="signal_001",
+            action_plan_id="plan_001",
+            capital_context_id="capital_001",
+            market_snapshot_id="market_snap_002",
+            confirmed_action="sell",
+            confirmed_execution_status="executed_full",
+            confirmed_price=11.40,
+            confirmed_quantity=100,
+            reason="按每日信号离场",
+            confirmed_by_user=True,
+            broker_verified=False,
+            confirmed_at=datetime(2026, 7, 2, 10, 0),
+        )
+        live_db.save_log(sell_log)
+
+        closed_position = pool.close_position(stored_position)
+        live_db.save_position(closed_position)
+        stored_closed_position = live_db.get_position(position.position_id)
+        assert stored_closed_position.lifecycle_state == PositionLifecycleState.closed
+
+        review_service = DisciplineReviewService()
+        review = review_service.create_review(
+            position_id=position.position_id,
+            execution_card_id="exec_card_001",
+            signal_id="signal_001",
+            daily_signal_ids=[daily_signal.signal_record_id],
+            buy_log=buy_log,
+            sell_log=sell_log,
+        )
+        live_db.save_discipline_review(review)
+        stored_review = live_db.get_discipline_review(review.review_id)
+
+        assert stored_review is not None
+        assert stored_review.pnl_record.pnl_source == PnlSource.calculated_from_confirmed_details
+        assert stored_review.pnl_record.pnl_amount == -110.0
+        assert stored_review.input_completeness["buy_log"] == "present"
+        assert stored_review.input_completeness["sell_log"] == "present"
+        assert stored_review.forward_looking_guard_passed is True
     
     def test_e2e_friend_stock_blocks_without_research(self, client, app):
         """
