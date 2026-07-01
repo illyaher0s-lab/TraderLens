@@ -22,6 +22,7 @@ import ApprovalCard from "@/components/ApprovalCard";
 import WorkbenchTimeline from "@/components/WorkbenchTimeline";
 import WorkflowStatusPanel from "@/components/WorkflowStatusPanel";
 import LiveLoopPanel from "@/components/LiveLoopPanel";
+import AgentActivityPanel from "@/components/AgentActivityPanel";
 import {
   sendWorkbenchMessage,
   getWorkbenchSession,
@@ -182,10 +183,10 @@ export default function WorkbenchPage() {
           </div>
         )}
 
-        {/* Main Layout - 2/3 left, 1/3 right */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Layout - 35% left (chat), 65% right (workspace) */}
+        <div className="grid grid-cols-1 lg:grid-cols-[35%_65%] gap-6">
           {/* Left Column: Chat + Approval Card */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6">
             {/* Chat Panel */}
             <div className="h-[600px]">
               <AgentChatPanel
@@ -205,19 +206,30 @@ export default function WorkbenchPage() {
             )}
           </div>
 
-          {/* Right Column: Status & Timeline & Live Loop */}
+          {/* Right Column: Workflow Summary + Agent Activity + Live Loop + Timeline */}
           <div className="space-y-6">
+            {/* Workflow Summary */}
             <WorkflowStatusPanel
               session={session?.session || null}
               artifactCount={artifactCount}
             />
 
-            {/* Task 19: Live Loop Panel */}
+            {/* Agent Activity - Task 23: Show execution steps */}
+            {session && session.timeline.length > 0 && (
+              <AgentActivityPanel
+                timeline={session.timeline}
+                workflowState={session.session.workflow_state}
+                workflowKind={session.session.workflow_kind}
+              />
+            )}
+
+            {/* Live Loop Panel - Task 19: Manual execution records */}
             <LiveLoopPanel
               conversationId={conversationId}
               onUpdate={loadSession}
             />
 
+            {/* Timeline - Detailed event log */}
             {session && session.timeline.length > 0 && (
               <WorkbenchTimeline timeline={session.timeline} />
             )}
