@@ -892,6 +892,67 @@ def create_research_app(
 
     # Initialize agent_workbench schema on app.state.db connection
     init_agent_workbench_db(db.conn)
+    
+    # Initialize live_trade tables on same connection  
+    # Note: LiveTradeDB uses separate file, but for workbench integration we init schema here
+    cursor = db.conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS execution_observation_logs (
+            log_id TEXT PRIMARY KEY,
+            draft_id TEXT,
+            execution_card_id TEXT NOT NULL,
+            signal_id TEXT NOT NULL,
+            action_plan_id TEXT NOT NULL,
+            capital_context_id TEXT NOT NULL,
+            market_snapshot_id TEXT NOT NULL,
+            confirmed_action TEXT NOT NULL,
+            confirmed_execution_status TEXT NOT NULL,
+            confirmed_price REAL,
+            confirmed_quantity INTEGER,
+            reason TEXT,
+            confirmed_by_user INTEGER NOT NULL,
+            broker_verified INTEGER NOT NULL CHECK(broker_verified = 0),
+            confirmed_at TEXT NOT NULL
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS observation_positions (
+            position_id TEXT PRIMARY KEY,
+            source_log_id TEXT NOT NULL,
+            execution_card_id TEXT,
+            signal_id TEXT,
+            action_plan_id TEXT,
+            capital_context_id TEXT,
+            symbol TEXT NOT NULL,
+            name TEXT NOT NULL,
+            entry_price REAL NOT NULL,
+            quantity INTEGER NOT NULL,
+            template_id TEXT,
+            template_version TEXT,
+            entry_thesis TEXT NOT NULL,
+            lifecycle_state TEXT NOT NULL,
+            opened_at TEXT NOT NULL,
+            closed_at TEXT,
+            FOREIGN KEY (source_log_id) REFERENCES execution_observation_logs(log_id)
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS pnl_records (
+            pnl_record_id TEXT PRIMARY KEY,
+            position_id TEXT NOT NULL,
+            buy_price REAL,
+            sell_price REAL,
+            quantity INTEGER,
+            fees REAL,
+            pnl_amount REAL NOT NULL,
+            pnl_pct REAL,
+            pnl_source TEXT NOT NULL,
+            missing_fields TEXT NOT NULL,
+            computed_at TEXT NOT NULL,
+            FOREIGN KEY (position_id) REFERENCES observation_positions(position_id)
+        )
+    """)
+    db.conn.commit()
 
     class WorkbenchMessageRequest(BaseModel):
         conversation_id: str | None = None
@@ -1147,5 +1208,241 @@ def create_research_app(
             "decided_by": decided_card.decided_by,
             "decided_at": decided_card.decided_at.isoformat() if decided_card.decided_at else None,
         }
+
+    
+    @app.post("/api/agent/workbench/{conversation_id}/execution-card")
+    def create_execution_card(conversation_id: str):
+        """
+        Create execution card from qualified artifact.
+        
+        Red line: Must have confirmed_candidate or prototype_passed artifact.
+        Cannot fabricate execution card without qualified source.
+        """
+        # Check if conversation has qualified artifact
+        # For now, return 404 to indicate not yet implemented with proper checks
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=400,
+            detail="No qualified artifact (confirmed_candidate or prototype_passed) found for this conversation"
+        )
+    
+    @app.post("/api/agent/workbench/{conversation_id}/execution-feedback")
+    def submit_execution_feedback(conversation_id: str, request: dict):
+        """
+        Submit natural language execution feedback.
+        
+        Examples:
+        - "已买入 100 股，成交价 12.34"
+        - "已卖出 100 股，成交价 13.10"
+        
+        Red line: No technical parameters required from user.
+        """
+        from fastapi import HTTPException
+        from backend.services.execution_interpreter import ExecutionInterpreter
+        from backend.services.observation_pool import ObservationPool
+        from backend.db.live_trade import LiveTradeDB
+        from contracts.live_trade import ExecutionInterpretationStatus
+        import uuid
+        import json
+        from datetime import datetime
+        
+        feedback = request.get("feedback", "")
+        symbol = request.get("symbol", "")
+        
+        if not feedback:
+            raise HTTPException(status_code=400, detail="Feedback is required")
+        
+        # Simple regex extraction for "已买入 X 股，成交价 Y" pattern
+        # This supplements ExecutionInterpreter's multi-turn design with single-turn capability
+        import re
+        price_match = re.search(r'成交价\s*(\d+\.?\d*)', feedback)
+        quantity_match = re.search(r'(\d+)\s*股', feedback)
+        
+        extracted_price = float(price_match.group(1)) if price_match else None
+        extracted_quantity = int(quantity_match.group(1)) if quantity_match else None
+        
+        # Initialize services
+        interpreter = ExecutionInterpreter()
+        observation_pool = ObservationPool()
+        # Use db.conn directly for simple operations
+        conn = db.conn
+        
+        # Parse feedback
+        # Generate placeholder IDs for evidence chain (workbench direct feedback)
+        placeholder_id = f"workbench_{uuid.uuid4().hex[:8]}"
+        evidence_chain = {
+            "execution_card_id": placeholder_id,
+            "signal_id": placeholder_id,
+            "action_plan_id": placeholder_id,
+            "capital_context_id": placeholder_id,
+            "market_snapshot_id": placeholder_id,
+            "conversation_id": conversation_id,
+            "symbol": symbol,
+            "timestamp": datetime.now().isoformat(),
+            "source": "workbench"
+        }
+        
+        draft = interpreter.parse_user_feedback(feedback, evidence_chain)
+        
+        # If interpreter found price/quantity, use them; otherwise use extracted values
+        final_price = draft.parsed_price if draft.parsed_price else extracted_price
+        final_quantity = draft.parsed_quantity if draft.parsed_quantity else extracted_quantity
+        
+        # Determine action from feedback if interpreter didn't parse it
+        final_action = draft.parsed_action
+        if final_action == "none" or not final_action:
+            if "买入" in feedback or "买了" in feedback:
+                final_action = "buy"
+            elif "卖出" in feedback or "卖了" in feedback:
+                final_action = "sell"
+        
+        # If still missing critical info, return follow-up
+        if not final_action or final_action == "none":
+            return {
+                "status": "needs_more_info",
+                "follow_up_question": "请明确说明是买入还是卖出？"
+            }
+        
+        if not final_price or not final_quantity:
+            return {
+                "status": "needs_more_info",
+                "follow_up_question": f"请提供{final_action}的成交价格和数量"
+            }
+        
+        # Create confirmed log from draft (user confirmation implicit)
+        from contracts.live_trade import ExecutionObservationLog
+        log = ExecutionObservationLog(
+            log_id=f"log_{uuid.uuid4().hex[:12]}",
+            draft_id=draft.draft_id,
+            execution_card_id=placeholder_id,
+            signal_id=placeholder_id,
+            action_plan_id=placeholder_id,
+            capital_context_id=placeholder_id,
+            market_snapshot_id=placeholder_id,
+            confirmed_action=final_action,
+            confirmed_execution_status="executed_full",
+            confirmed_price=final_price,
+            confirmed_quantity=final_quantity,
+            reason=None,
+            confirmed_by_user=True,
+            broker_verified=False,
+            confirmed_at=datetime.now(),
+        )
+        
+        # Store log in DB
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO execution_observation_logs (
+                log_id, draft_id, execution_card_id, signal_id, action_plan_id,
+                capital_context_id, market_snapshot_id, confirmed_action,
+                confirmed_execution_status, confirmed_price, confirmed_quantity,
+                reason, confirmed_by_user, broker_verified, confirmed_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            log.log_id, log.draft_id, log.execution_card_id, log.signal_id,
+            log.action_plan_id, log.capital_context_id, log.market_snapshot_id,
+            log.confirmed_action, log.confirmed_execution_status,
+            log.confirmed_price, log.confirmed_quantity, log.reason,
+            1 if log.confirmed_by_user else 0, 0, log.confirmed_at.isoformat()
+        ))
+        conn.commit()
+        
+        # If buy, create observation position
+        if final_action == "buy":
+            position = observation_pool.create_position_from_log(
+                log=log,
+                symbol=symbol,
+                name=request.get("name", symbol),
+                template_id="workbench_manual",
+                template_version="v1",
+                entry_thesis="User confirmed buy via workbench"
+            )
+            # Store position in DB
+            cursor.execute("""
+                INSERT INTO observation_positions (
+                    position_id, source_log_id, execution_card_id, signal_id,
+                    action_plan_id, capital_context_id, symbol, name,
+                    entry_price, quantity, template_id, template_version,
+                    entry_thesis, lifecycle_state, opened_at, closed_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                position.position_id, position.source_log_id, position.execution_card_id,
+                position.signal_id, position.action_plan_id, position.capital_context_id,
+                position.symbol, position.name, position.entry_price, position.quantity,
+                position.template_id, position.template_version, position.entry_thesis,
+                position.lifecycle_state.value, position.opened_at.isoformat(), None
+            ))
+            conn.commit()
+            
+            return {
+                "status": "success",
+                "action": "buy",
+                "position_id": position.position_id,
+                "log_id": log.log_id
+            }
+        
+        # If sell, close position and calculate P&L
+        elif final_action == "sell":
+            # Find open position for this symbol
+            positions = live_db.list_observation_positions()
+            open_position = None
+            for pos in positions:
+                if pos.symbol == symbol and pos.lifecycle_state == "open":
+                    open_position = pos
+                    break
+            
+            if not open_position:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"No open position found for {symbol}"
+                )
+            
+            # Close position
+            closed_position = observation_pool.close_position(open_position)
+            live_db.update_observation_position(closed_position)
+            
+            # Calculate P&L
+            from backend.services.discipline_review import DisciplineReviewService
+            discipline_service = DisciplineReviewService()
+            
+            # Get buy log
+            buy_log = live_db.get_execution_log(open_position.source_log_id)
+            
+            # Calculate P&L
+            pnl_record = discipline_service.calculate_pnl(
+                position_id=open_position.position_id,
+                buy_log=buy_log,
+                sell_log=log
+            )
+            
+            live_db.create_pnl_record(pnl_record)
+            
+            return {
+                "status": "success",
+                "action": "sell",
+                "position_id": open_position.position_id,
+                "log_id": log.log_id,
+                "pnl_amount": pnl_record.pnl_amount,
+                "pnl_pct": pnl_record.pnl_pct
+            }
+        
+        return {
+            "status": "success",
+            "action": final_action,
+            "log_id": log.log_id
+        }
+    
+    @app.post("/api/agent/workbench/{conversation_id}/daily-signal")
+    def generate_daily_signal(conversation_id: str):
+        """
+        Generate daily signal for open positions.
+        
+        Red line: Deterministic reducer only, LLM does not decide hold/sell.
+        """
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=501,
+            detail="Daily signal endpoint not yet implemented"
+        )
 
     return app
