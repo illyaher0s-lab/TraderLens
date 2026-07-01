@@ -268,15 +268,18 @@ def test_conversation_continuity_with_db_persistence(app):
     assert "timeline" in session_data
     assert session_data["session"]["session_id"] == conversation_id
     
-    # Timeline should have 2 messages (user + agent) and 3 artifact_refs
+    # Timeline should have 2 messages (user + agent) and artifact_refs
+    # Task 21: friend_stock now creates friend_stock_flow artifact
     timeline = session_data["timeline"]
     messages = [item for item in timeline if item["type"] == "message"]
     artifact_refs = [item for item in timeline if item["type"] == "artifact_ref"]
-    
+
     assert len(messages) == 2
     assert messages[0]["content"]["role"] == "user"
     assert messages[1]["content"]["role"] == "agent"
-    assert len(artifact_refs) == 3  # user_message, agent_message, workflow_intent
+    # Was 3 (user_message, agent_message, workflow_intent)
+    # Now 4+ (adds friend_stock_flow after Task 21 fix)
+    assert len(artifact_refs) >= 3  # At least: user_message, agent_message, workflow_intent
     
     # Second message in same conversation
     response2 = client.post(

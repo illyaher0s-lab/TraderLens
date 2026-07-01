@@ -64,24 +64,27 @@ def client(app):
 class TestWorkbenchOrchestrationGaps:
     """Audit tests for workbench orchestration gaps."""
     
-    def test_friend_stock_message_sets_researching_state_but_no_action(self, client):
+    def test_friend_stock_message_creates_real_artifacts_not_fake_progress(self, client):
         """
-        P0 GAP: Friend stock message sets workflow_state=researching
-        but does not trigger research.
+        P0-1 FIXED: Friend stock message creates real action artifacts.
         
-        Expected behavior:
+        Expected behavior (AFTER Task 21 fix):
         - User sends friend stock message
-        - System sets workflow_state=researching
-        - System should trigger research job OR background task OR approval card
+        - System sets workflow_state based on actual outcome
+        - Timeline contains real friend_stock action artifacts
         
-        Actual behavior:
-        - User sends friend stock message
-        - System sets workflow_state=researching
-        - System returns "wait_for_research"
-        - Timeline only contains: user_message, agent_message, workflow_intent
-        - NO research artifact, NO friend_stock_flow, NO candidate_pool
+        Previously (P0 gap):
+        - System set workflow_state=researching with no action
+        - Timeline only had workflow_intent
         
-        Severity: P0 (user sees fake progress)
+        Now (fixed):
+        - Timeline has friend_stock_flow artifact
+        - If ticker verified + research succeeded: workflow_state=waiting_for_approval
+        - If ticker verified but no serenity: workflow_state=stopped (honest failure)
+        - If ambiguous: workflow_state=created (need clarification)
+        - If failed: workflow_state=stopped (honest failure)
+        
+        Severity: P0 (was critical fake progress, now fixed)
         """
         response = client.post(
             "/api/agent/workbench/message",
@@ -91,12 +94,10 @@ class TestWorkbenchOrchestrationGaps:
         assert response.status_code == 200
         data = response.json()
         
-        # State claims "researching"
-        assert data["stage"] == "researching"
+        # Should route to friend_stock
         assert data["workflow_type"] == "friend_stock"
-        assert data["next_required_user_action"] == "wait_for_research"
         
-        # But timeline does NOT contain research artifacts
+        # Get timeline
         conversation_id = data["conversation_id"]
         session_response = client.get(f"/api/agent/workbench/{conversation_id}")
         assert session_response.status_code == 200
@@ -105,16 +106,21 @@ class TestWorkbenchOrchestrationGaps:
         timeline = session_data["timeline"]
         artifact_types = [item["content"]["artifact_type"] for item in timeline if item["type"] == "artifact_ref"]
         
-        # P0 GAP: No research-related artifacts
-        assert "friend_stock_flow" not in artifact_types
-        assert "research_report" not in artifact_types
-        assert "confirmed_candidate_pool" not in artifact_types
-        assert "approval_card" not in [item["type"] for item in timeline]
+        # FIXED: Must have friend_stock_flow artifact (proves intake was called)
+        assert "friend_stock_flow" in artifact_types, "Missing friend_stock_flow artifact - intake was not called"
         
-        # Only has intent artifact (no action)
-        assert "workflow_intent" in artifact_types
-        assert "user_message" in artifact_types
-        assert "agent_message" in artifact_types
+        # Must NOT have fake researching state without action
+        stage = data["stage"]
+        if stage == "researching":
+            # If state is "researching", must have research_report artifact
+            assert "research_report" in artifact_types, "workflow_state=researching but no research_report artifact"
+        
+        # Acceptable states after orchestration:
+        # - "waiting_for_approval" (research succeeded)
+        # - "stopped" (honest failure - no serenity, verification failed, etc.)
+        # - "created" (ambiguous, need clarification)
+        assert stage in ["waiting_for_approval", "stopped", "created"], \
+            f"Unexpected state: {stage}. Must be honest about outcome."
     
     def test_strategy_idea_message_sets_validating_state_but_no_action(self, client):
         """

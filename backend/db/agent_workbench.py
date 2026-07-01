@@ -157,6 +157,29 @@ def get_session(conn: sqlite3.Connection, session_id: str) -> AgentSession:
     )
 
 
+def update_session_state(conn: sqlite3.Connection, session_id: str, workflow_state: WorkflowState):
+    """
+    Update session workflow state.
+
+    Args:
+        conn: SQLite connection
+        session_id: Session ID
+        workflow_state: New workflow state
+    """
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE agent_sessions
+        SET workflow_state = ?, updated_at = ?
+        WHERE session_id = ?
+        """,
+        (workflow_state.value, datetime.now().isoformat(), session_id),
+    )
+
+    conn.commit()
+
+
 def append_message(conn: sqlite3.Connection, message: AgentMessage):
     """
     Append message to session.
