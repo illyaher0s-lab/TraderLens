@@ -1,0 +1,261 @@
+"""
+V1 Workbench Orchestration Gap Audit Tests
+
+Task 20: Systematic audit to identify state/action mismatches in workbench flows.
+
+These tests verify that workflow states correspond to actual business actions,
+not just status labels without backing work.
+
+Red lines:
+- Workflow state = "researching" must trigger actual research
+- Workflow state = "validating" must trigger actual validation
+- Timeline artifacts must prove actions occurred
+- No fake progress status
+"""
+
+import pytest
+from fastapi.testclient import TestClient
+from backend.api.research import create_research_app
+from backend.db.research import ResearchDB
+from tests.fake_serenity_runner import FakeSerenityRunner
+
+
+@pytest.fixture
+def market_data_provider():
+    """Deterministic market data provider."""
+    def provider(symbol: str, as_of):
+        return {
+            "close": 12.50,
+            "volume": 8000000,
+            "trade_date": str(as_of)
+        }
+    return provider
+
+
+@pytest.fixture
+def app(market_data_provider, monkeypatch):
+    """Create test app."""
+    monkeypatch.setenv("RESEARCH_LLM_API_KEY", "test_key")
+    monkeypatch.setenv("TUSHARE_TOKEN", "test_token")
+    
+    from tests.fake_validator import FakeValidator
+    
+    db = ResearchDB(db_path=":memory:")
+    fake_serenity = FakeSerenityRunner()
+    fake_validator = FakeValidator()
+    
+    app = create_research_app(
+        db=db,
+        conversation_mode="real",
+        serenity_execution_mode="two_phase",
+        validator=fake_validator,
+        serenity_runner=fake_serenity,
+        market_data_provider=market_data_provider,
+        allow_test_serenity_runner=True,
+    )
+    return app
+
+
+@pytest.fixture
+def client(app):
+    return TestClient(app)
+
+
+class TestWorkbenchOrchestrationGaps:
+    """Audit tests for workbench orchestration gaps."""
+    
+    def test_friend_stock_message_sets_researching_state_but_no_action(self, client):
+        """
+        P0 GAP: Friend stock message sets workflow_state=researching
+        but does not trigger research.
+        
+        Expected behavior:
+        - User sends friend stock message
+        - System sets workflow_state=researching
+        - System should trigger research job OR background task OR approval card
+        
+        Actual behavior:
+        - User sends friend stock message
+        - System sets workflow_state=researching
+        - System returns "wait_for_research"
+        - Timeline only contains: user_message, agent_message, workflow_intent
+        - NO research artifact, NO friend_stock_flow, NO candidate_pool
+        
+        Severity: P0 (user sees fake progress)
+        """
+        response = client.post(
+            "/api/agent/workbench/message",
+            json={"message": "帮我查一下，宏昌电子是否值得买入？"},
+        )
+        
+        assert response.status_code == 200
+        data = response.json()
+        
+        # State claims "researching"
+        assert data["stage"] == "researching"
+        assert data["workflow_type"] == "friend_stock"
+        assert data["next_required_user_action"] == "wait_for_research"
+        
+        # But timeline does NOT contain research artifacts
+        conversation_id = data["conversation_id"]
+        session_response = client.get(f"/api/agent/workbench/{conversation_id}")
+        assert session_response.status_code == 200
+        session_data = session_response.json()
+        
+        timeline = session_data["timeline"]
+        artifact_types = [item["content"]["artifact_type"] for item in timeline if item["type"] == "artifact_ref"]
+        
+        # P0 GAP: No research-related artifacts
+        assert "friend_stock_flow" not in artifact_types
+        assert "research_report" not in artifact_types
+        assert "confirmed_candidate_pool" not in artifact_types
+        assert "approval_card" not in [item["type"] for item in timeline]
+        
+        # Only has intent artifact (no action)
+        assert "workflow_intent" in artifact_types
+        assert "user_message" in artifact_types
+        assert "agent_message" in artifact_types
+    
+    def test_strategy_idea_message_sets_validating_state_but_no_action(self, client):
+        """
+        P0 GAP: Strategy idea message sets workflow_state=validating
+        but does not trigger validation.
+        
+        Expected behavior:
+        - User sends strategy idea message
+        - System sets workflow_state=validating
+        - System should create strategy_idea, extract rules, or create approval card
+        
+        Actual behavior:
+        - User sends strategy idea message
+        - System sets workflow_state=validating
+        - System returns "wait_for_validation"
+        - Timeline only contains: user_message, agent_message, workflow_intent
+        - NO strategy_idea artifact, NO extraction, NO template_mapping, NO rejection_registry
+        
+        Severity: P0 (user sees fake progress)
+        """
+        response = client.post(
+            "/api/agent/workbench/message",
+            json={"message": "我在抖音看到一个策略，下午两点半买入第二天卖出，帮我验证"},
+        )
+        
+        assert response.status_code == 200
+        data = response.json()
+        
+        # State claims "validating"
+        assert data["stage"] == "validating"
+        assert data["workflow_type"] == "strategy_idea"
+        assert data["next_required_user_action"] == "wait_for_validation"
+        
+        # But timeline does NOT contain validation artifacts
+        conversation_id = data["conversation_id"]
+        session_response = client.get(f"/api/agent/workbench/{conversation_id}")
+        assert session_response.status_code == 200
+        session_data = session_response.json()
+        
+        timeline = session_data["timeline"]
+        artifact_types = [item["content"]["artifact_type"] for item in timeline if item["type"] == "artifact_ref"]
+        
+        # P0 GAP: No validation-related artifacts
+        assert "strategy_idea" not in artifact_types
+        assert "strategy_idea_extraction" not in artifact_types
+        assert "template_mapping" not in artifact_types
+        assert "rejection_registry" not in artifact_types
+        
+        # Only has intent artifact (no action)
+        assert "workflow_intent" in artifact_types
+    
+    def test_execution_feedback_does_create_real_artifacts(self, client):
+        """
+        PASS: Execution feedback endpoint creates real artifacts.
+        
+        This is NOT a gap - execution-feedback actually works.
+        
+        Severity: N/A (working correctly)
+        """
+        # Create session first
+        response = client.post(
+            "/api/agent/workbench/message",
+            json={"message": "帮我查一下，宏昌电子是否值得买入？"},
+        )
+        conversation_id = response.json()["conversation_id"]
+        
+        # Submit buy feedback
+        feedback_response = client.post(
+            f"/api/agent/workbench/{conversation_id}/execution-feedback",
+            json={
+                "feedback": "已买入 100 股，成交价 12.34",
+                "symbol": "600123.SH",
+            },
+        )
+        
+        assert feedback_response.status_code == 200
+        feedback_data = feedback_response.json()
+        
+        # Execution feedback DOES create real artifacts
+        assert feedback_data["status"] == "success"
+        assert feedback_data["action"] == "buy"
+        assert "position_id" in feedback_data
+        assert "log_id" in feedback_data
+        
+        # Verify timeline contains execution artifacts (not tested here, but exists in test_v1_workbench_live_loop_api.py)
+    
+    def test_daily_signal_does_create_real_artifacts(self, client):
+        """
+        PASS: Daily signal endpoint creates real artifacts.
+        
+        This is NOT a gap - daily-signal actually works.
+        
+        Severity: N/A (working correctly)
+        """
+        # Create session first
+        response = client.post(
+            "/api/agent/workbench/message",
+            json={"message": "帮我查一下，宏昌电子是否值得买入？"},
+        )
+        conversation_id = response.json()["conversation_id"]
+        
+        # Create position first (daily-signal requires open position)
+        client.post(
+            f"/api/agent/workbench/{conversation_id}/execution-feedback",
+            json={
+                "feedback": "已买入 100 股，成交价 12.34",
+                "symbol": "600123.SH",
+            },
+        )
+        
+        # Generate daily signal
+        signal_response = client.post(
+            f"/api/agent/workbench/{conversation_id}/daily-signal",
+            json={},
+        )
+        
+        assert signal_response.status_code == 200
+        signal_data = signal_response.json()
+        
+        # Daily signal DOES create real artifacts
+        assert signal_data["status"] == "success"
+        assert len(signal_data["signals"]) > 0
+        assert "signal_id" in signal_data["signals"][0]
+    
+    def test_unknown_workflow_has_no_fake_progress_state(self, client):
+        """
+        PASS: Unknown workflow does not set fake progress state.
+        
+        This is NOT a gap - unknown workflow correctly stays in "created" state.
+        
+        Severity: N/A (working correctly)
+        """
+        response = client.post(
+            "/api/agent/workbench/message",
+            json={"message": "你好"},
+        )
+        
+        assert response.status_code == 200
+        data = response.json()
+        
+        # Unknown workflow stays in "created" state (not "researching" or "validating")
+        assert data["stage"] == "created"
+        assert data["workflow_type"] == "unknown"
+        assert data["next_required_user_action"] == "clarify_intent"
