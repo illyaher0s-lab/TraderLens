@@ -151,7 +151,19 @@ class StockIdentityResolver:
         
         # Try company name
         if company_name:
-            # Search by company name in fixture values
+            # First try direct key lookup
+            if company_name in self.test_fixture:
+                identity = self.test_fixture[company_name]
+                return StockIdentityResolution(
+                    status="verified",
+                    ticker=identity["ticker"],
+                    company_name=identity["company_name"],
+                    exchange=identity["exchange"],
+                    list_status=identity.get("list_status", "L"),
+                    data_source="deterministic_fixture",
+                )
+            
+            # Then search by company name in fixture values
             matches = []
             for ticker, identity in self.test_fixture.items():
                 if identity["company_name"] == company_name:

@@ -21,21 +21,20 @@ def main():
     print("=" * 70)
     
     # Create app with test fixture for stock resolution
+    # Key = query input (company name or code), Value = unique identity
+    # Don't use same company_name in multiple entries (causes ambiguous match)
     stock_fixture = {
         "宏昌电子": {
-            "status": "verified",
             "ticker": "603002.SH",
             "company_name": "宏昌电子",
             "exchange": "SH"
         },
         "603002.SH": {
-            "status": "verified",
             "ticker": "603002.SH",
             "company_name": "宏昌电子",
             "exchange": "SH"
         },
         "603002": {
-            "status": "verified",
             "ticker": "603002.SH",
             "company_name": "宏昌电子",
             "exchange": "SH"
