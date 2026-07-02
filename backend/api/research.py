@@ -1268,6 +1268,27 @@ def create_research_app(
             next_required_user_action = "provide_more_context"
         
         if session.workflow_kind == WorkflowKind.FRIEND_STOCK:
+            # Special handling for execution_feedback (routed to FRIEND_STOCK but needs different logic)
+            if not session_exists and route_decision.workflow_kind == "execution_feedback":
+                # Execution feedback without stock identity → clarification
+                # User says "已买入100股" but we don't know which stock
+                # Need to check if there's a pending approval or recent research
+                
+                # For now, since we have no approval/position context, always clarify
+                agent_reply = "我没有建议你买入任何股票。请告诉我这是哪只股票的交易？（提供股票代码或公司名）"
+                workflow_state = WorkflowState.CREATED
+                next_required_user_action = "clarify_stock_for_execution"
+                
+                # Create verification artifact (not a flow, since we can't verify without stock)
+                verify_artifact = ArtifactRef(
+                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                    session_id=conversation_id,
+                    artifact_id=f"verify_{uuid.uuid4().hex[:8]}",
+                    artifact_type="execution_feedback_clarification",
+                    created_at=now,
+                )
+                attach_artifact_ref(db.conn, verify_artifact)
+                artifact_ids.append(verify_artifact.artifact_id)
             # Task 20A: Use stock_identity from pipeline
             if not session_exists and stock_identity.status == "verified":
                 # Record workflow action started
