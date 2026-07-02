@@ -46,6 +46,7 @@ from backend.api.workbench_handlers import (
     handle_theme_research_deferred,
     handle_clarification,
 )
+from backend.db.agent_workbench import list_messages, list_artifact_refs
 
 
 class CreateThemeRequest(BaseModel):
@@ -1193,14 +1194,31 @@ def create_research_app(
             # Extract claimed entities from session state
             claimed_stock = None
             claimed_strategy = None
-            open_positions = []  # TODO: Load from positions DB when available
-            
+            open_positions = []
+
             # Look for verified stock in recent artifacts
             for artifact in recent_artifacts:
                 if artifact.artifact_type == "friend_stock_flow":
-                    # Extract ticker from flow artifact
-                    # This is a placeholder - real implementation would query research.py
-                    pass
+                    flow = db.get_friend_stock_flow(artifact.artifact_id)
+                    if flow and flow.get("raw_code_input"):
+                        claimed_stock = {
+                            "ticker": flow.get("raw_code_input"),
+                            "company_name": flow.get("raw_company_input"),
+                        }
+
+            cursor = db.conn.cursor()
+            cursor.execute(
+                """
+                SELECT position_id, symbol, name
+                FROM observation_positions
+                WHERE lifecycle_state = 'open'
+                ORDER BY opened_at DESC
+                """
+            )
+            open_positions = [
+                {"position_id": row[0], "symbol": row[1], "name": row[2]}
+                for row in cursor.fetchall()
+            ]
             
             # Record context_loaded activity
             context_loaded_artifact = ArtifactRef(
@@ -1225,6 +1243,14 @@ def create_research_app(
                 mode="deterministic"
             )
             intent_extraction = intent_extractor.extract_intent(request.message, prescan)
+            if (
+                claimed_stock
+                and not intent_extraction.extracted_company_name
+                and not intent_extraction.extracted_stock_code
+                and intent_extraction.primary_intent in ["unknown", "stock_research"]
+            ):
+                intent_extraction.extracted_stock_code = claimed_stock["ticker"]
+                intent_extraction.extracted_company_name = claimed_stock.get("company_name")
             
             # Use real Tushare client or injected test fixture
             stock_resolver = StockIdentityResolver(
@@ -1343,6 +1369,7 @@ def create_research_app(
                 stock_identity,
                 route_decision,
                 now,
+                open_positions,
             )
         elif workflow_kind == "theme_research":
             handler_result = handle_theme_research_deferred(
@@ -1364,9 +1391,15 @@ def create_research_app(
         agent_reply = handler_result.agent_reply
         artifact_ids = handler_result.artifact_ids
         next_required_user_action = handler_result.next_required_user_action or route_decision.next_required_user_action
-        
+
         # CRITICAL: workflow_type MUST == route_decision.workflow_kind (no session.workflow_kind override)
         workflow_type = workflow_kind
+        workflow_state_map = {
+            "created": WorkflowState.CREATED,
+            "waiting_for_clarification": WorkflowState.CREATED,
+            "stopped": WorkflowState.STOPPED,
+        }
+        workflow_state = workflow_state_map.get(route_decision.workflow_state, WorkflowState.CREATED)
         stage = session.workflow_state.value
         approval_card = None
         # Store agent message

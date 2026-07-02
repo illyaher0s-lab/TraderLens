@@ -44,6 +44,20 @@ def app(market_data_provider):
         serenity_execution_mode="stub",
         validator=fake_validator,
         market_data_provider=market_data_provider,
+        stock_resolver_fixture={
+            "600000.SH": {
+                "ticker": "600000.SH",
+                "company_name": "浦发银行",
+                "exchange": "SSE",
+                "list_status": "L",
+            },
+            "603002.SH": {
+                "ticker": "603002.SH",
+                "company_name": "宏昌电子",
+                "exchange": "SSE",
+                "list_status": "L",
+            },
+        },
     )
     return app
 

@@ -38,7 +38,7 @@ def handle_friend_stock(
 ) -> HandlerResult:
     """
     Handle friend_stock workflow.
-    
+
     MUST NOT handle execution_feedback or position_followup - those have dedicated handlers.
     """
     from backend.services.friend_stock_flow import FriendStockFlowService
@@ -168,67 +168,64 @@ def handle_strategy_idea(
         attach_artifact_ref(db_conn, idea_artifact)
         artifact_ids.append(idea.idea_id)
         
-        # Try to extract and map to template
-        extraction_result = flow_service.extract_idea_details(user_message)
-        
-        if extraction_result:
-            # Create extraction artifact
-            extraction_artifact = ArtifactRef(
-                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                session_id=conversation_id,
-                artifact_id=f"{idea.idea_id}_extraction",
-                artifact_type="strategy_idea_extraction",
-                created_at=now,
-            )
-            attach_artifact_ref(db_conn, extraction_artifact)
-            artifact_ids.append(f"{idea.idea_id}_extraction")
-            
-            mapping_result = flow_service.map_to_template(extraction_result)
-            
-            if mapping_result and mapping_result.get("template_key"):
-                agent_reply = f"已识别策略想法并映射到模板 {mapping_result['template_key']}。想法记录：{idea.idea_id}"
-            else:
-                # Extraction succeeded but no template match -> rejected
-                rejected_entry = flow_service.reject_idea(
-                    idea_id=idea.idea_id,
-                    reason="no_template_match",
-                )
-                
-                rejection_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=rejected_entry["idea_id"] + "_rejected",
-                    artifact_type="strategy_idea_rejected",
-                    created_at=now,
-                )
-                attach_artifact_ref(db_conn, rejection_artifact)
-                artifact_ids.append(rejected_entry["idea_id"] + "_rejected")
-                
-                # Record workflow action completed (rejected)
-                action_completed_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=f"action_completed_{uuid.uuid4().hex[:8]}",
-                    artifact_type="workflow_action_completed",
-                    created_at=now,
-                )
-                attach_artifact_ref(db_conn, action_completed_artifact)
-                
-                agent_reply = f"策略想法已记录但无法匹配现有模板，已标记为待审核。想法记录：{idea.idea_id}"
-        else:
-            # Extraction failed
-            agent_reply = f"策略想法已记录，但提取详情失败。想法记录：{idea.idea_id}"
-        
-        # Record workflow action completed (if not already done in rejection)
-        if "rejected" not in agent_reply:
-            action_completed_artifact = ArtifactRef(
-                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                session_id=conversation_id,
-                artifact_id=f"action_completed_{uuid.uuid4().hex[:8]}",
-                artifact_type="workflow_action_completed",
-                created_at=now,
-            )
-            attach_artifact_ref(db_conn, action_completed_artifact)
+        extraction_result = flow_service.extract_claims(idea)
+        extraction_artifact = ArtifactRef(
+            artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+            session_id=conversation_id,
+            artifact_id=extraction_result.extraction_id,
+            artifact_type="strategy_idea_extraction",
+            created_at=now,
+        )
+        attach_artifact_ref(db_conn, extraction_artifact)
+        artifact_ids.append(extraction_result.extraction_id)
+
+        mapping_result = flow_service.map_to_template(
+            idea=idea,
+            matched_template_id=None,
+            template_version=None,
+            mapping_reason="当前系统暂无已批准模板库。",
+        )
+        mapping_artifact = ArtifactRef(
+            artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+            session_id=conversation_id,
+            artifact_id=mapping_result.mapping_id,
+            artifact_type="strategy_template_mapping",
+            created_at=now,
+        )
+        attach_artifact_ref(db_conn, mapping_artifact)
+        artifact_ids.append(mapping_result.mapping_id)
+
+        rejected_entry = flow_service.reject_idea(
+            idea=idea,
+            reason="no_approved_template",
+        )
+        rejection_artifact_id = f"{rejected_entry['idea_id']}_rejected"
+        rejection_artifact = ArtifactRef(
+            artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+            session_id=conversation_id,
+            artifact_id=rejection_artifact_id,
+            artifact_type="strategy_idea_rejected",
+            created_at=now,
+        )
+        attach_artifact_ref(db_conn, rejection_artifact)
+        artifact_ids.append(rejection_artifact_id)
+
+        action_completed_artifact = ArtifactRef(
+            artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+            session_id=conversation_id,
+            artifact_id=f"action_completed_{uuid.uuid4().hex[:8]}",
+            artifact_type="workflow_action_completed",
+            created_at=now,
+        )
+        attach_artifact_ref(db_conn, action_completed_artifact)
+
+        agent_reply = (
+            "已提取策略想法：\n"
+            f"入场条件：{extraction_result.claimed_entry}\n"
+            f"出场条件：{extraction_result.claimed_exit}\n"
+            "当前系统暂无已批准模板库。策略想法已记录，但不可用于实盘交易。\n"
+            "该策略想法已记录到拒绝注册表，不会生成交易信号。"
+        )
         
     except Exception as e:
         # Record workflow action failed
@@ -322,6 +319,7 @@ def handle_position_followup(
     stock_identity,
     route_decision,
     now: datetime,
+    open_positions: list | None = None,
 ) -> HandlerResult:
     """
     Handle position_followup workflow.
@@ -331,10 +329,9 @@ def handle_position_followup(
     """
     artifact_ids = []
     
-    # TODO: Check for open positions
-    # For now, since we have no position context, always clarify
+    open_positions = open_positions or []
     
-    if stock_identity.status != "verified":
+    if stock_identity.status != "verified" and not open_positions:
         # No stock identity - must clarify
         agent_reply = "我没有找到你的持仓记录。请告诉我是哪只股票？"
         
@@ -355,12 +352,23 @@ def handle_position_followup(
             next_required_user_action="clarify_stock_for_followup",
         )
     
-    # Stock verified - check for open position
-    # TODO: Query position DB
-    open_position_id = None  # Placeholder
-    
+    # Stock verified or a single open position is available from session context.
+    open_position = None
+    if stock_identity.status == "verified":
+        for position in open_positions:
+            if position.get("symbol") == stock_identity.ticker:
+                open_position = position
+                break
+    elif len(open_positions) == 1:
+        open_position = open_positions[0]
+
+    open_position_id = open_position.get("position_id") if open_position else None
+
     if not open_position_id:
-        agent_reply = f"我没有找到 {stock_identity.company_name} ({stock_identity.ticker}) 的持仓记录。"
+        if stock_identity.status == "verified":
+            agent_reply = f"我没有找到 {stock_identity.company_name} ({stock_identity.ticker}) 的持仓记录。"
+        else:
+            agent_reply = "我找到了多个或不明确的持仓上下文，请告诉我是哪只股票。"
         
         clarify_artifact = ArtifactRef(
             artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
@@ -391,11 +399,13 @@ def handle_position_followup(
     attach_artifact_ref(db_conn, followup_artifact)
     artifact_ids.append(followup_id)
     
-    agent_reply = f"已找到 {stock_identity.company_name} ({stock_identity.ticker}) 的持仓。持仓建议：{followup_id}"
+    symbol = open_position.get("symbol", stock_identity.ticker if stock_identity.status == "verified" else "")
+    name = open_position.get("name", stock_identity.company_name if stock_identity.status == "verified" else "")
+    agent_reply = f"已找到 {name} ({symbol}) 的持仓 {open_position_id}。持仓跟进记录：{followup_id}"
     
     return HandlerResult(
         agent_reply=agent_reply,
-        artifact_ids=artifact_ids,
+        artifact_ids=[open_position_id] + artifact_ids,
         next_required_user_action=None,
     )
 

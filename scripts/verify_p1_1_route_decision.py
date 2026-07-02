@@ -41,40 +41,74 @@ app = create_research_app(
 
 client = TestClient(app)
 
-# Test cases: (input, expected, setup_fn, check_artifact)
 test_cases = []
 
-def add_test(input_text, expected, setup_fn=None, check_artifact=None):
-    test_cases.append((input_text, expected, setup_fn, check_artifact))
+def add_test(name, input_text, expected, conversation_id=None, check_artifact=None):
+    test_cases.append((name, input_text, expected, conversation_id, check_artifact))
 
-# 1. execution_feedback - 不建 flow
-add_test("已买入100股成交价12.34", "execution_feedback", check_artifact="no_flow")
+def create_position_context():
+    seed = client.post(
+        '/api/agent/workbench/message',
+        json={'message': '帮我看603002', 'conversation_id': None},
+    )
+    assert seed.status_code == 200
+    session_id = seed.json()['conversation_id']
+    position_id = 'pos_route_test_001'
+    db.conn.execute(
+        """
+        INSERT INTO observation_positions (
+            position_id, source_log_id, execution_card_id, signal_id,
+            action_plan_id, capital_context_id, symbol, name, entry_price,
+            quantity, template_id, template_version, entry_thesis,
+            lifecycle_state, opened_at, closed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            position_id,
+            'log_route_test_001',
+            'card_route_test_001',
+            'signal_route_test_001',
+            'plan_route_test_001',
+            'capital_route_test_001',
+            '603002.SH',
+            '宏昌电子',
+            12.34,
+            100,
+            'template_route_test',
+            '1.0',
+            'route decision verification',
+            'open',
+            '2026-07-02T09:30:00',
+            None,
+        ),
+    )
+    db.conn.commit()
+    return session_id, position_id
 
-# 2. clarification - 不建仓
-add_test("我在想要不要买100股", ["clarification", "unknown"], check_artifact="no_position")
 
-# 3. position_followup 无持仓 -> clarification/unknown
-add_test("今天要不要继续拿", ["clarification", "unknown"])
+def create_stock_context():
+    seed = client.post(
+        '/api/agent/workbench/message',
+        json={'message': '帮我看603002', 'conversation_id': None},
+    )
+    assert seed.status_code == 200
+    return seed.json()['conversation_id']
 
-# 4. position_followup 有持仓 -> position_followup
-def setup_position_followup(session_id):
-    # 模拟持仓：直接在 router 逻辑中 open_positions 会在 existing session 加载
-    # 因为 new session 总是空，我们需要用 existing session
-    # 但验证脚本每次都是 new session (conversation_id=None)
-    # 所以这条用例实际上无法通过 router 到达 position_followup
-    # 需要修改：使用 existing session
-    pass
 
-# 跳过第 4 条，因为需要 existing session + open_position（复杂 setup）
+position_session_id, expected_position_id = create_position_context()
+stock_context_session_id = create_stock_context()
 
-# 5-11. 其他用例
-add_test("帮我看603002", "friend_stock", check_artifact="flow_id")
-add_test("朋友推荐了宏昌电子", "friend_stock", check_artifact="flow_id")
-add_test("刷到策略下午两点半买第二天卖", "strategy_idea", check_artifact="idea_id")
-add_test("帮我看看", ["clarification", "unknown"])
-# 跳过 "帮我看看(有上一轮股票上下文)" - 需要 existing session
-add_test("你好", ["clarification", "unknown"])
-add_test("买入宏昌电子可以吗", "friend_stock", check_artifact="flow_id")
+add_test('execution_feedback', "已买入100股成交价12.34", "execution_feedback", check_artifact="no_flow")
+add_test('hypothetical_buy_clarification', "我在想要不要买100股", ["clarification", "unknown"], check_artifact="no_position")
+add_test('position_followup_no_position', "今天要不要继续拿", ["clarification", "unknown"])
+add_test('position_followup_with_open_position', "今天要不要继续拿", "position_followup", conversation_id=position_session_id, check_artifact="open_position")
+add_test('stock_code_friend_stock', "帮我看603002", "friend_stock", check_artifact="flow_id")
+add_test('company_friend_stock', "朋友推荐了宏昌电子", "friend_stock", check_artifact="flow_id")
+add_test('strategy_idea', "刷到策略下午两点半买第二天卖", "strategy_idea", check_artifact="idea_id")
+add_test('followup_no_context', "帮我看看", ["clarification", "unknown"])
+add_test('followup_with_stock_context', "帮我看看", "friend_stock", conversation_id=stock_context_session_id, check_artifact="flow_id")
+add_test('greeting', "你好", ["clarification", "unknown"])
+add_test('buy_stock_research', "买入宏昌电子可以吗", "friend_stock", check_artifact="flow_id")
 
 print("=" * 140)
 print("P1-1 Route Decision Verification")
@@ -85,20 +119,10 @@ print("-" * 140)
 
 failures = []
 
-for test_item in test_cases:
-    if len(test_item) == 4:
-        message, expected_workflow, setup_fn, check_artifact = test_item
-    else:
-        message, expected_workflow = test_item
-        setup_fn = None
-        check_artifact = None
-    
-    if setup_fn:
-        setup_fn(None)
-    
+for name, message, expected_workflow, conversation_id, check_artifact in test_cases:
     response = client.post(
         '/api/agent/workbench/message',
-        json={'message': message, 'conversation_id': None}
+        json={'message': message, 'conversation_id': conversation_id}
     )
     
     if response.status_code != 200:
@@ -146,7 +170,7 @@ for test_item in test_cases:
         flow = cursor.fetchone()
         if not flow:
             print(f"  WARNING: No flow_id found for friend_stock")
-            failures.append((message, "Missing flow_id evidence"))
+            failures.append((name, "Missing flow_id evidence"))
     elif check_artifact == "no_flow":
         # execution_feedback should not create flow
         cursor = db.conn.cursor()
@@ -154,7 +178,20 @@ for test_item in test_cases:
         count = cursor.fetchone()[0]
         if count > 0:
             print(f"  WARNING: Unexpected flow created for execution_feedback")
-            failures.append((message, "Should not create flow"))
+            failures.append((name, "Should not create flow"))
+    elif check_artifact == "idea_id":
+        if not any(str(artifact_id).startswith("idea_") for artifact_id in data.get("artifact_ids", [])):
+            failures.append((name, "Missing idea_id evidence"))
+    elif check_artifact == "no_position":
+        cursor = db.conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM observation_positions WHERE symbol = '603002.SH'")
+        # Only the explicit position context is allowed to exist.
+        count = cursor.fetchone()[0]
+        if count != 1:
+            failures.append((name, f"Unexpected position count {count}"))
+    elif check_artifact == "open_position":
+        if expected_position_id not in data.get("agent_reply", "") and expected_position_id not in str(data.get("artifact_ids", [])):
+            failures.append((name, f"Missing open_position_id evidence {expected_position_id}"))
 
 print("-" * 140)
 print()
@@ -171,7 +208,5 @@ else:
     print("  [OK] route_decision.workflow_kind read from timeline artifact")
     print("  [OK] response.workflow_type == route_decision.workflow_kind (no override)")
     print()
-    print("Note: 2 context-dependent tests skipped (require existing session + open_position/stock_context)")
-    print("  - 'position_followup with open_position'")
-    print("  - 'friend_stock follow-up with stock context'")
+    print(f"Position follow-up open_position_id: {expected_position_id}")
     sys.exit(0)
