@@ -108,6 +108,7 @@ class StockIdentityResolver:
         """Test path: use injected fixture."""
         # Try stock code first
         if stock_code:
+            # Try exact match first
             if stock_code in self.test_fixture:
                 identity = self.test_fixture[stock_code]
                 return StockIdentityResolution(
@@ -118,13 +119,35 @@ class StockIdentityResolver:
                     list_status=identity.get("list_status", "L"),
                     data_source="deterministic_fixture",
                 )
-            else:
-                return StockIdentityResolution(
-                    status="not_found",
-                    ticker=stock_code,
-                    data_source="deterministic_fixture",
-                    fault_reason=f"Stock code {stock_code} not in test fixture",
-                )
+            
+            # If bare code (no suffix), infer suffix and try again
+            if not stock_code.endswith(('.SH', '.SZ', '.BJ')):
+                # Infer exchange from code prefix
+                inferred_ticker = None
+                if stock_code.startswith(('600', '601', '603', '605', '688')):
+                    inferred_ticker = f"{stock_code}.SH"
+                elif stock_code.startswith(('000', '001', '002', '003', '300', '301')):
+                    inferred_ticker = f"{stock_code}.SZ"
+                elif stock_code.startswith(('430', '8', '9')):
+                    inferred_ticker = f"{stock_code}.BJ"
+                
+                if inferred_ticker and inferred_ticker in self.test_fixture:
+                    identity = self.test_fixture[inferred_ticker]
+                    return StockIdentityResolution(
+                        status="verified",
+                        ticker=identity["ticker"],
+                        company_name=identity["company_name"],
+                        exchange=identity["exchange"],
+                        list_status=identity.get("list_status", "L"),
+                        data_source="deterministic_fixture",
+                    )
+            
+            return StockIdentityResolution(
+                status="not_found",
+                ticker=stock_code,
+                data_source="deterministic_fixture",
+                fault_reason=f"Stock code {stock_code} not in test fixture",
+            )
         
         # Try company name
         if company_name:
@@ -180,9 +203,21 @@ class StockIdentityResolver:
         try:
             # Try stock code first
             if stock_code:
+                # If bare code (no suffix), infer suffix first (deterministic)
+                query_code = stock_code
+                if not stock_code.endswith(('.SH', '.SZ', '.BJ')):
+                    # Infer exchange from code prefix
+                    if stock_code.startswith(('600', '601', '603', '605', '688')):
+                        query_code = f"{stock_code}.SH"
+                    elif stock_code.startswith(('000', '001', '002', '003', '300', '301')):
+                        query_code = f"{stock_code}.SZ"
+                    elif stock_code.startswith(('430', '8', '9')):
+                        query_code = f"{stock_code}.BJ"
+                    # else: keep as-is and let Tushare return not found
+                
                 df = self.tushare_client.query(
                     "stock_basic",
-                    ts_code=stock_code,
+                    ts_code=query_code,
                     fields="ts_code,name,market,list_status",
                 )
                 
@@ -213,9 +248,9 @@ class StockIdentityResolver:
                 else:
                     return StockIdentityResolution(
                         status="not_found",
-                        ticker=stock_code,
+                        ticker=query_code,
                         data_source="tushare_stock_basic",
-                        fault_reason=f"Stock code {stock_code} not found in Tushare stock_basic",
+                        fault_reason=f"Stock code {query_code} not found in Tushare stock_basic",
                     )
             
             # Try company name
