@@ -1289,6 +1289,28 @@ def create_research_app(
                 )
                 attach_artifact_ref(db.conn, verify_artifact)
                 artifact_ids.append(verify_artifact.artifact_id)
+            
+            # Special handling for position_followup (routed to FRIEND_STOCK but needs different logic)
+            elif not session_exists and route_decision.workflow_kind == "position_followup":
+                # Position followup without session context → clarification
+                # User says "今天要不要继续拿" but we don't have position context
+                
+                # Check if there are any open positions (placeholder - position DB not implemented)
+                # For now, always clarify since we have no position context
+                agent_reply = "我没有找到你的持仓记录。请告诉我是哪只股票？"
+                workflow_state = WorkflowState.CREATED
+                next_required_user_action = "clarify_stock_for_followup"
+                
+                # Create clarification artifact
+                clarify_artifact = ArtifactRef(
+                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                    session_id=conversation_id,
+                    artifact_id=f"clarify_{uuid.uuid4().hex[:8]}",
+                    artifact_type="position_followup_clarification",
+                    created_at=now,
+                )
+                attach_artifact_ref(db.conn, clarify_artifact)
+                artifact_ids.append(clarify_artifact.artifact_id)
             # Task 20A: Use stock_identity from pipeline
             if not session_exists and stock_identity.status == "verified":
                 # Record workflow action started
