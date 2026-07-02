@@ -167,6 +167,8 @@ PreScan 结果：
         prescan: WorkbenchPreScan,
     ) -> WorkbenchIntentExtraction:
         """Deterministic fallback for testing."""
+        import re
+        
         # Plain greeting
         if prescan.is_plain_greeting:
             return WorkbenchIntentExtraction(
@@ -195,6 +197,24 @@ PreScan 结果：
                 extraction_source="deterministic_fixture",
             )
         
+        # Position followup - check for specific patterns
+        position_followup_patterns = [
+            r'今天.*继续.*拿',
+            r'持仓.*信号',
+            r'我的.*持仓',
+            r'.*要不要.*继续',
+            r'.*卖不卖',
+        ]
+        for pattern in position_followup_patterns:
+            if re.search(pattern, user_message):
+                return WorkbenchIntentExtraction(
+                    primary_intent="position_followup",
+                    intent_candidates=["position_followup"],
+                    confidence="medium",
+                    ambiguity_reason="需要 session context 才能确认持仓",
+                    extraction_source="deterministic_fixture",
+                )
+        
         # Stock research - has stock code or stock research language
         if prescan.detected_stock_code or prescan.has_stock_research_language:
             # Extract company name from message
@@ -211,7 +231,7 @@ PreScan 结果：
                 '值不值得关注', '帮我查', '看看', '分析', '研究', '怎么样',
                 '如何', '好不好', '能不能买', '能不能做', '可以买吗', '适不适合', '适合',
                 '值得', '买入', '是否', '一下', '帮我', '可以', '可以吗',
-                '看一下', '查一下', '我朋友'
+                '看一下', '查一下', '我朋友', '帮我看', '看'
             ]
             
             cleaned_message = message_no_code

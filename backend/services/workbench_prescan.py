@@ -75,9 +75,10 @@ def prescan_message(user_message: str) -> WorkbenchPreScan:
     # Look for time + action + time/condition patterns
     has_strategy_rule_shape = False
     strategy_patterns = [
-        r'(上午|下午|早上|晚上|两点半|三点|收盘).*买入.*(第二天|明天|卖出)',
-        r'买入.*(第二天|明天|收盘).*卖出',
-        r'(抖音|视频|策略|规则).*买入.*卖出',
+        r'(上午|下午|早上|晚上|两点半|三点|收盘|开盘).*买.*卖',
+        r'(抖音|视频|策略|规则|刷到).*买.*卖',
+        r'买.*(第二天|明天|收盘|次日).*卖',
+        r'(入场|买入).*(出场|卖出|止盈|止损)',
     ]
     for pattern in strategy_patterns:
         if re.search(pattern, user_message):

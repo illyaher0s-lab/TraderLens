@@ -1,0 +1,128 @@
+D:\Codex\TraderLens\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+================================================================================
+P1-1 第二批验证 - Commit 1: 真实 API 调用（deterministic + fixture）
+================================================================================
+
+测试 1/9: 帮我看宏昌电子是否值得买入
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Workflow Type: friend_stock
+  Stage: stopped
+  Artifact IDs: ['flow_de9946c7ac24', 'msg_857deee557c7', 'msg_a78a30ebac9b', 'intent_sess_be81d015f725']
+  Reply: 已识别 宏昌电子 (603002.SH)，已创建研究记录（flow_id: flow_de9946c7ac24）。\n\n当前环境未配置研究服务，需要人工介入。...
+
+测试 2/9: 帮我看603002
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Workflow Type: friend_stock
+  Stage: stopped
+  Artifact IDs: ['flow_06f310eed6f0', 'msg_27f48d69e28e', 'msg_bfb69404aad0', 'intent_sess_303dfe3c7eec']
+  Reply: 已识别 宏昌电子 (603002.SH)，已创建研究记录（flow_id: flow_06f310eed6f0）。\n\n当前环境未配置研究服务，需要人工介入。...
+
+测试 3/9: 朋友推荐了宏昌电子
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Workflow Type: friend_stock
+  Stage: stopped
+  Artifact IDs: ['flow_50a7075d5f4c', 'msg_c401b008daf9', 'msg_6ba3236980f3', 'intent_sess_e102f74936b2']
+  Reply: 已识别 宏昌电子 (603002.SH)，已创建研究记录（flow_id: flow_50a7075d5f4c）。\n\n当前环境未配置研究服务，需要人工介入。...
+
+测试 4/9: 买入宏昌电子可以吗
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Workflow Type: friend_stock
+  Stage: stopped
+  Artifact IDs: ['flow_f5865f7a7fbc', 'msg_3721557be37e', 'msg_830924dd4452', 'intent_sess_809409b77148']
+  Reply: 已识别 宏昌电子 (603002.SH)，已创建研究记录（flow_id: flow_f5865f7a7fbc）。\n\n当前环境未配置研究服务，需要人工介入。...
+
+测试 5/9: 刷到策略下午两点半买第二天卖
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Workflow Type: strategy_idea
+  Stage: stopped
+  Artifact IDs: ['idea_92ce2adf4963', 'extract_26cd21baf978', 'mapping_2c1fdfe7eacf', 'idea_92ce2adf4963_rejected', 'msg_2d63c4beae9e', 'msg_65e9a4e4f1bb', 'intent_sess_4db950b8c20c']
+  Reply: 已提取策略想法：
+
+入场条件：下午两点半后买入
+出场条件：次日早盘卖出
+
+当前系统暂无已批准模板库。策略想法已记录，但不可用于实盘交易。
+
+该策略想法已记录到拒绝注册表，不会生成交易信号。...
+
+测试 6/9: 已买入100股成交价12.34
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Workflow Type: friend_stock
+  Stage: stopped
+  Artifact IDs: ['verify_63818eef', 'msg_09292a05c834', 'msg_c51f601b1336', 'intent_sess_43a6689a834b']
+  Reply: 无法识别公司或股票代码：已买入100股成交价12.34
+
+请提供更明确的公司名称或完整的股票代码（如 600000.SH）。...
+
+测试 7/9: 今天要不要继续拿
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Workflow Type: unknown
+  Stage: created
+  Artifact IDs: ['msg_6fef19fb7e76', 'msg_cdd13432bd17', 'intent_sess_07fb84ed2062']
+  Reply: 你好，我可以帮你：
+1. 调查朋友推荐的股票（告诉我公司名或股票代码）
+2. 验证抖音/视频看到的交易策略
+
+请告诉我你想做什么？...
+
+测试 8/9: 帮我看看
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Workflow Type: unknown
+  Stage: created
+  Artifact IDs: ['msg_fc21e193f3b9', 'msg_3f41f3012924', 'intent_sess_f9e22283282f']
+  Reply: 你好，我可以帮你：
+1. 调查朋友推荐的股票（告诉我公司名或股票代码）
+2. 验证抖音/视频看到的交易策略
+
+请告诉我你想做什么？...
+
+测试 9/9: 你好
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Workflow Type: unknown
+  Stage: created
+  Artifact IDs: ['msg_367cab102a44', 'msg_9f1c1fc4ac2c', 'intent_sess_b02bb2a69f6a']
+  Reply: 你好，我可以帮你：
+1. 调查朋友推荐的股票（告诉我公司名或股票代码）
+2. 验证抖音/视频看到的交易策略
+
+请告诉我你想做什么？...
+
+================================================================================
+验证结果汇总
+================================================================================
+
+输入                                  | Workflow Type        | Stage                | Status    
+-----------------------------------------------------------------------------------------------
+帮我看宏昌电子是否值得买入                       | friend_stock         | stopped              | OK        
+帮我看603002                           | friend_stock         | stopped              | OK        
+朋友推荐了宏昌电子                           | friend_stock         | stopped              | OK        
+买入宏昌电子可以吗                           | friend_stock         | stopped              | OK        
+刷到策略下午两点半买第二天卖                      | strategy_idea        | stopped              | OK        
+已买入100股成交价12.34                     | friend_stock         | stopped              | OK        
+今天要不要继续拿                            | unknown              | created              | OK        
+帮我看看                                | unknown              | created              | OK        
+你好                                  | unknown              | created              | OK        
+
+Friend Stock DB Records: 4
+  - flow_de9946c7ac24
+  - flow_06f310eed6f0
+  - flow_50a7075d5f4c
+
+Strategy Idea DB Records: 2
+  - idea_92ce2adf4963
+  - idea_92ce2adf4963_rejected
+
+说明:
+- 身份解析: deterministic_fixture（编排测试）
+- 真实 Tushare: 第一批已独立验收
+

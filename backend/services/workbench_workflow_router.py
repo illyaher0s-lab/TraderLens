@@ -127,7 +127,17 @@ class WorkbenchWorkflowRouter:
                 allowed_to_start_workflow=False,
             )
         
-        # Rule 4: Strategy rule shape -> strategy_idea
+        # Rule 4: Position followup
+        if intent_extraction.primary_intent == "position_followup":
+            return WorkbenchRouteDecision(
+                workflow_kind="position_followup",
+                workflow_state="created",
+                route_reason="检测到持仓跟进请求，需要 session context",
+                next_required_user_action="provide_context_or_clarify",
+                allowed_to_start_workflow=False,
+            )
+        
+        # Rule 5: Strategy rule shape -> strategy_idea
         # Important: Only route to strategy_idea if has clear strategy rule shape
         # NOT if just has "买入/卖出" with stock context
         if prescan.has_strategy_rule_shape and not prescan.has_stock_research_language:
@@ -139,23 +149,19 @@ class WorkbenchWorkflowRouter:
                 allowed_to_start_workflow=True,
             )
         
-        # Rule 5: Stock research intent but no verified identity
-        # This happens when LLM detected stock research intent but:
-        # - No stock code provided
-        # - Company name not found
-        # - Tushare unavailable
+        # Rule 6: Stock research intent but no stock entity -> clarification
         if intent_extraction.primary_intent == "stock_research":
             if stock_identity.status == "not_applicable":
-                # LLM thinks it's stock research but no stock entity extracted
+                # No stock code or company name extracted
                 return WorkbenchRouteDecision(
                     workflow_kind="unknown",
-                    workflow_state="stopped",
-                    route_reason="理解为股票研究请求，但缺少公司名或代码",
+                    workflow_state="created",
+                    route_reason="理解为股票研究请求，但缺少公司名或代码（需要 session context 或用户明确）",
                     next_required_user_action="provide_stock_code_or_name",
                     allowed_to_start_workflow=False,
                 )
         
-        # Rule 6: Unknown intent
+        # Rule 7: Unknown intent -> clarification
         return WorkbenchRouteDecision(
             workflow_kind="unknown",
             workflow_state="created",
