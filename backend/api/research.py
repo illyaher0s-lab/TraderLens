@@ -1037,43 +1037,10 @@ def create_research_app(
             intent_extraction = intent_extractor.extract_intent(request.message, prescan)
             
             # Step 3: Stock Identity Resolution (Tushare verification)
-            # Build test fixture for deterministic mode
-            test_fixture = {
-                "600000.SH": {
-                    "ticker": "600000.SH",
-                    "company_name": "浦发银行",
-                    "exchange": "SSE",
-                    "list_status": "L"
-                },
-                "603002.SH": {
-                    "ticker": "603002.SH",
-                    "company_name": "宏昌电子",
-                    "exchange": "SSE",
-                    "list_status": "L"
-                },
-                "000001.SZ": {
-                    "ticker": "000001.SZ",
-                    "company_name": "平安银行",
-                    "exchange": "SZSE",
-                    "list_status": "L"
-                },
-                "300750.SZ": {
-                    "ticker": "300750.SZ",
-                    "company_name": "宁德时代",
-                    "exchange": "SZSE",
-                    "list_status": "L"
-                },
-            }
-            
-            # Use test_fixture if tushare_client is not available
-            use_test_fixture = (
-                conversation_mode == "deterministic" or
-                (conversation_mode == "real" and validator.tushare_client is None)
-            )
-            
+            # Use real Tushare client if available (conversation_mode="real")
             stock_resolver = StockIdentityResolver(
-                tushare_client=validator.tushare_client if (conversation_mode == "real" and validator.tushare_client) else None,
-                test_fixture=test_fixture if use_test_fixture else None
+                tushare_client=validator.tushare_client if conversation_mode == "real" else None,
+                test_fixture=None,  # No hardcoded fixtures - use real Tushare or fail gracefully
             )
             
             stock_identity = stock_resolver.resolve(
@@ -1182,42 +1149,10 @@ def create_research_app(
             )
             intent_extraction = intent_extractor.extract_intent(request.message, prescan)
             
-            test_fixture = {
-                "600000.SH": {
-                    "ticker": "600000.SH",
-                    "company_name": "浦发银行",
-                    "exchange": "SSE",
-                    "list_status": "L"
-                },
-                "603002.SH": {
-                    "ticker": "603002.SH",
-                    "company_name": "宏昌电子",
-                    "exchange": "SSE",
-                    "list_status": "L"
-                },
-                "000001.SZ": {
-                    "ticker": "000001.SZ",
-                    "company_name": "平安银行",
-                    "exchange": "SZSE",
-                    "list_status": "L"
-                },
-                "300750.SZ": {
-                    "ticker": "300750.SZ",
-                    "company_name": "宁德时代",
-                    "exchange": "SZSE",
-                    "list_status": "L"
-                },
-            }
-            
-            # Use test_fixture if tushare_client is not available
-            use_test_fixture = (
-                conversation_mode == "deterministic" or
-                (conversation_mode == "real" and validator.tushare_client is None)
-            )
-            
+            # Use real Tushare client if available
             stock_resolver = StockIdentityResolver(
-                tushare_client=validator.tushare_client if (conversation_mode == "real" and validator.tushare_client) else None,
-                test_fixture=test_fixture if use_test_fixture else None
+                tushare_client=validator.tushare_client if conversation_mode == "real" else None,
+                test_fixture=None,
             )
             
             stock_identity = stock_resolver.resolve(
@@ -1254,10 +1189,74 @@ def create_research_app(
         if session.workflow_kind == WorkflowKind.FRIEND_STOCK:
             # Task 20A: Use stock_identity from pipeline
             if not session_exists and stock_identity.status == "verified":
-                # Stock verified, generate reply
-                agent_reply = f"已识别 {stock_identity.company_name} ({stock_identity.ticker})。\n\n正在准备股票研究，请稍候。"
-                workflow_state = WorkflowState.CREATED
-                next_required_user_action = "wait_for_research"
+                # Stock verified - create friend_stock_flow record
+                from backend.services.friend_stock_flow import FriendStockFlowService
+                
+                flow_service = FriendStockFlowService(
+                    validator=validator,
+                    serenity_runner=serenity_runner if conversation_mode == "real" else None,
+                    market_data_provider=None,
+                )
+                
+                # Create flow record
+                flow_id = f"flow_{uuid.uuid4().hex[:12]}"
+                db.store_friend_stock_flow(
+                    flow_id=flow_id,
+                    raw_company_input=stock_identity.company_name,
+                    raw_code_input=stock_identity.ticker,
+                    source_note=f"Workbench conversation {conversation_id}",
+                    ticker_verification_result={
+                        "status": "verified",
+                        "resolved_ticker": stock_identity.ticker,
+                        "resolved_name": stock_identity.company_name,
+                    },
+                )
+                
+                # Create artifact
+                flow_artifact = ArtifactRef(
+                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                    session_id=conversation_id,
+                    artifact_id=flow_id,
+                    artifact_type="friend_stock_flow",
+                    created_at=now,
+                )
+                attach_artifact_ref(db.conn, flow_artifact)
+                artifact_ids.append(flow_id)
+                
+                # Attempt research if serenity available
+                if conversation_mode == "real" and serenity_runner and hasattr(serenity_runner, 'run'):
+                    try:
+                        research_output = flow_service.run_industry_research(
+                            ticker=stock_identity.ticker,
+                            company_name=stock_identity.company_name,
+                        )
+                        
+                        # Store research output
+                        db.store_friend_stock_flow(
+                            flow_id=flow_id,
+                            raw_company_input=stock_identity.company_name,
+                            raw_code_input=stock_identity.ticker,
+                            source_note=f"Workbench conversation {conversation_id}",
+                            ticker_verification_result={
+                                "status": "verified",
+                                "resolved_ticker": stock_identity.ticker,
+                                "resolved_name": stock_identity.company_name,
+                            },
+                            research_output=research_output,
+                        )
+                        
+                        agent_reply = f"已完成对 {stock_identity.company_name} ({stock_identity.ticker}) 的调查。\\n\\n研究结果已生成，等待你的审批决定。"
+                        workflow_state = WorkflowState.WAITING_FOR_APPROVAL
+                        next_required_user_action = "review_research_and_approve"
+                    except Exception as e:
+                        agent_reply = f"已识别 {stock_identity.company_name} ({stock_identity.ticker})，但研究执行失败：{str(e)}\\n\\n请稍后重试。"
+                        workflow_state = WorkflowState.STOPPED
+                        next_required_user_action = "retry_later"
+                else:
+                    # No serenity -明确 waiting 状态，不是 fake researching
+                    agent_reply = f"已识别 {stock_identity.company_name} ({stock_identity.ticker})，已创建研究记录（flow_id: {flow_id}）。\\n\\n当前环境未配置研究服务，需要人工介入。"
+                    workflow_state = WorkflowState.STOPPED
+                    next_required_user_action = "configure_research_service"
             elif not session_exists and stock_identity.status == "ambiguous":
                 # Multiple candidates
                 candidates_text = "\n".join([
