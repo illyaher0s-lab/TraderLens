@@ -1094,6 +1094,16 @@ def create_research_app(
             create_session(db.conn, session)
             
             # Task 20A: Record pipeline activity artifacts
+            # Artifact 0: Context loaded (new session, no prior context)
+            context_loaded_artifact = ArtifactRef(
+                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                session_id=conversation_id,
+                artifact_id=f"context_loaded_{conversation_id}",
+                artifact_type="context_loaded",
+                created_at=now,
+            )
+            attach_artifact_ref(db.conn, context_loaded_artifact)
+            
             # Artifact 1: PreScan result
             prescan_artifact = ArtifactRef(
                 artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
@@ -1135,8 +1145,34 @@ def create_research_app(
             )
             attach_artifact_ref(db.conn, route_artifact)
         else:
-            # Existing session - need to run pipeline for continuation
+            # Existing session - load session context and run pipeline
             session = get_session(db.conn, conversation_id)
+            
+            # Load session context
+            recent_messages = list_messages(db.conn, conversation_id)[-10:]  # Last 10 messages
+            recent_artifacts = list_artifact_refs(db.conn, conversation_id)
+            
+            # Extract claimed entities from session state
+            claimed_stock = None
+            claimed_strategy = None
+            open_positions = []  # TODO: Load from positions DB when available
+            
+            # Look for verified stock in recent artifacts
+            for artifact in recent_artifacts:
+                if artifact.artifact_type == "friend_stock_flow":
+                    # Extract ticker from flow artifact
+                    # This is a placeholder - real implementation would query research.py
+                    pass
+            
+            # Record context_loaded activity
+            context_loaded_artifact = ArtifactRef(
+                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                session_id=conversation_id,
+                artifact_id=f"context_loaded_{uuid.uuid4().hex[:8]}",
+                artifact_type="context_loaded",
+                created_at=now,
+            )
+            attach_artifact_ref(db.conn, context_loaded_artifact)
             
             # Run pipeline again for existing session
             from backend.services.workbench_prescan import prescan_message
@@ -1165,6 +1201,48 @@ def create_research_app(
             
             router = WorkbenchWorkflowRouter()
             route_decision = router.route(prescan, intent_extraction, stock_identity)
+            
+            # Record activity artifacts for existing session
+            # Artifact 1: PreScan result
+            prescan_artifact = ArtifactRef(
+                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                session_id=conversation_id,
+                artifact_id=f"prescan_{uuid.uuid4().hex[:8]}",
+                artifact_type="prescan_result",
+                created_at=now,
+            )
+            attach_artifact_ref(db.conn, prescan_artifact)
+            
+            # Artifact 2: Intent extraction
+            intent_artifact = ArtifactRef(
+                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                session_id=conversation_id,
+                artifact_id=f"intent_{uuid.uuid4().hex[:8]}",
+                artifact_type="intent_extraction",
+                created_at=now,
+            )
+            attach_artifact_ref(db.conn, intent_artifact)
+            
+            # Artifact 3: Stock identity resolution (if applicable)
+            if stock_identity.status != "not_applicable":
+                stock_identity_artifact = ArtifactRef(
+                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                    session_id=conversation_id,
+                    artifact_id=f"stock_identity_{uuid.uuid4().hex[:8]}",
+                    artifact_type="stock_identity_resolution",
+                    created_at=now,
+                )
+                attach_artifact_ref(db.conn, stock_identity_artifact)
+            
+            # Artifact 4: Workflow route decision
+            route_artifact = ArtifactRef(
+                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                session_id=conversation_id,
+                artifact_id=f"route_{uuid.uuid4().hex[:8]}",
+                artifact_type="workflow_route_decision",
+                created_at=now,
+            )
+            attach_artifact_ref(db.conn, route_artifact)
         
         # Store user message
         user_message_id = f"msg_{uuid.uuid4().hex[:12]}"
@@ -1192,6 +1270,16 @@ def create_research_app(
         if session.workflow_kind == WorkflowKind.FRIEND_STOCK:
             # Task 20A: Use stock_identity from pipeline
             if not session_exists and stock_identity.status == "verified":
+                # Record workflow action started
+                action_started_artifact = ArtifactRef(
+                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                    session_id=conversation_id,
+                    artifact_id=f"action_started_{uuid.uuid4().hex[:8]}",
+                    artifact_type="workflow_action_started",
+                    created_at=now,
+                )
+                attach_artifact_ref(db.conn, action_started_artifact)
+                
                 # Stock verified - create friend_stock_flow record
                 from backend.services.friend_stock_flow import FriendStockFlowService
                 
@@ -1225,6 +1313,16 @@ def create_research_app(
                 )
                 attach_artifact_ref(db.conn, flow_artifact)
                 artifact_ids.append(flow_id)
+                
+                # Record workflow action completed
+                action_completed_artifact = ArtifactRef(
+                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                    session_id=conversation_id,
+                    artifact_id=f"action_completed_{uuid.uuid4().hex[:8]}",
+                    artifact_type="workflow_action_completed",
+                    created_at=now,
+                )
+                attach_artifact_ref(db.conn, action_completed_artifact)
                 
                 # Attempt research if serenity available
                 if conversation_mode == "real" and serenity_runner and hasattr(serenity_runner, 'run'):
@@ -1405,6 +1503,16 @@ def create_research_app(
             # Task 22: Orchestrate strategy-idea flow (fix P0-2)
             from backend.services.strategy_idea_flow import StrategyIdeaFlowService
             
+            # Record workflow action started
+            action_started_artifact = ArtifactRef(
+                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                session_id=conversation_id,
+                artifact_id=f"action_started_{uuid.uuid4().hex[:8]}",
+                artifact_type="workflow_action_started",
+                created_at=now,
+            )
+            attach_artifact_ref(db.conn, action_started_artifact)
+            
             flow_service = StrategyIdeaFlowService()
             
             try:
@@ -1476,12 +1584,32 @@ def create_research_app(
                 attach_artifact_ref(db.conn, rejection_artifact)
                 artifact_ids.append(rejected_entry["idea_id"] + "_rejected")
                 
+                # Record workflow action completed
+                action_completed_artifact = ArtifactRef(
+                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                    session_id=conversation_id,
+                    artifact_id=f"action_completed_{uuid.uuid4().hex[:8]}",
+                    artifact_type="workflow_action_completed",
+                    created_at=now,
+                )
+                attach_artifact_ref(db.conn, action_completed_artifact)
+                
                 # Set response
                 agent_reply = f"已提取策略想法：\n\n入场条件：{extraction.claimed_entry}\n出场条件：{extraction.claimed_exit}\n\n{mapping.mapping_reason}\n\n该策略想法已记录到拒绝注册表，不会生成交易信号。"
                 workflow_state = WorkflowState.STOPPED
                 next_required_user_action = "acknowledged_rejection"
                 
             except Exception as e:
+                # Record workflow action failed
+                action_failed_artifact = ArtifactRef(
+                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                    session_id=conversation_id,
+                    artifact_id=f"action_failed_{uuid.uuid4().hex[:8]}",
+                    artifact_type="workflow_action_failed",
+                    created_at=now,
+                )
+                attach_artifact_ref(db.conn, action_failed_artifact)
+                
                 # Extraction or mapping failed
                 agent_reply = f"处理策略想法失败：{str(e)}\n\n请检查描述是否完整或稍后重试。"
                 workflow_state = WorkflowState.STOPPED
