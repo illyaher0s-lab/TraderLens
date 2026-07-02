@@ -579,9 +579,9 @@ def get_session_timeline(conn: sqlite3.Connection, session_id: str) -> list[dict
             timeline.append({"type": "message", "content": message.model_dump()})
 
         elif item_type == "artifact_ref":
-            # Fetch full artifact ref
+            # Fetch full artifact ref with content
             cursor.execute(
-                "SELECT artifact_ref_id, session_id, artifact_id, artifact_type, created_at FROM agent_artifact_refs WHERE artifact_ref_id = ?",
+                "SELECT artifact_ref_id, session_id, artifact_id, artifact_type, content, created_at FROM agent_artifact_refs WHERE artifact_ref_id = ?",
                 (item_id,),
             )
             ref_row = cursor.fetchone()
@@ -590,9 +590,15 @@ def get_session_timeline(conn: sqlite3.Connection, session_id: str) -> list[dict
                 session_id=ref_row[1],
                 artifact_id=ref_row[2],
                 artifact_type=ref_row[3],
-                created_at=datetime.fromisoformat(ref_row[4]),
+                created_at=datetime.fromisoformat(ref_row[5]),
             )
-            timeline.append({"type": "artifact_ref", "content": artifact_ref.model_dump()})
+            timeline.append({
+                "type": "artifact_ref",
+                "content": {
+                    **artifact_ref.model_dump(),
+                    "artifact_content": ref_row[4],  # Include content field
+                }
+            })
 
         elif item_type == "approval_card":
             # Fetch full approval card
