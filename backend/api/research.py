@@ -90,6 +90,7 @@ def create_research_app(
     serenity_runner=None,
     market_data_provider=None,
     allow_test_serenity_runner: bool = False,
+    stock_resolver_fixture: dict | None = None,
 ) -> FastAPI:
     """
     Create Research API app.
@@ -102,6 +103,7 @@ def create_research_app(
         serenity_runner: SerenityRunner (if provided, must match mode constraints)
         market_data_provider: Market data provider function (symbol, as_of) -> dict
         allow_test_serenity_runner: Allows tests to inject a fake runner without real credentials
+        stock_resolver_fixture: Test fixture for StockIdentityResolver (deterministic mode only)
     
     Returns:
         FastAPI app
@@ -1038,9 +1040,10 @@ def create_research_app(
             
             # Step 3: Stock Identity Resolution (Tushare verification)
             # Use real Tushare client if available (conversation_mode="real")
+            # Or use injected test fixture (deterministic mode)
             stock_resolver = StockIdentityResolver(
                 tushare_client=validator.tushare_client if conversation_mode == "real" else None,
-                test_fixture=None,  # No hardcoded fixtures - use real Tushare or fail gracefully
+                test_fixture=stock_resolver_fixture if conversation_mode == "deterministic" else None,
             )
             
             stock_identity = stock_resolver.resolve(
@@ -1149,10 +1152,10 @@ def create_research_app(
             )
             intent_extraction = intent_extractor.extract_intent(request.message, prescan)
             
-            # Use real Tushare client if available
+            # Use real Tushare client or injected test fixture
             stock_resolver = StockIdentityResolver(
                 tushare_client=validator.tushare_client if conversation_mode == "real" else None,
-                test_fixture=None,
+                test_fixture=stock_resolver_fixture if conversation_mode == "deterministic" else None,
             )
             
             stock_identity = stock_resolver.resolve(

@@ -1,0 +1,110 @@
+D:\Codex\TraderLens\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+================================================================================
+P1-1 第二批验证 - Commit 1: 真实 API 调用
+================================================================================
+
+测试 1/9: 帮我看宏昌电子是否值得买入
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Full Response: {'conversation_id': 'sess_64ff2dba1798', 'workflow_type': 'unknown', 'stage': 'created', 'agent_reply': '你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？', 'approval_card': None, 'artifact_ids': ['msg_f5435e14c57a', 'msg_3a2e47c5038f', 'intent_sess_64ff2dba1798'], 'next_required_user_action': 'clarify_intent'}
+  Workflow Type: unknown
+  Stage: created
+  Artifacts: []
+  Reply (full): 
+
+测试 2/9: 帮我看603002
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Full Response: {'conversation_id': 'sess_d467d34293df', 'workflow_type': 'unknown', 'stage': 'created', 'agent_reply': '你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？', 'approval_card': None, 'artifact_ids': ['msg_2015186062b8', 'msg_ff399477c026', 'intent_sess_d467d34293df'], 'next_required_user_action': 'clarify_intent'}
+  Workflow Type: unknown
+  Stage: created
+  Artifacts: []
+  Reply (full): 
+
+测试 3/9: 朋友推荐了宏昌电子
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Full Response: {'conversation_id': 'sess_3f615eb8de5d', 'workflow_type': 'unknown', 'stage': 'created', 'agent_reply': '你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？', 'approval_card': None, 'artifact_ids': ['msg_fa11662c7b15', 'msg_3247d424eaef', 'intent_sess_3f615eb8de5d'], 'next_required_user_action': 'clarify_intent'}
+  Workflow Type: unknown
+  Stage: created
+  Artifacts: []
+  Reply (full): 
+
+测试 4/9: 买入宏昌电子可以吗
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Full Response: {'conversation_id': 'sess_5e0ae0dd30b5', 'workflow_type': 'unknown', 'stage': 'created', 'agent_reply': '你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？', 'approval_card': None, 'artifact_ids': ['msg_667e86d4f869', 'msg_407a9c889189', 'intent_sess_5e0ae0dd30b5'], 'next_required_user_action': 'clarify_intent'}
+  Workflow Type: unknown
+  Stage: created
+  Artifacts: []
+  Reply (full): 
+
+测试 5/9: 刷到策略下午两点半买第二天卖
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Full Response: {'conversation_id': 'sess_41a4d05a9da2', 'workflow_type': 'unknown', 'stage': 'created', 'agent_reply': '你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？', 'approval_card': None, 'artifact_ids': ['msg_fdb42d42a312', 'msg_bc21687e1eeb', 'intent_sess_41a4d05a9da2'], 'next_required_user_action': 'clarify_intent'}
+  Workflow Type: unknown
+  Stage: created
+  Artifacts: []
+  Reply (full): 
+
+测试 6/9: 已买入100股成交价12.34
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Full Response: {'conversation_id': 'sess_b9c6839aceca', 'workflow_type': 'friend_stock', 'stage': 'stopped', 'agent_reply': '无法识别公司或股票代码：已买入100股成交价12.34\n\n请提供更明确的公司名称或完整的股票代码（如 600000.SH）。', 'approval_card': None, 'artifact_ids': ['verify_0d46025b', 'msg_f8376e8dbd50', 'msg_5c17c7130c86', 'intent_sess_b9c6839aceca'], 'next_required_user_action': 'provide_clear_company_name'}
+  Workflow Type: friend_stock
+  Stage: stopped
+  Artifacts: []
+  Reply (full): 
+
+测试 7/9: 今天要不要继续拿
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Full Response: {'conversation_id': 'sess_155c5ed0ae86', 'workflow_type': 'unknown', 'stage': 'created', 'agent_reply': '你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？', 'approval_card': None, 'artifact_ids': ['msg_06dd95785a30', 'msg_9cdbe99ad62c', 'intent_sess_155c5ed0ae86'], 'next_required_user_action': 'clarify_intent'}
+  Workflow Type: unknown
+  Stage: created
+  Artifacts: []
+  Reply (full): 
+
+测试 8/9: 帮我看看
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Full Response: {'conversation_id': 'sess_45addab08b52', 'workflow_type': 'unknown', 'stage': 'created', 'agent_reply': '你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？', 'approval_card': None, 'artifact_ids': ['msg_83f535546765', 'msg_002c817741a7', 'intent_sess_45addab08b52'], 'next_required_user_action': 'clarify_intent'}
+  Workflow Type: unknown
+  Stage: created
+  Artifacts: []
+  Reply (full): 
+
+测试 9/9: 你好
+--------------------------------------------------------------------------------
+  HTTP Status: 200
+  Full Response: {'conversation_id': 'sess_86b305edb4f5', 'workflow_type': 'unknown', 'stage': 'created', 'agent_reply': '你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？', 'approval_card': None, 'artifact_ids': ['msg_98a0f92fb3af', 'msg_a222754b5ef5', 'intent_sess_86b305edb4f5'], 'next_required_user_action': 'clarify_intent'}
+  Workflow Type: unknown
+  Stage: created
+  Artifacts: []
+  Reply (full): 
+
+================================================================================
+验证结果汇总
+================================================================================
+
+输入                             | Route                | Workflow State       | Status    
+------------------------------------------------------------------------------------------
+帮我看宏昌电子是否值得买入                  | unknown              | created              | OK        
+帮我看603002                      | unknown              | created              | OK        
+朋友推荐了宏昌电子                      | unknown              | created              | OK        
+买入宏昌电子可以吗                      | unknown              | created              | OK        
+刷到策略下午两点半买第二天卖                 | unknown              | created              | OK        
+已买入100股成交价12.34                | friend_stock         | stopped              | OK        
+今天要不要继续拿                       | unknown              | created              | OK        
+帮我看看                           | unknown              | created              | OK        
+你好                             | unknown              | created              | OK        
+
+Friend Stock DB Records: 0
+
+Strategy Idea DB Records: 0
+
+注意: 当前使用 deterministic mode，部分功能可能 FAIL
+Commit 2-6 将逐步修复各项要求
+
