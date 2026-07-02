@@ -1286,73 +1286,68 @@ def create_research_app(
         
         # Single-source route decision dispatch to handlers
         # CRITICAL: response.workflow_type MUST == route_decision.workflow_kind (no override)
-        if not session_exists:
-            # New session - use route_decision to dispatch
-            workflow_kind = route_decision.workflow_kind
-            
-            # Dispatch to handler based on route_decision.workflow_kind (ONLY裁决源)
-            if workflow_kind == "friend_stock":
-                handler_result = handle_friend_stock(
-                    db.conn,
-                    conversation_id,
-                    request.message,
-                    stock_identity,
-                    route_decision,
-                    now,
-                )
-            elif workflow_kind == "strategy_idea":
-                handler_result = handle_strategy_idea(
-                    db.conn,
-                    conversation_id,
-                    request.message,
-                    route_decision,
-                    now,
-                )
-            elif workflow_kind == "execution_feedback":
-                handler_result = handle_execution_feedback(
-                    db.conn,
-                    conversation_id,
-                    request.message,
-                    stock_identity,
-                    route_decision,
-                    now,
-                )
-            elif workflow_kind == "position_followup":
-                handler_result = handle_position_followup(
-                    db.conn,
-                    conversation_id,
-                    request.message,
-                    stock_identity,
-                    route_decision,
-                    now,
-                )
-            elif workflow_kind == "theme_research":
-                handler_result = handle_theme_research_deferred(
-                    db.conn,
-                    conversation_id,
-                    request.message,
-                    route_decision,
-                    now,
-                )
-            else:  # unknown, clarification, or any other
-                handler_result = handle_clarification(
-                    db.conn,
-                    conversation_id,
-                    request.message,
-                    route_decision,
-                    now,
-                )
-            
-            agent_reply = handler_result.agent_reply
-            artifact_ids = handler_result.artifact_ids
-            next_required_user_action = handler_result.next_required_user_action or route_decision.next_required_user_action
-        else:
-            # Existing session - for now, use simple continuation logic
-            # TODO: implement existing session handler with context
-            agent_reply = "继续对话功能开发中。"
-            artifact_ids = []
-            next_required_user_action = "provide_more_context"
-            workflow_kind = route_decision.workflow_kind  # Still use route_decision
+        # Both new and existing sessions use the same handler dispatch logic
+        workflow_kind = route_decision.workflow_kind
+        
+        # Dispatch to handler based on route_decision.workflow_kind (ONLY裁决源)
+        if workflow_kind == "friend_stock":
+            handler_result = handle_friend_stock(
+                db.conn,
+                conversation_id,
+                request.message,
+                stock_identity,
+                route_decision,
+                now,
+                validator,
+                serenity_runner,
+                market_data_provider,
+            )
+        elif workflow_kind == "strategy_idea":
+            handler_result = handle_strategy_idea(
+                db.conn,
+                conversation_id,
+                request.message,
+                route_decision,
+                now,
+            )
+        elif workflow_kind == "execution_feedback":
+            handler_result = handle_execution_feedback(
+                db.conn,
+                conversation_id,
+                request.message,
+                stock_identity,
+                route_decision,
+                now,
+            )
+        elif workflow_kind == "position_followup":
+            handler_result = handle_position_followup(
+                db.conn,
+                conversation_id,
+                request.message,
+                stock_identity,
+                route_decision,
+                now,
+            )
+        elif workflow_kind == "theme_research":
+            handler_result = handle_theme_research_deferred(
+                db.conn,
+                conversation_id,
+                request.message,
+                route_decision,
+                now,
+            )
+        else:  # unknown, clarification, or any other
+            handler_result = handle_clarification(
+                db.conn,
+                conversation_id,
+                request.message,
+                route_decision,
+                now,
+            )
+        
+        agent_reply = handler_result.agent_reply
+        artifact_ids = handler_result.artifact_ids
+        next_required_user_action = handler_result.next_required_user_action or route_decision.next_required_user_action
         
         # CRITICAL: workflow_type MUST == route_decision.workflow_kind (no session.workflow_kind override)
         workflow_type = workflow_kind

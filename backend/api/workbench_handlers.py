@@ -32,6 +32,9 @@ def handle_friend_stock(
     stock_identity,
     route_decision,
     now: datetime,
+    validator,
+    serenity_runner,
+    market_data_provider,
 ) -> HandlerResult:
     """
     Handle friend_stock workflow.
@@ -44,7 +47,7 @@ def handle_friend_stock(
     
     if stock_identity.status != "verified":
         # Stock not verified - cannot create flow
-        agent_reply = f"无法识别股票信息。{route_decision.reason}"
+        agent_reply = f"无法识别股票信息。{route_decision.route_reason}"
         return HandlerResult(
             agent_reply=agent_reply,
             artifact_ids=artifact_ids,
@@ -61,20 +64,37 @@ def handle_friend_stock(
     )
     attach_artifact_ref(db_conn, action_started_artifact)
     
-    # Create friend_stock_flow record
-    flow_service = FriendStockFlowService(
-        db_conn=db_conn,
-        serenity_runner=None,  # Stub mode
-    )
+    # Create friend_stock_flow record directly in DB
+    # Service is used for complex orchestration (verify_ticker, run_industry_research, etc.)
+    # For workbench, we only need to record the flow entry
+    from backend.db.research import ResearchDB
     
-    flow_entry = flow_service.create_flow(
-        ticker=stock_identity.ticker,
-        company_name=stock_identity.company_name,
-        source_channel="workbench",
-        raw_source_text=user_message,
-    )
+    flow_id = f"flow_{uuid.uuid4().hex[:12]}"
     
-    flow_id = flow_entry["flow_id"]
+    # Get ResearchDB instance from connection
+    # The connection is db.conn, we need the ResearchDB instance
+    # We'll directly insert via SQL for now (workbench creates simple flow records)
+    import sqlite3
+    from datetime import datetime as dt
+    now_iso = dt.now().isoformat()
+    
+    cursor = db_conn.cursor()
+    cursor.execute("""
+        INSERT INTO friend_stock_flows
+        (flow_id, raw_company_input, raw_code_input, source_note,
+         ticker_verification_result, research_output, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        flow_id,
+        stock_identity.company_name,
+        stock_identity.ticker,
+        f"workbench: {user_message}",
+        None,  # No ticker verification needed (already verified by stock_identity)
+        None,  # No research output yet
+        now_iso,
+        now_iso,
+    ))
+    db_conn.commit()
     
     # Create flow artifact
     flow_artifact = ArtifactRef(
@@ -439,7 +459,7 @@ def handle_clarification(
     attach_artifact_ref(db_conn, clarify_artifact)
     artifact_ids.append(clarify_artifact.artifact_id)
     
-    agent_reply = f"{route_decision.reason}\n\n你好，我可以帮你：\n1. 分析朋友推荐的股票（提供股票代码或公司名）\n2. 验证策略/交易想法的技术细节\n\n请问你想了解什么？"
+    agent_reply = f"{route_decision.route_reason}\n\n你好，我可以帮你：\n1. 分析朋友推荐的股票（提供股票代码或公司名）\n2. 验证策略/交易想法的技术细节\n\n请问你想了解什么？"
     
     return HandlerResult(
         agent_reply=agent_reply,
