@@ -1,112 +1,217 @@
 /**
- * Workflow Status Panel
- *
- * Task 14: Display current workflow status and metadata.
- * Design: Vercel style - shadow-as-border, subtle state colors, clean information hierarchy.
+ * Workflow Status Panel - P1-3 状态诚实化
+ * 
+ * 从 timeline artifacts 推导真实状态，不自造状态机
  */
 
 "use client";
 
-interface WorkflowStatusPanelProps {
-  session: {
-    session_id: string;
-    workflow_kind: string;
-    workflow_state: string;
-    title: string;
-    created_at: string;
-    updated_at: string;
-  } | null;
-  artifactCount: number;
+interface TimelineItem {
+  type: string;
+  content: any;
 }
 
-const WORKFLOW_LABELS: Record<string, string> = {
-  friend_stock: "朋友推荐股票",
-  strategy_idea: "抖音策略验证",
-};
+interface WorkflowStatusPanelProps {
+  timeline: TimelineItem[];
+}
 
-const STATE_LABELS: Record<string, string> = {
-  created: "已创建",
-  researching: "研究中",
-  waiting_for_approval: "等待审批",
-  validating: "验证中",
-  live_execution_pending: "等待实盘",
-  observing: "观察中",
-  reviewing: "复盘中",
-  completed: "已完成",
-  stopped: "已停止",
-};
-
-const STATE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  created: { bg: "#fafafa", text: "#666666", border: "rgba(0,0,0,0.08)" },
-  researching: { bg: "#eff6ff", text: "#1d4ed8", border: "rgba(59,130,246,0.2)" },
-  waiting_for_approval: { bg: "#fef3c7", text: "#d97706", border: "rgba(251,191,36,0.2)" },
-  validating: { bg: "#f3e8ff", text: "#7c3aed", border: "rgba(168,85,247,0.2)" },
-  live_execution_pending: { bg: "#fed7aa", text: "#c2410c", border: "rgba(251,146,60,0.2)" },
-  observing: { bg: "#d1fae5", text: "#047857", border: "rgba(34,197,94,0.2)" },
-  reviewing: { bg: "#e0e7ff", text: "#4338ca", border: "rgba(99,102,241,0.2)" },
-  completed: { bg: "#d1fae5", text: "#15803d", border: "rgba(34,197,94,0.3)" },
-  stopped: { bg: "#fee2e2", text: "#b91c1c", border: "rgba(239,68,68,0.2)" },
-};
-
-export default function WorkflowStatusPanel({
-  session,
-  artifactCount,
-}: WorkflowStatusPanelProps) {
-  if (!session) {
-    return (
-      <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0px 0px 0px 1px rgba(0,0,0,0.08)' }}>
-        <h3 className="text-[14px] font-semibold text-[#171717] mb-4 tracking-tight">工作流状态</h3>
-        <p className="text-[14px] text-[#666666] font-normal">暂无活动会话</p>
-      </div>
-    );
+function deriveStatusFromTimeline(timeline: TimelineItem[]) {
+  // Find all artifact_refs
+  const artifacts = timeline.filter(t => t.type === 'artifact_ref');
+  
+  if (artifacts.length === 0) {
+    return {
+      status: 'idle',
+      statusText: '空闲',
+      lastAction: null,
+      currentObject: null,
+      nextWaitingFor: null,
+    };
   }
+  
+  // Get last artifact
+  const lastArtifact = artifacts[artifacts.length - 1];
+  const artifactType = lastArtifact.content.artifact_type;
+  
+  // Find route_decision to get workflow context
+  const routeDecision = artifacts.find(a => a.content.artifact_type === 'workflow_route_decision');
+  let workflowKind = null;
+  let routeReason = null;
+  
+  if (routeDecision && routeDecision.content.artifact_content) {
+    try {
+      const routeData = JSON.parse(routeDecision.content.artifact_content);
+      workflowKind = routeData.workflow_kind;
+      routeReason = routeData.route_reason;
+    } catch (e) {
+      console.error('Failed to parse route_decision:', e);
+    }
+  }
+  
+  // Find stock identity if exists
+  let stockName = null;
+  const stockIdentity = artifacts.find(a => a.content.artifact_type === 'stock_identity_resolution');
+  if (stockIdentity && stockIdentity.content.artifact_content) {
+    try {
+      const stockData = JSON.parse(stockIdentity.content.artifact_content);
+      if (stockData.company_name) {
+        stockName = stockData.company_name;
+      }
+    } catch (e) {}
+  }
+  
+  // Derive status from last artifact type
+  if (artifactType === 'workflow_action_failed') {
+    return {
+      status: 'failed',
+      statusText: '失败',
+      lastAction: getActionLabel(workflowKind),
+      currentObject: stockName,
+      nextWaitingFor: '需要重试或调整输入',
+    };
+  }
+  
+  if (artifactType === 'workflow_action_completed') {
+    return {
+      status: 'completed',
+      statusText: '完成',
+      lastAction: getActionLabel(workflowKind),
+      currentObject: stockName,
+      nextWaitingFor: null,
+    };
+  }
+  
+  if (artifactType === 'friend_stock_flow') {
+    // Check if there's a completed after this
+    const hasCompleted = artifacts.some((a, idx) => 
+      idx > artifacts.indexOf(lastArtifact) && 
+      a.content.artifact_type === 'workflow_action_completed'
+    );
+    
+    if (hasCompleted) {
+      return {
+        status: 'completed',
+        statusText: '完成',
+        lastAction: '创建研究记录',
+        currentObject: stockName,
+        nextWaitingFor: null,
+      };
+    }
+    
+    return {
+      status: 'waiting',
+      statusText: '等待中',
+      lastAction: '创建研究记录',
+      currentObject: stockName,
+      nextWaitingFor: '等待研究服务配置',
+    };
+  }
+  
+  if (artifactType === 'strategy_idea_rejected') {
+    return {
+      status: 'completed',
+      statusText: '已拒绝',
+      lastAction: '策略想法评估',
+      currentObject: '策略想法',
+      nextWaitingFor: null,
+    };
+  }
+  
+  if (artifactType === 'workflow_route_decision') {
+    if (workflowKind === 'unknown') {
+      return {
+        status: 'needs_clarification',
+        statusText: '需要澄清',
+        lastAction: '理解意图',
+        currentObject: null,
+        nextWaitingFor: routeReason || '需要更多信息',
+      };
+    }
+  }
+  
+  // Default: processing
+  return {
+    status: 'idle',
+    statusText: '准备中',
+    lastAction: getActionLabel(workflowKind),
+    currentObject: stockName,
+    nextWaitingFor: null,
+  };
+}
 
-  const stateStyle = STATE_COLORS[session.workflow_state] || STATE_COLORS.created;
+function getActionLabel(workflowKind: string | null): string {
+  const labels: Record<string, string> = {
+    'friend_stock': '股票调研',
+    'strategy_idea': '策略想法评估',
+    'execution_feedback': '执行反馈',
+    'position_followup': '持仓跟进',
+    'theme_research': '主题研究',
+  };
+  return labels[workflowKind || ''] || '处理中';
+}
 
+export default function WorkflowStatusPanel({ timeline }: WorkflowStatusPanelProps) {
+  const status = deriveStatusFromTimeline(timeline);
+  
+  const statusColors: Record<string, string> = {
+    'idle': 'text-[#666666]',
+    'waiting': 'text-[#f59e0b]',
+    'completed': 'text-[#10b981]',
+    'failed': 'text-[#ef4444]',
+    'needs_clarification': 'text-[#3b82f6]',
+  };
+  
+  const statusIcons: Record<string, string> = {
+    'idle': '○',
+    'waiting': '⏸',
+    'completed': '✓',
+    'failed': '✗',
+    'needs_clarification': '?',
+  };
+  
   return (
-    <div className="bg-white rounded-lg p-6" style={{ boxShadow: '0px 0px 0px 1px rgba(0,0,0,0.08)' }}>
-      <h3 className="text-[14px] font-semibold text-[#171717] mb-4 tracking-tight">工作流状态</h3>
-
-      <div className="space-y-4">
-        <div>
-          <p className="text-[12px] text-[#808080] mb-1 font-normal">工作流类型</p>
-          <p className="text-[14px] font-medium text-[#171717]">
-            {WORKFLOW_LABELS[session.workflow_kind] || session.workflow_kind}
-          </p>
-        </div>
-
-        <div>
-          <p className="text-[12px] text-[#808080] mb-2 font-normal">当前状态</p>
-          <span
-            className="inline-block px-3 py-1 text-[12px] font-medium rounded"
-            style={{
-              backgroundColor: stateStyle.bg,
-              color: stateStyle.text,
-              boxShadow: `0px 0px 0px 1px ${stateStyle.border}`,
-            }}
-          >
-            {STATE_LABELS[session.workflow_state] || session.workflow_state}
+    <div 
+      className="bg-white rounded-lg p-4"
+      style={{ boxShadow: '0px 0px 0px 1px rgba(0,0,0,0.08)' }}
+    >
+      <h3 className="text-[14px] font-medium text-[#171717] mb-3">当前状态</h3>
+      
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <span className={`text-[18px] ${statusColors[status.status]}`}>
+            {statusIcons[status.status]}
+          </span>
+          <span className={`text-[14px] font-medium ${statusColors[status.status]}`}>
+            {status.statusText}
           </span>
         </div>
-
-        <div>
-          <p className="text-[12px] text-[#808080] mb-1 font-normal">会话标题</p>
-          <p className="text-[14px] text-[#171717] font-normal">{session.title}</p>
-        </div>
-
-        <div>
-          <p className="text-[12px] text-[#808080] mb-1 font-normal">关联证据</p>
-          <p className="text-[14px] text-[#171717] font-normal">{artifactCount} 项</p>
-        </div>
-
-        <div className="pt-3" style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
-          <p className="text-[12px] text-[#808080] font-normal">
-            创建: {new Date(session.created_at).toLocaleString("zh-CN")}
-          </p>
-          <p className="text-[12px] text-[#808080] mt-1 font-normal">
-            更新: {new Date(session.updated_at).toLocaleString("zh-CN")}
-          </p>
-        </div>
+        
+        {status.lastAction && (
+          <div className="text-[13px] text-[#666666]">
+            <span className="text-[#999999]">最后动作：</span>
+            {status.lastAction}
+          </div>
+        )}
+        
+        {status.currentObject && (
+          <div className="text-[13px] text-[#666666]">
+            <span className="text-[#999999]">处理对象：</span>
+            {status.currentObject}
+          </div>
+        )}
+        
+        {status.nextWaitingFor && (
+          <div className="text-[13px] text-[#666666]">
+            <span className="text-[#999999]">等待：</span>
+            {status.nextWaitingFor}
+          </div>
+        )}
+        
+        {!status.lastAction && !status.currentObject && !status.nextWaitingFor && (
+          <div className="text-[13px] text-[#999999]">
+            发送消息开始对话
+          </div>
+        )}
       </div>
     </div>
   );

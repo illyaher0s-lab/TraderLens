@@ -1,35 +1,22 @@
 /**
- * Agent Workbench Page
+ * Agent Workbench Page - P1-3 状态诚实化
  *
- * Task 14: V1 Minimum Profitable Loop - unified agent conversation interface.
- * Design: Vercel-inspired - shadow-as-border, minimal color, information-dense.
- *
- * User can:
- * - Chat with agent using natural language
- * - Start friend-stock or strategy-idea workflows
- * - Approve result-level decisions via approval cards
- *
- * User cannot:
- * - Fill technical parameters
- * - Access automatic trading or broker connections
+ * 布局：桌面左55%聊天/右45%状态，移动端单列
+ * 刷新：发消息后自动拉 timeline，仅 running job 时轮询
  */
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import AgentChatPanel from "@/components/AgentChatPanel";
 import ApprovalCard from "@/components/ApprovalCard";
 import WorkbenchTimeline from "@/components/WorkbenchTimeline";
 import WorkflowStatusPanel from "@/components/WorkflowStatusPanel";
 import LiveLoopPanel from "@/components/LiveLoopPanel";
-import AgentActivityPanel from "@/components/AgentActivityPanel";
 import {
   sendWorkbenchMessage,
   getWorkbenchSession,
   decideApprovalCard,
-  type WorkbenchMessageResponse,
-  type WorkbenchSession,
-  type ApprovalCardData,
 } from "@/lib/api-client";
 
 interface Message {
@@ -41,48 +28,81 @@ interface Message {
 export default function WorkbenchPage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [session, setSession] = useState<WorkbenchSession | null>(null);
-  const [currentApprovalCard, setCurrentApprovalCard] = useState<ApprovalCardData | null>(null);
+  const [timeline, setTimeline] = useState<any[]>([]);
+  const [currentApprovalCard, setCurrentApprovalCard] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isDeciding, setIsDeciding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load session on conversation_id change
   useEffect(() => {
-    if (conversationId) {
-      loadSession();
-    }
-  }, [conversationId]);
+    // Cleanup polling on unmount
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, []);
 
-  const loadSession = async () => {
-    if (!conversationId) return;
-
+  const loadSession = async (sessionId: string) => {
     try {
-      const data = await getWorkbenchSession(conversationId);
-      setSession(data);
+      const data = await getWorkbenchSession(sessionId);
 
       // Extract messages from timeline
-      const timelineMessages: Message[] = data.timeline
-        .filter((item) => item.type === "message")
-        .map((item) => ({
+      const timelineMessages = data.timeline
+        .filter((item: any) => item.type === "message")
+        .map((item: any) => ({
           role: item.content.role,
           content: item.content.content,
           created_at: item.content.created_at,
         }));
 
       setMessages(timelineMessages);
+      setTimeline(data.timeline);
 
       // Extract latest approval card
       const approvalCards = data.timeline
-        .filter((item) => item.type === "approval_card")
-        .map((item) => item.content);
+        .filter((item: any) => item.type === "approval_card")
+        .map((item: any) => item.content);
 
       if (approvalCards.length > 0) {
         setCurrentApprovalCard(approvalCards[approvalCards.length - 1]);
       }
+
+      // Start/stop polling based on running jobs
+      managePolling(data.timeline);
     } catch (err) {
       console.error("Failed to load session:", err);
       setError(err instanceof Error ? err.message : "加载会话失败");
+    }
+  };
+
+  const managePolling = (timelineData: any[]) => {
+    // Check if there's a running job (action_started without completed/failed)
+    const artifacts = timelineData.filter((t: any) => t.type === 'artifact_ref');
+    
+    const hasActionStarted = artifacts.some((a: any) => 
+      a.content.artifact_type === 'workflow_action_started'
+    );
+    
+    const hasActionEnded = artifacts.some((a: any) => 
+      a.content.artifact_type === 'workflow_action_completed' ||
+      a.content.artifact_type === 'workflow_action_failed'
+    );
+    
+    const hasRunningJob = hasActionStarted && !hasActionEnded;
+    
+    if (hasRunningJob && !pollingIntervalRef.current) {
+      // Start polling
+      pollingIntervalRef.current = setInterval(() => {
+        if (conversationId) {
+          loadSession(conversationId);
+        }
+      }, 2000); // Poll every 2 seconds
+    } else if (!hasRunningJob && pollingIntervalRef.current) {
+      // Stop polling
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
     }
   };
 
@@ -101,27 +121,8 @@ export default function WorkbenchPage() {
         setConversationId(response.conversation_id);
       }
 
-      // Add user message
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", content: message },
-      ]);
-
-      // Add agent reply
-      setMessages((prev) => [
-        ...prev,
-        { role: "agent", content: response.agent_reply },
-      ]);
-
-      // Update approval card if present
-      if (response.approval_card) {
-        setCurrentApprovalCard(response.approval_card);
-      }
-
-      // Refresh session to get full timeline
-      if (response.conversation_id) {
-        setConversationId(response.conversation_id);
-      }
+      // Refresh timeline immediately after sending
+      await loadSession(response.conversation_id);
     } catch (err) {
       console.error("Failed to send message:", err);
       setError(err instanceof Error ? err.message : "发送消息失败");
@@ -130,108 +131,92 @@ export default function WorkbenchPage() {
     }
   };
 
-  const handleDecide = async (decision: string, decidedBy: string) => {
+  const handleApprovalDecision = async (
+    decision: string,
+    decidedBy: string
+  ) => {
     if (!conversationId || !currentApprovalCard) return;
 
-    setIsDeciding(true);
-    setError(null);
-
     try {
-      await decideApprovalCard(conversationId, currentApprovalCard.approval_card_id, {
-        decision,
-        decided_by: decidedBy,
-      });
+      await decideApprovalCard(
+        conversationId,
+        currentApprovalCard.approval_card_id,
+        {
+          decision: decision as "approved" | "rejected",
+          decided_by: decidedBy,
+        }
+      );
 
-      // Refresh session
-      await loadSession();
+      // Reload session after decision
+      await loadSession(conversationId);
     } catch (err) {
-      console.error("Failed to decide:", err);
-      throw err; // Let ApprovalCard handle the error
-    } finally {
-      setIsDeciding(false);
+      console.error("Failed to decide approval card:", err);
+      setError(err instanceof Error ? err.message : "决策失败");
     }
   };
 
-  const artifactCount = session?.timeline.filter((item) => item.type === "artifact_ref").length || 0;
-
   return (
-    <div className="min-h-screen bg-[#fafafa]">
-      <div className="max-w-[1280px] mx-auto px-6 py-6">
-        {/* Page Header - Vercel style */}
+    <div className="min-h-screen bg-white">
+      <div className="max-w-[1600px] mx-auto p-6">
+        {/* Header */}
         <div className="mb-6">
-          <h1 className="text-[32px] font-semibold text-[#171717] tracking-[-0.96px] leading-tight">
-            Agent Workbench
+          <h1 className="text-[24px] font-semibold text-[#171717]">
+            TraderLens 工作台
           </h1>
-          <p className="text-[14px] text-[#666666] mt-2 font-normal">
-            和助手对话，启动朋友推荐股票或抖音策略验证流程
+          <p className="text-[14px] text-[#666666] mt-1">
+            与 AI 对话开始股票调研或策略评估
           </p>
-          <p className="text-[12px] text-[#808080] mt-1">
-            不是买卖建议 · 不会自动交易 · 需要人工审核
+          <p className="text-[12px] text-[#999999] mt-2">
+            不是买卖建议 • 不会自动交易 • 需要人工审核
           </p>
         </div>
 
         {/* Error Banner */}
         {error && (
-          <div className="mb-6 p-4 rounded-lg bg-[#fef2f2] border border-[#fecaca]" style={{ boxShadow: '0px 0px 0px 1px rgba(254,202,202,0.5)' }}>
-            <p className="text-[14px] text-[#991b1b]">{error}</p>
-            <button
-              onClick={() => setError(null)}
-              className="mt-2 text-[12px] text-[#dc2626] hover:underline"
-            >
-              关闭
-            </button>
+          <div
+            className="mb-4 p-4 bg-[#fef2f2] rounded-lg"
+            style={{ boxShadow: "0px 0px 0px 1px rgba(239,68,68,0.2)" }}
+          >
+            <div className="text-[14px] text-[#ef4444]">{error}</div>
           </div>
         )}
 
-        {/* Main Layout - 35% left (chat), 65% right (workspace) */}
-        <div className="grid grid-cols-1 lg:grid-cols-[35%_65%] gap-6">
-          {/* Left Column: Chat + Approval Card */}
-          <div className="space-y-6">
-            {/* Chat Panel */}
-            <div className="h-[600px]">
-              <AgentChatPanel
-                messages={messages}
-                onSendMessage={handleSendMessage}
-                isLoading={isLoading}
-              />
-            </div>
+        {/* Main Layout: Desktop 55/45, Mobile Single Column */}
+        <div className="grid grid-cols-1 lg:grid-cols-[55%_45%] gap-6">
+          {/* Left: Chat Panel */}
+          <div className="flex flex-col">
+            <AgentChatPanel
+              messages={messages}
+              onSendMessage={handleSendMessage}
+              isLoading={isLoading}
+            />
 
-            {/* Approval Card */}
-            {currentApprovalCard && !currentApprovalCard.decision && (
-              <ApprovalCard
-                card={currentApprovalCard}
-                onDecide={handleDecide}
-                isSubmitting={isDeciding}
-              />
+            {/* Approval Card (below chat on mobile, inline on desktop) */}
+            {currentApprovalCard && (
+              <div className="mt-4">
+                <ApprovalCard
+                  card={currentApprovalCard}
+                  onDecide={handleApprovalDecision}
+                  isSubmitting={isLoading}
+                />
+              </div>
             )}
           </div>
 
-          {/* Right Column: Workflow Summary + Agent Activity + Live Loop + Timeline */}
-          <div className="space-y-6">
-            {/* Workflow Summary */}
-            <WorkflowStatusPanel
-              session={session?.session || null}
-              artifactCount={artifactCount}
-            />
+          {/* Right: Status Panels (上到下：当前状态/活动流/执行记录) */}
+          <div className="flex flex-col gap-4">
+            {/* 当前状态 */}
+            <WorkflowStatusPanel timeline={timeline} />
 
-            {/* Agent Activity - Task 23: Show execution steps */}
-            {session && session.timeline.length > 0 && (
-              <AgentActivityPanel
-                timeline={session.timeline}
-                workflowState={session.session.workflow_state}
-                workflowKind={session.session.workflow_kind}
+            {/* 活动流 */}
+            <WorkbenchTimeline timeline={timeline} />
+
+            {/* 执行记录 */}
+            {conversationId && (
+              <LiveLoopPanel 
+                conversationId={conversationId}
+                onUpdate={() => loadSession(conversationId)}
               />
-            )}
-
-            {/* Live Loop Panel - Task 19: Manual execution records */}
-            <LiveLoopPanel
-              conversationId={conversationId}
-              onUpdate={loadSession}
-            />
-
-            {/* Timeline - Detailed event log */}
-            {session && session.timeline.length > 0 && (
-              <WorkbenchTimeline timeline={session.timeline} />
             )}
           </div>
         </div>
