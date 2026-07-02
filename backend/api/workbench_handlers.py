@@ -151,6 +151,7 @@ def handle_strategy_idea(
     user_message: str,
     route_decision,
     now: datetime,
+    strategy_flow_service=None,  # New: for test injection
 ) -> HandlerResult:
     """Handle strategy_idea workflow."""
     from backend.services.strategy_idea_flow import StrategyIdeaFlowService
@@ -167,7 +168,10 @@ def handle_strategy_idea(
     )
     attach_artifact_ref(db_conn, action_started_artifact)
     
-    flow_service = StrategyIdeaFlowService()
+    if strategy_flow_service is None:
+        flow_service = StrategyIdeaFlowService()
+    else:
+        flow_service = strategy_flow_service
     
     try:
         # Create strategy idea (defaults to untrusted)

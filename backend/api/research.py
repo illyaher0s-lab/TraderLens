@@ -103,6 +103,8 @@ def create_research_app(
     market_data_provider=None,
     allow_test_serenity_runner: bool = False,
     stock_resolver_fixture: dict | None = None,
+    stock_resolver_override=None,  # New: for test injection
+    strategy_flow_service_override=None,  # New: for test injection
 ) -> FastAPI:
     """
     Create Research API app.
@@ -1064,10 +1066,15 @@ def create_research_app(
             # Step 3: Stock Identity Resolution (Tushare verification)
             # Use real Tushare client if available (conversation_mode="real")
             # Or use injected test fixture (deterministic mode)
-            stock_resolver = StockIdentityResolver(
-                tushare_client=validator.tushare_client if conversation_mode == "real" else None,
-                test_fixture=stock_resolver_fixture if conversation_mode == "deterministic" else None,
-            )
+            if stock_resolver_override is not None:
+                # Test injection path
+                stock_resolver = stock_resolver_override
+            else:
+                # Normal path
+                stock_resolver = StockIdentityResolver(
+                    tushare_client=validator.tushare_client if conversation_mode == "real" else None,
+                    test_fixture=stock_resolver_fixture if conversation_mode == "deterministic" else None,
+                )
             
             stock_identity = stock_resolver.resolve(
                 company_name=intent_extraction.extracted_company_name,
@@ -1253,10 +1260,15 @@ def create_research_app(
                 intent_extraction.extracted_company_name = claimed_stock.get("company_name")
             
             # Use real Tushare client or injected test fixture
-            stock_resolver = StockIdentityResolver(
-                tushare_client=validator.tushare_client if conversation_mode == "real" else None,
-                test_fixture=stock_resolver_fixture if conversation_mode == "deterministic" else None,
-            )
+            if stock_resolver_override is not None:
+                # Test injection path
+                stock_resolver = stock_resolver_override
+            else:
+                # Normal path
+                stock_resolver = StockIdentityResolver(
+                    tushare_client=validator.tushare_client if conversation_mode == "real" else None,
+                    test_fixture=stock_resolver_fixture if conversation_mode == "deterministic" else None,
+                )
             
             stock_identity = stock_resolver.resolve(
                 company_name=intent_extraction.extracted_company_name,
@@ -1351,6 +1363,7 @@ def create_research_app(
                 request.message,
                 route_decision,
                 now,
+                strategy_flow_service=strategy_flow_service_override,
             )
         elif workflow_kind == "execution_feedback":
             handler_result = handle_execution_feedback(
