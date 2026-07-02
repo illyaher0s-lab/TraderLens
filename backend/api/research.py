@@ -36,6 +36,16 @@ from backend.services.serenity_stub import SerenityStubRunner
 from backend.services.evidence_light import EvidenceLightRunner
 from contracts.research import ThemeInput, ProposedAction
 
+# P1-1 Route Decision handlers
+from backend.api.workbench_handlers import (
+    handle_friend_stock,
+    handle_strategy_idea,
+    handle_execution_feedback,
+    handle_position_followup,
+    handle_theme_research_deferred,
+    handle_clarification,
+)
+
 
 class CreateThemeRequest(BaseModel):
     theme_name: str
@@ -995,8 +1005,11 @@ def create_research_app(
         """
         Unified agent workbench endpoint.
         
-        Routes natural language to friend-stock or strategy-idea flows
-        without exposing technical parameters.
+        Single-source route decision architecture:
+        - route_decision = router.route(...) is the ONLY裁决源
+        - match route_decision.workflow_kind dispatches to dedicated handlers
+        - response.workflow_type MUST == route_decision.workflow_kind (no override)
+        - Handlers do NOT read session.workflow_kind for business logic
         
         Task 13: Deterministic routing without LLM dependency.
         Persists to agent_workbench DB.
@@ -1004,6 +1017,14 @@ def create_research_app(
         import uuid
         import re
         from datetime import datetime
+        from backend.api.workbench_handlers import (
+            handle_friend_stock,
+            handle_strategy_idea,
+            handle_execution_feedback,
+            handle_position_followup,
+            handle_theme_research_deferred,
+            handle_clarification,
+        )
         
         now = datetime.now()
         
@@ -1055,37 +1076,45 @@ def create_research_app(
             router = WorkbenchWorkflowRouter()
             route_decision = router.route(prescan, intent_extraction, stock_identity)
             
-            # Map route_decision to session state
-            workflow_kind_map = {
-                "friend_stock": WorkflowKind.FRIEND_STOCK,
-                "theme_research": WorkflowKind.FRIEND_STOCK,  # Treat as friend_stock for now
-                "strategy_idea": WorkflowKind.STRATEGY_IDEA,
-                "execution_feedback": WorkflowKind.FRIEND_STOCK,  # Will be handled separately
-                "position_followup": WorkflowKind.FRIEND_STOCK,
-                "review_request": WorkflowKind.FRIEND_STOCK,
-                "unknown": WorkflowKind.UNKNOWN,
-            }
-            
+            # Session title based on route decision
+            if route_decision.workflow_kind == "friend_stock" and stock_identity.status == "verified":
+                session_title = f"{stock_identity.company_name}股票调查"
+            elif route_decision.workflow_kind == "strategy_idea":
+                session_title = "策略想法验证"
+            elif route_decision.workflow_kind == "execution_feedback":
+                session_title = "执行反馈"
+            elif route_decision.workflow_kind == "position_followup":
+                session_title = "持仓跟进"
+            elif route_decision.workflow_kind == "theme_research":
+                session_title = "主题研究"
+            else:
+                session_title = "对话"
+
+            # Map route_decision.workflow_state to WorkflowState enum
             workflow_state_map = {
                 "created": WorkflowState.CREATED,
                 "waiting_for_clarification": WorkflowState.CREATED,
                 "stopped": WorkflowState.STOPPED,
             }
-            
-            workflow_kind = workflow_kind_map.get(route_decision.workflow_kind, WorkflowKind.UNKNOWN)
             workflow_state = workflow_state_map.get(route_decision.workflow_state, WorkflowState.CREATED)
             
-            # Session title based on workflow
-            if workflow_kind == WorkflowKind.FRIEND_STOCK and stock_identity.status == "verified":
-                session_title = f"{stock_identity.company_name}股票调查"
-            elif workflow_kind == WorkflowKind.STRATEGY_IDEA:
-                session_title = "策略想法验证"
-            else:
-                session_title = "未知会话"
+            # Store route_decision.workflow_kind in session for DB persistence ONLY
+            # Business logic MUST use route_decision.workflow_kind, NOT session.workflow_kind
+            # Map to WorkflowKind enum for DB type safety
+            workflow_kind_for_db_map = {
+                "friend_stock": WorkflowKind.FRIEND_STOCK,
+                "strategy_idea": WorkflowKind.STRATEGY_IDEA,
+                "execution_feedback": WorkflowKind.FRIEND_STOCK,  # DB doesn't have EXECUTION_FEEDBACK enum yet
+                "position_followup": WorkflowKind.FRIEND_STOCK,  # DB doesn't have POSITION_FOLLOWUP enum yet
+                "theme_research": WorkflowKind.FRIEND_STOCK,  # DB doesn't have THEME_RESEARCH enum yet
+                "unknown": WorkflowKind.UNKNOWN,
+                "clarification": WorkflowKind.UNKNOWN,
+            }
+            workflow_kind_for_db = workflow_kind_for_db_map.get(route_decision.workflow_kind, WorkflowKind.UNKNOWN)
 
             session = AgentSession(
                 session_id=conversation_id,
-                workflow_kind=workflow_kind,
+                workflow_kind=workflow_kind_for_db,
                 workflow_state=workflow_state,
                 title=session_title,
                 created_at=now,
@@ -1255,420 +1284,80 @@ def create_research_app(
         )
         append_message(db.conn, user_message)
         
-        # Generate agent reply based on workflow
-        workflow_type = session.workflow_kind.value
+        # Single-source route decision dispatch to handlers
+        # CRITICAL: response.workflow_type MUST == route_decision.workflow_kind (no override)
+        if not session_exists:
+            # New session - use route_decision to dispatch
+            workflow_kind = route_decision.workflow_kind
+            
+            # Dispatch to handler based on route_decision.workflow_kind (ONLY裁决源)
+            if workflow_kind == "friend_stock":
+                handler_result = handle_friend_stock(
+                    db.conn,
+                    conversation_id,
+                    request.message,
+                    stock_identity,
+                    route_decision,
+                    now,
+                )
+            elif workflow_kind == "strategy_idea":
+                handler_result = handle_strategy_idea(
+                    db.conn,
+                    conversation_id,
+                    request.message,
+                    route_decision,
+                    now,
+                )
+            elif workflow_kind == "execution_feedback":
+                handler_result = handle_execution_feedback(
+                    db.conn,
+                    conversation_id,
+                    request.message,
+                    stock_identity,
+                    route_decision,
+                    now,
+                )
+            elif workflow_kind == "position_followup":
+                handler_result = handle_position_followup(
+                    db.conn,
+                    conversation_id,
+                    request.message,
+                    stock_identity,
+                    route_decision,
+                    now,
+                )
+            elif workflow_kind == "theme_research":
+                handler_result = handle_theme_research_deferred(
+                    db.conn,
+                    conversation_id,
+                    request.message,
+                    route_decision,
+                    now,
+                )
+            else:  # unknown, clarification, or any other
+                handler_result = handle_clarification(
+                    db.conn,
+                    conversation_id,
+                    request.message,
+                    route_decision,
+                    now,
+                )
+            
+            agent_reply = handler_result.agent_reply
+            artifact_ids = handler_result.artifact_ids
+            next_required_user_action = handler_result.next_required_user_action or route_decision.next_required_user_action
+        else:
+            # Existing session - for now, use simple continuation logic
+            # TODO: implement existing session handler with context
+            agent_reply = "继续对话功能开发中。"
+            artifact_ids = []
+            next_required_user_action = "provide_more_context"
+            workflow_kind = route_decision.workflow_kind  # Still use route_decision
+        
+        # CRITICAL: workflow_type MUST == route_decision.workflow_kind (no session.workflow_kind override)
+        workflow_type = workflow_kind
         stage = session.workflow_state.value
         approval_card = None
-        artifact_ids = []
-        
-        # Task 20A: Use route_decision from pipeline
-        if not session_exists:
-            next_required_user_action = route_decision.next_required_user_action
-        else:
-            next_required_user_action = "provide_more_context"
-        
-        if session.workflow_kind == WorkflowKind.FRIEND_STOCK:
-            # Special handling for execution_feedback (routed to FRIEND_STOCK but needs different logic)
-            if not session_exists and route_decision.workflow_kind == "execution_feedback":
-                # Execution feedback without stock identity → clarification
-                # User says "已买入100股" but we don't know which stock
-                # Need to check if there's a pending approval or recent research
-                
-                # For now, since we have no approval/position context, always clarify
-                agent_reply = "我没有建议你买入任何股票。请告诉我这是哪只股票的交易？（提供股票代码或公司名）"
-                workflow_state = WorkflowState.CREATED
-                next_required_user_action = "clarify_stock_for_execution"
-                
-                # Create verification artifact (not a flow, since we can't verify without stock)
-                verify_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=f"verify_{uuid.uuid4().hex[:8]}",
-                    artifact_type="execution_feedback_clarification",
-                    created_at=now,
-                )
-                attach_artifact_ref(db.conn, verify_artifact)
-                artifact_ids.append(verify_artifact.artifact_id)
-            
-            # Special handling for position_followup (routed to FRIEND_STOCK but needs different logic)
-            elif not session_exists and route_decision.workflow_kind == "position_followup":
-                # Position followup without session context → clarification
-                # User says "今天要不要继续拿" but we don't have position context
-                
-                # Check if there are any open positions (placeholder - position DB not implemented)
-                # For now, always clarify since we have no position context
-                agent_reply = "我没有找到你的持仓记录。请告诉我是哪只股票？"
-                workflow_state = WorkflowState.CREATED
-                next_required_user_action = "clarify_stock_for_followup"
-                
-                # Create clarification artifact
-                clarify_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=f"clarify_{uuid.uuid4().hex[:8]}",
-                    artifact_type="position_followup_clarification",
-                    created_at=now,
-                )
-                attach_artifact_ref(db.conn, clarify_artifact)
-                artifact_ids.append(clarify_artifact.artifact_id)
-            # Task 20A: Use stock_identity from pipeline
-            if not session_exists and stock_identity.status == "verified":
-                # Record workflow action started
-                action_started_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=f"action_started_{uuid.uuid4().hex[:8]}",
-                    artifact_type="workflow_action_started",
-                    created_at=now,
-                )
-                attach_artifact_ref(db.conn, action_started_artifact)
-                
-                # Stock verified - create friend_stock_flow record
-                from backend.services.friend_stock_flow import FriendStockFlowService
-                
-                flow_service = FriendStockFlowService(
-                    validator=validator,
-                    serenity_runner=serenity_runner if conversation_mode == "real" else None,
-                    market_data_provider=None,
-                )
-                
-                # Create flow record
-                flow_id = f"flow_{uuid.uuid4().hex[:12]}"
-                db.store_friend_stock_flow(
-                    flow_id=flow_id,
-                    raw_company_input=stock_identity.company_name,
-                    raw_code_input=stock_identity.ticker,
-                    source_note=f"Workbench conversation {conversation_id}",
-                    ticker_verification_result={
-                        "status": "verified",
-                        "resolved_ticker": stock_identity.ticker,
-                        "resolved_name": stock_identity.company_name,
-                    },
-                )
-                
-                # Create artifact
-                flow_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=flow_id,
-                    artifact_type="friend_stock_flow",
-                    created_at=now,
-                )
-                attach_artifact_ref(db.conn, flow_artifact)
-                artifact_ids.append(flow_id)
-                
-                # Record workflow action completed
-                action_completed_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=f"action_completed_{uuid.uuid4().hex[:8]}",
-                    artifact_type="workflow_action_completed",
-                    created_at=now,
-                )
-                attach_artifact_ref(db.conn, action_completed_artifact)
-                
-                # Attempt research if serenity available
-                if conversation_mode == "real" and serenity_runner and hasattr(serenity_runner, 'run'):
-                    try:
-                        research_output = flow_service.run_industry_research(
-                            ticker=stock_identity.ticker,
-                            company_name=stock_identity.company_name,
-                        )
-                        
-                        # Store research output
-                        db.store_friend_stock_flow(
-                            flow_id=flow_id,
-                            raw_company_input=stock_identity.company_name,
-                            raw_code_input=stock_identity.ticker,
-                            source_note=f"Workbench conversation {conversation_id}",
-                            ticker_verification_result={
-                                "status": "verified",
-                                "resolved_ticker": stock_identity.ticker,
-                                "resolved_name": stock_identity.company_name,
-                            },
-                            research_output=research_output,
-                        )
-                        
-                        agent_reply = f"已完成对 {stock_identity.company_name} ({stock_identity.ticker}) 的调查。\\n\\n研究结果已生成，等待你的审批决定。"
-                        workflow_state = WorkflowState.WAITING_FOR_APPROVAL
-                        next_required_user_action = "review_research_and_approve"
-                    except Exception as e:
-                        agent_reply = f"已识别 {stock_identity.company_name} ({stock_identity.ticker})，但研究执行失败：{str(e)}\\n\\n请稍后重试。"
-                        workflow_state = WorkflowState.STOPPED
-                        next_required_user_action = "retry_later"
-                else:
-                    # No serenity -明确 waiting 状态，不是 fake researching
-                    agent_reply = f"已识别 {stock_identity.company_name} ({stock_identity.ticker})，已创建研究记录（flow_id: {flow_id}）。\\n\\n当前环境未配置研究服务，需要人工介入。"
-                    workflow_state = WorkflowState.STOPPED
-                    next_required_user_action = "configure_research_service"
-            elif not session_exists and stock_identity.status == "ambiguous":
-                # Multiple candidates
-                candidates_text = "\n".join([
-                    f"{i+1}. {c['company_name']} ({c['ticker']})"
-                    for i, c in enumerate(stock_identity.candidates)
-                ])
-                agent_reply = f"找到多个匹配结果：\n{candidates_text}\n\n请明确告诉我是哪一个公司。"
-                workflow_state = WorkflowState.CREATED
-                next_required_user_action = "clarify_company"
-            elif not session_exists and stock_identity.status == "not_found":
-                agent_reply = f"无法识别公司或股票代码。\n\n{stock_identity.fault_reason}\n\n请提供更明确的公司名称或完整的股票代码（如 600000.SH）。"
-                workflow_state = WorkflowState.STOPPED
-                next_required_user_action = "provide_clear_company_name"
-            elif not session_exists and stock_identity.status == "data_fault":
-                agent_reply = f"数据源故障：{stock_identity.fault_reason}\n\n无法确认股票身份，请稍后重试。"
-                workflow_state = WorkflowState.STOPPED
-                next_required_user_action = "retry_later"
-            elif not session_exists and stock_identity.status == "unsupported_exchange":
-                agent_reply = f"{stock_identity.fault_reason}\n\n请提供上交所或深交所的股票。"
-                workflow_state = WorkflowState.STOPPED
-                next_required_user_action = "provide_supported_exchange"
-            else:
-                # Existing session or other cases - use old flow
-                # Task 21: Orchestrate friend-stock flow (fix P0-1)
-                # Task 24A: Extract ticker and company from natural language
-                from backend.services.friend_stock_flow import (
-                    FriendStockFlowService,
-                    extract_ticker_and_company_from_natural_language,
-                )
-                
-                # Extract ticker and company name from user input
-                raw_code_input, raw_company_input = extract_ticker_and_company_from_natural_language(request.message)
-                
-                # Check for Beijing Stock Exchange (not supported)
-                if raw_code_input and raw_code_input.endswith(".BJ"):
-                    agent_reply = f"识别到北交所代码 {raw_code_input}，当前系统暂不支持北交所股票。\n\n请提供上交所或深交所的股票。"
-                    workflow_state = WorkflowState.STOPPED
-                    next_required_user_action = "provide_supported_exchange"
-                else:
-                    flow_service = FriendStockFlowService(
-                        validator=validator,
-                        serenity_runner=None,
-                        market_data_provider=None,
-                    )
-                
-                try:
-                    verification_result = flow_service.verify_ticker(
-                        raw_company_input=raw_company_input or "",
-                        raw_code_input=raw_code_input,
-                    )
-                    
-                    # Store flow state in DB
-                    flow_id = verification_result.flow_id
-                    db.store_friend_stock_flow(
-                        flow_id=flow_id,
-                        raw_company_input=raw_company_input or "",
-                        raw_code_input=raw_code_input,
-                        source_note=f"Workbench conversation {conversation_id}",
-                        ticker_verification_result=verification_result.model_dump(mode="json"),
-                    )
-                    
-                    # Create friend_stock_flow artifact
-                    flow_artifact = ArtifactRef(
-                        artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                        session_id=conversation_id,
-                        artifact_id=flow_id,
-                        artifact_type="friend_stock_flow",
-                        created_at=now,
-                    )
-                    attach_artifact_ref(db.conn, flow_artifact)
-                    artifact_ids.append(flow_id)
-                    
-                    # Handle verification result
-                    if verification_result.status == "verified":
-                        # Ticker verified - attempt research if serenity available
-                        if conversation_mode == "real" and serenity_runner and hasattr(serenity_runner, 'run'):
-                            # Attempt research
-                            try:
-                                research_output = flow_service.run_industry_research(
-                                    ticker=verification_result.resolved_ticker,
-                                    company_name=verification_result.resolved_name,
-                                )
-                                
-                                # Store research output
-                                db.store_friend_stock_flow(
-                                    flow_id=flow_id,
-                                    raw_company_input=raw_company_input or "",
-                                    raw_code_input=raw_code_input,
-                                    source_note=f"Workbench conversation {conversation_id}",
-                                    ticker_verification_result=verification_result.model_dump(mode="json"),
-                                    research_output=research_output,
-                                )
-                                
-                                # Create research_report artifact
-                                research_artifact = ArtifactRef(
-                                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                                    session_id=conversation_id,
-                                    artifact_id=f"research_{flow_id}",
-                                    artifact_type="research_report",
-                                    created_at=now,
-                                )
-                                attach_artifact_ref(db.conn, research_artifact)
-                                artifact_ids.append(f"research_{flow_id}")
-                                
-                                agent_reply = f"已完成对 {verification_result.resolved_name} ({verification_result.resolved_ticker}) 的调查。\n\n研究结果已生成，等待你的审批决定。"
-                                workflow_state = WorkflowState.WAITING_FOR_APPROVAL
-                                next_required_user_action = "review_research_and_approve"
-                                
-                            except Exception as e:
-                                # Research failed
-                                agent_reply = f"已识别 {verification_result.resolved_name} ({verification_result.resolved_ticker})，但研究执行失败：{str(e)}\n\n请稍后重试或手动调用研究流程。"
-                                workflow_state = WorkflowState.STOPPED
-                                next_required_user_action = "retry_or_manual_research"
-                        else:
-                            # No serenity runner - mark as waiting
-                            agent_reply = f"已识别 {verification_result.resolved_name} ({verification_result.resolved_ticker})。\n\n当前环境未配置研究服务，需要人工介入或配置 Serenity runner。"
-                            workflow_state = WorkflowState.STOPPED
-                            next_required_user_action = "configure_research_service"
-                    
-                    elif verification_result.status == "ambiguous":
-                        # Multiple candidates - need user clarification
-                        candidates_text = "\n".join([
-                            f"{i+1}. {c['name']} ({c['ticker']})"
-                            for i, c in enumerate(verification_result.candidates)
-                        ])
-                        agent_reply = f"找到多个匹配结果：\n{candidates_text}\n\n请明确告诉我是哪一个公司。"
-                        workflow_state = WorkflowState.CREATED
-                        next_required_user_action = "clarify_company"
-                    
-                    else:
-                        # Verification failed
-                        agent_reply = f"无法识别公司或股票代码：{request.message}\n\n请提供更明确的公司名称或完整的股票代码（如 600000.SH）。"
-                        workflow_state = WorkflowState.STOPPED
-                        next_required_user_action = "provide_clear_company_name"
-                    
-                except Exception as e:
-                    # Intake failed
-                    agent_reply = f"处理失败：{str(e)}\n\n请检查输入格式或稍后重试。"
-                    workflow_state = WorkflowState.STOPPED
-                    next_required_user_action = "retry_with_clear_input"
-            
-        elif session.workflow_kind == WorkflowKind.STRATEGY_IDEA:
-            # Task 22: Orchestrate strategy-idea flow (fix P0-2)
-            from backend.services.strategy_idea_flow import StrategyIdeaFlowService
-            
-            # Record workflow action started
-            action_started_artifact = ArtifactRef(
-                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                session_id=conversation_id,
-                artifact_id=f"action_started_{uuid.uuid4().hex[:8]}",
-                artifact_type="workflow_action_started",
-                created_at=now,
-            )
-            attach_artifact_ref(db.conn, action_started_artifact)
-            
-            flow_service = StrategyIdeaFlowService()
-            
-            try:
-                # Create strategy idea (defaults to untrusted)
-                idea = flow_service.create_idea(
-                    raw_source_text=request.message,
-                    source_channel="workbench",
-                )
-                
-                # Create strategy_idea artifact
-                idea_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=idea.idea_id,
-                    artifact_type="strategy_idea",
-                    created_at=now,
-                )
-                attach_artifact_ref(db.conn, idea_artifact)
-                artifact_ids.append(idea.idea_id)
-                
-                # Extract claims (LLM-assisted or deterministic fallback)
-                extraction = flow_service.extract_claims(idea)
-                
-                # Create extraction artifact
-                extraction_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=extraction.extraction_id,
-                    artifact_type="strategy_idea_extraction",
-                    created_at=now,
-                )
-                attach_artifact_ref(db.conn, extraction_artifact)
-                artifact_ids.append(extraction.extraction_id)
-                
-                # Template mapping (deterministic - check if any approved templates exist)
-                # For now, no approved templates exist, so map to no_template_fit
-                mapping = flow_service.map_to_template(
-                    idea=idea,
-                    matched_template_id=None,
-                    template_version=None,
-                    mapping_reason="当前系统暂无已批准模板库。策略想法已记录，但不可用于实盘交易。",
-                )
-                
-                # Create mapping artifact
-                mapping_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=mapping.mapping_id,
-                    artifact_type="template_mapping",
-                    created_at=now,
-                )
-                attach_artifact_ref(db.conn, mapping_artifact)
-                artifact_ids.append(mapping.mapping_id)
-                
-                # Since no template fit, create rejected entry
-                rejected_entry = flow_service.reject_idea(
-                    idea=idea,
-                    reason="无已批准模板匹配，无法进入策略库",
-                )
-                
-                # Create rejection artifact
-                rejection_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=rejected_entry["idea_id"],
-                    artifact_type="rejected_strategy",
-                    created_at=now,
-                )
-                attach_artifact_ref(db.conn, rejection_artifact)
-                artifact_ids.append(rejected_entry["idea_id"] + "_rejected")
-                
-                # Record workflow action completed
-                action_completed_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=f"action_completed_{uuid.uuid4().hex[:8]}",
-                    artifact_type="workflow_action_completed",
-                    created_at=now,
-                )
-                attach_artifact_ref(db.conn, action_completed_artifact)
-                
-                # Set response
-                agent_reply = f"已提取策略想法：\n\n入场条件：{extraction.claimed_entry}\n出场条件：{extraction.claimed_exit}\n\n{mapping.mapping_reason}\n\n该策略想法已记录到拒绝注册表，不会生成交易信号。"
-                workflow_state = WorkflowState.STOPPED
-                next_required_user_action = "acknowledged_rejection"
-                
-            except Exception as e:
-                # Record workflow action failed
-                action_failed_artifact = ArtifactRef(
-                    artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-                    session_id=conversation_id,
-                    artifact_id=f"action_failed_{uuid.uuid4().hex[:8]}",
-                    artifact_type="workflow_action_failed",
-                    created_at=now,
-                )
-                attach_artifact_ref(db.conn, action_failed_artifact)
-                
-                # Extraction or mapping failed
-                agent_reply = f"处理策略想法失败：{str(e)}\n\n请检查描述是否完整或稍后重试。"
-                workflow_state = WorkflowState.STOPPED
-                next_required_user_action = "retry_with_clear_description"
-            
-        elif session.workflow_kind == WorkflowKind.UNKNOWN:
-            workflow_type = "unknown"
-            agent_reply = "你好，我可以帮你：\n1. 调查朋友推荐的股票（告诉我公司名或股票代码）\n2. 验证抖音/视频看到的交易策略\n\n请告诉我你想做什么？"
-            workflow_state = WorkflowState.CREATED  # Keep state as created
-            next_required_user_action = "clarify_intent"
-        else:
-            # Fallback for any other workflow kinds
-            agent_reply = "正在处理您的请求，请稍候。"
-            workflow_state = WorkflowState.CREATED
-            next_required_user_action = "provide_more_context"
-        
         # Store agent message
         agent_message_id = f"msg_{uuid.uuid4().hex[:12]}"
         agent_message = AgentMessage(
