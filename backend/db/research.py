@@ -254,10 +254,14 @@ class ResearchDB:
                 source_note TEXT,
                 ticker_verification_result TEXT,
                 research_output TEXT,
+                status TEXT NOT NULL DEFAULT 'waiting',
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
             )
         """)
+
+        # Schema migration: add status column to friend_stock_flows if not exists
+        self._ensure_column("friend_stock_flows", "status", "TEXT NOT NULL DEFAULT 'waiting'")
 
         self.conn.commit()
 

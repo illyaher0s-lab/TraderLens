@@ -5,6 +5,7 @@ Each handler receives route_decision and pipeline artifacts, returns agent_reply
 Handlers do NOT read session.workflow_kind for business logic - only route_decision.workflow_kind.
 """
 
+import json
 import uuid
 from datetime import datetime
 from typing import Tuple
@@ -64,6 +65,23 @@ def handle_friend_stock(
     )
     attach_artifact_ref(db_conn, action_started_artifact)
     
+    # Check if serenity_runner is configured
+    # If not configured, status = waiting (not fake researching)
+    if serenity_runner is None:
+        flow_status = "waiting"
+        agent_reply_suffix = "研究服务未配置，已记录为待研究。"
+    else:
+        # Check if it's a stub runner
+        from backend.services.serenity_stub import SerenityStubRunner
+        if isinstance(serenity_runner, SerenityStubRunner):
+            flow_status = "waiting"
+            agent_reply_suffix = "当前为测试模式，已记录为待研究。"
+        else:
+            # Real runner available - can start research
+            # For now, still mark as waiting until we implement job dispatch
+            flow_status = "waiting"
+            agent_reply_suffix = "已创建研究记录，等待研究服务启动。"
+    
     # Create friend_stock_flow record directly in DB
     # Service is used for complex orchestration (verify_ticker, run_industry_research, etc.)
     # For workbench, we only need to record the flow entry
@@ -82,8 +100,8 @@ def handle_friend_stock(
     cursor.execute("""
         INSERT INTO friend_stock_flows
         (flow_id, raw_company_input, raw_code_input, source_note,
-         ticker_verification_result, research_output, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ticker_verification_result, research_output, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         flow_id,
         stock_identity.company_name,
@@ -91,6 +109,7 @@ def handle_friend_stock(
         f"workbench: {user_message}",
         None,  # No ticker verification needed (already verified by stock_identity)
         None,  # No research output yet
+        flow_status,  # waiting (not fake researching)
         now_iso,
         now_iso,
     ))
@@ -117,7 +136,7 @@ def handle_friend_stock(
     )
     attach_artifact_ref(db_conn, action_completed_artifact)
     
-    agent_reply = f"已识别 {stock_identity.company_name} ({stock_identity.ticker})，已创建调研记录。{flow_id}"
+    agent_reply = f"已识别 {stock_identity.company_name} ({stock_identity.ticker})。{agent_reply_suffix} 研究ID: {flow_id}"
     
     return HandlerResult(
         agent_reply=agent_reply,
@@ -169,6 +188,14 @@ def handle_strategy_idea(
         artifact_ids.append(idea.idea_id)
         
         extraction_result = flow_service.extract_claims(idea)
+        extraction_content = json.dumps({
+            "extraction_id": extraction_result.extraction_id,
+            "idea_id": extraction_result.idea_id,
+            "claimed_entry": extraction_result.claimed_entry,
+            "claimed_exit": extraction_result.claimed_exit,
+            "claimed_edge": extraction_result.claimed_edge,
+            "extraction_source": extraction_result.extraction_source,
+        })
         extraction_artifact = ArtifactRef(
             artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
             session_id=conversation_id,
@@ -176,7 +203,7 @@ def handle_strategy_idea(
             artifact_type="strategy_idea_extraction",
             created_at=now,
         )
-        attach_artifact_ref(db_conn, extraction_artifact)
+        attach_artifact_ref(db_conn, extraction_artifact, content=extraction_content)
         artifact_ids.append(extraction_result.extraction_id)
 
         mapping_result = flow_service.map_to_template(
@@ -185,6 +212,15 @@ def handle_strategy_idea(
             template_version=None,
             mapping_reason="当前系统暂无已批准模板库。",
         )
+        mapping_content = json.dumps({
+            "mapping_id": mapping_result.mapping_id,
+            "idea_id": mapping_result.idea_id,
+            "path_type": mapping_result.path_type,
+            "matched_template_id": mapping_result.matched_template_id,
+            "template_version": mapping_result.template_version,
+            "mapping_reason": mapping_result.mapping_reason,
+            "live_eligible": mapping_result.live_eligible,
+        })
         mapping_artifact = ArtifactRef(
             artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
             session_id=conversation_id,
@@ -192,7 +228,7 @@ def handle_strategy_idea(
             artifact_type="strategy_template_mapping",
             created_at=now,
         )
-        attach_artifact_ref(db_conn, mapping_artifact)
+        attach_artifact_ref(db_conn, mapping_artifact, content=mapping_content)
         artifact_ids.append(mapping_result.mapping_id)
 
         rejected_entry = flow_service.reject_idea(
@@ -200,6 +236,11 @@ def handle_strategy_idea(
             reason="no_approved_template",
         )
         rejection_artifact_id = f"{rejected_entry['idea_id']}_rejected"
+        # Convert datetime to ISO string for JSON serialization
+        rejection_content_dict = rejected_entry.copy()
+        if 'rejected_at' in rejection_content_dict and hasattr(rejection_content_dict['rejected_at'], 'isoformat'):
+            rejection_content_dict['rejected_at'] = rejection_content_dict['rejected_at'].isoformat()
+        rejection_content = json.dumps(rejection_content_dict)
         rejection_artifact = ArtifactRef(
             artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
             session_id=conversation_id,
@@ -207,7 +248,7 @@ def handle_strategy_idea(
             artifact_type="strategy_idea_rejected",
             created_at=now,
         )
-        attach_artifact_ref(db_conn, rejection_artifact)
+        attach_artifact_ref(db_conn, rejection_artifact, content=rejection_content)
         artifact_ids.append(rejection_artifact_id)
 
         action_completed_artifact = ArtifactRef(
