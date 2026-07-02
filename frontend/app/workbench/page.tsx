@@ -78,19 +78,32 @@ export default function WorkbenchPage() {
   };
 
   const managePolling = (timelineData: any[]) => {
-    // Check if there's a running job (action_started without completed/failed)
+    // Check if there's a real running job_id in timeline
+    // P1-2 implementation: no job_id, so friend_stock waiting should NOT poll
+    
     const artifacts = timelineData.filter((t: any) => t.type === 'artifact_ref');
     
-    const hasActionStarted = artifacts.some((a: any) => 
-      a.content.artifact_type === 'workflow_action_started'
-    );
+    // Look for artifacts that contain job_id (real running jobs)
+    let hasRunningJob = false;
     
-    const hasActionEnded = artifacts.some((a: any) => 
-      a.content.artifact_type === 'workflow_action_completed' ||
-      a.content.artifact_type === 'workflow_action_failed'
-    );
+    for (const artifact of artifacts) {
+      if (artifact.content.artifact_content) {
+        try {
+          const data = JSON.parse(artifact.content.artifact_content);
+          // Check if there's a job_id field indicating a real running job
+          if (data.job_id && data.job_status === 'running') {
+            hasRunningJob = true;
+            break;
+          }
+        } catch (e) {
+          // Ignore parse errors
+        }
+      }
+    }
     
-    const hasRunningJob = hasActionStarted && !hasActionEnded;
+    // P1-2 current state: no job dispatch implemented
+    // workflow_action_started alone does NOT trigger polling
+    // Only real job_id with running status triggers polling
     
     if (hasRunningJob && !pollingIntervalRef.current) {
       // Start polling

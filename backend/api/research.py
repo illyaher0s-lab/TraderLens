@@ -1973,3 +1973,6 @@ def create_research_app(
         }
 
     return app
+
+# Default app instance for uvicorn
+app = create_research_app()

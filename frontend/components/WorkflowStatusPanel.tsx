@@ -2,6 +2,7 @@
  * Workflow Status Panel - P1-3 状态诚实化
  * 
  * 从 timeline artifacts 推导真实状态，不自造状态机
+ * 只使用业务状态 artifacts，忽略 user_message/agent_message/workflow_intent
  */
 
 "use client";
@@ -16,8 +17,13 @@ interface WorkflowStatusPanelProps {
 }
 
 function deriveStatusFromTimeline(timeline: TimelineItem[]) {
-  // Find all artifact_refs
-  const artifacts = timeline.filter(t => t.type === 'artifact_ref');
+  // Filter to business artifacts only (ignore messages and workflow_intent)
+  const artifacts = timeline.filter(t => 
+    t.type === 'artifact_ref' && 
+    t.content.artifact_type !== 'user_message' &&
+    t.content.artifact_type !== 'agent_message' &&
+    t.content.artifact_type !== 'workflow_intent'
+  );
   
   if (artifacts.length === 0) {
     return {
@@ -29,7 +35,7 @@ function deriveStatusFromTimeline(timeline: TimelineItem[]) {
     };
   }
   
-  // Get last artifact
+  // Get last business artifact
   const lastArtifact = artifacts[artifacts.length - 1];
   const artifactType = lastArtifact.content.artifact_type;
   
@@ -60,7 +66,7 @@ function deriveStatusFromTimeline(timeline: TimelineItem[]) {
     } catch (e) {}
   }
   
-  // Derive status from last artifact type
+  // Derive status from last business artifact type
   if (artifactType === 'workflow_action_failed') {
     return {
       status: 'failed',
@@ -72,6 +78,28 @@ function deriveStatusFromTimeline(timeline: TimelineItem[]) {
   }
   
   if (artifactType === 'workflow_action_completed') {
+    // Handler action completed (not research completed)
+    // Check what workflow it was
+    if (workflowKind === 'friend_stock') {
+      // Friend stock flow created, but research not started
+      return {
+        status: 'waiting',
+        statusText: '等待中',
+        lastAction: '创建研究记录',
+        currentObject: stockName,
+        nextWaitingFor: '等待研究服务配置',
+      };
+    } else if (workflowKind === 'strategy_idea') {
+      // Strategy idea rejected/completed
+      return {
+        status: 'completed',
+        statusText: '完成',
+        lastAction: '策略想法评估',
+        currentObject: '策略想法',
+        nextWaitingFor: null,
+      };
+    }
+    
     return {
       status: 'completed',
       statusText: '完成',
@@ -82,20 +110,13 @@ function deriveStatusFromTimeline(timeline: TimelineItem[]) {
   }
   
   if (artifactType === 'friend_stock_flow') {
-    // Check if there's a completed after this
-    const hasCompleted = artifacts.some((a, idx) => 
-      idx > artifacts.indexOf(lastArtifact) && 
-      a.content.artifact_type === 'workflow_action_completed'
-    );
-    
-    if (hasCompleted) {
-      return {
-        status: 'completed',
-        statusText: '完成',
-        lastAction: '创建研究记录',
-        currentObject: stockName,
-        nextWaitingFor: null,
-      };
+    // Read flow status from artifact_content
+    let flowStatus = 'waiting';
+    if (lastArtifact.content.artifact_content) {
+      try {
+        const flowData = JSON.parse(lastArtifact.content.artifact_content);
+        flowStatus = flowData.status || 'waiting';
+      } catch (e) {}
     }
     
     return {
@@ -103,7 +124,7 @@ function deriveStatusFromTimeline(timeline: TimelineItem[]) {
       statusText: '等待中',
       lastAction: '创建研究记录',
       currentObject: stockName,
-      nextWaitingFor: '等待研究服务配置',
+      nextWaitingFor: flowStatus === 'waiting' ? '等待研究服务配置' : '处理中',
     };
   }
   
