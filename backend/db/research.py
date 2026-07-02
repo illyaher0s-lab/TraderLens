@@ -1070,6 +1070,7 @@ class ResearchDB:
             "source_note": row["source_note"],
             "ticker_verification_result": json.loads(row["ticker_verification_result"]) if row["ticker_verification_result"] else None,
             "research_output": json.loads(row["research_output"]) if row["research_output"] else None,
+            "status": row["status"],
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],
         }
