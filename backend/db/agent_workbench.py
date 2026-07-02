@@ -78,6 +78,7 @@ def init_agent_workbench_db(conn: sqlite3.Connection):
             session_id TEXT NOT NULL,
             artifact_id TEXT NOT NULL,
             artifact_type TEXT NOT NULL,
+            content TEXT,
             created_at TEXT NOT NULL,
             FOREIGN KEY (session_id) REFERENCES agent_sessions(session_id)
         )
@@ -93,6 +94,12 @@ def init_agent_workbench_db(conn: sqlite3.Connection):
             FOREIGN KEY (session_id) REFERENCES agent_sessions(session_id)
         )
     """)
+
+    # Schema migration: add content column if not exists
+    cursor.execute("PRAGMA table_info(agent_artifact_refs)")
+    columns = [row[1] for row in cursor.fetchall()]
+    if 'content' not in columns:
+        cursor.execute("ALTER TABLE agent_artifact_refs ADD COLUMN content TEXT")
 
     conn.commit()
 
@@ -260,27 +267,29 @@ def list_messages(conn: sqlite3.Connection, session_id: str) -> list[AgentMessag
     ]
 
 
-def attach_artifact_ref(conn: sqlite3.Connection, artifact_ref: ArtifactRef):
+def attach_artifact_ref(conn: sqlite3.Connection, artifact_ref: ArtifactRef, content: str | None = None):
     """
     Attach artifact reference to session.
 
     Args:
         conn: SQLite connection
         artifact_ref: ArtifactRef to attach
+        content: Optional JSON content for the artifact
     """
     cursor = conn.cursor()
 
     # Insert into artifact_refs table
     cursor.execute(
         """
-        INSERT INTO agent_artifact_refs (artifact_ref_id, session_id, artifact_id, artifact_type, created_at)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO agent_artifact_refs (artifact_ref_id, session_id, artifact_id, artifact_type, content, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
         (
             artifact_ref.artifact_ref_id,
             artifact_ref.session_id,
             artifact_ref.artifact_id,
             artifact_ref.artifact_type,
+            content,
             artifact_ref.created_at.isoformat(),
         ),
     )
@@ -338,6 +347,35 @@ def list_artifact_refs(conn: sqlite3.Connection, session_id: str) -> list[Artifa
         )
         for row in rows
     ]
+
+
+def get_artifact_content(conn: sqlite3.Connection, session_id: str, artifact_type: str) -> str | None:
+    """
+    Get artifact content by session_id and artifact_type.
+    
+    Args:
+        conn: SQLite connection
+        session_id: Session ID
+        artifact_type: Artifact type (e.g., 'workflow_route_decision')
+    
+    Returns:
+        JSON content string or None if not found
+    """
+    cursor = conn.cursor()
+    
+    cursor.execute(
+        """
+        SELECT content
+        FROM agent_artifact_refs
+        WHERE session_id = ? AND artifact_type = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        (session_id, artifact_type),
+    )
+    
+    row = cursor.fetchone()
+    return row[0] if row else None
 
 
 def attach_approval_card(

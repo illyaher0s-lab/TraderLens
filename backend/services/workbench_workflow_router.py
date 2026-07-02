@@ -50,6 +50,7 @@ class WorkbenchWorkflowRouter:
         prescan: WorkbenchPreScan,
         intent_extraction: WorkbenchIntentExtraction,
         stock_identity: StockIdentityResolution,
+        open_positions: list = None,
     ) -> WorkbenchRouteDecision:
         """
         Make final workflow routing decision.
@@ -129,12 +130,22 @@ class WorkbenchWorkflowRouter:
         
         # Rule 4: Position followup
         if intent_extraction.primary_intent == "position_followup":
+            # Check if user has open positions
+            if not open_positions or len(open_positions) == 0:
+                # No open positions - cannot follow up
+                return WorkbenchRouteDecision(
+                    workflow_kind="unknown",
+                    workflow_state="created",
+                    route_reason="检测到持仓跟进请求，但当前无持仓",
+                    next_required_user_action="clarify_intent_or_provide_context",
+                    allowed_to_start_workflow=False,
+                )
             return WorkbenchRouteDecision(
                 workflow_kind="position_followup",
                 workflow_state="created",
-                route_reason="检测到持仓跟进请求，需要 session context",
+                route_reason="检测到持仓跟进请求",
                 next_required_user_action="provide_context_or_clarify",
-                allowed_to_start_workflow=False,
+                allowed_to_start_workflow=True,
             )
         
         # Rule 5: Strategy rule shape -> strategy_idea

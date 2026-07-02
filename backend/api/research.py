@@ -25,6 +25,7 @@ Key rules:
 """
 
 from datetime import date, datetime
+import json
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -1074,7 +1075,8 @@ def create_research_app(
             
             # Step 4: Deterministic Workflow Router (final decision)
             router = WorkbenchWorkflowRouter()
-            route_decision = router.route(prescan, intent_extraction, stock_identity)
+            # New session has no open positions
+            route_decision = router.route(prescan, intent_extraction, stock_identity, open_positions=[])
             
             # Session title based on route decision
             if route_decision.workflow_kind == "friend_stock" and stock_identity.status == "verified":
@@ -1172,7 +1174,14 @@ def create_research_app(
                 artifact_type="workflow_route_decision",
                 created_at=now,
             )
-            attach_artifact_ref(db.conn, route_artifact)
+            route_decision_content = json.dumps({
+                "workflow_kind": route_decision.workflow_kind,
+                "workflow_state": route_decision.workflow_state,
+                "route_reason": route_decision.route_reason,
+                "next_required_user_action": route_decision.next_required_user_action,
+                "allowed_to_start_workflow": route_decision.allowed_to_start_workflow,
+            })
+            attach_artifact_ref(db.conn, route_artifact, content=route_decision_content)
         else:
             # Existing session - load session context and run pipeline
             session = get_session(db.conn, conversation_id)
@@ -1229,7 +1238,7 @@ def create_research_app(
             )
             
             router = WorkbenchWorkflowRouter()
-            route_decision = router.route(prescan, intent_extraction, stock_identity)
+            route_decision = router.route(prescan, intent_extraction, stock_identity, open_positions=open_positions)
             
             # Record activity artifacts for existing session
             # Artifact 1: PreScan result
@@ -1271,7 +1280,14 @@ def create_research_app(
                 artifact_type="workflow_route_decision",
                 created_at=now,
             )
-            attach_artifact_ref(db.conn, route_artifact)
+            route_decision_content = json.dumps({
+                "workflow_kind": route_decision.workflow_kind,
+                "workflow_state": route_decision.workflow_state,
+                "route_reason": route_decision.route_reason,
+                "next_required_user_action": route_decision.next_required_user_action,
+                "allowed_to_start_workflow": route_decision.allowed_to_start_workflow,
+            })
+            attach_artifact_ref(db.conn, route_artifact, content=route_decision_content)
         
         # Store user message
         user_message_id = f"msg_{uuid.uuid4().hex[:12]}"
