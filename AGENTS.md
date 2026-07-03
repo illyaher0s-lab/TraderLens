@@ -1,4 +1,4 @@
-# JudgmentOS - Agent Working Rules
+# Agent Working Rules
 
 **Last Updated**: 2026-06-12  
 **Purpose**: 强制执行的代码修改和调试规范，防止低质量修复和隐性 bug。

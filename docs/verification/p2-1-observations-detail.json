@@ -1,0 +1,36 @@
+{
+  "comment": "p2-1-observations-detail.json - Position detail API 示例",
+  "note": "当前数据库为空，无法获取真实 detail 响应。此文件为 API 格式参考。",
+  "expected_structure": {
+    "position": {
+      "position_id": "pos_xxx",
+      "symbol": "603002",
+      "name": "宏昌电子",
+      "entry_price": 12.34,
+      "quantity": 100,
+      "entry_thesis": "朋友推荐，半导体行业景气",
+      "lifecycle_state": "open",
+      "opened_at": "2026-07-03T10:00:00",
+      "closed_at": null,
+      "template_id": "template_xxx",
+      "template_version": "v1",
+      "source_log_id": "log_xxx",
+      "execution_card_id": "card_xxx",
+      "signal_id": "sig_xxx",
+      "action_plan_id": "plan_xxx",
+      "capital_context_id": "ctx_xxx"
+    },
+    "daily_signals": [
+      {
+        "signal_record_id": "sig_record_xxx",
+        "signal_type": "hold",
+        "as_of_date": "2026-07-03",
+        "market_data_state": "ok",
+        "plain_explanation": "持有，未触发止损或失效条件",
+        "triggered_invalidations": [],
+        "explanation_source": "template_text"
+      }
+    ]
+  },
+  "data_state_note": "market_data_state 是合同层字段名，对应前端的 data_state 判断逻辑"
+}
