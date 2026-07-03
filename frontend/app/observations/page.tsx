@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-type MarketDataState = "ok" | "insufficient" | "fault";
+type MarketDataState = "ok" | "unavailable" | "partial" | "stale" | "inconsistent" | "source_error" | "adapter_unsupported";
 type SignalType = "hold" | "sell" | "risk" | "invalidated";
 type LifecycleState = "open" | "closed";
 
@@ -85,10 +85,10 @@ export default function ObservationsPage() {
     const { signal_type, market_data_state } = signal;
 
     // Data state takes precedence
-    if (market_data_state === "insufficient") {
+    if (market_data_state === "unavailable" || market_data_state === "partial") {
       return <span style={styles.badgeOrange}>数据不足</span>;
     }
-    if (market_data_state === "fault") {
+    if (market_data_state === "source_error" || market_data_state === "inconsistent") {
       return <span style={styles.badgeRed}>数据异常</span>;
     }
 
@@ -120,10 +120,10 @@ export default function ObservationsPage() {
 
     const { signal_type, market_data_state } = pos.latest_signal;
 
-    if (market_data_state === "insufficient") {
+    if (market_data_state === "unavailable" || market_data_state === "partial") {
       return "数据不足，建议暂停操作";
     }
-    if (market_data_state === "fault") {
+    if (market_data_state === "source_error" || market_data_state === "inconsistent") {
       return "数据异常，建议暂停操作";
     }
 

@@ -1,0 +1,40 @@
+{
+  "position": {
+    "position_id": "pos_c38bc821feea",
+    "symbol": "603002",
+    "name": "宏昌电子",
+    "entry_price": 12.34,
+    "quantity": 100,
+    "entry_thesis": "朋友推荐，半导体行业景气",
+    "lifecycle_state": "open",
+    "opened_at": "2026-07-03T14:14:06.172964",
+    "closed_at": null,
+    "template_id": "template_friend_stock_v1",
+    "template_version": "v1",
+    "source_log_id": "log_31efff90ee06",
+    "execution_card_id": "card_a7b2abee4c43",
+    "signal_id": "sig_3ee68e0a90e4",
+    "action_plan_id": "plan_dcfa29cd4bae",
+    "capital_context_id": "ctx_20a25a4414cf"
+  },
+  "daily_signals": [
+    {
+      "signal_record_id": "sig_record_8ad0b3e97091",
+      "signal_type": "hold",
+      "as_of_date": "2026-07-03T00:00:00",
+      "market_data_state": "unavailable",
+      "plain_explanation": "市场数据不足，无法生成可靠信号",
+      "triggered_invalidations": [],
+      "explanation_source": "template_text"
+    },
+    {
+      "signal_record_id": "sig_record_1db107c5a882",
+      "signal_type": "hold",
+      "as_of_date": "2026-07-03T00:00:00",
+      "market_data_state": "ok",
+      "plain_explanation": "持有，未触发止损或失效条件",
+      "triggered_invalidations": [],
+      "explanation_source": "template_text"
+    }
+  ]
+}
