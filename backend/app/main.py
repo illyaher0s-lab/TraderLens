@@ -28,6 +28,10 @@ app.add_middleware(
 app.include_router(signal_board_router)
 app.include_router(observations_router)
 
+# Runtime health
+from backend.api.runtime_health import router as runtime_health_router
+app.include_router(runtime_health_router)
+
 
 @app.on_event("startup")
 def startup() -> None:

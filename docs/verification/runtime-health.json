@@ -1,0 +1,13 @@
+{
+  "status": "ok",
+  "cwd": "D:\\Codex\\TraderLens",
+  "project_root": "D:\\Codex\\TraderLens",
+  "mode": "deterministic",
+  "backend_port": 8010,
+  "api_base_url": "http://localhost:8010",
+  "contracts_import": true,
+  "backend_import": true,
+  "live_trade_db_path": "D:\\Codex\\TraderLens\\data\\live_trade.db",
+  "research_db_path": "D:\\Codex\\TraderLens\\data\\research.db",
+  "signal_board_db_path": "D:\\Codex\\TraderLens\\data\\signal_board.db"
+}

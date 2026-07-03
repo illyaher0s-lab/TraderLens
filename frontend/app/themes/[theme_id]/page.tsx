@@ -63,7 +63,8 @@ export default function ThemeDetailPage() {
 
   async function loadCandidates() {
     try {
-      const response = await fetch(`http://localhost:8000/api/research/themes/${themeId}/candidates`);
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8010";
+      const response = await fetch(`${API_BASE_URL}/api/research/themes/${themeId}/candidates`);
       if (response.ok) {
         const data = await response.json();
         setCandidates(data);
@@ -281,7 +282,8 @@ export default function ThemeDetailPage() {
                     onClick={async () => {
                       try {
                         const candidateIds = candidates.map(c => c.candidate_id);
-                        await fetch("http://localhost:8000/api/research/candidates/run-evidence", {
+                        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8010";
+                        await fetch(`${API_BASE_URL}/api/research/candidates/run-evidence`, {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify(candidateIds),

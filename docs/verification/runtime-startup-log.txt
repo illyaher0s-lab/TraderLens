@@ -1,0 +1,7 @@
+=== P0-RUNTIME-1B Startup Log ===
+
+Backend: http://localhost:8010
+Frontend: http://localhost:3000
+Health: ok
+Console logs: 5
+Network requests: 8
