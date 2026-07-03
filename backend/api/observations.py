@@ -67,7 +67,7 @@ def list_observations(status: Optional[str] = None):
         
         if latest_signal:
             position_dict["latest_signal"] = {
-                "signal_type": latest_signal.signal_type.value,
+                "signal_type": latest_signal.signal_type.value if latest_signal.signal_type else None,
                 "as_of_date": latest_signal.as_of_date.isoformat(),
                 "market_data_state": latest_signal.market_data_state.value,
                 "plain_explanation": latest_signal.plain_explanation,
@@ -115,7 +115,7 @@ def get_observation_detail(position_id: str):
         "daily_signals": [
             {
                 "signal_record_id": sig.signal_record_id,
-                "signal_type": sig.signal_type.value,
+                "signal_type": sig.signal_type.value if sig.signal_type else None,
                 "as_of_date": sig.as_of_date.isoformat(),
                 "market_data_state": sig.market_data_state.value,
                 "plain_explanation": sig.plain_explanation,

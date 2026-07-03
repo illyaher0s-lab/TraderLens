@@ -41,11 +41,11 @@ from contracts.research import ThemeInput, ProposedAction
 from backend.api.workbench_handlers import (
     handle_friend_stock,
     handle_strategy_idea,
-    handle_execution_feedback,
     handle_position_followup,
     handle_theme_research_deferred,
     handle_clarification,
 )
+from backend.api.workbench_execution_feedback import handle_execution_feedback
 from backend.db.agent_workbench import list_messages, list_artifact_refs
 
 
@@ -1020,15 +1020,15 @@ def create_research_app(
         """
         import uuid
         import re
-        from datetime import datetime
+        # Import handlers
         from backend.api.workbench_handlers import (
             handle_friend_stock,
             handle_strategy_idea,
-            handle_execution_feedback,
             handle_position_followup,
             handle_theme_research_deferred,
             handle_clarification,
         )
+        from backend.api.workbench_execution_feedback import handle_execution_feedback
         
         now = datetime.now()
         

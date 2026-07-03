@@ -22,7 +22,7 @@ type SignalType = "hold" | "sell" | "risk" | "invalidated";
 type LifecycleState = "open" | "closed";
 
 interface LatestSignal {
-  signal_type: SignalType;
+  signal_type: SignalType | null;
   as_of_date: string;
   market_data_state: MarketDataState;
   plain_explanation: string | null;
@@ -92,7 +92,11 @@ export default function ObservationsPage() {
       return <span style={styles.badgeRed}>数据异常</span>;
     }
 
-    // Business signal
+    // Business signal (only when data_state === "ok")
+    if (!signal_type) {
+      return <span style={styles.badgeGray}>无业务判断</span>;
+    }
+    
     if (signal_type === "hold") {
       return <span style={styles.badgeGreen}>持有</span>;
     }

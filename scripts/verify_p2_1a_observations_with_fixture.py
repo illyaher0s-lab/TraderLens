@@ -100,10 +100,10 @@ def create_test_position_and_signal():
     signal_insufficient = DailyObservationSignal(
         signal_record_id=signal_insufficient_id,
         position_id=position_id,
-        signal_type=DailySignalType.hold,  # 即使是 hold，也因数据不足不应显示
+        signal_type=None,  # None when market_data_state != ok
         triggered_invalidations=[],
         as_of_date=today,
-        market_data_state=MarketDataFaultState.unavailable,  # 使用 unavailable 表示数据不足
+        market_data_state=MarketDataFaultState.unavailable,
         rule_trace={},
         plain_explanation="市场数据不足，无法生成可靠信号",
         explanation_source=ExplanationSource.template_text,

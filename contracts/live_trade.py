@@ -384,11 +384,13 @@ class DailyObservationSignal(BaseModel, frozen=True, extra="forbid"):
     
     Red line 2: 100% deterministic reducer output, LLM never decides.
     Red line 3: hold signals have zero LLM calls, only sell/risk/invalidated may call LLM once for explanation.
+    
+    Data state rule: When market_data_state != ok, signal_type MUST be None (no business judgment possible).
     """
 
     signal_record_id: str
     position_id: str
-    signal_type: DailySignalType
+    signal_type: Optional[DailySignalType]  # None when market_data_state != ok
     triggered_invalidations: list[InvalidationTrigger]  # Empty for hold
     as_of_date: datetime
     market_data_state: MarketDataFaultState
@@ -397,6 +399,17 @@ class DailyObservationSignal(BaseModel, frozen=True, extra="forbid"):
     # Explanation (only filled for sell/risk/invalidated, empty for hold)
     plain_explanation: Optional[str]
     explanation_source: ExplanationSource
+
+    @model_validator(mode="after")
+    def validate_signal_type_null_when_data_fault(self):
+        """When market_data_state != ok, signal_type must be None."""
+        if self.market_data_state != MarketDataFaultState.ok:
+            if self.signal_type is not None:
+                raise ValueError(
+                    f"signal_type must be None when market_data_state={self.market_data_state.value}, "
+                    f"got {self.signal_type.value}"
+                )
+        return self
 
     @field_validator("triggered_invalidations")
     @classmethod

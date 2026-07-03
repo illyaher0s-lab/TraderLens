@@ -1,14 +1,14 @@
 {
   "positions": [
     {
-      "position_id": "pos_c38bc821feea",
+      "position_id": "pos_286af73ae69a",
       "symbol": "603002",
       "name": "宏昌电子",
       "entry_price": 12.34,
       "quantity": 100,
       "entry_thesis": "朋友推荐，半导体行业景气",
       "lifecycle_state": "open",
-      "opened_at": "2026-07-03T14:14:06.172964",
+      "opened_at": "2026-07-03T14:27:00.721815",
       "closed_at": null,
       "template_id": "template_friend_stock_v1",
       "latest_signal": {
@@ -18,59 +18,7 @@
         "plain_explanation": "持有，未触发止损或失效条件",
         "triggered_invalidations": []
       }
-    },
-    {
-      "position_id": "pos_e6d1d98783a1",
-      "symbol": "603002",
-      "name": "宏昌电子",
-      "entry_price": 12.34,
-      "quantity": 100,
-      "entry_thesis": "朋友推荐，半导体行业景气",
-      "lifecycle_state": "open",
-      "opened_at": "2026-07-03T14:13:13.498220",
-      "closed_at": null,
-      "template_id": "template_friend_stock_v1",
-      "latest_signal": null
-    },
-    {
-      "position_id": "pos_49a93168959b",
-      "symbol": "603002",
-      "name": "宏昌电子",
-      "entry_price": 12.34,
-      "quantity": 100,
-      "entry_thesis": "朋友推荐，半导体行业景气",
-      "lifecycle_state": "open",
-      "opened_at": "2026-07-03T14:12:43.594642",
-      "closed_at": null,
-      "template_id": "template_friend_stock_v1",
-      "latest_signal": null
-    },
-    {
-      "position_id": "pos_f5cac10c1618",
-      "symbol": "603002",
-      "name": "宏昌电子",
-      "entry_price": 12.34,
-      "quantity": 100,
-      "entry_thesis": "朋友推荐，半导体行业景气",
-      "lifecycle_state": "open",
-      "opened_at": "2026-07-03T14:12:27.922214",
-      "closed_at": null,
-      "template_id": "template_friend_stock_v1",
-      "latest_signal": null
-    },
-    {
-      "position_id": "pos_3785d6be7d25",
-      "symbol": "603002",
-      "name": "宏昌电子",
-      "entry_price": 12.34,
-      "quantity": 100,
-      "entry_thesis": "朋友推荐，半导体行业景气",
-      "lifecycle_state": "open",
-      "opened_at": "2026-07-03T14:12:10.329742",
-      "closed_at": null,
-      "template_id": "template_friend_stock_v1",
-      "latest_signal": null
     }
   ],
-  "total": 5
+  "total": 1
 }

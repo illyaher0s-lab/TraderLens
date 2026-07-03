@@ -120,8 +120,8 @@ class LiveTradeDB:
                     capital_context_id TEXT NOT NULL,
                     symbol TEXT NOT NULL,
                     name TEXT NOT NULL,
-                    entry_price REAL NOT NULL CHECK(entry_price > 0),
-                    quantity INTEGER NOT NULL CHECK(quantity > 0),
+                    entry_price REAL NOT NULL,
+                    quantity INTEGER NOT NULL,
                     template_id TEXT NOT NULL,
                     template_version TEXT NOT NULL,
                     entry_thesis TEXT NOT NULL,
@@ -132,13 +132,13 @@ class LiveTradeDB:
                 )
                 """
             )
-
+            
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS daily_observation_signals (
                     signal_record_id TEXT PRIMARY KEY,
                     position_id TEXT NOT NULL,
-                    signal_type TEXT NOT NULL,
+                    signal_type TEXT,
                     triggered_invalidations TEXT NOT NULL,
                     as_of_date TEXT NOT NULL,
                     market_data_state TEXT NOT NULL,
@@ -461,7 +461,7 @@ class LiveTradeDB:
                 (
                     signal.signal_record_id,
                     signal.position_id,
-                    signal.signal_type.value,
+                    signal.signal_type.value if signal.signal_type else None,
                     json.dumps([trigger.value for trigger in signal.triggered_invalidations], ensure_ascii=False),
                     signal.as_of_date.isoformat(),
                     signal.market_data_state.value,
@@ -493,7 +493,7 @@ class LiveTradeDB:
                     DailyObservationSignal(
                         signal_record_id=row["signal_record_id"],
                         position_id=row["position_id"],
-                        signal_type=DailySignalType(row["signal_type"]),
+                        signal_type=DailySignalType(row["signal_type"]) if row["signal_type"] else None,
                         triggered_invalidations=triggered,
                         as_of_date=datetime.fromisoformat(row["as_of_date"]),
                         market_data_state=MarketDataFaultState(row["market_data_state"]),
@@ -627,7 +627,7 @@ class LiveTradeDB:
             return DailyObservationSignal(
                 signal_record_id=row["signal_record_id"],
                 position_id=row["position_id"],
-                signal_type=DailySignalType(row["signal_type"]),
+                signal_type=DailySignalType(row["signal_type"]) if row["signal_type"] else None,
                 triggered_invalidations=triggered,
                 as_of_date=datetime.fromisoformat(row["as_of_date"]),
                 market_data_state=MarketDataFaultState(row["market_data_state"]),
