@@ -3,5 +3,8 @@
 Backend: http://localhost:8010
 Frontend: http://localhost:3000
 Health: ok
-Console logs: 5
+Console logs: 1
 Network requests: 8
+
+Environment:
+  NEXT_PUBLIC_API_BASE_URL: NOT_SET

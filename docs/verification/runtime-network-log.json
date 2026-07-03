@@ -5,12 +5,12 @@
     "ok": true
   },
   {
-    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783063004349",
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783063907023",
     "status": 200,
     "ok": true
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783063004349",
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783063907023",
     "status": 200,
     "ok": true
   },
@@ -25,18 +25,18 @@
     "ok": true
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783063004349",
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783063907023",
     "status": 200,
     "ok": true
   },
   {
-    "url": "http://localhost:8000/api/observations?status=open",
-    "status": 404,
-    "ok": false
+    "url": "http://localhost:8010/api/observations?status=open",
+    "status": 200,
+    "ok": true
   },
   {
-    "url": "http://localhost:8000/api/observations?status=open",
-    "status": 404,
-    "ok": false
+    "url": "http://localhost:8010/api/observations?status=open",
+    "status": 200,
+    "ok": true
   }
 ]

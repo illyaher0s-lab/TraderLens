@@ -100,8 +100,24 @@ for i in range(max_wait):
             sys.exit(1)
         time.sleep(1)
 
-# Step 4: 启动前端
-print("\nStep 4: Starting frontend on port 3000")
+# Step 4: 检查端口占用
+print("\nStep 4: Checking port availability")
+import socket
+
+def is_port_in_use(port):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
+
+if is_port_in_use(3000):
+    print("[FAIL] Port 3000 already in use (frontend_port_already_in_use)")
+    print("Please stop existing Next.js dev server before running smoke test")
+    backend_proc.kill()
+    sys.exit(1)
+
+print("[OK] Port 3000 available")
+
+# Step 5: 启动前端
+print("\nStep 5: Starting frontend on port 3000")
 frontend_env = os.environ.copy()
 frontend_env["NEXT_PUBLIC_API_BASE_URL"] = "http://localhost:8010"
 
@@ -123,7 +139,7 @@ print("Waiting for frontend to be ready...")
 time.sleep(15)  # 等待 Next.js 启动
 
 # Step 5: Playwright 访问 /observations
-print("\nStep 5: Opening /observations with Playwright")
+print("\nStep 6: Opening /observations with Playwright")
 
 async def capture_page():
     try:
@@ -184,20 +200,71 @@ async def capture_page():
                 f.write(f"Frontend: http://localhost:3000\n")
                 f.write(f"Health: {health_data['status']}\n")
                 f.write(f"Console logs: {len(console_logs)}\n")
-                f.write(f"Network requests: {len(network_log)}\n")
+                f.write(f"Network requests: {len(network_log)}\n\n")
+                f.write(f"Environment:\n")
+                f.write(f"  NEXT_PUBLIC_API_BASE_URL: {os.environ.get('NEXT_PUBLIC_API_BASE_URL', 'NOT_SET')}\n")
             print("[OK] Saved: runtime-startup-log.txt")
             
-            # 检查 /api/observations 请求
+            # === 严格判定逻辑 ===
+            failed = False
+            fail_reasons = []
+            
+            # 1. 检查 /api/observations 请求
             obs_requests = [r for r in network_log if "/api/observations" in r["url"]]
-            if obs_requests:
+            if not obs_requests:
+                failed = True
+                fail_reasons.append("No /api/observations requests found in network log")
+                print("[FAIL] No /api/observations requests found")
+            else:
                 print(f"[OK] Found {len(obs_requests)} /api/observations requests")
+                
                 for req in obs_requests:
                     print(f"  - {req['url']}: HTTP {req['status']}")
-            else:
-                print("[WARN] No /api/observations requests found")
+                    
+                    # 检查是否使用 8010 端口
+                    if not req['url'].startswith("http://localhost:8010"):
+                        failed = True
+                        fail_reasons.append(f"Request to wrong port: {req['url']} (expected http://localhost:8010)")
+                        print(f"[FAIL] Wrong API base: {req['url']}")
+                    
+                    # 检查 HTTP 状态
+                    if req['status'] != 200:
+                        failed = True
+                        fail_reasons.append(f"HTTP {req['status']} for {req['url']} (expected 200)")
+                        print(f"[FAIL] HTTP {req['status']} (expected 200)")
+            
+            # 2. 检查页面内容
+            bad_patterns = [
+                "加载失败",
+                "API request failed",
+                "localhost:8000",
+                "HTTP 404",
+                "加载中",
+            ]
+            
+            for pattern in bad_patterns:
+                if pattern in body_text:
+                    failed = True
+                    fail_reasons.append(f"Page contains: {pattern}")
+                    print(f"[FAIL] Page contains: {pattern}")
+            
+            # 保存失败原因
+            if failed:
+                with open(docs_dir / "runtime-startup-log.txt", "a") as f:
+                    f.write(f"\n=== FAIL REASONS ===\n")
+                    for reason in fail_reasons:
+                        f.write(f"  - {reason}\n")
             
             await browser.close()
-            return True
+            
+            if failed:
+                print("\n[FAIL] Runtime smoke test failed (see reasons above)")
+                return False
+            else:
+                print("\n[PASS] Runtime smoke test completed")
+                print("[PASS] /api/observations uses canonical API base http://localhost:8010")
+                print("[PASS] /api/observations returned HTTP 200")
+                return True
             
         except Exception as e:
             print(f"[FAIL] Page load error: {e}")
