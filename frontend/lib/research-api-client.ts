@@ -75,7 +75,7 @@ export interface ConfirmedCandidate {
   forward_only: true;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8010';
 
 export const researchApi = {
   // Themes
