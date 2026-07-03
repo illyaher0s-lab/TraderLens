@@ -3,9 +3,9 @@
   "message": "朋友推荐了宏昌电子",
   "expected_workflow": "friend_stock",
   "actual_workflow": "friend_stock",
-  "conversation_id": "sess_79bc6944c04f",
+  "conversation_id": "sess_223daf4e6cbe",
   "stage": "created",
-  "agent_reply": "已识别 宏昌电子 (603002.SH)。当前为测试模式，已记录为待研究。 研究ID: flow_888e55383430",
+  "agent_reply": "已识别 宏昌电子 (603002.SH)。当前为测试模式，已记录为待研究。 研究ID: flow_a98fcf397122",
   "artifact_types": [
     "context_loaded",
     "prescan_result",
@@ -23,141 +23,141 @@
     {
       "type": "artifact_ref",
       "content": {
-        "artifact_ref_id": "artref_3d7387051241",
-        "session_id": "sess_79bc6944c04f",
-        "artifact_id": "context_loaded_sess_79bc6944c04f",
+        "artifact_ref_id": "artref_4816626ce944",
+        "session_id": "sess_223daf4e6cbe",
+        "artifact_id": "context_loaded_sess_223daf4e6cbe",
         "artifact_type": "context_loaded",
-        "created_at": "2026-07-03T14:11:28.726451",
+        "created_at": "2026-07-03T14:29:19.866049",
         "artifact_content": null
       }
     },
     {
       "type": "artifact_ref",
       "content": {
-        "artifact_ref_id": "artref_756b39366cd2",
-        "session_id": "sess_79bc6944c04f",
-        "artifact_id": "prescan_sess_79bc6944c04f",
+        "artifact_ref_id": "artref_204ea4dfdf9b",
+        "session_id": "sess_223daf4e6cbe",
+        "artifact_id": "prescan_sess_223daf4e6cbe",
         "artifact_type": "prescan_result",
-        "created_at": "2026-07-03T14:11:28.726451",
+        "created_at": "2026-07-03T14:29:19.866049",
         "artifact_content": null
       }
     },
     {
       "type": "artifact_ref",
       "content": {
-        "artifact_ref_id": "artref_6ac05c577968",
-        "session_id": "sess_79bc6944c04f",
-        "artifact_id": "intent_sess_79bc6944c04f",
+        "artifact_ref_id": "artref_beade4143269",
+        "session_id": "sess_223daf4e6cbe",
+        "artifact_id": "intent_sess_223daf4e6cbe",
         "artifact_type": "intent_extraction",
-        "created_at": "2026-07-03T14:11:28.726451",
+        "created_at": "2026-07-03T14:29:19.866049",
         "artifact_content": null
       }
     },
     {
       "type": "artifact_ref",
       "content": {
-        "artifact_ref_id": "artref_086d1f3f2fcb",
-        "session_id": "sess_79bc6944c04f",
-        "artifact_id": "stock_identity_sess_79bc6944c04f",
+        "artifact_ref_id": "artref_fede9aaad7cd",
+        "session_id": "sess_223daf4e6cbe",
+        "artifact_id": "stock_identity_sess_223daf4e6cbe",
         "artifact_type": "stock_identity_resolution",
-        "created_at": "2026-07-03T14:11:28.726451",
+        "created_at": "2026-07-03T14:29:19.866049",
         "artifact_content": null
       }
     },
     {
       "type": "artifact_ref",
       "content": {
-        "artifact_ref_id": "artref_f0a2b5ead433",
-        "session_id": "sess_79bc6944c04f",
-        "artifact_id": "route_sess_79bc6944c04f",
+        "artifact_ref_id": "artref_31f0fa26b67c",
+        "session_id": "sess_223daf4e6cbe",
+        "artifact_id": "route_sess_223daf4e6cbe",
         "artifact_type": "workflow_route_decision",
-        "created_at": "2026-07-03T14:11:28.726451",
+        "created_at": "2026-07-03T14:29:19.866049",
         "artifact_content": "{\"workflow_kind\": \"friend_stock\", \"workflow_state\": \"created\", \"route_reason\": \"\\u80a1\\u7968\\u8eab\\u4efd\\u5df2\\u786e\\u8ba4\\uff1a\\u5b8f\\u660c\\u7535\\u5b50 (603002.SH)\", \"next_required_user_action\": \"wait_for_research\", \"allowed_to_start_workflow\": true}"
       }
     },
     {
       "type": "message",
       "content": {
-        "message_id": "msg_524ae1826fd4",
-        "session_id": "sess_79bc6944c04f",
+        "message_id": "msg_5b3754f3f03e",
+        "session_id": "sess_223daf4e6cbe",
         "role": "user",
         "content": "朋友推荐了宏昌电子",
-        "created_at": "2026-07-03T14:11:28.726451"
+        "created_at": "2026-07-03T14:29:19.866049"
       }
     },
     {
       "type": "artifact_ref",
       "content": {
-        "artifact_ref_id": "artref_40a775aad3fd",
-        "session_id": "sess_79bc6944c04f",
-        "artifact_id": "action_started_f72b3f6c",
+        "artifact_ref_id": "artref_9a2bd3a1002a",
+        "session_id": "sess_223daf4e6cbe",
+        "artifact_id": "action_started_40e319dc",
         "artifact_type": "workflow_action_started",
-        "created_at": "2026-07-03T14:11:28.726451",
+        "created_at": "2026-07-03T14:29:19.866049",
         "artifact_content": null
       }
     },
     {
       "type": "artifact_ref",
       "content": {
-        "artifact_ref_id": "artref_de49fc75d57a",
-        "session_id": "sess_79bc6944c04f",
-        "artifact_id": "flow_888e55383430",
+        "artifact_ref_id": "artref_80e0668d5ed3",
+        "session_id": "sess_223daf4e6cbe",
+        "artifact_id": "flow_a98fcf397122",
         "artifact_type": "friend_stock_flow",
-        "created_at": "2026-07-03T14:11:28.726451",
+        "created_at": "2026-07-03T14:29:19.866049",
         "artifact_content": null
       }
     },
     {
       "type": "artifact_ref",
       "content": {
-        "artifact_ref_id": "artref_3451a35310a9",
-        "session_id": "sess_79bc6944c04f",
-        "artifact_id": "action_completed_2dbb57b2",
+        "artifact_ref_id": "artref_11a5262387b4",
+        "session_id": "sess_223daf4e6cbe",
+        "artifact_id": "action_completed_eceb48b7",
         "artifact_type": "workflow_action_completed",
-        "created_at": "2026-07-03T14:11:28.726451",
+        "created_at": "2026-07-03T14:29:19.866049",
         "artifact_content": null
       }
     },
     {
       "type": "message",
       "content": {
-        "message_id": "msg_d849f59a0138",
-        "session_id": "sess_79bc6944c04f",
+        "message_id": "msg_6ccb627c684b",
+        "session_id": "sess_223daf4e6cbe",
         "role": "agent",
-        "content": "已识别 宏昌电子 (603002.SH)。当前为测试模式，已记录为待研究。 研究ID: flow_888e55383430",
-        "created_at": "2026-07-03T14:11:28.726451"
+        "content": "已识别 宏昌电子 (603002.SH)。当前为测试模式，已记录为待研究。 研究ID: flow_a98fcf397122",
+        "created_at": "2026-07-03T14:29:19.866049"
       }
     },
     {
       "type": "artifact_ref",
       "content": {
-        "artifact_ref_id": "artref_2962e6b79823",
-        "session_id": "sess_79bc6944c04f",
-        "artifact_id": "msg_524ae1826fd4",
+        "artifact_ref_id": "artref_6db61c245da8",
+        "session_id": "sess_223daf4e6cbe",
+        "artifact_id": "msg_5b3754f3f03e",
         "artifact_type": "user_message",
-        "created_at": "2026-07-03T14:11:28.726451",
+        "created_at": "2026-07-03T14:29:19.866049",
         "artifact_content": null
       }
     },
     {
       "type": "artifact_ref",
       "content": {
-        "artifact_ref_id": "artref_14e7ac68d527",
-        "session_id": "sess_79bc6944c04f",
-        "artifact_id": "msg_d849f59a0138",
+        "artifact_ref_id": "artref_27ab20d5968c",
+        "session_id": "sess_223daf4e6cbe",
+        "artifact_id": "msg_6ccb627c684b",
         "artifact_type": "agent_message",
-        "created_at": "2026-07-03T14:11:28.726451",
+        "created_at": "2026-07-03T14:29:19.866049",
         "artifact_content": null
       }
     },
     {
       "type": "artifact_ref",
       "content": {
-        "artifact_ref_id": "artref_35a371794915",
-        "session_id": "sess_79bc6944c04f",
-        "artifact_id": "intent_sess_79bc6944c04f",
+        "artifact_ref_id": "artref_ca9d4e91e2f2",
+        "session_id": "sess_223daf4e6cbe",
+        "artifact_id": "intent_sess_223daf4e6cbe",
         "artifact_type": "workflow_intent",
-        "created_at": "2026-07-03T14:11:28.726451",
+        "created_at": "2026-07-03T14:29:19.866049",
         "artifact_content": null
       }
     }
