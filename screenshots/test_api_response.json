@@ -1,0 +1,131 @@
+{
+    "session": {
+        "session_id": "sess_16e63f389eb5",
+        "workflow_kind": "unknown",
+        "workflow_state": "stopped",
+        "title": "\u7035\u7845\u763d",
+        "created_at": "2026-07-02T20:51:47.911647",
+        "updated_at": "2026-07-02T20:51:47.911647"
+    },
+    "timeline": [
+        {
+            "type": "artifact_ref",
+            "content": {
+                "artifact_ref_id": "artref_41fff95dd21c",
+                "session_id": "sess_16e63f389eb5",
+                "artifact_id": "context_loaded_sess_16e63f389eb5",
+                "artifact_type": "context_loaded",
+                "created_at": "2026-07-02T20:51:47.911647",
+                "artifact_content": null
+            }
+        },
+        {
+            "type": "artifact_ref",
+            "content": {
+                "artifact_ref_id": "artref_93b4cb28103c",
+                "session_id": "sess_16e63f389eb5",
+                "artifact_id": "prescan_sess_16e63f389eb5",
+                "artifact_type": "prescan_result",
+                "created_at": "2026-07-02T20:51:47.911647",
+                "artifact_content": null
+            }
+        },
+        {
+            "type": "artifact_ref",
+            "content": {
+                "artifact_ref_id": "artref_2c2024e6f07f",
+                "session_id": "sess_16e63f389eb5",
+                "artifact_id": "intent_sess_16e63f389eb5",
+                "artifact_type": "intent_extraction",
+                "created_at": "2026-07-02T20:51:47.911647",
+                "artifact_content": null
+            }
+        },
+        {
+            "type": "artifact_ref",
+            "content": {
+                "artifact_ref_id": "artref_481293e7d4b6",
+                "session_id": "sess_16e63f389eb5",
+                "artifact_id": "stock_identity_sess_16e63f389eb5",
+                "artifact_type": "stock_identity_resolution",
+                "created_at": "2026-07-02T20:51:47.911647",
+                "artifact_content": null
+            }
+        },
+        {
+            "type": "artifact_ref",
+            "content": {
+                "artifact_ref_id": "artref_ada3f93bbd5c",
+                "session_id": "sess_16e63f389eb5",
+                "artifact_id": "route_sess_16e63f389eb5",
+                "artifact_type": "workflow_route_decision",
+                "created_at": "2026-07-02T20:51:47.911647",
+                "artifact_content": "{\"workflow_kind\": \"unknown\", \"workflow_state\": \"stopped\", \"route_reason\": \"\\u6570\\u636e\\u6e90\\u6545\\u969c\\uff1aTushare client not configured\", \"next_required_user_action\": \"retry_later\", \"allowed_to_start_workflow\": false}"
+            }
+        },
+        {
+            "type": "message",
+            "content": {
+                "message_id": "msg_3a37c6940ed3",
+                "session_id": "sess_16e63f389eb5",
+                "role": "user",
+                "content": "\u93c8\u5b2a\u5f38\u93ba\u3128\u5d18\u6d5c\u55d7\u756f\u93c4\u5c80\u6578\u701b\udc90",
+                "created_at": "2026-07-02T20:51:47.911647"
+            }
+        },
+        {
+            "type": "artifact_ref",
+            "content": {
+                "artifact_ref_id": "artref_8a7da33b822c",
+                "session_id": "sess_16e63f389eb5",
+                "artifact_id": "clarify_afe80e08",
+                "artifact_type": "clarification_needed",
+                "created_at": "2026-07-02T20:51:47.911647",
+                "artifact_content": null
+            }
+        },
+        {
+            "type": "message",
+            "content": {
+                "message_id": "msg_2b349910e308",
+                "session_id": "sess_16e63f389eb5",
+                "role": "agent",
+                "content": "\u93c1\u7248\u5d41\u5a67\u612d\u6660\u95c5\u6ed0\u7d30Tushare client not configured\n\n\u6d63\u72b2\u30bd\u951b\u5c7e\u579c\u9359\udcaf\u6d60\u30e5\u5e9c\u6d63\u72c5\u7d30\n1. \u9352\u55d8\u703d\u93c8\u5b2a\u5f38\u93ba\u3128\u5d18\u9428\u52ee\u5042\u7ec1\udca8\u951b\u581f\u5f41\u6e1a\u6d9c\u5042\u7ec1\u3124\u552c\u942e\u4f79\u57a8\u934f\udcac\u9359\u7a3f\u6095\u951b\u5861n2. \u6960\u5c83\u7609\u7edb\u682b\u6690/\u6d5c\u3086\u69d7\u93af\u866b\u7876\u9428\u52ec\u59a7\u93c8\udcaf\u7f01\u55da\u59ad\n\n\u7487\u70fd\u68f6\u6d63\u72b3\u5142\u6d5c\u55da\u0412\u6d60\udc80\u6d94\u582c\u7d35",
+                "created_at": "2026-07-02T20:51:47.911647"
+            }
+        },
+        {
+            "type": "artifact_ref",
+            "content": {
+                "artifact_ref_id": "artref_7489ea6ce64d",
+                "session_id": "sess_16e63f389eb5",
+                "artifact_id": "msg_3a37c6940ed3",
+                "artifact_type": "user_message",
+                "created_at": "2026-07-02T20:51:47.911647",
+                "artifact_content": null
+            }
+        },
+        {
+            "type": "artifact_ref",
+            "content": {
+                "artifact_ref_id": "artref_de02f7805369",
+                "session_id": "sess_16e63f389eb5",
+                "artifact_id": "msg_2b349910e308",
+                "artifact_type": "agent_message",
+                "created_at": "2026-07-02T20:51:47.911647",
+                "artifact_content": null
+            }
+        },
+        {
+            "type": "artifact_ref",
+            "content": {
+                "artifact_ref_id": "artref_16ba9db78217",
+                "session_id": "sess_16e63f389eb5",
+                "artifact_id": "intent_sess_16e63f389eb5",
+                "artifact_type": "workflow_intent",
+                "created_at": "2026-07-02T20:51:47.911647",
+                "artifact_content": null
+            }
+        }
+    ]
+}

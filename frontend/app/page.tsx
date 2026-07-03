@@ -19,18 +19,21 @@ export default function Home() {
           </div>
         </Link>
 
+        <Link href="/observations">
+          <div className="rounded border border-slate-200 bg-white p-4 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer">
+            <h2 className="text-sm font-medium">Observation Pool</h2>
+            <p className="mt-2 text-sm text-slate-500">观察/持有的股票，今日需要做什么</p>
+            <p className="mt-1 text-xs text-green-600 font-medium">观察池</p>
+          </div>
+        </Link>
+
         <Link href="/signals">
           <div className="rounded border border-slate-200 bg-white p-4 hover:border-slate-300 hover:shadow-sm transition-all cursor-pointer">
             <h2 className="text-sm font-medium">Signal Board</h2>
             <p className="mt-2 text-sm text-slate-500">查看策略信号，进行人工审核</p>
-            <p className="mt-1 text-xs text-green-600 font-medium">工作台入口</p>
+            <p className="mt-1 text-xs text-purple-600 font-medium">信号板</p>
           </div>
         </Link>
-
-        <div className="rounded border border-slate-200 bg-white p-4">
-          <h2 className="text-sm font-medium">Contracts</h2>
-          <p className="mt-2 text-sm text-slate-500">M0 scaffold ready for integration.</p>
-        </div>
       </section>
     </main>
   );

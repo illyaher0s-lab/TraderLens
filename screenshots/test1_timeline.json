@@ -1,0 +1,165 @@
+{
+  "test_case": "Test 1: Friend stock recommendation",
+  "message": "朋友推荐了宏昌电子",
+  "expected_workflow": "friend_stock",
+  "actual_workflow": "friend_stock",
+  "conversation_id": "sess_16a8765b6cfb",
+  "stage": "created",
+  "agent_reply": "已识别 宏昌电子 (603002.SH)。当前为测试模式，已记录为待研究。 研究ID: flow_ef1cdb4bff7c",
+  "artifact_types": [
+    "context_loaded",
+    "prescan_result",
+    "intent_extraction",
+    "stock_identity_resolution",
+    "workflow_route_decision",
+    "workflow_action_started",
+    "friend_stock_flow",
+    "workflow_action_completed",
+    "user_message",
+    "agent_message",
+    "workflow_intent"
+  ],
+  "full_timeline": [
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_4f59d29755ec",
+        "session_id": "sess_16a8765b6cfb",
+        "artifact_id": "context_loaded_sess_16a8765b6cfb",
+        "artifact_type": "context_loaded",
+        "created_at": "2026-07-02T21:39:26.085442",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_32c6f56802d6",
+        "session_id": "sess_16a8765b6cfb",
+        "artifact_id": "prescan_sess_16a8765b6cfb",
+        "artifact_type": "prescan_result",
+        "created_at": "2026-07-02T21:39:26.085442",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_8bc2d090bdff",
+        "session_id": "sess_16a8765b6cfb",
+        "artifact_id": "intent_sess_16a8765b6cfb",
+        "artifact_type": "intent_extraction",
+        "created_at": "2026-07-02T21:39:26.085442",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_d2421a7f82b7",
+        "session_id": "sess_16a8765b6cfb",
+        "artifact_id": "stock_identity_sess_16a8765b6cfb",
+        "artifact_type": "stock_identity_resolution",
+        "created_at": "2026-07-02T21:39:26.085442",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_540d6a3c85c6",
+        "session_id": "sess_16a8765b6cfb",
+        "artifact_id": "route_sess_16a8765b6cfb",
+        "artifact_type": "workflow_route_decision",
+        "created_at": "2026-07-02T21:39:26.085442",
+        "artifact_content": "{\"workflow_kind\": \"friend_stock\", \"workflow_state\": \"created\", \"route_reason\": \"\\u80a1\\u7968\\u8eab\\u4efd\\u5df2\\u786e\\u8ba4\\uff1a\\u5b8f\\u660c\\u7535\\u5b50 (603002.SH)\", \"next_required_user_action\": \"wait_for_research\", \"allowed_to_start_workflow\": true}"
+      }
+    },
+    {
+      "type": "message",
+      "content": {
+        "message_id": "msg_ffa3a121ca24",
+        "session_id": "sess_16a8765b6cfb",
+        "role": "user",
+        "content": "朋友推荐了宏昌电子",
+        "created_at": "2026-07-02T21:39:26.085442"
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_2abc0f8b49bc",
+        "session_id": "sess_16a8765b6cfb",
+        "artifact_id": "action_started_b0a766dc",
+        "artifact_type": "workflow_action_started",
+        "created_at": "2026-07-02T21:39:26.085442",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_6b0f911395f0",
+        "session_id": "sess_16a8765b6cfb",
+        "artifact_id": "flow_ef1cdb4bff7c",
+        "artifact_type": "friend_stock_flow",
+        "created_at": "2026-07-02T21:39:26.085442",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_843238b2a6a6",
+        "session_id": "sess_16a8765b6cfb",
+        "artifact_id": "action_completed_f838c1e3",
+        "artifact_type": "workflow_action_completed",
+        "created_at": "2026-07-02T21:39:26.085442",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "message",
+      "content": {
+        "message_id": "msg_d6e73d5bbfa4",
+        "session_id": "sess_16a8765b6cfb",
+        "role": "agent",
+        "content": "已识别 宏昌电子 (603002.SH)。当前为测试模式，已记录为待研究。 研究ID: flow_ef1cdb4bff7c",
+        "created_at": "2026-07-02T21:39:26.085442"
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_7e0bfaaa6fa0",
+        "session_id": "sess_16a8765b6cfb",
+        "artifact_id": "msg_ffa3a121ca24",
+        "artifact_type": "user_message",
+        "created_at": "2026-07-02T21:39:26.085442",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_7ad2a11b620e",
+        "session_id": "sess_16a8765b6cfb",
+        "artifact_id": "msg_d6e73d5bbfa4",
+        "artifact_type": "agent_message",
+        "created_at": "2026-07-02T21:39:26.085442",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_2afbe625ebb7",
+        "session_id": "sess_16a8765b6cfb",
+        "artifact_id": "intent_sess_16a8765b6cfb",
+        "artifact_type": "workflow_intent",
+        "created_at": "2026-07-02T21:39:26.085442",
+        "artifact_content": null
+      }
+    }
+  ]
+}

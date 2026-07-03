@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .db import initialize_database
 from backend.api.signal_board import router as signal_board_router, init_signal_board_api
+from backend.api.observations import router as observations_router
 from backend.api.research import create_research_app
 from backend.db.research import ResearchDB
 
@@ -23,8 +24,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include Signal Board API routes
+# Include API routes
 app.include_router(signal_board_router)
+app.include_router(observations_router)
 
 
 @app.on_event("startup")

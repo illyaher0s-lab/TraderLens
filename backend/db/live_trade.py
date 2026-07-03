@@ -537,3 +537,101 @@ class LiveTradeDB:
                 return None
 
             return DisciplineReview.model_validate_json(row["review_json"])
+
+    def list_open_positions(self) -> list[ObservationPosition]:
+        """List all open observation positions."""
+        with self._get_conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT * FROM observation_positions
+                WHERE lifecycle_state = 'open'
+                ORDER BY opened_at DESC
+                """,
+            ).fetchall()
+
+            return [
+                ObservationPosition(
+                    position_id=row["position_id"],
+                    source_log_id=row["source_log_id"],
+                    execution_card_id=row["execution_card_id"],
+                    signal_id=row["signal_id"],
+                    action_plan_id=row["action_plan_id"],
+                    capital_context_id=row["capital_context_id"],
+                    symbol=row["symbol"],
+                    name=row["name"],
+                    entry_price=row["entry_price"],
+                    quantity=row["quantity"],
+                    template_id=row["template_id"],
+                    template_version=row["template_version"],
+                    entry_thesis=row["entry_thesis"],
+                    lifecycle_state=PositionLifecycleState(row["lifecycle_state"]),
+                    opened_at=datetime.fromisoformat(row["opened_at"]),
+                    closed_at=datetime.fromisoformat(row["closed_at"]) if row["closed_at"] else None,
+                )
+                for row in rows
+            ]
+
+    def list_all_positions(self) -> list[ObservationPosition]:
+        """List all observation positions (both open and closed)."""
+        with self._get_conn() as conn:
+            rows = conn.execute(
+                """
+                SELECT * FROM observation_positions
+                ORDER BY opened_at DESC
+                """,
+            ).fetchall()
+
+            return [
+                ObservationPosition(
+                    position_id=row["position_id"],
+                    source_log_id=row["source_log_id"],
+                    execution_card_id=row["execution_card_id"],
+                    signal_id=row["signal_id"],
+                    action_plan_id=row["action_plan_id"],
+                    capital_context_id=row["capital_context_id"],
+                    symbol=row["symbol"],
+                    name=row["name"],
+                    entry_price=row["entry_price"],
+                    quantity=row["quantity"],
+                    template_id=row["template_id"],
+                    template_version=row["template_version"],
+                    entry_thesis=row["entry_thesis"],
+                    lifecycle_state=PositionLifecycleState(row["lifecycle_state"]),
+                    opened_at=datetime.fromisoformat(row["opened_at"]),
+                    closed_at=datetime.fromisoformat(row["closed_at"]) if row["closed_at"] else None,
+                )
+                for row in rows
+            ]
+
+    def get_latest_daily_signal(self, position_id: str) -> Optional[DailyObservationSignal]:
+        """Get the latest daily signal for a position."""
+        with self._get_conn() as conn:
+            row = conn.execute(
+                """
+                SELECT * FROM daily_observation_signals
+                WHERE position_id = ?
+                ORDER BY as_of_date DESC
+                LIMIT 1
+                """,
+                (position_id,),
+            ).fetchone()
+
+            if not row:
+                return None
+
+            triggered = [
+                InvalidationTrigger(value)
+                for value in json.loads(row["triggered_invalidations"])
+            ]
+
+            return DailyObservationSignal(
+                signal_record_id=row["signal_record_id"],
+                position_id=row["position_id"],
+                signal_type=DailySignalType(row["signal_type"]),
+                triggered_invalidations=triggered,
+                as_of_date=datetime.fromisoformat(row["as_of_date"]),
+                market_data_state=MarketDataFaultState(row["market_data_state"]),
+                rule_trace=json.loads(row["rule_trace"]),
+                plain_explanation=row["plain_explanation"],
+                explanation_source=ExplanationSource(row["explanation_source"]),
+            )

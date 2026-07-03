@@ -1,0 +1,432 @@
+{
+  "test_case": "Test 3: Context follow-up",
+  "message": "帮我看看",
+  "conversation_id": "sess_84f2c911d654",
+  "workflow_type": "unknown",
+  "stage": "created",
+  "agent_reply": "理解为股票研究请求，但缺少公司名或代码（需要 session context 或用户明确）\n\n你好，我可以帮你：\n1. 分析朋友推荐的股票（提供股票代码或公司名）\n2. 验证策略/交易想法的技术细节\n\n请问你想了解什么？",
+  "artifact_types": [
+    "context_loaded",
+    "prescan_result",
+    "intent_extraction",
+    "stock_identity_resolution",
+    "workflow_route_decision",
+    "clarification_needed",
+    "user_message",
+    "agent_message",
+    "workflow_intent",
+    "context_loaded",
+    "prescan_result",
+    "intent_extraction",
+    "workflow_route_decision",
+    "workflow_action_started",
+    "strategy_idea",
+    "strategy_idea_extraction",
+    "strategy_template_mapping",
+    "strategy_idea_rejected",
+    "workflow_action_completed",
+    "user_message",
+    "agent_message",
+    "workflow_intent",
+    "context_loaded",
+    "prescan_result",
+    "intent_extraction",
+    "workflow_route_decision",
+    "clarification_needed",
+    "user_message",
+    "agent_message",
+    "workflow_intent"
+  ],
+  "full_timeline": [
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_2d61d1bc8381",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "context_loaded_sess_84f2c911d654",
+        "artifact_type": "context_loaded",
+        "created_at": "2026-07-02T20:52:31.537741",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_69c49766831e",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "prescan_sess_84f2c911d654",
+        "artifact_type": "prescan_result",
+        "created_at": "2026-07-02T20:52:31.537741",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_842ea3bdbf6c",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "intent_sess_84f2c911d654",
+        "artifact_type": "intent_extraction",
+        "created_at": "2026-07-02T20:52:31.537741",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_3b3fb33b24a6",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "stock_identity_sess_84f2c911d654",
+        "artifact_type": "stock_identity_resolution",
+        "created_at": "2026-07-02T20:52:31.537741",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_866e9d40afcf",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "route_sess_84f2c911d654",
+        "artifact_type": "workflow_route_decision",
+        "created_at": "2026-07-02T20:52:31.537741",
+        "artifact_content": "{\"workflow_kind\": \"unknown\", \"workflow_state\": \"stopped\", \"route_reason\": \"\\u6570\\u636e\\u6e90\\u6545\\u969c\\uff1aTushare client not configured\", \"next_required_user_action\": \"retry_later\", \"allowed_to_start_workflow\": false}"
+      }
+    },
+    {
+      "type": "message",
+      "content": {
+        "message_id": "msg_0cb75a29a2bf",
+        "session_id": "sess_84f2c911d654",
+        "role": "user",
+        "content": "朋友推荐了宏昌电子",
+        "created_at": "2026-07-02T20:52:31.537741"
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_dc80b602133a",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "clarify_9991e555",
+        "artifact_type": "clarification_needed",
+        "created_at": "2026-07-02T20:52:31.537741",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "message",
+      "content": {
+        "message_id": "msg_d0a3768134d1",
+        "session_id": "sess_84f2c911d654",
+        "role": "agent",
+        "content": "数据源故障：Tushare client not configured\n\n你好，我可以帮你：\n1. 分析朋友推荐的股票（提供股票代码或公司名）\n2. 验证策略/交易想法的技术细节\n\n请问你想了解什么？",
+        "created_at": "2026-07-02T20:52:31.537741"
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_c90d8caf0e97",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "msg_0cb75a29a2bf",
+        "artifact_type": "user_message",
+        "created_at": "2026-07-02T20:52:31.537741",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_f6d3868d225c",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "msg_d0a3768134d1",
+        "artifact_type": "agent_message",
+        "created_at": "2026-07-02T20:52:31.537741",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_d7feac194e61",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "intent_sess_84f2c911d654",
+        "artifact_type": "workflow_intent",
+        "created_at": "2026-07-02T20:52:31.537741",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_1b6c0a600e38",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "context_loaded_6aa7724d",
+        "artifact_type": "context_loaded",
+        "created_at": "2026-07-02T20:52:35.751709",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_ab0ec23c47c3",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "prescan_9f025957",
+        "artifact_type": "prescan_result",
+        "created_at": "2026-07-02T20:52:35.751709",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_eb47f3c812e4",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "intent_307dd790",
+        "artifact_type": "intent_extraction",
+        "created_at": "2026-07-02T20:52:35.751709",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_6aa45441de90",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "route_ed3feb93",
+        "artifact_type": "workflow_route_decision",
+        "created_at": "2026-07-02T20:52:35.751709",
+        "artifact_content": "{\"workflow_kind\": \"strategy_idea\", \"workflow_state\": \"created\", \"route_reason\": \"\\u68c0\\u6d4b\\u5230\\u7b56\\u7565\\u89c4\\u5219\\u7ed3\\u6784\", \"next_required_user_action\": \"wait_for_extraction\", \"allowed_to_start_workflow\": true}"
+      }
+    },
+    {
+      "type": "message",
+      "content": {
+        "message_id": "msg_001ef20e839a",
+        "session_id": "sess_84f2c911d654",
+        "role": "user",
+        "content": "刷到策略下午两点半买第二天卖",
+        "created_at": "2026-07-02T20:52:35.751709"
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_1a486aa62f86",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "action_started_6c7efd5c",
+        "artifact_type": "workflow_action_started",
+        "created_at": "2026-07-02T20:52:35.751709",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_d92d3df61838",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "idea_26586949d663",
+        "artifact_type": "strategy_idea",
+        "created_at": "2026-07-02T20:52:35.751709",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_19bd1d9ae2fd",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "extract_538087b13716",
+        "artifact_type": "strategy_idea_extraction",
+        "created_at": "2026-07-02T20:52:35.751709",
+        "artifact_content": "{\"extraction_id\": \"extract_538087b13716\", \"idea_id\": \"idea_26586949d663\", \"claimed_entry\": \"\\u4e0b\\u5348\\u4e24\\u70b9\\u534a\\u540e\\u4e70\\u5165\", \"claimed_exit\": \"\\u6b21\\u65e5\\u65e9\\u76d8\\u5356\\u51fa\", \"claimed_edge\": null, \"extraction_source\": \"llm_assisted\"}"
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_99fe0b85588e",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "mapping_2c4d5fc08fd6",
+        "artifact_type": "strategy_template_mapping",
+        "created_at": "2026-07-02T20:52:35.751709",
+        "artifact_content": "{\"mapping_id\": \"mapping_2c4d5fc08fd6\", \"idea_id\": \"idea_26586949d663\", \"path_type\": \"no_template_fit\", \"matched_template_id\": null, \"template_version\": null, \"mapping_reason\": \"\\u5f53\\u524d\\u7cfb\\u7edf\\u6682\\u65e0\\u5df2\\u6279\\u51c6\\u6a21\\u677f\\u5e93\\u3002\", \"live_eligible\": false}"
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_d4a285ea9a71",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "idea_26586949d663_rejected",
+        "artifact_type": "strategy_idea_rejected",
+        "created_at": "2026-07-02T20:52:35.751709",
+        "artifact_content": "{\"idea_id\": \"idea_26586949d663\", \"rejection_reason\": \"no_approved_template\", \"rejected_at\": \"2026-07-02T20:52:35.830167\"}"
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_b7188c7dac53",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "action_completed_1119a70e",
+        "artifact_type": "workflow_action_completed",
+        "created_at": "2026-07-02T20:52:35.751709",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "message",
+      "content": {
+        "message_id": "msg_c7291c572d6d",
+        "session_id": "sess_84f2c911d654",
+        "role": "agent",
+        "content": "已提取策略想法：\n入场条件：下午两点半后买入\n出场条件：次日早盘卖出\n当前系统暂无已批准模板库。策略想法已记录，但不可用于实盘交易。\n该策略想法已记录到拒绝注册表，不会生成交易信号。",
+        "created_at": "2026-07-02T20:52:35.751709"
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_5b333a609382",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "msg_001ef20e839a",
+        "artifact_type": "user_message",
+        "created_at": "2026-07-02T20:52:35.751709",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_8e1a65e84eb3",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "msg_c7291c572d6d",
+        "artifact_type": "agent_message",
+        "created_at": "2026-07-02T20:52:35.751709",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_b2c183dc51ee",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "intent_sess_84f2c911d654",
+        "artifact_type": "workflow_intent",
+        "created_at": "2026-07-02T20:52:35.751709",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_d3264d923251",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "context_loaded_c6c64330",
+        "artifact_type": "context_loaded",
+        "created_at": "2026-07-02T20:52:40.020566",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_0f4093fca254",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "prescan_0610bc2a",
+        "artifact_type": "prescan_result",
+        "created_at": "2026-07-02T20:52:40.020566",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_a380b4443b9e",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "intent_bffe3b66",
+        "artifact_type": "intent_extraction",
+        "created_at": "2026-07-02T20:52:40.020566",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_1ede628cb4e7",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "route_6f85cc0f",
+        "artifact_type": "workflow_route_decision",
+        "created_at": "2026-07-02T20:52:40.020566",
+        "artifact_content": "{\"workflow_kind\": \"unknown\", \"workflow_state\": \"created\", \"route_reason\": \"\\u7406\\u89e3\\u4e3a\\u80a1\\u7968\\u7814\\u7a76\\u8bf7\\u6c42\\uff0c\\u4f46\\u7f3a\\u5c11\\u516c\\u53f8\\u540d\\u6216\\u4ee3\\u7801\\uff08\\u9700\\u8981 session context \\u6216\\u7528\\u6237\\u660e\\u786e\\uff09\", \"next_required_user_action\": \"provide_stock_code_or_name\", \"allowed_to_start_workflow\": false}"
+      }
+    },
+    {
+      "type": "message",
+      "content": {
+        "message_id": "msg_dc5cae8547a5",
+        "session_id": "sess_84f2c911d654",
+        "role": "user",
+        "content": "帮我看看",
+        "created_at": "2026-07-02T20:52:40.020566"
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_e8a3160890ef",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "clarify_fb2d914c",
+        "artifact_type": "clarification_needed",
+        "created_at": "2026-07-02T20:52:40.020566",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "message",
+      "content": {
+        "message_id": "msg_e735b5ebdece",
+        "session_id": "sess_84f2c911d654",
+        "role": "agent",
+        "content": "理解为股票研究请求，但缺少公司名或代码（需要 session context 或用户明确）\n\n你好，我可以帮你：\n1. 分析朋友推荐的股票（提供股票代码或公司名）\n2. 验证策略/交易想法的技术细节\n\n请问你想了解什么？",
+        "created_at": "2026-07-02T20:52:40.020566"
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_5e2a70574867",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "msg_dc5cae8547a5",
+        "artifact_type": "user_message",
+        "created_at": "2026-07-02T20:52:40.020566",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_4d011ea57157",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "msg_e735b5ebdece",
+        "artifact_type": "agent_message",
+        "created_at": "2026-07-02T20:52:40.020566",
+        "artifact_content": null
+      }
+    },
+    {
+      "type": "artifact_ref",
+      "content": {
+        "artifact_ref_id": "artref_d702bd89d31c",
+        "session_id": "sess_84f2c911d654",
+        "artifact_id": "intent_sess_84f2c911d654",
+        "artifact_type": "workflow_intent",
+        "created_at": "2026-07-02T20:52:40.020566",
+        "artifact_content": null
+      }
+    }
+  ]
+}
