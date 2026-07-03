@@ -22,8 +22,9 @@ router = APIRouter()
 
 
 def get_live_trade_db() -> LiveTradeDB:
-    """Get LiveTradeDB instance."""
-    return LiveTradeDB("live_trade.db")
+    """Get LiveTradeDB instance with canonical path."""
+    from backend.config.runtime_paths import get_live_trade_db_path
+    return LiveTradeDB(get_live_trade_db_path())
 
 
 @router.get("/api/observations")

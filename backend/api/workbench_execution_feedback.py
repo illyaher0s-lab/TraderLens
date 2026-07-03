@@ -98,7 +98,8 @@ def handle_execution_feedback(
     confirmed_quantity = int(quantity_match.group(1))
     
     # Create execution_observation_log
-    live_db = LiveTradeDB("live_trade.db")
+    from backend.config.runtime_paths import get_live_trade_db_path
+    live_db = LiveTradeDB(get_live_trade_db_path())
     
     log_id = f"log_{uuid.uuid4().hex[:12]}"
     execution_card_id = f"card_{uuid.uuid4().hex[:12]}"

@@ -54,24 +54,32 @@ export default function ObservationsPage() {
     loadPositions();
   }, [statusFilter]);
 
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8010";
+  
   const loadPositions = async () => {
     try {
       setLoading(true);
       setError(null);
       
       const params = new URLSearchParams();
-      if (statusFilter !== "all") {
-        params.set("status", statusFilter);
-      }
+      if (statusFilter !== "all") params.set("status", statusFilter);
       
-      const response = await fetch(`http://localhost:8000/api/observations?${params}`);
-      if (!response.ok) throw new Error("Failed to load observations");
+      const url = `${API_BASE_URL}/api/observations?${params}`;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`API request failed: ${url} - HTTP ${response.status}`);
+      }
       
       const data = await response.json();
       setPositions(data.positions || []);
     } catch (err) {
       console.error("Failed to load observations:", err);
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(
+        err instanceof Error 
+          ? `${err.message}. 请检查后端服务是否在 ${API_BASE_URL} 启动。`
+          : "Unknown error"
+      );
     } finally {
       setLoading(false);
     }
