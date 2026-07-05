@@ -228,9 +228,9 @@ def main():
             page.goto("http://localhost:3000/workbench", wait_until="networkidle")
             time.sleep(2)
             
-            # 记录提交前时间用于强关联
-            from datetime import datetime, timezone
-            before_submit = datetime.now(timezone.utc)
+            # 记录提交前时间用于强关联（本地无时区时间）
+            from datetime import datetime
+            before_submit = datetime.now()
             print(f"📍 Before submit timestamp: {before_submit.isoformat()}")
             
             # 生成测试消息（必须使用"已买入"关键词触发 execution_feedback）
@@ -387,33 +387,31 @@ def main():
             # 筛选本次新增的 position（所有条件必须满足）
             target_position = None
             for pos in positions:
-                # 解析 opened_at 时间
+                # 解析 opened_at 时间（API 返回的是本地无时区时间）
                 try:
                     from datetime import datetime
                     opened_at_str = pos.get("opened_at", "")
-                    # 支持多种 ISO 格式
                     if opened_at_str:
-                        # 移除可能的微秒部分的尾部时区标记
-                        if "+" in opened_at_str:
-                            opened_at_str = opened_at_str.split("+")[0]
-                        elif opened_at_str.endswith("Z"):
-                            opened_at_str = opened_at_str[:-1]
-                        
+                        # API 返回格式: "2026-07-05T21:11:37.447329"
+                        # 直接解析为本地时间，不做时区转换
                         opened_at = datetime.fromisoformat(opened_at_str)
-                        # 转换为 UTC（如果没有时区信息，假设为本地时间）
-                        if opened_at.tzinfo is None:
-                            from datetime import timezone
-                            opened_at = opened_at.replace(tzinfo=timezone.utc)
+                    else:
+                        print(f"⚠️  Position {pos.get('position_id')} has no opened_at")
+                        continue
                 except Exception as e:
                     print(f"⚠️  Cannot parse opened_at for position {pos.get('position_id')}: {e}")
                     continue
                 
                 # 强关联检查：所有条件必须同时满足
-                if (pos.get("symbol") == "603002.SH" and
+                conditions_met = (
+                    pos.get("symbol") == "603002.SH" and
                     "宏昌电子" in pos.get("name", "") and
                     pos.get("entry_price") == 12.34 and
                     pos.get("quantity") == 100 and
-                    opened_at >= before_submit):
+                    opened_at >= before_submit
+                )
+                
+                if conditions_met:
                     target_position = pos
                     print(f"✅ Found target position created by this test:")
                     print(f"   - Position ID: {pos.get('position_id')}")
@@ -421,12 +419,12 @@ def main():
                     print(f"   - Name: {pos.get('name')}")
                     print(f"   - Entry Price: {pos.get('entry_price')}")
                     print(f"   - Quantity: {pos.get('quantity')}")
-                    print(f"   - Opened At: {pos.get('opened_at')} (>= {before_submit.isoformat()})")
+                    print(f"   - Opened At: {opened_at.isoformat()} (>= {before_submit.isoformat()})")
                     break
             
             if not target_position:
                 print("❌ FAIL: Could not find position created by this test")
-                print("Required conditions:")
+                print("Required conditions (ALL must be satisfied):")
                 print("  - symbol == '603002.SH'")
                 print("  - name contains '宏昌电子'")
                 print("  - entry_price == 12.34")
@@ -434,7 +432,19 @@ def main():
                 print(f"  - opened_at >= {before_submit.isoformat()}")
                 print("\nAvailable positions:")
                 for pos in positions:
-                    print(f"  - {pos.get('name')} ({pos.get('symbol')}): price={pos.get('entry_price')}, qty={pos.get('quantity')}, opened={pos.get('opened_at')}")
+                    try:
+                        opened_at_str = pos.get("opened_at", "N/A")
+                        if opened_at_str != "N/A":
+                            opened_at_parsed = datetime.fromisoformat(opened_at_str)
+                            time_check = f">= before_submit" if opened_at_parsed >= before_submit else "< before_submit"
+                        else:
+                            time_check = "no opened_at"
+                    except:
+                        time_check = "parse error"
+                    
+                    print(f"  - {pos.get('name')} ({pos.get('symbol')}): "
+                          f"price={pos.get('entry_price')}, qty={pos.get('quantity')}, "
+                          f"opened={pos.get('opened_at')} ({time_check})")
                 browser.close()
                 return 1
             print()

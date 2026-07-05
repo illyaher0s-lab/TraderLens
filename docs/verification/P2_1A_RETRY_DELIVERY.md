@@ -6,6 +6,14 @@
 
 **当前状态：** ✅ **PASS**
 
+**最新验证结果（时间强关联已加固）：**
+- **before_submit:** 2026-07-05T21:33:19.371201 (本地无时区时间)
+- **本次新增 position_id:** pos_4e8a3b24ca81
+- **opened_at:** 2026-07-05T21:33:19.871291 (本地无时区时间)
+- **时间比较:** opened_at >= before_submit ✅ (相差约 0.5 秒)
+- **Total positions:** 5 (允许历史数据存在)
+- **强关联条件:** symbol/name/price/quantity/opened_at 全部满足 ✅
+
 ---
 
 ## 实现为
@@ -18,7 +26,7 @@
 - ✅ 自动启动后端服务 (8010)
 - ✅ 自动启动前端服务 (3000)
 - ✅ 等待服务就绪（health endpoint + 前端可访问性）
-- ✅ **记录提交前时间戳 `before_submit` 用于强关联**
+- ✅ **记录提交前时间戳 `before_submit = datetime.now()`（本地无时区时间）**
 - ✅ Playwright 打开 /workbench，输入买入信息
 - ✅ 自动点击发送按钮提交
 - ✅ **显式验证 POST /api/agent/workbench/message 返回 HTTP 200**
@@ -29,7 +37,7 @@
   - `name` 包含 "宏昌电子"
   - `entry_price == 12.34`
   - `quantity == 100`
-  - `opened_at >= before_submit`
+  - `opened_at >= before_submit`（本地时间比较，无时区转换）
 - ✅ **找不到匹配 position 则 `return 1`（不是 WARNING）**
 - ✅ 验证 /observations 页面显示 position
 - ✅ 保存 7 个证据文件
@@ -37,15 +45,15 @@
 
 **验证链路：**
 ```
-记录 before_submit = 2026-07-05T13:11:36.861073+00:00
+记录 before_submit = datetime.now() = 2026-07-05T21:33:19.371201（本地无时区）
   ↓
 用户输入：已买入宏昌电子（603002）100 股，成交价 12.34
   ↓ POST /api/agent/workbench/message (HTTP 200 ✅)
   ↓ Workbench execution_feedback workflow
   ↓ 写入 data/live_trade.db (execution_observation_log + observation_position)
   ↓ GET /api/observations?status=open (HTTP 200 ✅)
-  ↓ 筛选 position: symbol=603002.SH, name=宏昌电子, price=12.34, qty=100, opened_at >= before_submit ✅
-  ↓ 找到本次新增 position: pos_1aea6861e673, opened_at=2026-07-05T21:11:37.447329 ✅
+  ↓ 筛选 position: symbol=603002.SH, name=宏昌电子, price=12.34, qty=100, opened_at >= before_submit（本地时间比较）✅
+  ↓ 找到本次新增 position: pos_4e8a3b24ca81, opened_at=2026-07-05T21:33:19.871291 ✅
   ↓ /observations 页面显示持仓 ✅
 ```
 
@@ -83,47 +91,59 @@ stock_resolver_fixture = {
 symbol=stock_identity.ticker,  # 不是 ts_code
 ```
 
-### 3. 防止 false positive（强关联验证）
+### 3. 防止 false positive（强关联验证 - 本地时间）
 
-#### a. 记录提交前时间戳
+#### a. 记录提交前时间戳（本地无时区）
 ```python
-from datetime import datetime, timezone
-before_submit = datetime.now(timezone.utc)
+from datetime import datetime
+before_submit = datetime.now()  # 本地时间，无时区信息
 print(f"📍 Before submit timestamp: {before_submit.isoformat()}")
 ```
 
-#### b. 强关联筛选（所有条件必须同时满足）
+#### b. 解析 opened_at（本地无时区，直接比较）
 ```python
-if (pos.get("symbol") == "603002.SH" and
+# API 返回格式: "2026-07-05T21:33:19.871291"
+# 直接解析为本地时间，不做时区转换
+opened_at = datetime.fromisoformat(opened_at_str)
+```
+
+#### c. 强关联筛选（所有条件必须同时满足）
+```python
+conditions_met = (
+    pos.get("symbol") == "603002.SH" and
     "宏昌电子" in pos.get("name", "") and
     pos.get("entry_price") == 12.34 and
     pos.get("quantity") == 100 and
-    opened_at >= before_submit):
-    target_position = pos
-    break
+    opened_at >= before_submit  # 本地时间直接比较
+)
 ```
 
-#### c. 找不到则失败（不是 WARNING）
+#### d. 找不到则失败（不是 WARNING）
 ```python
 if not target_position:
     print("❌ FAIL: Could not find position created by this test")
-    print("Required conditions:")
+    print("Required conditions (ALL must be satisfied):")
     print("  - symbol == '603002.SH'")
     print("  - name contains '宏昌电子'")
     print("  - entry_price == 12.34")
     print("  - quantity == 100")
     print(f"  - opened_at >= {before_submit.isoformat()}")
+    # 列出所有 positions 及其时间比较结果
+    for pos in positions:
+        opened_at_parsed = datetime.fromisoformat(pos.get("opened_at"))
+        time_check = ">= before_submit" if opened_at_parsed >= before_submit else "< before_submit"
+        print(f"  - {pos.get('name')}: opened={pos.get('opened_at')} ({time_check})")
     return 1
 ```
 
-#### d. 显式验证 Workbench POST 状态
+#### e. 显式验证 Workbench POST 状态
 ```python
 if workbench_post["status"] != 200 or not workbench_post["ok"]:
     print(f"❌ FAIL: Workbench POST returned HTTP {workbench_post['status']}")
     return 1
 ```
 
-#### e. 检查 Workbench DOM 错误信息
+#### f. 检查 Workbench DOM 错误信息
 ```python
 if any(keyword in workbench_dom for keyword in ["Failed to send message", "Internal Server Error", "发送失败", "error"]):
     print("❌ FAIL: Workbench DOM contains error message")
@@ -145,33 +165,35 @@ if any(keyword in workbench_dom for keyword in ["Failed to send message", "Inter
 
 ## 证据为
 
-### 1. 强关联：本次新增 Position
+### 1. 强关联：本次新增 Position（本地时间）
 **文件：** `p2-1a-observations-api.json`
 
-**Total positions: 3** (允许历史数据存在)
+**Total positions: 5** (允许历史数据存在)
 
 **本次新增的 position（强关联匹配）：**
 ```json
 {
-  "position_id": "pos_1aea6861e673",
+  "position_id": "pos_4e8a3b24ca81",
   "symbol": "603002.SH",
   "name": "宏昌电子",
   "entry_price": 12.34,
   "quantity": 100,
   "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34",
   "lifecycle_state": "open",
-  "opened_at": "2026-07-05T21:11:37.447329"
+  "opened_at": "2026-07-05T21:33:19.871291"
 }
 ```
 
-**强关联验证：**
+**强关联验证（本地时间，无时区转换）：**
 - ✅ symbol = "603002.SH" (匹配)
 - ✅ name = "宏昌电子" (匹配)
 - ✅ entry_price = 12.34 (匹配)
 - ✅ quantity = 100 (匹配)
-- ✅ opened_at = 2026-07-05T21:11:37.447329 **>= before_submit** (2026-07-05T13:11:36.861073+00:00) (匹配)
+- ✅ opened_at = 2026-07-05T21:33:19.871291 **>= before_submit** (2026-07-05T21:33:19.371201) (匹配，相差约 0.5 秒)
 
-**历史 positions（允许存在，不影响验证）：**
+**历史 positions（允许存在，被正确排除）：**
+- pos_0b415a91ef88, opened_at: 2026-07-05T21:18:59.872703 (< before_submit，排除)
+- pos_1aea6861e673, opened_at: 2026-07-05T21:11:37.447329 (< before_submit，排除)
 - pos_f33121c3b492, opened_at: 2026-07-05T21:01:46.843875 (< before_submit，排除)
 - pos_e25023f1b339, opened_at: 2026-07-05T19:44:56.534453 (< before_submit，排除)
 
@@ -334,13 +356,14 @@ cd /mnt/d/Codex/TraderLens
 ✅ Workbench POST → HTTP 200 (verified)  
 ✅ Workbench DOM → 无错误信息 (verified)  
 ✅ execution_feedback workflow → 创建 position (verified)  
-✅ /api/observations → 返回 3 positions，本次新增的强关联匹配 (verified)  
-✅ **强关联验证：opened_at >= before_submit (verified)**  
+✅ /api/observations → 返回 5 positions，本次新增的强关联匹配 (verified)  
+✅ **强关联验证：opened_at >= before_submit（本地时间直接比较，无时区转换）(verified)**  
+✅ **本次新增 position: pos_4e8a3b24ca81, opened_at 相差约 0.5 秒 (verified)**  
 ✅ /observations 页面 → 显示持仓 (verified)  
 ✅ 完整链路通过  
 ✅ 真实浏览器 + 真实服务 + 真实 DB  
 ✅ 无手写 DOM，无 fixture，无直接 DB 插入  
-✅ 无 false positive
+✅ 无 false positive（时间强关联已加固）
 
 ---
 
@@ -352,7 +375,7 @@ cd /mnt/d/Codex/TraderLens
 
 ---
 
-**报告最后更新：** 2026-07-05 21:13  
+**报告最后更新：** 2026-07-05 21:35  
 **验证执行时间：** 约 2 分钟（自动化脚本）  
-**验证模式：** 真实浏览器 + 真实服务 + 真实 DB + 强关联验证  
-**交付状态：** ✅ **PASS** - 端到端链路完整通过，强关联验证无 false positive
+**验证模式：** 真实浏览器 + 真实服务 + 真实 DB + 强关联验证（本地时间）  
+**交付状态：** ✅ **PASS** - 端到端链路完整通过，时间强关联已加固，无 false positive
