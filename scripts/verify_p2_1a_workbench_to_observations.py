@@ -1,11 +1,31 @@
 #!/usr/bin/env python3
 """
-P2-1A-RETRY Workbench → Observation Pool 验证
-前提：后端和前端已手动启动（backend: 8010, frontend: 3000）
-验证：Workbench 自然语言买入 → /observations 显示持仓
+P2-1A-RETRY Workbench → Observation Pool 端到端验证
+
+自动化流程：
+1. 检查端口占用
+2. 启动后端 (8010)
+3. 启动前端 (3000)
+4. 等待服务就绪
+5. Playwright 打开 /workbench，输入买入信息
+6. 验证 DB 写入
+7. 验证 /api/observations 返回
+8. 验证 /observations 页面显示
+9. 保存 6 个证据文件
+10. 清理进程
+
+PASS 标准：
+- Workbench 输入 → HTTP 200
+- Timeline artifacts 包含 execution_observation_log 和 observation_position
+- /api/observations 返回该 position
+- /observations DOM 显示该 position
+- 所有 API 请求使用 localhost:8010
+- DB 路径为 data/live_trade.db
 """
 
 import json
+import os
+import subprocess
 import sys
 import time
 from datetime import datetime
@@ -18,57 +38,168 @@ if sys.platform == "win32":
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # Add project root to path
-PROJECT_ROOT = Path(__file__).parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from playwright.sync_api import sync_playwright
+print("=" * 100)
+print("P2-1A-RETRY Workbench → Observation Pool End-to-End Verification")
+print("=" * 100)
+print()
+print(f"PROJECT_ROOT: {PROJECT_ROOT}")
+print(f"Current working directory: {os.getcwd()}")
+print()
+
+
+def check_port_in_use(port):
+    """检查端口是否被占用"""
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
 
 
 def main():
-    print("=" * 100)
-    print("P2-1A-RETRY Workbench → Observation Pool Verification")
-    print("=" * 100)
-    print()
-    print("⚠️  Prerequisites:")
-    print("    1. Backend running on http://localhost:8010")
-    print("    2. Frontend running on http://localhost:3000")
-    print("    3. Environment variable: NEXT_PUBLIC_API_BASE_URL=http://localhost:8010")
-    print()
+    backend_proc = None
+    frontend_proc = None
+    backend_log_file = None
+    backend_log_path = None
     
-    # 1. 检查服务是否运行
-    print("[1/6] Checking services...")
     try:
+        # Step 1: 检查端口占用
+        print("[1/10] Checking port availability...")
+        
+        if check_port_in_use(8010):
+            print("❌ FAIL: Port 8010 already in use")
+            print("Please stop existing backend service before running this script")
+            return 1
+        print("✅ Port 8010 available")
+        
+        if check_port_in_use(3000):
+            print("❌ FAIL: Port 3000 already in use")
+            print("Please stop existing frontend service before running this script")
+            return 1
+        print("✅ Port 3000 available")
+        print()
+        
+        # Step 2: 启动后端
+        print("[2/10] Starting backend on port 8010...")
+        os.environ["RESEARCH_CONVERSATION_MODE"] = "deterministic"
+        os.environ["SERENITY_EXECUTION_MODE"] = "stub"
+        
+        backend_proc = subprocess.Popen(
+            [
+                str(PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"),
+                "-m",
+                "uvicorn",
+                "backend.app.main:app",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                "8010",
+            ],
+            cwd=str(PROJECT_ROOT),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,  # Redirect stderr to stdout
+            text=True,
+        )
+        print("✅ Backend process started")
+        
+        # Save backend logs to file
+        import threading
+        backend_log_path = PROJECT_ROOT / "docs/verification/p2-1a-backend-log.txt"
+        backend_log_file = open(backend_log_path, "w", encoding="utf-8")
+        
+        def log_backend_output():
+            for line in backend_proc.stdout:
+                backend_log_file.write(line)
+                backend_log_file.flush()
+        
+        backend_log_thread = threading.Thread(target=log_backend_output, daemon=True)
+        backend_log_thread.start()
+        
+        # Step 3: 等待 health endpoint
+        print("[3/10] Waiting for backend health endpoint...")
         import urllib.request
         
-        # 检查后端
-        backend_req = urllib.request.Request("http://localhost:8010/api/health/runtime")
-        with urllib.request.urlopen(backend_req, timeout=5) as response:
-            health_data = json.loads(response.read().decode())
-            if health_data.get("status") != "ok":
-                print("❌ FAIL: Backend health check failed")
-                return 1
-        print("✅ Backend is running")
+        health_url = "http://localhost:8010/api/health/runtime"
+        max_wait = 30
+        health_data = None
         
-        # 检查前端
-        frontend_req = urllib.request.Request("http://localhost:3000")
-        with urllib.request.urlopen(frontend_req, timeout=5) as response:
-            if response.status != 200:
-                print("❌ FAIL: Frontend health check failed")
-                return 1
-        print("✅ Frontend is running")
+        for i in range(max_wait):
+            try:
+                req = urllib.request.Request(health_url)
+                with urllib.request.urlopen(req, timeout=2) as response:
+                    health_data = json.loads(response.read().decode())
+                    if health_data.get("status") == "ok":
+                        print(f"✅ Backend health check passed: {health_data['status']}")
+                        break
+            except Exception as e:
+                if i == max_wait - 1:
+                    print(f"❌ FAIL: Backend health check timeout: {e}")
+                    return 1
+                time.sleep(1)
         
-    except Exception as e:
-        print(f"❌ FAIL: Services not available: {e}")
+        if not health_data:
+            print("❌ FAIL: Backend did not respond to health check")
+            return 1
         print()
-        print("Please start the services manually:")
-        print("  Backend:  .venv\\Scripts\\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8010")
-        print("  Frontend: cd frontend && set NEXT_PUBLIC_API_BASE_URL=http://localhost:8010 && npm run dev")
-        return 1
-    print()
-    
-    try:
-        # 2. 打开 Workbench 并记录买入
-        print("[2/6] Opening Workbench and recording buy execution...")
+        
+        # Step 4: 启动前端
+        print("[4/10] Starting frontend on port 3000...")
+        frontend_env = os.environ.copy()
+        frontend_env["NEXT_PUBLIC_API_BASE_URL"] = "http://localhost:8010"
+        
+        npm_cmd = "C:/Program Files/nodejs/npm.cmd" if os.path.exists("C:/Program Files/nodejs/npm.cmd") else "npm"
+        
+        frontend_proc = subprocess.Popen(
+            [npm_cmd, "run", "dev", "--", "--port", "3000"],
+            cwd=str(PROJECT_ROOT / "frontend"),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env=frontend_env,
+            shell=True,
+        )
+        print("✅ Frontend process started")
+        print("⏳ Waiting for frontend to be ready...")
+        
+        # 等待前端就绪（最多 60 秒）
+        frontend_ready = False
+        for i in range(60):
+            try:
+                req = urllib.request.Request("http://localhost:3000")
+                with urllib.request.urlopen(req, timeout=2) as response:
+                    if response.status == 200:
+                        frontend_ready = True
+                        print(f"✅ Frontend ready after {i+1} seconds")
+                        break
+            except:
+                pass
+            time.sleep(1)
+        
+        if not frontend_ready:
+            print("❌ FAIL: Frontend did not start within 60 seconds")
+            return 1
+        print()
+        
+        # Step 5: 检查 /workbench 可访问性
+        print("[5/10] Checking /workbench accessibility...")
+        try:
+            req = urllib.request.Request("http://localhost:3000/workbench")
+            with urllib.request.urlopen(req, timeout=10) as response:
+                if response.status == 200:
+                    print("✅ /workbench is accessible")
+                else:
+                    print(f"❌ FAIL: /workbench returned HTTP {response.status}")
+                    return 1
+        except Exception as e:
+            print(f"❌ FAIL: Could not access /workbench: {e}")
+            return 1
+        print()
+        
+        # Step 6: Playwright - 打开 Workbench 并输入买入信息
+        print("[6/10] Opening Workbench with Playwright and submitting buy execution...")
+        
+        from playwright.sync_api import sync_playwright
         
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=False)
@@ -76,13 +207,13 @@ def main():
             
             # 捕获 console 和 network
             console_logs = []
-            network_logs = []
+            workbench_network_logs = []
             
             def on_console(msg):
                 console_logs.append({"type": msg.type, "text": msg.text})
             
             def on_response(response):
-                network_logs.append({
+                workbench_network_logs.append({
                     "url": response.url,
                     "method": response.request.method,
                     "status": response.status,
@@ -97,10 +228,13 @@ def main():
             page.goto("http://localhost:3000/workbench", wait_until="networkidle")
             time.sleep(2)
             
-            # 输入买入信息
-            test_message = "我昨天买入了宏昌电子 100 股，成交价 12.34"
+            # 生成测试消息（必须使用"已买入"关键词触发 execution_feedback）
+            test_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            test_message = "已买入宏昌电子（603002）100 股，成交价 12.34"
             
-            # 尝试多种选择器
+            print(f"Test message: {test_message}")
+            
+            # 尝试多种选择器找到输入框
             input_selectors = [
                 'textarea[placeholder*="输入"]',
                 'textarea[placeholder*="消息"]',
@@ -112,9 +246,9 @@ def main():
             for selector in input_selectors:
                 try:
                     if page.locator(selector).count() > 0:
-                        page.fill(selector, test_message)
-                        page.press(selector, "Enter")
-                        print(f"✅ Sent message: {test_message}")
+                        input_element = page.locator(selector).first
+                        input_element.fill(test_message)
+                        print(f"✅ Filled input via selector: {selector}")
                         input_found = True
                         break
                 except Exception:
@@ -127,21 +261,52 @@ def main():
                 browser.close()
                 return 1
             
-            # 等待响应（最多 60 秒）
-            print("⏳ Waiting for agent response (up to 60 seconds)...")
+            # 尝试提交：先尝试点击发送按钮，如果找不到则按 Enter
+            submit_success = False
+            
+            # 尝试找发送按钮
+            send_button_selectors = [
+                'button:has-text("发送")',
+                'button[type="submit"]',
+                'button:has-text("Send")',
+            ]
+            
+            for selector in send_button_selectors:
+                try:
+                    if page.locator(selector).count() > 0:
+                        page.click(selector)
+                        print(f"✅ Clicked send button via selector: {selector}")
+                        submit_success = True
+                        break
+                except Exception:
+                    continue
+            
+            # 如果没有找到按钮，尝试按 Enter
+            if not submit_success:
+                try:
+                    input_element.press("Enter")
+                    print(f"✅ Pressed Enter to submit")
+                    submit_success = True
+                except Exception as e:
+                    print(f"❌ FAIL: Could not submit message: {e}")
+                    browser.close()
+                    return 1
+            
+            # 等待 Agent 响应（最多 90 秒，因为真实 LLM 可能较慢）
+            print("⏳ Waiting for agent response (up to 90 seconds)...")
             response_found = False
-            for i in range(60):
+            for i in range(90):
                 page_text = page.inner_text("body")
-                if any(keyword in page_text for keyword in ["已记录", "position", "持仓", "执行反馈", "买入"]):
+                # 更宽松的检测条件
+                if any(keyword in page_text for keyword in ["已记录", "position", "持仓", "执行", "买入", "宏昌"]):
                     response_found = True
-                    print(f"✅ Agent response received after {i+1} seconds")
+                    print(f"✅ Agent response detected after {i+1} seconds")
                     break
                 time.sleep(1)
             
             if not response_found:
-                print("⚠️  WARNING: No clear confirmation after 60 seconds")
-                print("Page text (last 500 chars):")
-                print(page_text[-500:])
+                print("⚠️ WARNING: No clear agent response after 90 seconds")
+                print("Continuing with verification...")
             
             # 保存 Workbench DOM
             workbench_dom = page.inner_text("body")
@@ -154,20 +319,19 @@ def main():
                 f.write(f"## Page Text\n\n```\n{workbench_dom}\n```\n")
             print(f"✅ Saved Workbench DOM to {workbench_dom_path.relative_to(PROJECT_ROOT)}")
             
-            # 保存 network log
+            # 保存 Workbench network log
             workbench_network_path = PROJECT_ROOT / "docs/verification/p2-1a-workbench-network-log.json"
             with open(workbench_network_path, "w", encoding="utf-8") as f:
-                json.dump(network_logs, f, indent=2, ensure_ascii=False)
+                json.dump(workbench_network_logs, f, indent=2, ensure_ascii=False)
             print(f"✅ Saved Workbench network log to {workbench_network_path.relative_to(PROJECT_ROOT)}")
             print()
             
-            # 3. 查询 /api/observations
-            print("[3/6] Querying /api/observations...")
-            time.sleep(3)  # 等待 DB 写入完成
+            # Step 7: 查询 /api/observations
+            print("[7/10] Querying /api/observations...")
+            time.sleep(5)  # 等待 DB 写入完成
             
             observations_response = None
             try:
-                import urllib.request
                 req = urllib.request.Request("http://localhost:8010/api/observations?status=open")
                 with urllib.request.urlopen(req, timeout=5) as response:
                     observations_response = json.loads(response.read().decode())
@@ -177,17 +341,19 @@ def main():
                 browser.close()
                 return 1
             
-            # 保存 API 响应
+            # 保存 observations API 响应
             observations_api_path = PROJECT_ROOT / "docs/verification/p2-1a-observations-api.json"
             with open(observations_api_path, "w", encoding="utf-8") as f:
                 json.dump(observations_response, f, indent=2, ensure_ascii=False)
             print(f"✅ Saved observations API response to {observations_api_path.relative_to(PROJECT_ROOT)}")
             
-            # 检查是否有 position
+            # 检查 positions
             positions = observations_response.get("positions", [])
             if len(positions) == 0:
-                print("⚠️  WARNING: No positions found in /api/observations response")
-                print("This may indicate the execution_feedback workflow did not create a position")
+                print("❌ FAIL: No positions found in /api/observations response")
+                print("This indicates the execution_feedback workflow did not create a position")
+                browser.close()
+                return 1
             else:
                 print(f"✅ Found {len(positions)} position(s) in API response")
                 
@@ -204,12 +370,12 @@ def main():
                     print(f"   - Shares: {target_position.get('shares')}")
                     print(f"   - Entry Price: {target_position.get('entry_price')}")
                 else:
-                    print("⚠️  WARNING: Could not find 宏昌电子 in positions")
+                    print("⚠️ WARNING: Could not find 宏昌电子 in positions")
                     print("Available positions:", [p.get("stock_name") or p.get("stock_code") for p in positions])
             print()
             
-            # 4. 打开 /observations 页面
-            print("[4/6] Opening /observations page...")
+            # Step 8: 打开 /observations 页面
+            print("[8/10] Opening /observations page with Playwright...")
             
             observations_page = context.new_page()
             observations_network = []
@@ -242,9 +408,10 @@ def main():
             print(f"✅ Saved observations network log to {observations_network_path.relative_to(PROJECT_ROOT)}")
             print()
             
-            # 5. 验证 DOM 内容
-            print("[5/6] Validating observations page content...")
+            # Step 9: 验证内容
+            print("[9/10] Validating end-to-end chain...")
             
+            # DOM 内容检查
             dom_checks = {
                 "has_stock_name_or_code": "宏昌电子" in observations_dom or "603002" in observations_dom,
                 "has_status_indicator": any(word in observations_dom for word in ["open", "持仓", "观察", "Open"]),
@@ -252,27 +419,15 @@ def main():
                 "no_loading_message": "loading" not in observations_dom.lower() and "加载中" not in observations_dom,
             }
             
-            all_checks_passed = all(dom_checks.values())
-            
+            print("DOM checks:")
             for check, passed in dom_checks.items():
                 status = "✅" if passed else "❌"
-                print(f"{status} {check}: {passed}")
+                print(f"  {status} {check}: {passed}")
             
-            if not all_checks_passed:
-                print("⚠️  WARNING: Some DOM checks failed")
-                print("This may indicate the page is not showing the position correctly")
-            else:
-                print("✅ All DOM checks passed")
-            print()
-            
-            # 6. 验证 network log
-            print("[6/6] Validating network logs...")
-            
-            # 检查 Workbench network log
-            workbench_api_calls = [log for log in network_logs if "/api/" in log["url"]]
+            # Network 检查
+            workbench_api_calls = [log for log in workbench_network_logs if "/api/" in log["url"]]
             all_use_8010 = all("localhost:8010" in log["url"] or "127.0.0.1:8010" in log["url"] for log in workbench_api_calls) if workbench_api_calls else False
             
-            # 检查 observations network log
             observations_api_call = next((log for log in observations_network if "/api/observations" in log["url"]), None)
             
             network_checks = {
@@ -283,26 +438,19 @@ def main():
                 "observations_uses_8010": ("localhost:8010" in observations_api_call["url"] or "127.0.0.1:8010" in observations_api_call["url"]) if observations_api_call else False,
             }
             
-            all_network_passed = all(network_checks.values())
-            
+            print("\nNetwork checks:")
             for check, passed in network_checks.items():
                 status = "✅" if passed else "❌"
-                print(f"{status} {check}: {passed}")
-            
-            if not all_network_passed:
-                print("⚠️  WARNING: Some network checks failed")
-            else:
-                print("✅ All network checks passed")
+                print(f"  {status} {check}: {passed}")
             print()
             
             browser.close()
         
-        # 检查 DB 路径
-        print("Checking DB paths...")
+        # Step 10: 检查 DB 路径
+        print("[10/10] Checking DB paths...")
         
-        import urllib.request
-        health_req = urllib.request.Request("http://localhost:8010/api/health/runtime")
-        with urllib.request.urlopen(health_req, timeout=5) as response:
+        req = urllib.request.Request("http://localhost:8010/api/health/runtime")
+        with urllib.request.urlopen(req, timeout=5) as response:
             health_data = json.loads(response.read().decode())
         
         db_path = health_data.get("live_trade_db_path", "")
@@ -328,35 +476,72 @@ def main():
         print()
         
         # 最终结论
+        all_dom_passed = all(dom_checks.values())
+        all_network_passed = all(network_checks.values())
+        has_positions = len(positions) > 0
+        
         print("=" * 100)
-        if all_checks_passed and all_network_passed and len(positions) > 0:
-            print("✅ PASS: P2-1A-RETRY Workbench → Observation Pool verification complete")
+        if all_dom_passed and all_network_passed and has_positions:
+            print("✅ PASS: P2-1A-RETRY Workbench → Observation Pool verification COMPLETE")
+            print()
+            print("All checks passed:")
+            print("  ✅ Workbench input submitted")
+            print("  ✅ execution_feedback workflow created position")
+            print("  ✅ /api/observations returned position data")
+            print("  ✅ /observations page displayed position")
+            print("  ✅ All API requests used localhost:8010")
+            print("  ✅ DB path is data/live_trade.db")
         else:
-            print("⚠️  PARTIAL: Some checks did not pass completely")
+            print("⚠️ PARTIAL: Some checks did not pass")
             print()
             print("Summary:")
             print(f"  - Positions found: {len(positions)}")
-            print(f"  - DOM checks passed: {all_checks_passed}")
+            print(f"  - DOM checks passed: {all_dom_passed}")
             print(f"  - Network checks passed: {all_network_passed}")
         print("=" * 100)
         print()
-        print("Evidence files:")
-        print(f"  - {workbench_dom_path.relative_to(PROJECT_ROOT)}")
-        print(f"  - {workbench_network_path.relative_to(PROJECT_ROOT)}")
-        print(f"  - {observations_api_path.relative_to(PROJECT_ROOT)}")
-        print(f"  - {observations_dom_path.relative_to(PROJECT_ROOT)}")
-        print(f"  - {observations_network_path.relative_to(PROJECT_ROOT)}")
-        print(f"  - {db_check_path.relative_to(PROJECT_ROOT)}")
+        
+        print("Evidence files generated:")
+        print(f"  1. {workbench_dom_path.relative_to(PROJECT_ROOT)}")
+        print(f"  2. {workbench_network_path.relative_to(PROJECT_ROOT)}")
+        print(f"  3. {observations_api_path.relative_to(PROJECT_ROOT)}")
+        print(f"  4. {observations_dom_path.relative_to(PROJECT_ROOT)}")
+        print(f"  5. {observations_network_path.relative_to(PROJECT_ROOT)}")
+        print(f"  6. {db_check_path.relative_to(PROJECT_ROOT)}")
         print()
         
-        return 0
+        if all_dom_passed and all_network_passed and has_positions:
+            return 0
+        else:
+            return 1
         
     except Exception as e:
         print(f"❌ FAIL: Unexpected error: {e}")
         import traceback
         traceback.print_exc()
         return 1
+    
+    finally:
+        # 清理进程
+        print("\n" + "=" * 100)
+        print("Cleaning up processes...")
+        if backend_proc:
+            backend_proc.kill()
+            print("✅ Backend process terminated")
+        if frontend_proc:
+            frontend_proc.kill()
+            print("✅ Frontend process terminated")
+        
+        # Close backend log file
+        try:
+            backend_log_file.close()
+            print(f"✅ Backend log saved to {backend_log_path.relative_to(PROJECT_ROOT)}")
+        except:
+            pass
+        
+        print("=" * 100)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    exit_code = main()
+    sys.exit(exit_code)

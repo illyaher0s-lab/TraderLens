@@ -56,11 +56,11 @@ class WorkbenchWorkflowRouter:
         Make final workflow routing decision.
         
         Routing rules (priority order):
-        1. Stock identity verified -> friend_stock
-        2. Stock entity + research language -> friend_stock
-        3. Stock ambiguous/not_found/data_fault -> clarification/stopped
-        4. Strategy rule shape -> strategy_idea
-        5. Execution feedback detected -> execution_feedback
+        1. Execution feedback detected -> execution_feedback
+        2. Stock identity verified -> friend_stock
+        3. Stock entity + research language -> friend_stock
+        4. Stock ambiguous/not_found/data_fault -> clarification/stopped
+        5. Strategy rule shape -> strategy_idea
         6. Unknown -> clarification
         
         Args:
@@ -71,23 +71,23 @@ class WorkbenchWorkflowRouter:
         Returns:
             WorkbenchRouteDecision with final routing
         """
-        # Rule 1: Stock identity verified -> friend_stock
-        if stock_identity.status == "verified":
-            return WorkbenchRouteDecision(
-                workflow_kind="friend_stock",
-                workflow_state="created",
-                route_reason=f"股票身份已确认：{stock_identity.company_name} ({stock_identity.ticker})",
-                next_required_user_action="wait_for_research",
-                allowed_to_start_workflow=True,
-            )
-        
-        # Rule 2: Execution feedback detected -> execution_feedback
+        # Rule 1: Execution feedback detected -> execution_feedback (highest priority)
         if prescan.detected_execution_action:
             return WorkbenchRouteDecision(
                 workflow_kind="execution_feedback",
                 workflow_state="created",
                 route_reason="检测到执行反馈",
                 next_required_user_action="confirm_execution_details",
+                allowed_to_start_workflow=True,
+            )
+        
+        # Rule 2: Stock identity verified -> friend_stock
+        if stock_identity.status == "verified":
+            return WorkbenchRouteDecision(
+                workflow_kind="friend_stock",
+                workflow_state="created",
+                route_reason=f"股票身份已确认：{stock_identity.company_name} ({stock_identity.ticker})",
+                next_required_user_action="wait_for_research",
                 allowed_to_start_workflow=True,
             )
         

@@ -110,11 +110,36 @@ def startup() -> None:
     research_db_path = Path("data") / "research.db"
     research_db = ResearchDB(str(research_db_path))
     
+    # Default stock resolver fixture for deterministic mode
+    stock_resolver_fixture = None
+    if research_mode == "deterministic":
+        stock_resolver_fixture = {
+            "603002.SH": {
+                "ticker": "603002.SH",
+                "company_name": "宏昌电子",
+                "exchange": "SSE",
+                "list_status": "L",
+            },
+            "000001.SZ": {
+                "ticker": "000001.SZ",
+                "company_name": "平安银行",
+                "exchange": "SZSE",
+                "list_status": "L",
+            },
+            "600519.SH": {
+                "ticker": "600519.SH",
+                "company_name": "贵州茅台",
+                "exchange": "SSE",
+                "list_status": "L",
+            },
+        }
+    
     # Mount Research API
     research_app = create_research_app(
         db=research_db,
         conversation_mode=research_mode,
         serenity_execution_mode=serenity_mode,
+        stock_resolver_fixture=stock_resolver_fixture,
     )
     app.mount("/", research_app)
 

@@ -138,7 +138,7 @@ def handle_execution_feedback(
         signal_id=signal_id,
         action_plan_id=action_plan_id,
         capital_context_id=capital_context_id,
-        symbol=stock_identity.ts_code,
+        symbol=stock_identity.ticker,
         name=stock_identity.company_name,
         entry_price=confirmed_price,
         quantity=confirmed_quantity,
@@ -185,7 +185,7 @@ def handle_execution_feedback(
     
     agent_reply = (
         f"已记录买入：\\n"
-        f"股票：{stock_identity.company_name} ({stock_identity.ts_code})\\n"
+        f"股票：{stock_identity.company_name} ({stock_identity.ticker})\\n"
         f"数量：{confirmed_quantity} 股\\n"
         f"成交价：¥{confirmed_price:.2f}\\n\\n"
         f"持仓已进入观察池，你可以在 /observations 查看。"

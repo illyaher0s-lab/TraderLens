@@ -180,9 +180,41 @@ PreScan 结果：
         
         # Execution feedback
         if prescan.detected_execution_action:
+            # Extract company name and stock code from message
+            import re
+            
+            # Extract stock code from prescan
+            extracted_stock_code = prescan.detected_stock_code
+            
+            # Extract company name
+            # Remove detected stock code from message first
+            message_no_code = user_message
+            if prescan.detected_stock_code:
+                message_no_code = re.sub(r'\d{6}(\.(SH|SZ|BJ))?', '', user_message)
+            
+            # Remove noise words and punctuation
+            noise_words = ['已买入', '已卖出', '买入', '卖出', '成交价', '股', '元', '昨天', '今天']
+            cleaned_message = message_no_code
+            for noise in noise_words:
+                cleaned_message = cleaned_message.replace(noise, ' ')
+            
+            cleaned_message = re.sub(r'[，。、；：？！（）\s\d]+', ' ', cleaned_message)
+            cleaned_message = cleaned_message.strip()
+            
+            # Extract Chinese company name
+            company_pattern = r'[\u4e00-\u9fa5]{2,12}'
+            company_matches = re.findall(company_pattern, cleaned_message)
+            
+            extracted_company = None
+            if company_matches:
+                company_matches.sort(key=len, reverse=True)
+                extracted_company = company_matches[0].strip()
+            
             return WorkbenchIntentExtraction(
                 primary_intent="execution_feedback",
                 intent_candidates=["execution_feedback"],
+                extracted_company_name=extracted_company,
+                extracted_stock_code=extracted_stock_code,
                 confidence="high",
                 extraction_source="deterministic_fixture",
             )
