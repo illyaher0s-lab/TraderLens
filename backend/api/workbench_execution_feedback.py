@@ -160,7 +160,7 @@ def handle_execution_feedback(
         artifact_type="execution_observation_log",
         created_at=now,
     )
-    attach_artifact_ref(db_conn, log_artifact, content={"log_id": log_id, "position_id": position_id})
+    attach_artifact_ref(db_conn, log_artifact, content=json.dumps({"log_id": log_id, "position_id": position_id}))
     artifact_ids.append(log_id)
     
     position_artifact = ArtifactRef(
@@ -170,7 +170,7 @@ def handle_execution_feedback(
         artifact_type="observation_position",
         created_at=now,
     )
-    attach_artifact_ref(db_conn, position_artifact, content={"position_id": position_id})
+    attach_artifact_ref(db_conn, position_artifact, content=json.dumps({"position_id": position_id}))
     artifact_ids.append(position_id)
     
     action_completed_artifact = ArtifactRef(

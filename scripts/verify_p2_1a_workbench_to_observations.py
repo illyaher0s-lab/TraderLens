@@ -297,6 +297,12 @@ def main():
             response_found = False
             for i in range(90):
                 page_text = page.inner_text("body")
+                # 检查是否有错误
+                if any(keyword in page_text for keyword in ["Failed to send message", "Internal Server Error", "发送失败"]):
+                    print("❌ FAIL: Workbench shows error message")
+                    print(f"Page text: {page_text[-500:]}")
+                    browser.close()
+                    return 1
                 # 更宽松的检测条件
                 if any(keyword in page_text for keyword in ["已记录", "position", "持仓", "执行", "买入", "宏昌"]):
                     response_found = True
@@ -310,6 +316,13 @@ def main():
             
             # 保存 Workbench DOM
             workbench_dom = page.inner_text("body")
+            
+            # 再次检查 DOM 中是否有错误
+            if any(keyword in workbench_dom for keyword in ["Failed to send message", "Internal Server Error", "发送失败", "error"]):
+                print("❌ FAIL: Workbench DOM contains error message")
+                print(f"DOM excerpt: {workbench_dom[-500:]}")
+                browser.close()
+                return 1
             workbench_dom_path = PROJECT_ROOT / "docs/verification/p2-1a-workbench-dom.md"
             workbench_dom_path.parent.mkdir(parents=True, exist_ok=True)
             with open(workbench_dom_path, "w", encoding="utf-8") as f:
@@ -324,6 +337,21 @@ def main():
             with open(workbench_network_path, "w", encoding="utf-8") as f:
                 json.dump(workbench_network_logs, f, indent=2, ensure_ascii=False)
             print(f"✅ Saved Workbench network log to {workbench_network_path.relative_to(PROJECT_ROOT)}")
+            
+            # 检查 Workbench POST 请求状态
+            workbench_post = next((log for log in workbench_network_logs if log["method"] == "POST" and "/api/agent/workbench/message" in log["url"]), None)
+            if not workbench_post:
+                print("❌ FAIL: No POST request to /api/agent/workbench/message found")
+                browser.close()
+                return 1
+            
+            if workbench_post["status"] != 200 or not workbench_post["ok"]:
+                print(f"❌ FAIL: Workbench POST returned HTTP {workbench_post['status']}")
+                print(f"Expected: 200, Got: {workbench_post['status']}")
+                browser.close()
+                return 1
+            
+            print(f"✅ Workbench POST /api/agent/workbench/message: HTTP {workbench_post['status']}")
             print()
             
             # Step 7: 查询 /api/observations
@@ -357,21 +385,31 @@ def main():
             else:
                 print(f"✅ Found {len(positions)} position(s) in API response")
                 
-                # 检查是否有宏昌电子
+                # 检查是否有宏昌电子 - 使用 API 实际返回的字段 name/symbol
                 target_position = None
                 for pos in positions:
-                    if "宏昌电子" in pos.get("stock_name", "") or pos.get("stock_code") == "603002":
+                    # API 返回 name (公司名) 和 symbol (股票代码)
+                    if "宏昌电子" in pos.get("name", "") or pos.get("symbol") == "603002.SH":
                         target_position = pos
                         break
                 
-                if target_position:
-                    print(f"✅ Found target position: {target_position.get('stock_name')} ({target_position.get('stock_code')})")
-                    print(f"   - Status: {target_position.get('status')}")
-                    print(f"   - Shares: {target_position.get('shares')}")
-                    print(f"   - Entry Price: {target_position.get('entry_price')}")
-                else:
-                    print("⚠️ WARNING: Could not find 宏昌电子 in positions")
-                    print("Available positions:", [p.get("stock_name") or p.get("stock_code") for p in positions])
+                if not target_position:
+                    print("❌ FAIL: Could not find 宏昌电子 (603002.SH) in positions")
+                    print("Available positions:")
+                    for pos in positions:
+                        print(f"  - {pos.get('name')} ({pos.get('symbol')})")
+                    browser.close()
+                    return 1
+                
+                print(f"✅ Found target position: {target_position.get('name')} ({target_position.get('symbol')})")
+                print(f"   - Entry Price: {target_position.get('entry_price')}")
+                print(f"   - Quantity: {target_position.get('quantity')}")
+                
+                # 验证价格和数量与输入匹配
+                if target_position.get('entry_price') != 12.34:
+                    print(f"⚠️  WARNING: Entry price mismatch. Expected 12.34, got {target_position.get('entry_price')}")
+                if target_position.get('quantity') != 100:
+                    print(f"⚠️  WARNING: Quantity mismatch. Expected 100, got {target_position.get('quantity')}")
             print()
             
             # Step 8: 打开 /observations 页面
