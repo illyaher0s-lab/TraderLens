@@ -228,6 +228,11 @@ def main():
             page.goto("http://localhost:3000/workbench", wait_until="networkidle")
             time.sleep(2)
             
+            # 记录提交前时间用于强关联
+            from datetime import datetime, timezone
+            before_submit = datetime.now(timezone.utc)
+            print(f"📍 Before submit timestamp: {before_submit.isoformat()}")
+            
             # 生成测试消息（必须使用"已买入"关键词触发 execution_feedback）
             test_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             test_message = "已买入宏昌电子（603002）100 股，成交价 12.34"
@@ -375,41 +380,63 @@ def main():
                 json.dump(observations_response, f, indent=2, ensure_ascii=False)
             print(f"✅ Saved observations API response to {observations_api_path.relative_to(PROJECT_ROOT)}")
             
-            # 检查 positions
+            # 检查 positions - 强关联：本次新增的 position
             positions = observations_response.get("positions", [])
-            if len(positions) == 0:
-                print("❌ FAIL: No positions found in /api/observations response")
-                print("This indicates the execution_feedback workflow did not create a position")
+            print(f"Total positions in API response: {len(positions)}")
+            
+            # 筛选本次新增的 position（所有条件必须满足）
+            target_position = None
+            for pos in positions:
+                # 解析 opened_at 时间
+                try:
+                    from datetime import datetime
+                    opened_at_str = pos.get("opened_at", "")
+                    # 支持多种 ISO 格式
+                    if opened_at_str:
+                        # 移除可能的微秒部分的尾部时区标记
+                        if "+" in opened_at_str:
+                            opened_at_str = opened_at_str.split("+")[0]
+                        elif opened_at_str.endswith("Z"):
+                            opened_at_str = opened_at_str[:-1]
+                        
+                        opened_at = datetime.fromisoformat(opened_at_str)
+                        # 转换为 UTC（如果没有时区信息，假设为本地时间）
+                        if opened_at.tzinfo is None:
+                            from datetime import timezone
+                            opened_at = opened_at.replace(tzinfo=timezone.utc)
+                except Exception as e:
+                    print(f"⚠️  Cannot parse opened_at for position {pos.get('position_id')}: {e}")
+                    continue
+                
+                # 强关联检查：所有条件必须同时满足
+                if (pos.get("symbol") == "603002.SH" and
+                    "宏昌电子" in pos.get("name", "") and
+                    pos.get("entry_price") == 12.34 and
+                    pos.get("quantity") == 100 and
+                    opened_at >= before_submit):
+                    target_position = pos
+                    print(f"✅ Found target position created by this test:")
+                    print(f"   - Position ID: {pos.get('position_id')}")
+                    print(f"   - Symbol: {pos.get('symbol')}")
+                    print(f"   - Name: {pos.get('name')}")
+                    print(f"   - Entry Price: {pos.get('entry_price')}")
+                    print(f"   - Quantity: {pos.get('quantity')}")
+                    print(f"   - Opened At: {pos.get('opened_at')} (>= {before_submit.isoformat()})")
+                    break
+            
+            if not target_position:
+                print("❌ FAIL: Could not find position created by this test")
+                print("Required conditions:")
+                print("  - symbol == '603002.SH'")
+                print("  - name contains '宏昌电子'")
+                print("  - entry_price == 12.34")
+                print("  - quantity == 100")
+                print(f"  - opened_at >= {before_submit.isoformat()}")
+                print("\nAvailable positions:")
+                for pos in positions:
+                    print(f"  - {pos.get('name')} ({pos.get('symbol')}): price={pos.get('entry_price')}, qty={pos.get('quantity')}, opened={pos.get('opened_at')}")
                 browser.close()
                 return 1
-            else:
-                print(f"✅ Found {len(positions)} position(s) in API response")
-                
-                # 检查是否有宏昌电子 - 使用 API 实际返回的字段 name/symbol
-                target_position = None
-                for pos in positions:
-                    # API 返回 name (公司名) 和 symbol (股票代码)
-                    if "宏昌电子" in pos.get("name", "") or pos.get("symbol") == "603002.SH":
-                        target_position = pos
-                        break
-                
-                if not target_position:
-                    print("❌ FAIL: Could not find 宏昌电子 (603002.SH) in positions")
-                    print("Available positions:")
-                    for pos in positions:
-                        print(f"  - {pos.get('name')} ({pos.get('symbol')})")
-                    browser.close()
-                    return 1
-                
-                print(f"✅ Found target position: {target_position.get('name')} ({target_position.get('symbol')})")
-                print(f"   - Entry Price: {target_position.get('entry_price')}")
-                print(f"   - Quantity: {target_position.get('quantity')}")
-                
-                # 验证价格和数量与输入匹配
-                if target_position.get('entry_price') != 12.34:
-                    print(f"⚠️  WARNING: Entry price mismatch. Expected 12.34, got {target_position.get('entry_price')}")
-                if target_position.get('quantity') != 100:
-                    print(f"⚠️  WARNING: Quantity mismatch. Expected 100, got {target_position.get('quantity')}")
             print()
             
             # Step 8: 打开 /observations 页面
