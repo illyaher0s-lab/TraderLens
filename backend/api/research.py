@@ -1873,15 +1873,21 @@ def create_research_app(
         from datetime import date
         import uuid
         import json
+        from backend.db.live_trade import LiveTradeDB
+        from backend.config.runtime_paths import get_live_trade_db_path
+        
+        # Use LiveTradeDB for observation_positions
+        live_trade_db = LiveTradeDB(get_live_trade_db_path())
         
         # Find open positions
-        cursor = db.conn.cursor()
-        cursor.execute("""
-            SELECT * FROM observation_positions
-            WHERE lifecycle_state = 'open'
-            ORDER BY opened_at DESC
-        """)
-        position_rows = cursor.fetchall()
+        with live_trade_db._get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT * FROM observation_positions
+                WHERE lifecycle_state = 'open'
+                ORDER BY opened_at DESC
+            """)
+            position_rows = cursor.fetchall()
         
         if not position_rows:
             return {
@@ -1915,12 +1921,8 @@ def create_research_app(
                 closed_at=None,
             )
             
-            # Use market data provider if available, otherwise use entry price + 5%
-            if market_data_provider:
-                market_data = market_data_provider(position.symbol, date.today())
-                current_price = market_data.get("close", position.entry_price * 1.05)
-            else:
-                current_price = position.entry_price * 1.05
+            # Use entry price + 5% as stub current price (deterministic mode)
+            current_price = position.entry_price * 1.05
             
             # Template rules (simplified for workbench)
             template_rules = {
@@ -1940,30 +1942,32 @@ def create_research_app(
             )
             
             # Store signal
-            cursor.execute("""
-                INSERT INTO daily_observation_signals (
-                    signal_record_id, position_id, signal_type,
-                    triggered_invalidations, as_of_date, market_data_state,
-                    rule_trace, plain_explanation, explanation_source
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                signal.signal_record_id,
-                signal.position_id,
-                signal.signal_type.value,
-                json.dumps([t.value for t in signal.triggered_invalidations]),
-                signal.as_of_date.isoformat(),
-                signal.market_data_state.value,
-                json.dumps(signal.rule_trace),
-                signal.plain_explanation,
-                signal.explanation_source.value
-            ))
-            db.conn.commit()
+            with live_trade_db._get_conn() as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO daily_observation_signals (
+                        signal_record_id, position_id, signal_type,
+                        triggered_invalidations, as_of_date, market_data_state,
+                        rule_trace, plain_explanation, explanation_source
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    signal.signal_record_id,
+                    signal.position_id,
+                    signal.signal_type.value if signal.signal_type else None,
+                    json.dumps([t.value for t in signal.triggered_invalidations]),
+                    signal.as_of_date.isoformat(),
+                    signal.market_data_state.value,
+                    json.dumps(signal.rule_trace),
+                    signal.plain_explanation,
+                    signal.explanation_source.value
+                ))
+                # conn.commit() is handled by context manager
             
             signals.append({
                 "signal_id": signal.signal_record_id,
                 "position_id": position.position_id,
                 "symbol": position.symbol,
-                "signal_type": signal.signal_type.value,
+                "signal_type": signal.signal_type.value if signal.signal_type else None,
                 "generated_at": signal.as_of_date.isoformat()
             })
         

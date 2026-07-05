@@ -1,0 +1,50 @@
+[
+  {
+    "url": "http://localhost:3000/workbench",
+    "method": "GET",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783261658549",
+    "method": "GET",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783261658549",
+    "method": "GET",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+    "method": "GET",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/app/workbench/page.js",
+    "method": "GET",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783261658549",
+    "method": "GET",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "url": "http://localhost:8010/api/agent/workbench/message",
+    "method": "POST",
+    "status": 200,
+    "ok": true
+  },
+  {
+    "url": "http://localhost:8010/api/agent/workbench/sess_f8c8a7129b24",
+    "method": "GET",
+    "status": 200,
+    "ok": true
+  }
+]
