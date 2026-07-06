@@ -61,6 +61,30 @@ def check_port_in_use(port):
         return s.connect_ex(('localhost', port)) == 0
 
 
+def kill_process_on_port(port):
+    """Kill process occupying a port (Windows only)"""
+    try:
+        result = subprocess.run(
+            f'netstat -ano | findstr :{port}',
+            shell=True,
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            lines = result.stdout.strip().split('\n')
+            for line in lines:
+                parts = line.split()
+                if len(parts) >= 5 and 'LISTENING' in line:
+                    pid = parts[-1]
+                    subprocess.run(f'taskkill /F /PID {pid}', shell=True, capture_output=True)
+                    print(f"✅ Killed process {pid} on port {port}")
+                    time.sleep(1)
+                    return True
+    except Exception as e:
+        print(f"⚠️ Could not kill process on port {port}: {e}")
+    return False
+
+
 def main():
     backend_proc = None
     frontend_proc = None
@@ -72,15 +96,19 @@ def main():
         print("[1/12] Checking port availability...")
         
         if check_port_in_use(8010):
-            print("❌ FAIL: Port 8010 already in use")
-            print("Please stop existing backend service before running this script")
-            return 1
+            print("⚠️ Port 8010 already in use, attempting to kill...")
+            if not kill_process_on_port(8010):
+                print("❌ FAIL: Could not free port 8010")
+                print("Please manually stop the service: taskkill /F /IM python.exe")
+                return 1
         print("✅ Port 8010 available")
         
         if check_port_in_use(3000):
-            print("❌ FAIL: Port 3000 already in use")
-            print("Please stop existing frontend service before running this script")
-            return 1
+            print("⚠️ Port 3000 already in use, attempting to kill...")
+            if not kill_process_on_port(3000):
+                print("❌ FAIL: Could not free port 3000")
+                print("Please manually stop the service: taskkill /F /IM node.exe")
+                return 1
         print("✅ Port 3000 available")
         print()
         
@@ -232,23 +260,9 @@ def main():
             
             page = context.new_page()
             
-            # Record responses
+            # Record responses using expect_response
             buy_response_data = None
             sell_response_data = None
-            
-            def handle_response(response):
-                nonlocal buy_response_data, sell_response_data
-                if response.url.startswith("http://localhost:8010/api/agent/workbench/message") and response.request.method == "POST":
-                    try:
-                        data = response.json()
-                        if buy_response_data is None:
-                            buy_response_data = {"status": response.status, "data": data}
-                        else:
-                            sell_response_data = {"status": response.status, "data": data}
-                    except:
-                        pass
-            
-            page.on("response", handle_response)
             
             # Navigate to workbench
             page.goto("http://localhost:3000/workbench", wait_until="networkidle")
@@ -281,14 +295,30 @@ def main():
                 browser.close()
                 return 1
             
-            # Submit
+            # Submit and wait for response
             time.sleep(0.5)
-            page.keyboard.press("Enter")
-            time.sleep(3)
+            
+            with page.expect_response(lambda r: "/api/agent/workbench/message" in r.url and r.request.method == "POST", timeout=30000) as response_info:
+                page.keyboard.press("Enter")
+            
+            buy_response = response_info.value
+            try:
+                buy_response_data = {
+                    "status": buy_response.status,
+                    "data": buy_response.json()
+                }
+                print(f"✅ Buy response captured: status={buy_response.status}")
+            except Exception as e:
+                print(f"❌ FAIL: Could not parse buy response: {e}")
+                browser.close()
+                return 1
             
             if not buy_response_data or buy_response_data["status"] != 200:
                 print(f"❌ FAIL: Buy workbench POST failed")
                 print(f"Response: {buy_response_data}")
+                print(f"Captured requests: {len(buy_requests)}")
+                if buy_requests:
+                    print(f"Request URLs: {[r['url'] for r in buy_requests]}")
                 browser.close()
                 return 1
             
@@ -297,13 +327,28 @@ def main():
             # Extract position_id from timeline
             timeline_artifacts = buy_response_data["data"].get("timeline", {}).get("artifacts", [])
             position_id = None
-            for artifact in timeline_artifacts:
-                if artifact.get("artifact_type") == "observation_position":
-                    position_id = artifact.get("artifact_id")
-                    break
+            
+            # Debug: print response structure
+            if not timeline_artifacts:
+                print(f"⚠️ No timeline artifacts in response. Response keys: {list(buy_response_data['data'].keys())}")
+                # Try alternative paths
+                if "artifact_ids" in buy_response_data["data"]:
+                    artifact_ids = buy_response_data["data"]["artifact_ids"]
+                    print(f"Found artifact_ids: {artifact_ids}")
+                    # Assume second artifact is position_id (first is log, second is position)
+                    if len(artifact_ids) >= 2:
+                        position_id = artifact_ids[1]
+                        print(f"✅ Position ID from artifact_ids[1]: {position_id}")
+            else:
+                for artifact in timeline_artifacts:
+                    if artifact.get("artifact_type") == "observation_position":
+                        position_id = artifact.get("artifact_id")
+                        break
             
             if not position_id:
-                print("❌ FAIL: No position_id in buy response timeline")
+                print("❌ FAIL: No position_id in buy response")
+                print(f"Response data keys: {list(buy_response_data['data'].keys())}")
+                print(f"Response data: {json.dumps(buy_response_data['data'], indent=2, ensure_ascii=False)[:1000]}")
                 browser.close()
                 return 1
             
@@ -333,14 +378,20 @@ def main():
             # Step 8: Submit sell execution
             print("\n[8/12] Playwright: Submitting sell execution via Workbench...")
             
+            # Wait for buy response to complete
+            time.sleep(2)
+            
             sell_message = "已卖出宏昌电子（603002）100 股，成交价 13.00"
             
-            # Find input field again
+            # Find input field again (may have changed after first response)
             input_element = None
             for selector in input_selectors:
                 try:
                     if page.locator(selector).count() > 0:
                         input_element = page.locator(selector).first
+                        # Clear previous input
+                        input_element.click()
+                        page.keyboard.press("Control+A")
                         input_element.fill(sell_message)
                         print(f"✅ Filled sell input via selector: {selector}")
                         break
@@ -349,12 +400,29 @@ def main():
             
             if not input_element:
                 print("❌ FAIL: Could not find input field for sell message")
+                print("Page text:")
+                print(page.inner_text("body")[:500])
                 browser.close()
                 return 1
             
             time.sleep(0.5)
-            page.keyboard.press("Enter")
-            time.sleep(3)
+            
+            try:
+                with page.expect_response(lambda r: "/api/agent/workbench/message" in r.url and r.request.method == "POST", timeout=60000) as response_info:
+                    page.keyboard.press("Enter")
+                
+                sell_response = response_info.value
+                sell_response_data = {
+                    "status": sell_response.status,
+                    "data": sell_response.json()
+                }
+                print(f"✅ Sell response captured: status={sell_response.status}")
+            except Exception as e:
+                print(f"❌ FAIL: Could not get sell response: {e}")
+                print("Checking if request was sent...")
+                # Check backend logs for errors
+                browser.close()
+                return 1
             
             if not sell_response_data or sell_response_data["status"] != 200:
                 print(f"❌ FAIL: Sell workbench POST failed")
