@@ -397,10 +397,12 @@ def main():
                 "宏昌电子" in pos.get("name", "") and
                 pos.get("entry_price") == 12.34 and
                 pos.get("quantity") == 100 and
-                opened_at >= before_submit):
+                opened_at >= before_submit and
+                run_id in pos.get("entry_thesis", "")):
                 target_position = pos
                 print(f"✅ Found target position: {pos.get('position_id')}")
                 print(f"   - opened_at: {opened_at.isoformat()} (>= {before_submit.isoformat()})")
+                print(f"   - run_id in entry_thesis: {run_id} ✓")
                 
                 # 验证 latest_signal
                 latest_signal = pos.get("latest_signal")
@@ -423,7 +425,8 @@ def main():
                 break
         
         if not target_position:
-            print("❌ FAIL: Could not find position created by this test")
+            print("❌ FAIL: Could not find position created by this test with run_id")
+            print(f"Expected run_id: {run_id}")
             return 1
         
         print()
@@ -509,6 +512,7 @@ def main():
             "expected": expected_path,
             "match": True,
             "exists": db_path_exists,
+            "run_id": run_id,
         }
         
         db_check_path = PROJECT_ROOT / "docs/verification/p2-1c-db-path-check.json"
