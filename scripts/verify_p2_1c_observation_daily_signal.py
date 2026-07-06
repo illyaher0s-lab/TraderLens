@@ -28,16 +28,61 @@ from datetime import datetime
 PROJECT_ROOT = Path(__file__).parent.parent
 os.chdir(PROJECT_ROOT)
 
+# Import runtime test helpers
+import sys
+sys.path.insert(0, str(PROJECT_ROOT))
+from scripts.runtime_test_helpers import generate_run_id
+
 
 def check_port_available(port: int) -> bool:
-    """检查端口是否可用"""
+    """检查端口是否可用（只检查 LISTENING 状态）"""
     result = subprocess.run(
-        ["powershell.exe", "-Command",
-         f"Get-NetTCPConnection -LocalPort {port} -ErrorAction SilentlyContinue"],
+        f'netstat -ano | findstr :{port}',
+        shell=True,
         capture_output=True,
-        text=True,
+        text=True
     )
-    return len(result.stdout.strip()) == 0
+    # 只有 LISTENING 状态才算占用
+    return 'LISTENING' not in result.stdout
+
+
+def kill_process_on_port(port):
+    """Kill process occupying a port (Windows only)"""
+    for attempt in range(3):
+        try:
+            result = subprocess.run(
+                f'netstat -ano | findstr :{port}',
+                shell=True,
+                capture_output=True,
+                text=True
+            )
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')
+                killed_any = False
+                for line in lines:
+                    parts = line.split()
+                    if len(parts) >= 5 and 'LISTENING' in line:
+                        pid = parts[-1]
+                        subprocess.run(f'taskkill /F /PID {pid}', shell=True, capture_output=True)
+                        print(f"Killed process {pid} on port {port}")
+                        killed_any = True
+                if killed_any:
+                    time.sleep(2)
+                    # Check if port is now free
+                    check = subprocess.run(
+                        f'netstat -ano | findstr :{port}',
+                        shell=True,
+                        capture_output=True,
+                        text=True
+                    )
+                    if check.returncode != 0 or 'LISTENING' not in check.stdout:
+                        return True
+            else:
+                return True  # No process found
+        except Exception as e:
+            print(f"Attempt {attempt+1} failed: {e}")
+        time.sleep(1)
+    return False
 
 
 def wait_for_url(url: str, timeout: int = 30) -> bool:
@@ -68,6 +113,12 @@ def main():
         sys.stdout = codecs.getwriter("utf-8")(sys.stdout.detach())
         sys.stderr = codecs.getwriter("utf-8")(sys.stderr.detach())
     
+    # Generate unique run_id for data isolation
+    run_id = generate_run_id()
+    print(f"Run ID: {run_id}")
+    print(f"This run's data will be tagged with: {run_id}")
+    print()
+    
     try:
         # Step 1: 检查端口占用
         print("=" * 100)
@@ -79,17 +130,13 @@ def main():
         print()
         
         print("[1/10] Checking port availability...")
-        ports_ok = True
         for port in [8010, 3000]:
-            if check_port_available(port):
-                print(f"✅ Port {port} available")
-            else:
-                print(f"❌ FAIL: Port {port} already in use")
-                print(f"Please stop existing service on port {port} before running this script")
-                ports_ok = False
-        
-        if not ports_ok:
-            return 1
+            if not check_port_available(port):
+                print(f"WARNING: Port {port} already in use, attempting to kill...")
+                if not kill_process_on_port(port):
+                    print(f"FAIL: Could not free port {port}")
+                    return 1
+            print(f"Port {port} available")
         print()
         
         # Step 2: 启动后端
@@ -197,8 +244,8 @@ def main():
             page.goto("http://localhost:3000/workbench", wait_until="networkidle")
             time.sleep(2)
             
-            # 输入买入信息
-            test_message = "已买入宏昌电子（603002）100 股，成交价 12.34"
+            # 输入买入信息（含 run_id）
+            test_message = f"已买入宏昌电子（603002）100 股，成交价 12.34，备注 {run_id}"
             print(f"Test message: {test_message}")
             
             # 找到输入框并填写
