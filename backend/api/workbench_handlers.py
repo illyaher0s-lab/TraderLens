@@ -510,18 +510,24 @@ def handle_add_to_observation(
     # Build entry_thesis from user message and claimed stock
     entry_thesis = f"用户请求加入观察池：{company_name}（{ticker}）。原始输入：{user_message}"
     
-    # Create position record
+    # Generate placeholder evidence chain IDs (friend_stock observation has no real evidence chain)
+    execution_card_id = f"exec_card_{uuid.uuid4().hex[:12]}"
+    signal_id = f"signal_{uuid.uuid4().hex[:12]}"
+    action_plan_id = f"plan_{uuid.uuid4().hex[:12]}"
+    capital_context_id = f"capital_{uuid.uuid4().hex[:12]}"
+    
+    # Create position record with minimal valid values
     position = ObservationPosition(
         position_id=position_id,
         source_log_id="friend_stock_observation",  # Not from execution_observation_log
-        execution_card_id="",  # No execution card for friend_stock observation
-        signal_id="",
-        action_plan_id="",
-        capital_context_id="",
+        execution_card_id=execution_card_id,
+        signal_id=signal_id,
+        action_plan_id=action_plan_id,
+        capital_context_id=capital_context_id,
         symbol=ticker,
         name=company_name,
-        entry_price=0.0,  # No entry price for observation-only position
-        quantity=0,  # No quantity for observation-only position
+        entry_price=1.0,  # Placeholder price (observation-only, not real entry)
+        quantity=1,  # Placeholder quantity (observation-only, not real position)
         template_id="",
         template_version="",
         entry_thesis=entry_thesis,
