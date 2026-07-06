@@ -322,16 +322,26 @@ def main():
             second_message = "加入观察"
             print(f"Second message: {second_message}")
             
+            # 等待 input 可用
+            page.wait_for_selector("input[type=\"text\"]:not([disabled]), textarea:not([disabled])", state="attached", timeout=10000)
+            time.sleep(1)
+            
             # 填充第二句
             input_element = None
             for selector in input_selectors:
                 try:
                     if page.locator(selector).count() > 0:
-                        input_element = page.locator(selector).first
-                        input_element.fill(second_message)
-                        print(f"Filled second input via selector: {selector}")
-                        break
-                except:
+                        element = page.locator(selector).first
+                        # 确保元素可见且未禁用
+                        if element.is_visible() and element.is_enabled():
+                            element.click()  # 先点击聚焦
+                            time.sleep(0.2)
+                            element.fill(second_message)
+                            input_element = element
+                            print(f"Filled second input via selector: {selector}")
+                            break
+                except Exception as e:
+                    print(f"Selector {selector} failed: {e}")
                     continue
             
             if not input_element:
