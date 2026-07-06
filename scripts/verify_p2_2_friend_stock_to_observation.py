@@ -356,16 +356,26 @@ def main():
         
         observations_data = observations_response.json()
         
+        # 检查返回格式
+        if isinstance(observations_data, str):
+            print(f"FAIL: API returned string instead of JSON: {observations_data[:200]}")
+            return 1
+        
+        if not isinstance(observations_data, list):
+            print(f"FAIL: API returned non-list: {type(observations_data)}")
+            return 1
+        
         # 查找带 run_id 的 position
         position_id = None
         for pos in observations_data:
-            if run_id in pos.get("entry_thesis", ""):
+            if isinstance(pos, dict) and run_id in pos.get("entry_thesis", ""):
                 position_id = pos.get("position_id")
                 print(f"Position created: {position_id}")
                 break
         
         if not position_id:
             print(f"FAIL: No position found with run_id {run_id}")
+            print(f"Total positions: {len(observations_data)}")
             return 1
         
         print()

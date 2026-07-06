@@ -1,47 +1,22 @@
 [
   {
     "url": "http://localhost:8010/api/agent/workbench/message",
-    "method": "POST",
     "status": 200,
-    "request": {
-      "message": "帮我看看宏昌电子（603002），备注 P2RUN_20260706_171143"
-    },
-    "response": {
-      "conversation_id": "sess_1536127e42b4",
-      "workflow_type": "friend_stock",
-      "stage": "created",
-      "agent_reply": "已识别 宏昌电子 (603002.SH)。当前为测试模式，已记录为待研究。 研究ID: flow_dbff2ab6e139",
-      "approval_card": null,
-      "artifact_ids": [
-        "flow_dbff2ab6e139",
-        "msg_e851e21c5a6a",
-        "msg_30d996e81288",
-        "intent_sess_1536127e42b4"
-      ],
-      "next_required_user_action": "wait_for_research"
-    }
+    "method": "POST"
+  },
+  {
+    "url": "http://localhost:8010/api/agent/workbench/sess_d9c218fc2a03",
+    "status": 200,
+    "method": "GET"
   },
   {
     "url": "http://localhost:8010/api/agent/workbench/message",
-    "method": "POST",
     "status": 200,
-    "request": {
-      "conversation_id": "sess_1536127e42b4",
-      "message": "加入观察"
-    },
-    "response": {
-      "conversation_id": "sess_1536127e42b4",
-      "workflow_type": "add_to_observation",
-      "stage": "created",
-      "agent_reply": "已将 宏昌电子（603002.SH）加入观察池。观察位置ID：pos_88f6308340a2",
-      "approval_card": null,
-      "artifact_ids": [
-        "pos_88f6308340a2",
-        "msg_bd2b81579284",
-        "msg_c0f857899814",
-        "intent_sess_1536127e42b4"
-      ],
-      "next_required_user_action": "confirm_stock_from_context"
-    }
+    "method": "POST"
+  },
+  {
+    "url": "http://localhost:8010/api/agent/workbench/sess_d9c218fc2a03",
+    "status": 200,
+    "method": "GET"
   }
 ]
