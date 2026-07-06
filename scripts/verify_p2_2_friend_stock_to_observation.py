@@ -315,15 +315,10 @@ def main():
             
             print("First workbench POST 200")
             
-            # 等待第一句响应完成
-            time.sleep(5)
+            # 等待第一句响应完成并在 UI 显示
+            time.sleep(3)
             
-            # 刷新页面重置 UI 状态
-            print("Refreshing page to reset UI state...")
-            page.goto("http://localhost:3000/workbench", wait_until="networkidle")
-            time.sleep(2)
-            
-            # 第二句：加入观察
+            # 第二句：加入观察（在同一个 session 中）
             second_message = "加入观察"
             print(f"Second message: {second_message}")
             
