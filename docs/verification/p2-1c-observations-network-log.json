@@ -6,13 +6,13 @@
     "ok": true
   },
   {
-    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783322966773",
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783323667872",
     "method": "GET",
     "status": 200,
     "ok": true
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783322966773",
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783323667872",
     "method": "GET",
     "status": 200,
     "ok": true
@@ -30,7 +30,7 @@
     "ok": true
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783322966773",
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783323667872",
     "method": "GET",
     "status": 200,
     "ok": true

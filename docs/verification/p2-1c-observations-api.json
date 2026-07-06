@@ -1,6 +1,63 @@
 {
   "positions": [
     {
+      "position_id": "pos_775cdc4219de",
+      "symbol": "603002.SH",
+      "name": "宏昌电子",
+      "entry_price": 12.34,
+      "quantity": 100,
+      "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260706_154034",
+      "lifecycle_state": "open",
+      "opened_at": "2026-07-06T15:41:00.312663",
+      "closed_at": null,
+      "template_id": "template_execution_feedback_v1",
+      "latest_signal": {
+        "signal_type": "hold",
+        "as_of_date": "2026-07-06T00:00:00",
+        "market_data_state": "ok",
+        "plain_explanation": null,
+        "triggered_invalidations": []
+      }
+    },
+    {
+      "position_id": "pos_e673f21f92f8",
+      "symbol": "603002.SH",
+      "name": "宏昌电子",
+      "entry_price": 12.34,
+      "quantity": 100,
+      "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260706_153959",
+      "lifecycle_state": "open",
+      "opened_at": "2026-07-06T15:40:24.012138",
+      "closed_at": null,
+      "template_id": "template_execution_feedback_v1",
+      "latest_signal": {
+        "signal_type": "hold",
+        "as_of_date": "2026-07-06T00:00:00",
+        "market_data_state": "ok",
+        "plain_explanation": null,
+        "triggered_invalidations": []
+      }
+    },
+    {
+      "position_id": "pos_932bd45fe78f",
+      "symbol": "603002.SH",
+      "name": "宏昌电子",
+      "entry_price": 12.34,
+      "quantity": 100,
+      "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260706_153919",
+      "lifecycle_state": "open",
+      "opened_at": "2026-07-06T15:39:43.708645",
+      "closed_at": null,
+      "template_id": "template_execution_feedback_v1",
+      "latest_signal": {
+        "signal_type": "hold",
+        "as_of_date": "2026-07-06T00:00:00",
+        "market_data_state": "ok",
+        "plain_explanation": null,
+        "triggered_invalidations": []
+      }
+    },
+    {
       "position_id": "pos_f9c83f90db98",
       "symbol": "603002.SH",
       "name": "宏昌电子",
@@ -780,5 +837,5 @@
       }
     }
   ],
-  "total": 41
+  "total": 44
 }
