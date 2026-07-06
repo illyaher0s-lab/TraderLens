@@ -603,6 +603,87 @@ class LiveTradeDB:
                 for row in rows
             ]
 
+    def close_position(self, position_id: str, closed_at: datetime) -> None:
+        """Close an observation position."""
+        with self._get_conn() as conn:
+            conn.execute(
+                """
+                UPDATE observation_positions
+                SET lifecycle_state = 'closed', closed_at = ?
+                WHERE position_id = ?
+                """,
+                (closed_at.isoformat(), position_id),
+            )
+
+    def find_open_position_by_symbol(self, symbol: str) -> Optional[ObservationPosition]:
+        """Find open position by symbol."""
+        with self._get_conn() as conn:
+            row = conn.execute(
+                """
+                SELECT * FROM observation_positions
+                WHERE symbol = ? AND lifecycle_state = 'open'
+                ORDER BY opened_at DESC
+                LIMIT 1
+                """,
+                (symbol,),
+            ).fetchone()
+
+            if not row:
+                return None
+
+            return ObservationPosition(
+                position_id=row["position_id"],
+                source_log_id=row["source_log_id"],
+                execution_card_id=row["execution_card_id"],
+                signal_id=row["signal_id"],
+                action_plan_id=row["action_plan_id"],
+                capital_context_id=row["capital_context_id"],
+                symbol=row["symbol"],
+                name=row["name"],
+                entry_price=row["entry_price"],
+                quantity=row["quantity"],
+                template_id=row["template_id"],
+                template_version=row["template_version"],
+                entry_thesis=row["entry_thesis"],
+                lifecycle_state=PositionLifecycleState(row["lifecycle_state"]),
+                opened_at=datetime.fromisoformat(row["opened_at"]),
+                closed_at=datetime.fromisoformat(row["closed_at"]) if row["closed_at"] else None,
+            )
+
+    def save_discipline_review(self, review: DisciplineReview) -> None:
+        """Save discipline review as JSON."""
+        with self._get_conn() as conn:
+            conn.execute(
+                """
+                INSERT INTO discipline_reviews (
+                    review_id, position_id, execution_card_id, signal_id,
+                    review_json, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    review.review_id,
+                    review.position_id,
+                    review.execution_card_id,
+                    review.signal_id,
+                    json.dumps(review.model_dump(), ensure_ascii=False, default=str),
+                    review.created_at.isoformat(),
+                ),
+            )
+
+    def get_discipline_review(self, review_id: str) -> Optional[DisciplineReview]:
+        """Retrieve discipline review by ID."""
+        with self._get_conn() as conn:
+            row = conn.execute(
+                "SELECT review_json FROM discipline_reviews WHERE review_id = ?",
+                (review_id,),
+            ).fetchone()
+
+            if not row:
+                return None
+
+            review_data = json.loads(row["review_json"])
+            return DisciplineReview(**review_data)
+
     def get_latest_daily_signal(self, position_id: str) -> Optional[DailyObservationSignal]:
         """Get the latest daily signal for a position."""
         with self._get_conn() as conn:
