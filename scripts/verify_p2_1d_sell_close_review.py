@@ -171,7 +171,7 @@ def main():
         frontend_env["NEXT_PUBLIC_API_BASE_URL"] = "http://localhost:8010"
         
         frontend_proc = subprocess.Popen(
-            ["npm", "run", "dev"],
+            ["npm.cmd", "run", "dev"],
             cwd=str(PROJECT_ROOT / "frontend"),
             env=frontend_env,
             stdout=subprocess.DEVNULL,
