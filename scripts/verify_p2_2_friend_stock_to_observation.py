@@ -456,11 +456,24 @@ def main():
             
             print(f"Saved observations DOM")
             
-            # 验证 DOM 包含 position
-            if position_id in observations_dom or "宏昌电子" in observations_dom or "603002" in observations_dom:
-                print("Position found in /observations DOM")
-            else:
-                print("WARNING: Position not clearly visible in /observations DOM")
+            # 硬断言 DOM 验证：必须包含 run_id 或 position_id，避免历史数据污染
+            has_run_id = run_id in observations_dom
+            has_position_id = position_id in observations_dom
+            has_stock_info = "宏昌电子" in observations_dom or "603002" in observations_dom
+            
+            if not (has_run_id or has_position_id):
+                print(f"FAIL: DOM does not contain run_id ({run_id}) or position_id ({position_id})")
+                print(f"DOM preview: {observations_dom[:500]}")
+                browser.close()
+                return 1
+            
+            if not has_stock_info:
+                print(f"FAIL: DOM does not contain stock info (宏昌电子 or 603002)")
+                print(f"DOM preview: {observations_dom[:500]}")
+                browser.close()
+                return 1
+            
+            print(f"✅ Position found in /observations DOM (run_id: {has_run_id}, position_id: {has_position_id}, stock: {has_stock_info})")
             
             browser.close()
         

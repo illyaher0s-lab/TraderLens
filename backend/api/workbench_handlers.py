@@ -514,24 +514,25 @@ def handle_add_to_observation(
     else:
         entry_thesis = f"用户请求加入观察池：{company_name}（{ticker}）。原始输入：{user_message}"
     
-    # Generate placeholder evidence chain IDs (friend_stock observation has no real evidence chain)
-    execution_card_id = f"exec_card_{uuid.uuid4().hex[:12]}"
-    signal_id = f"signal_{uuid.uuid4().hex[:12]}"
-    action_plan_id = f"plan_{uuid.uuid4().hex[:12]}"
-    capital_context_id = f"capital_{uuid.uuid4().hex[:12]}"
+    # Friend stock observation has no real execution chain - use sentinel values
+    # These are NOT fake execution records, they mark "no execution chain" explicitly
+    execution_card_id = "friend_stock_no_exec_card"
+    signal_id = "friend_stock_no_signal"
+    action_plan_id = "friend_stock_no_plan"
+    capital_context_id = "friend_stock_no_capital"
     
-    # Create position record with minimal valid values
+    # Create position record with sentinel values (not fake execution data)
     position = ObservationPosition(
         position_id=position_id,
-        source_log_id="friend_stock_observation",  # Not from execution_observation_log
+        source_log_id="friend_stock_observation",  # Explicit marker: not from execution log
         execution_card_id=execution_card_id,
         signal_id=signal_id,
         action_plan_id=action_plan_id,
         capital_context_id=capital_context_id,
         symbol=ticker,
         name=company_name,
-        entry_price=1.0,  # Placeholder price (observation-only, not real entry)
-        quantity=1,  # Placeholder quantity (observation-only, not real position)
+        entry_price=0.01,  # Sentinel price (observation-only, no real entry)
+        quantity=1,  # Sentinel quantity (observation-only, no real position)
         template_id="",
         template_version="",
         entry_thesis=entry_thesis,
