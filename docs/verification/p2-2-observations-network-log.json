@@ -5,12 +5,12 @@
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783329984613",
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783333438721",
     "method": "GET",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783329984613",
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783333438721",
     "method": "GET",
     "status": 200
   },
@@ -25,7 +25,7 @@
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783329984613",
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783333438721",
     "method": "GET",
     "status": 200
   },

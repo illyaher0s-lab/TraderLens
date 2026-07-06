@@ -13,24 +13,24 @@
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": "\"Windows\""
       },
-      "post_data": "{\"message\":\"已买入宏昌电子（603002）100 股，成交价 12.50，备注 P2RUN_20260706_172827\"}"
+      "post_data": "{\"message\":\"已买入宏昌电子（603002）100 股，成交价 12.50，备注 P2RUN_20260706_182603\"}"
     }
   ],
   "response": {
     "status": 200,
     "data": {
-      "conversation_id": "sess_4d866cff2c75",
+      "conversation_id": "sess_3e579039ad21",
       "workflow_type": "execution_feedback",
       "stage": "created",
       "agent_reply": "已记录买入：\n股票：宏昌电子 (603002.SH)\n数量：100 股\n成交价：¥12.50\n\n持仓已进入观察池，你可以在 /observations 查看。",
       "approval_card": null,
       "artifact_ids": [
-        "log_4d0357de7b62",
-        "pos_3f7961e1f523",
-        "action_completed_d3fac201",
-        "msg_12b78e463f23",
-        "msg_0b935686946f",
-        "intent_sess_4d866cff2c75"
+        "log_eac80f321919",
+        "pos_20db2f454148",
+        "action_completed_aeef1c0b",
+        "msg_963a22196567",
+        "msg_76a66bbc6e63",
+        "intent_sess_3e579039ad21"
       ],
       "next_required_user_action": "confirm_execution_details"
     }
