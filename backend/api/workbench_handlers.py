@@ -456,3 +456,100 @@ def handle_clarification(
         artifact_ids=artifact_ids,
         next_required_user_action="provide_clear_intent",
     )
+
+
+def handle_add_to_observation(
+    db_conn,
+    conversation_id: str,
+    user_message: str,
+    claimed_stock: dict | None,
+    route_decision,
+    now: datetime,
+) -> HandlerResult:
+    """
+    Handle add_to_observation workflow.
+    
+    User inputs "加入观察" after friend_stock research.
+    Requires claimed_stock from session context.
+    Creates observation_position with lifecycle_state=open.
+    """
+    from backend.db.live_trade import LiveTradeDB
+    from contracts.live_trade import ObservationPosition, PositionLifecycleState
+    from pathlib import Path
+    
+    artifact_ids = []
+    
+    # Check if we have claimed_stock from session context
+    if not claimed_stock or not claimed_stock.get("ticker"):
+        # No stock context - must clarify
+        agent_reply = "我需要知道是哪只股票。请先告诉我股票代码或公司名。"
+        
+        clarify_artifact = ArtifactRef(
+            artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+            session_id=conversation_id,
+            artifact_id=f"clarify_{uuid.uuid4().hex[:8]}",
+            artifact_type="add_to_observation_clarification",
+            created_at=now,
+        )
+        attach_artifact_ref(db_conn, clarify_artifact)
+        artifact_ids.append(clarify_artifact.artifact_id)
+        
+        return HandlerResult(
+            agent_reply=agent_reply,
+            artifact_ids=artifact_ids,
+            next_required_user_action="provide_stock_for_observation",
+        )
+    
+    # Extract stock info from claimed_stock
+    ticker = claimed_stock.get("ticker")
+    company_name = claimed_stock.get("company_name", ticker)
+    
+    # Create observation position
+    position_id = f"pos_{uuid.uuid4().hex[:12]}"
+    
+    # Build entry_thesis from user message and claimed stock
+    entry_thesis = f"用户请求加入观察池：{company_name}（{ticker}）。原始输入：{user_message}"
+    
+    # Create position record
+    position = ObservationPosition(
+        position_id=position_id,
+        source_log_id="friend_stock_observation",  # Not from execution_observation_log
+        execution_card_id="",  # No execution card for friend_stock observation
+        signal_id="",
+        action_plan_id="",
+        capital_context_id="",
+        symbol=ticker,
+        name=company_name,
+        entry_price=0.0,  # No entry price for observation-only position
+        quantity=0,  # No quantity for observation-only position
+        template_id="",
+        template_version="",
+        entry_thesis=entry_thesis,
+        lifecycle_state=PositionLifecycleState.OPEN,
+        opened_at=now,
+        closed_at=None,
+    )
+    
+    # Save to live_trade.db
+    live_trade_db_path = Path("data/live_trade.db")
+    live_trade_db = LiveTradeDB(live_trade_db_path)
+    live_trade_db.save_position(position)
+    
+    # Create position artifact
+    position_artifact = ArtifactRef(
+        artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+        session_id=conversation_id,
+        artifact_id=position_id,
+        artifact_type="observation_position",
+        created_at=now,
+    )
+    attach_artifact_ref(db_conn, position_artifact)
+    artifact_ids.append(position_id)
+    
+    agent_reply = f"已将 {company_name}（{ticker}）加入观察池。观察位置ID：{position_id}"
+    
+    return HandlerResult(
+        agent_reply=agent_reply,
+        artifact_ids=artifact_ids,
+        next_required_user_action=None,
+    )

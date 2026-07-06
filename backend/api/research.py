@@ -44,6 +44,7 @@ from backend.api.workbench_handlers import (
     handle_position_followup,
     handle_theme_research_deferred,
     handle_clarification,
+    handle_add_to_observation,
 )
 from backend.api.workbench_execution_feedback import handle_execution_feedback
 from backend.db.agent_workbench import list_messages, list_artifact_refs
@@ -1027,6 +1028,7 @@ def create_research_app(
             handle_position_followup,
             handle_theme_research_deferred,
             handle_clarification,
+            handle_add_to_observation,
         )
         from backend.api.workbench_execution_feedback import handle_execution_feedback
         
@@ -1383,6 +1385,15 @@ def create_research_app(
                 route_decision,
                 now,
                 open_positions,
+            )
+        elif workflow_kind == "add_to_observation":
+            handler_result = handle_add_to_observation(
+                db.conn,
+                conversation_id,
+                request.message,
+                claimed_stock,
+                route_decision,
+                now,
             )
         elif workflow_kind == "theme_research":
             handler_result = handle_theme_research_deferred(

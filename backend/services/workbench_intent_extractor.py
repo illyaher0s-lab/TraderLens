@@ -26,6 +26,7 @@ class WorkbenchIntentExtraction(BaseModel):
         "execution_feedback",
         "position_followup",
         "review_request",
+        "add_to_observation",
         "unknown"
     ]
     intent_candidates: list[str] = Field(default_factory=list)
@@ -174,6 +175,15 @@ PreScan 结果：
             return WorkbenchIntentExtraction(
                 primary_intent="unknown",
                 intent_candidates=["unknown"],
+                confidence="high",
+                extraction_source="deterministic_fixture",
+            )
+        
+        # Add to observation (highest priority after greeting)
+        if prescan.detected_add_to_observation:
+            return WorkbenchIntentExtraction(
+                primary_intent="add_to_observation",
+                intent_candidates=["add_to_observation"],
                 confidence="high",
                 extraction_source="deterministic_fixture",
             )

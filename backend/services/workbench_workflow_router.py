@@ -27,6 +27,7 @@ class WorkbenchRouteDecision(BaseModel):
         "execution_feedback",
         "position_followup",
         "review_request",
+        "add_to_observation",
         "unknown"
     ]
     workflow_state: str
@@ -57,11 +58,12 @@ class WorkbenchWorkflowRouter:
         
         Routing rules (priority order):
         1. Execution feedback detected -> execution_feedback
-        2. Stock identity verified -> friend_stock
-        3. Stock entity + research language -> friend_stock
-        4. Stock ambiguous/not_found/data_fault -> clarification/stopped
-        5. Strategy rule shape -> strategy_idea
-        6. Unknown -> clarification
+        2. Add to observation detected -> add_to_observation
+        3. Stock identity verified -> friend_stock
+        4. Stock entity + research language -> friend_stock
+        5. Stock ambiguous/not_found/data_fault -> clarification/stopped
+        6. Strategy rule shape -> strategy_idea
+        7. Unknown -> clarification
         
         Args:
             prescan: PreScan result
@@ -81,7 +83,17 @@ class WorkbenchWorkflowRouter:
                 allowed_to_start_workflow=True,
             )
         
-        # Rule 2: Stock identity verified -> friend_stock
+        # Rule 2: Add to observation detected -> add_to_observation
+        if intent_extraction.primary_intent == "add_to_observation":
+            return WorkbenchRouteDecision(
+                workflow_kind="add_to_observation",
+                workflow_state="created",
+                route_reason="检测到加入观察池请求",
+                next_required_user_action="confirm_stock_from_context",
+                allowed_to_start_workflow=True,
+            )
+        
+        # Rule 3: Stock identity verified -> friend_stock
         if stock_identity.status == "verified":
             return WorkbenchRouteDecision(
                 workflow_kind="friend_stock",

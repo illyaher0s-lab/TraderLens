@@ -20,6 +20,7 @@ class WorkbenchPreScan(NamedTuple):
     has_strategy_rule_shape: bool
     has_stock_research_language: bool
     is_plain_greeting: bool
+    detected_add_to_observation: bool
 
 
 def prescan_message(user_message: str) -> WorkbenchPreScan:
@@ -125,10 +126,25 @@ def prescan_message(user_message: str) -> WorkbenchPreScan:
             is_plain_greeting = True
             break
     
+    # Detect add to observation
+    detected_add_to_observation = False
+    add_to_observation_patterns = [
+        r'加入观察',
+        r'放入观察',
+        r'加入观察池',
+        r'放入观察池',
+        r'加观察',
+    ]
+    for pattern in add_to_observation_patterns:
+        if re.search(pattern, user_message):
+            detected_add_to_observation = True
+            break
+    
     return WorkbenchPreScan(
         detected_stock_code=detected_stock_code,
         detected_execution_action=detected_execution_action,
         has_strategy_rule_shape=has_strategy_rule_shape,
         has_stock_research_language=has_stock_research_language,
         is_plain_greeting=is_plain_greeting,
+        detected_add_to_observation=detected_add_to_observation,
     )
