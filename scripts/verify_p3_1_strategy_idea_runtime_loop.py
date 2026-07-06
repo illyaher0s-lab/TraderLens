@@ -153,8 +153,8 @@ def main():
         # Step 4: Start frontend
         print("[4/8] Starting frontend on port 3000...")
         frontend_process = subprocess.Popen(
-            ["npm", "run", "dev"],
-            cwd=PROJECT_ROOT / "frontend",
+            ["cmd", "/c", "npm", "run", "dev"],
+            cwd=str(PROJECT_ROOT / "frontend"),
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
