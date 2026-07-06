@@ -212,47 +212,57 @@ python scripts/runtime_test_helpers.py --db data/live_trade.db --apply
 
 ## Future Work (Optional)
 
-**已完成**：P2-1A 和 P2-1D 已应用 run_id 隔离机制
+**已完成**：P2-1A、P2-1B、P2-1C 和 P2-1D 已全部应用 run_id 隔离机制
 
-**已验证**：
+**已验证**（Fresh Runs）：
 - ✅ P2-1A fresh run: `P2RUN_20260706_121559`, exit code 0
+- ✅ P2-1B fresh run: `P2RUN_20260706_143852`, exit code 0
+- ✅ P2-1C fresh run: `P2RUN_20260706_144136`, exit code 0
 - ✅ P2-1D fresh run: `P2RUN_20260706_120711`, exit code 0
 
-**待应用**（可选）：
-- P2-1B: Observations UX（展示）
-- P2-1C: Daily Signal 生成
-
-每个脚本只需：
-1. Import `generate_run_id`
-2. 在输入消息中嵌入 run_id
-3. 验证时检查 `entry_thesis` 包含 run_id
+**全部完成**，无待办项。
 
 ---
 
-## P2-1A Fresh Run Evidence
+## Fresh Run Evidence Summary
 
-**Run ID**: `P2RUN_20260706_121559`  
-**Position ID**: `pos_f6553c13eeb7`
+### P2-1B Fresh Run
 
-**强关联验证通过**:
-```
-✅ Strong correlation check passed:
-  - Symbol: 603002.SH ✓
-  - Name: 宏昌电子 ✓
-  - Entry price: 12.34 ✓
-  - Quantity: 100 ✓
-  - Opened at: 2026-07-06T12:16:12.658344 >= 2026-07-06T12:16:10.398956 ✓
-  - Run ID in entry_thesis: P2RUN_20260706_121559 ✓
-```
+**Run ID**: `P2RUN_20260706_143852`  
+**Position ID**: `pos_99a00b4c1b43`
+
+**验收通过**:
+- ✅ Workbench 创建 position
+- ✅ /api/observations 返回正确数据
+- ✅ /observations 页面显示所有必需字段
+- ✅ Position fields 验证通过
 
 **证据文件**（已更新）:
-- `p2-1a-workbench-dom.md`
-- `p2-1a-workbench-network-log.json`
-- `p2-1a-observations-api.json`
-- `p2-1a-observations-dom.md`
-- `p2-1a-observations-network-log.json`
-- `p2-1a-db-path-check.json` ← 包含 `"run_id": "P2RUN_20260706_121559"`
-- `p2-1a-backend-log.txt`
+- `p2-1b-observations-dom.md`
+- `p2-1b-observations-network-log.json`
+- `p2-1b-observations-api.json`
+- `p2-1b-db-path-check.json`
+- `p2-1b-backend-log.txt`
+
+### P2-1C Fresh Run
+
+**Run ID**: `P2RUN_20260706_144136`  
+**Position ID**: `pos_5f76ec1bb755`
+
+**验收通过**:
+- ✅ Workbench 创建 position
+- ✅ Daily signal 生成成功
+- ✅ latest_signal 来自 API/DB
+- ✅ /observations 页面显示 signal
+
+**证据文件**（已更新）:
+- `p2-1c-workbench-network-log.json`
+- `p2-1c-signal-api.json`
+- `p2-1c-observations-api.json`
+- `p2-1c-observations-dom.md`
+- `p2-1c-observations-network-log.json`
+- `p2-1c-db-path-check.json`
+- `p2-1c-backend-log.txt`
 
 ---
 
@@ -263,10 +273,12 @@ P2-1E 成功实现运行时验收数据隔离：
 ✅ 每次验收独立标记  
 ✅ 历史数据不污染新验收  
 ✅ 清理工具安全可控  
-✅ **P2-1A + P2-1D fresh run 验收通过**  
+✅ **全部 4 个脚本 fresh run 验收通过**  
 
-**已完成脚本**：
+**已完成脚本**（全部）：
 - ✅ P2-1A: Workbench → Observations (买入验证)
+- ✅ P2-1B: Observations UX (展示验证)
+- ✅ P2-1C: Daily Signal Generation (信号生成验证)
 - ✅ P2-1D: Sell Close P&L Review (完整买入卖出链路)
 
-数据隔离机制已就位，后续 P2 验收可复用此模式。
+数据隔离机制已全面应用，P2 系列验收脚本完全独立，互不污染。
