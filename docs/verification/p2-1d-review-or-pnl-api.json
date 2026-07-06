@@ -1,11 +1,11 @@
 {
-  "review_id": "review_d7bf5693f53e",
-  "position_id": "pos_21f6adedc997",
-  "execution_card_id": "card_2a6067efa309",
-  "signal_id": "sig_5056b3ddd848",
+  "review_id": "review_653ca6bbb488",
+  "position_id": "pos_5316ee10f619",
+  "execution_card_id": "card_43a76ae6ab89",
+  "signal_id": "sig_628c41065850",
   "daily_signal_ids": [],
-  "buy_log_id": "log_6dfebba838e7",
-  "sell_log_id": "log_8d76c23308ed",
+  "buy_log_id": "log_e4b7c70bfc38",
+  "sell_log_id": "log_58bf24da0d3c",
   "input_completeness": {
     "execution_card": "present",
     "buy_log": "present",
@@ -14,8 +14,8 @@
     "action_plan": "missing"
   },
   "pnl_record": {
-    "pnl_record_id": "pnl_f0d58ace194e",
-    "position_id": "pos_21f6adedc997",
+    "pnl_record_id": "pnl_4bf6240c9d18",
+    "position_id": "pos_5316ee10f619",
     "buy_price": 12.5,
     "sell_price": 13.0,
     "quantity": 100,
@@ -24,7 +24,7 @@
     "pnl_pct": 4.0,
     "pnl_source": "calculated_from_confirmed_details",
     "missing_fields": [],
-    "computed_at": "2026-07-06 15:41:42.470178"
+    "computed_at": "2026-07-06 15:50:18.888630"
   },
   "plan_adherence": {
     "followed_plan": null,
@@ -36,5 +36,5 @@
   "plain_narrative": null,
   "narrative_source": "none",
   "forward_looking_guard_passed": true,
-  "created_at": "2026-07-06 15:41:42.470178"
+  "created_at": "2026-07-06 15:50:18.888630"
 }

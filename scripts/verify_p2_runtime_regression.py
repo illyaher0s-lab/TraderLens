@@ -274,6 +274,26 @@ def check_backend_logs() -> dict:
 def main():
     overall_start = time.time()
     
+    # Step 0: Pre-clean historical test data
+    print("=" * 100)
+    print("Pre-cleaning historical P2RUN_ test data...")
+    print("=" * 100)
+    print()
+    
+    from scripts.runtime_test_helpers import cleanup_test_data
+    
+    cleanup_result = cleanup_test_data(
+        db_path=str(PROJECT_ROOT / "data" / "live_trade.db"),
+        dry_run=False,
+        verbose=True
+    )
+    
+    print()
+    print(f"✅ Cleanup complete: {cleanup_result['positions']} positions, "
+          f"{cleanup_result['logs']} logs, {cleanup_result['reviews']} reviews, "
+          f"{cleanup_result['signals']} signals removed")
+    print()
+    
     # Define verification scripts in order
     scripts = [
         ("P2-1A: Workbench → Observations", PROJECT_ROOT / "scripts" / "verify_p2_1a_workbench_to_observations.py"),
@@ -352,6 +372,7 @@ def main():
         "timestamp": datetime.now().isoformat(),
         "overall_success": all_passed,
         "overall_duration": round(overall_duration, 2),
+        "cleanup": cleanup_result,
         "scripts": results,
         "api_check": api_check,
         "log_check": log_check,
@@ -373,6 +394,14 @@ def main():
         f.write(f"Timestamp: {datetime.now().isoformat()}\n")
         f.write(f"Overall Success: {all_passed}\n")
         f.write(f"Overall Duration: {overall_duration:.2f}s\n")
+        f.write("\n")
+        f.write("=" * 100 + "\n")
+        f.write("Pre-Cleanup Results\n")
+        f.write("=" * 100 + "\n")
+        f.write(f"Positions removed: {cleanup_result['positions']}\n")
+        f.write(f"Logs removed: {cleanup_result['logs']}\n")
+        f.write(f"Reviews removed: {cleanup_result['reviews']}\n")
+        f.write(f"Signals removed: {cleanup_result['signals']}\n")
         f.write("\n")
         
         for result in results:
