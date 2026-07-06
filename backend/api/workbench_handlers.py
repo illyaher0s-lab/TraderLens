@@ -525,7 +525,7 @@ def handle_add_to_observation(
         template_id="",
         template_version="",
         entry_thesis=entry_thesis,
-        lifecycle_state=PositionLifecycleState.OPEN,
+        lifecycle_state=PositionLifecycleState.open,
         opened_at=now,
         closed_at=None,
     )
