@@ -1,0 +1,40 @@
+{
+  "review_id": "review_342eca3a0206",
+  "position_id": "pos_7f132078bfd9",
+  "execution_card_id": "card_194b5128eb39",
+  "signal_id": "sig_f1917edab88c",
+  "daily_signal_ids": [],
+  "buy_log_id": "log_74cbf22e9613",
+  "sell_log_id": "log_08ee31a1998a",
+  "input_completeness": {
+    "execution_card": "present",
+    "buy_log": "present",
+    "sell_log": "present",
+    "daily_signals": "missing",
+    "action_plan": "missing"
+  },
+  "pnl_record": {
+    "pnl_record_id": "pnl_116d85a88188",
+    "position_id": "pos_7f132078bfd9",
+    "buy_price": 12.5,
+    "sell_price": 13.0,
+    "quantity": 100,
+    "fees": null,
+    "pnl_amount": 50.0,
+    "pnl_pct": 4.0,
+    "pnl_source": "calculated_from_confirmed_details",
+    "missing_fields": [],
+    "computed_at": "2026-07-06 10:56:49.745832"
+  },
+  "plan_adherence": {
+    "followed_plan": null,
+    "deviations": [],
+    "adherence_trace": {
+      "note": "no_action_plan_available"
+    }
+  },
+  "plain_narrative": null,
+  "narrative_source": "none",
+  "forward_looking_guard_passed": true,
+  "created_at": "2026-07-06 10:56:49.745832"
+}
