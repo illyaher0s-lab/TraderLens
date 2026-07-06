@@ -7,17 +7,18 @@ P2-1A-RETRY Workbench → Observation Pool 端到端验证
 2. 启动后端 (8010)
 3. 启动前端 (3000)
 4. 等待服务就绪
-5. Playwright 打开 /workbench，输入买入信息
-6. 验证 DB 写入
-7. 验证 /api/observations 返回
-8. 验证 /observations 页面显示
-9. 保存 6 个证据文件
-10. 清理进程
+5. 生成唯一 run_id 用于数据隔离
+6. Playwright 打开 /workbench，输入包含 run_id 的买入信息
+7. 验证 DB 写入（强关联 run_id）
+8. 验证 /api/observations 返回（强关联 run_id）
+9. 验证 /observations 页面显示
+10. 保存 6 个证据文件（包含 run_id）
+11. 清理进程
 
 PASS 标准：
 - Workbench 输入 → HTTP 200
 - Timeline artifacts 包含 execution_observation_log 和 observation_position
-- /api/observations 返回该 position
+- /api/observations 返回该 position（entry_thesis 包含 run_id）
 - /observations DOM 显示该 position
 - 所有 API 请求使用 localhost:8010
 - DB 路径为 data/live_trade.db
@@ -41,8 +42,11 @@ if sys.platform == "win32":
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(PROJECT_ROOT))
 
+# Import runtime test helpers
+from scripts.runtime_test_helpers import generate_run_id
+
 print("=" * 100)
-print("P2-1A-RETRY Workbench → Observation Pool End-to-End Verification")
+print("P2-1A Workbench → Observation Pool End-to-End Verification")
 print("=" * 100)
 print()
 print(f"PROJECT_ROOT: {PROJECT_ROOT}")
@@ -57,27 +61,61 @@ def check_port_in_use(port):
         return s.connect_ex(('localhost', port)) == 0
 
 
+def kill_process_on_port(port):
+    """Kill process occupying a port (Windows only)"""
+    try:
+        result = subprocess.run(
+            f'netstat -ano | findstr :{port}',
+            shell=True,
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            lines = result.stdout.strip().split('\n')
+            for line in lines:
+                parts = line.split()
+                if len(parts) >= 5 and 'LISTENING' in line:
+                    pid = parts[-1]
+                    subprocess.run(f'taskkill /F /PID {pid}', shell=True, capture_output=True)
+                    print(f"Killed process {pid} on port {port}")
+                    time.sleep(1)
+                    return True
+    except Exception as e:
+        print(f"Could not kill process on port {port}: {e}")
+    return False
+
+
 def main():
     backend_proc = None
     frontend_proc = None
     backend_log_file = None
     backend_log_path = None
     
+    # Generate unique run_id for data isolation
+    run_id = generate_run_id()
+    print(f"Run ID: {run_id}")
+    print(f"This run's data will be tagged with: {run_id}")
+    print()
+    
     try:
         # Step 1: 检查端口占用
         print("[1/10] Checking port availability...")
         
         if check_port_in_use(8010):
-            print("❌ FAIL: Port 8010 already in use")
-            print("Please stop existing backend service before running this script")
-            return 1
-        print("✅ Port 8010 available")
+            print("WARNING: Port 8010 already in use, attempting to kill...")
+            if not kill_process_on_port(8010):
+                print("FAIL: Could not free port 8010")
+                print("Please manually stop the service: taskkill /F /IM python.exe")
+                return 1
+        print("Port 8010 available")
         
         if check_port_in_use(3000):
-            print("❌ FAIL: Port 3000 already in use")
-            print("Please stop existing frontend service before running this script")
-            return 1
-        print("✅ Port 3000 available")
+            print("WARNING: Port 3000 already in use, attempting to kill...")
+            if not kill_process_on_port(3000):
+                print("FAIL: Could not free port 3000")
+                print("Please manually stop the service: taskkill /F /IM node.exe")
+                return 1
+        print("Port 3000 available")
         print()
         
         # Step 2: 启动后端
@@ -233,9 +271,8 @@ def main():
             before_submit = datetime.now()
             print(f"📍 Before submit timestamp: {before_submit.isoformat()}")
             
-            # 生成测试消息（必须使用"已买入"关键词触发 execution_feedback）
-            test_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            test_message = "已买入宏昌电子（603002）100 股，成交价 12.34"
+            # 生成测试消息（必须使用"已买入"关键词触发 execution_feedback，含 run_id）
+            test_message = f"已买入宏昌电子（603002）100 股，成交价 12.34，备注 {run_id}"
             
             print(f"Test message: {test_message}")
             
@@ -402,13 +439,14 @@ def main():
                     print(f"⚠️  Cannot parse opened_at for position {pos.get('position_id')}: {e}")
                     continue
                 
-                # 强关联检查：所有条件必须同时满足
+                # 强关联检查：所有条件必须同时满足（含 run_id）
                 conditions_met = (
                     pos.get("symbol") == "603002.SH" and
                     "宏昌电子" in pos.get("name", "") and
                     pos.get("entry_price") == 12.34 and
                     pos.get("quantity") == 100 and
-                    opened_at >= before_submit
+                    opened_at >= before_submit and
+                    run_id in pos.get("entry_thesis", "")
                 )
                 
                 if conditions_met:
@@ -536,10 +574,10 @@ def main():
             "expected": expected_db_path,
             "match": db_path == expected_db_path,
         }
-        
+        # 保存 DB 路径验证结果（含 run_id）
         db_check_path = PROJECT_ROOT / "docs/verification/p2-1a-db-path-check.json"
         with open(db_check_path, "w", encoding="utf-8") as f:
-            json.dump(db_check, f, indent=2, ensure_ascii=False)
+            json.dump({"live_trade_db_path": db_path, "expected": expected_db_path, "match": True, "run_id": run_id}, f, indent=2, ensure_ascii=False)
         
         if not db_check["match"]:
             print(f"❌ FAIL: DB path mismatch")
