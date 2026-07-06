@@ -360,7 +360,7 @@ def _handle_sell(
         artifact_type="discipline_review",
         created_at=now,
     )
-    attach_artifact_ref(db_conn, review_artifact, content=json.dumps({"review_id": review_id, "pnl": pnl_record.model_dump()}))
+    attach_artifact_ref(db_conn, review_artifact, content=json.dumps({"review_id": review_id, "pnl": pnl_record.model_dump(mode='json')}))
     artifact_ids.append(review_id)
     
     action_completed_artifact = ArtifactRef(
