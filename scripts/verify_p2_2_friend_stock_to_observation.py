@@ -361,6 +361,17 @@ def main():
             print(f"FAIL: API returned string instead of JSON: {observations_data[:200]}")
             return 1
         
+        # 如果返回的是 dict，可能包含 positions 或其他 key
+        if isinstance(observations_data, dict):
+            # 尝试提取 positions 列表
+            if "positions" in observations_data:
+                observations_data = observations_data["positions"]
+            elif "data" in observations_data:
+                observations_data = observations_data["data"]
+            else:
+                print(f"FAIL: API returned dict without 'positions' or 'data' key: {list(observations_data.keys())}")
+                return 1
+        
         if not isinstance(observations_data, list):
             print(f"FAIL: API returned non-list: {type(observations_data)}")
             return 1
@@ -376,6 +387,8 @@ def main():
         if not position_id:
             print(f"FAIL: No position found with run_id {run_id}")
             print(f"Total positions: {len(observations_data)}")
+            if len(observations_data) > 0:
+                print(f"First position sample: {observations_data[0]}")
             return 1
         
         print()
