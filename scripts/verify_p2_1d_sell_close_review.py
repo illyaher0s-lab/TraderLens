@@ -147,7 +147,7 @@ def main():
             return 1
         
         # Verify DB path
-        db_path = health_data.get("db_paths", {}).get("live_trade")
+        db_path = health_data.get("live_trade_db_path")
         expected_db_path = "D:\\Codex\\TraderLens\\data\\live_trade.db"
         
         if db_path != expected_db_path:
@@ -161,7 +161,7 @@ def main():
         # Save DB path check
         db_check_path = PROJECT_ROOT / "docs/verification/p2-1d-db-path-check.json"
         with open(db_check_path, "w", encoding="utf-8") as f:
-            json.dump({"db_path": db_path, "expected": expected_db_path, "match": True}, f, indent=2, ensure_ascii=False)
+            json.dump({"live_trade_db_path": db_path, "expected": expected_db_path, "match": True}, f, indent=2, ensure_ascii=False)
         
         print()
         
@@ -214,7 +214,7 @@ def main():
             observations_requests = []
             
             def handle_request(route, request):
-                if request.url.startswith("http://localhost:8010/api/workbench"):
+                if request.url.startswith("http://localhost:8010/api/agent/workbench"):
                     buy_requests.append({
                         "url": request.url,
                         "method": request.method,
@@ -238,7 +238,7 @@ def main():
             
             def handle_response(response):
                 nonlocal buy_response_data, sell_response_data
-                if response.url.startswith("http://localhost:8010/api/workbench") and response.request.method == "POST":
+                if response.url.startswith("http://localhost:8010/api/agent/workbench/message") and response.request.method == "POST":
                     try:
                         data = response.json()
                         if buy_response_data is None:
@@ -256,16 +256,39 @@ def main():
             
             # Input buy execution
             buy_message = "已买入宏昌电子（603002）100 股，成交价 12.50"
-            textarea = page.locator("textarea[placeholder*='输入']").first
-            textarea.fill(buy_message)
-            time.sleep(0.5)
+            
+            # Try multiple selectors for input field
+            input_selectors = [
+                'textarea[placeholder*="输入"]',
+                'textarea[placeholder*="消息"]',
+                'textarea',
+                'input[type="text"]',
+            ]
+            
+            input_element = None
+            for selector in input_selectors:
+                try:
+                    if page.locator(selector).count() > 0:
+                        input_element = page.locator(selector).first
+                        input_element.fill(buy_message)
+                        print(f"✅ Filled buy input via selector: {selector}")
+                        break
+                except Exception:
+                    continue
+            
+            if not input_element:
+                print("❌ FAIL: Could not find input field for buy message")
+                browser.close()
+                return 1
             
             # Submit
+            time.sleep(0.5)
             page.keyboard.press("Enter")
             time.sleep(3)
             
             if not buy_response_data or buy_response_data["status"] != 200:
-                print(f"❌ FAIL: Buy workbench POST failed: {buy_response_data}")
+                print(f"❌ FAIL: Buy workbench POST failed")
+                print(f"Response: {buy_response_data}")
                 browser.close()
                 return 1
             
@@ -311,14 +334,31 @@ def main():
             print("\n[8/12] Playwright: Submitting sell execution via Workbench...")
             
             sell_message = "已卖出宏昌电子（603002）100 股，成交价 13.00"
-            textarea.fill(sell_message)
-            time.sleep(0.5)
             
+            # Find input field again
+            input_element = None
+            for selector in input_selectors:
+                try:
+                    if page.locator(selector).count() > 0:
+                        input_element = page.locator(selector).first
+                        input_element.fill(sell_message)
+                        print(f"✅ Filled sell input via selector: {selector}")
+                        break
+                except Exception:
+                    continue
+            
+            if not input_element:
+                print("❌ FAIL: Could not find input field for sell message")
+                browser.close()
+                return 1
+            
+            time.sleep(0.5)
             page.keyboard.press("Enter")
             time.sleep(3)
             
             if not sell_response_data or sell_response_data["status"] != 200:
-                print(f"❌ FAIL: Sell workbench POST failed: {sell_response_data}")
+                print(f"❌ FAIL: Sell workbench POST failed")
+                print(f"Response: {sell_response_data}")
                 browser.close()
                 return 1
             
