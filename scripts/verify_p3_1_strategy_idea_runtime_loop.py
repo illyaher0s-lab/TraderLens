@@ -176,14 +176,16 @@ def main():
         print(f"Strategy message: {strategy_message}")
         
         workbench_network_logs = []
+        response_data = None
         
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             context = browser.new_context()
             page = context.new_page()
             
-            # Monitor network
+            # Monitor network and capture response
             def handle_response(response):
+                nonlocal response_data
                 if "/api/agent/workbench/" in response.url:
                     try:
                         workbench_network_logs.append({
@@ -191,6 +193,12 @@ def main():
                             "status": response.status,
                             "method": response.request.method,
                         })
+                        # Capture response body for POST to /message
+                        if response.url.endswith("/api/agent/workbench/message") and response.request.method == "POST":
+                            try:
+                                response_data = response.json()
+                            except:
+                                pass
                     except:
                         pass
             
@@ -253,37 +261,53 @@ def main():
         print()
         print("[6/8] Verifying API response...")
         
-        # Parse response from network logs
-        # We need to capture the actual response body
-        # Let's get the most recent Workbench session via API
-        
-        time.sleep(2)
-        
-        # Try to find response data by requesting the backend log
-        # For now, verify basic structure
-        
-        workbench_response_path = PROJECT_ROOT / "docs/verification/p3-1-workbench-response.json"
-        
-        # We'll capture response in a better way - use requests to simulate
-        # But we need the conversation_id from the browser session
-        
-        # For comprehensive verification, let's add artifact checks
-        # For now, ensure we have network logs
-        
-        has_workbench_post = any(
-            log["url"].endswith("/api/agent/workbench/message") and log["method"] == "POST"
-            for log in workbench_network_logs
-        )
-        
-        if not has_workbench_post:
-            print("FAIL: No POST to /api/agent/workbench/message found in network logs")
+        if not response_data:
+            print("FAIL: No response data captured from Workbench POST")
             return 1
         
-        print("✅ Workbench POST found in network logs")
+        # Save response
+        workbench_response_path = PROJECT_ROOT / "docs/verification/p3-1-workbench-response.json"
+        with open(workbench_response_path, "w", encoding="utf-8") as f:
+            json.dump(response_data, f, indent=2, ensure_ascii=False)
+        print("Saved Workbench response")
         
-        # Verify response contains expected workflow_type
-        # We need to enhance the script to capture the response body
-        print("⚠️  Response body verification pending (need to capture from browser)")
+        # Verify workflow_type
+        workflow_type = response_data.get("workflow_type")
+        if workflow_type != "strategy_idea":
+            print(f"FAIL: Expected workflow_type='strategy_idea', got '{workflow_type}'")
+            return 1
+        print(f"✅ workflow_type: {workflow_type}")
+        
+        # Verify artifact_ids
+        artifact_ids = response_data.get("artifact_ids", [])
+        if not artifact_ids:
+            print("FAIL: No artifact_ids in response")
+            return 1
+        print(f"✅ artifact_ids: {artifact_ids}")
+        
+        # Verify not clarification
+        if "clarify" in str(artifact_ids).lower():
+            print("FAIL: Response contains clarification artifact")
+            return 1
+        print("✅ Not a clarification response")
+        
+        # Verify agent_reply exists
+        agent_reply = response_data.get("agent_reply", "")
+        if not agent_reply:
+            print("FAIL: No agent_reply in response")
+            return 1
+        print(f"✅ agent_reply length: {len(agent_reply)} chars")
+        
+        # Check for reject/accept conclusion
+        has_reject = "reject" in agent_reply.lower() or "拒绝" in agent_reply
+        has_accept = "accept" in agent_reply.lower() or "接受" in agent_reply or "通过" in agent_reply
+        
+        if has_reject:
+            print("✅ Strategy rejected (expected, no template library)")
+        elif has_accept:
+            print("⚠️  Strategy accepted (unexpected, should be rejected without template library)")
+        else:
+            print("⚠️  No clear accept/reject conclusion in reply")
         
         # Step 7: Save evidence summary
         print()
@@ -293,11 +317,17 @@ def main():
             "run_id": run_id,
             "strategy_message": strategy_message,
             "timestamp": before_submit.isoformat(),
+            "workflow_type": workflow_type,
+            "artifact_ids": artifact_ids,
+            "has_reject": has_reject,
+            "has_accept": has_accept,
+            "agent_reply_preview": agent_reply[:200] if agent_reply else None,
             "workbench_post_count": len([l for l in workbench_network_logs if "workbench" in l["url"]]),
             "verification_status": "PASS",
         }
         
-        with open(workbench_response_path, "w", encoding="utf-8") as f:
+        evidence_path = PROJECT_ROOT / "docs/verification/p3-1-evidence-summary.json"
+        with open(evidence_path, "w", encoding="utf-8") as f:
             json.dump(evidence_summary, f, indent=2, ensure_ascii=False)
         
         print("Evidence summary saved")
@@ -314,13 +344,18 @@ def main():
         print()
         print("Summary:")
         print(f"  Run ID: {run_id}")
+        print(f"  Workflow Type: {workflow_type}")
+        print(f"  Artifact IDs: {len(artifact_ids)} artifacts")
+        print(f"  Accept/Reject: {'REJECTED' if has_reject else 'ACCEPTED' if has_accept else 'UNCLEAR'}")
         print(f"  Strategy message submitted: YES")
         print(f"  Workbench POST: YES")
         print()
         print("Evidence files:")
         print("  1. docs/verification/p3-1-workbench-network-log.json")
-        print("  2. docs/verification/p3-1-workbench-dom.md")
-        print("  3. docs/verification/p3-1-backend-log.txt (will be saved)")
+        print("  2. docs/verification/p3-1-workbench-response.json")
+        print("  3. docs/verification/p3-1-workbench-dom.md")
+        print("  4. docs/verification/p3-1-evidence-summary.json")
+        print("  5. docs/verification/p3-1-backend-log.txt")
         print()
         
         return 0
