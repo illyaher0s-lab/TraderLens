@@ -1,0 +1,38 @@
+{
+  "requests": [
+    {
+      "url": "http://localhost:8010/api/agent/workbench/message",
+      "method": "POST",
+      "headers": {
+        "accept": "*/*",
+        "content-type": "application/json",
+        "origin": "http://localhost:3000",
+        "referer": "http://localhost:3000/",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/149.0.7827.55 Safari/537.36",
+        "sec-ch-ua": "\"HeadlessChrome\";v=\"149\", \"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+      },
+      "post_data": "{\"message\":\"已买入宏昌电子（603002）100 股，成交价 12.50\"}"
+    }
+  ],
+  "response": {
+    "status": 200,
+    "data": {
+      "conversation_id": "sess_870863a90e43",
+      "workflow_type": "execution_feedback",
+      "stage": "created",
+      "agent_reply": "已记录买入：\n股票：宏昌电子 (603002.SH)\n数量：100 股\n成交价：¥12.50\n\n持仓已进入观察池，你可以在 /observations 查看。",
+      "approval_card": null,
+      "artifact_ids": [
+        "log_bb2190a5adf0",
+        "pos_f29c5421cdb7",
+        "action_completed_22fac5db",
+        "msg_aeec43f9d594",
+        "msg_b3b4d67929e0",
+        "intent_sess_870863a90e43"
+      ],
+      "next_required_user_action": "confirm_execution_details"
+    }
+  }
+}
