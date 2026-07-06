@@ -122,43 +122,110 @@ def run_verification_script(script_name: str, script_path: Path) -> dict:
 
 def check_api_evidence() -> dict:
     """检查 API 证据文件中的 localhost:8010 请求。"""
+    # 明确列出所有 runtime network evidence 文件
     evidence_files = [
         "p2-1a-workbench-network-log.json",
+        "p2-1a-observations-network-log.json",
         "p2-1b-observations-network-log.json",
         "p2-1c-workbench-network-log.json",
+        "p2-1c-observations-network-log.json",
         "p2-1d-buy-workbench-network-log.json",
         "p2-1d-sell-workbench-network-log.json",
     ]
     
     api_check = {
-        "checked_files": [],
-        "all_use_8010": True,
-        "non_8010_calls": [],
+        "files": {},
+        "all_passed": True,
+        "summary": {
+            "total_files": len(evidence_files),
+            "passed_files": 0,
+            "failed_files": 0,
+        }
     }
     
     for filename in evidence_files:
         filepath = PROJECT_ROOT / "docs" / "verification" / filename
+        
+        file_check = {
+            "exists": False,
+            "readable": False,
+            "api_call_count": 0,
+            "localhost_8010_api_call_count": 0,
+            "non_8010_calls": [],
+            "passed": False,
+            "error": None,
+        }
+        
+        # Check file exists
         if not filepath.exists():
+            file_check["error"] = "File not found"
+            api_check["files"][filename] = file_check
+            api_check["all_passed"] = False
+            api_check["summary"]["failed_files"] += 1
             continue
         
+        file_check["exists"] = True
+        
+        # Try to read and parse JSON
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
-            api_check["checked_files"].append(filename)
+            file_check["readable"] = True
             
             # Check each request/response in the log
+            # Support two formats:
+            # 1. Array format: [{"url": "...", "method": "..."}, ...]
+            # 2. Object format: {"requests": [...], "response": {...}}
+            entries = []
             if isinstance(data, list):
-                for entry in data:
-                    url = entry.get("url", "")
-                    if "/api/" in url and ":8010" not in url:
-                        api_check["all_use_8010"] = False
-                        api_check["non_8010_calls"].append({
-                            "file": filename,
-                            "url": url,
-                        })
+                entries = data
+            elif isinstance(data, dict):
+                # P2-1D format
+                if "requests" in data:
+                    entries = data["requests"]
+                # Also check response if it has a URL
+                if "response" in data and isinstance(data["response"], dict):
+                    if "url" in data["response"]:
+                        entries.append(data["response"])
+            
+            for entry in entries:
+                url = entry.get("url", "")
+                
+                # Count API calls
+                if "/api/" in url:
+                    file_check["api_call_count"] += 1
+                    
+                    if ":8010" in url and "localhost" in url:
+                        file_check["localhost_8010_api_call_count"] += 1
+                    else:
+                        file_check["non_8010_calls"].append(url)
+            
+            # Validate: at least one API call, and all are localhost:8010
+            if file_check["api_call_count"] == 0:
+                file_check["error"] = "No /api/ requests found"
+                file_check["passed"] = False
+                api_check["all_passed"] = False
+                api_check["summary"]["failed_files"] += 1
+            elif len(file_check["non_8010_calls"]) > 0:
+                file_check["error"] = f"Found {len(file_check['non_8010_calls'])} non-localhost:8010 API calls"
+                file_check["passed"] = False
+                api_check["all_passed"] = False
+                api_check["summary"]["failed_files"] += 1
+            else:
+                file_check["passed"] = True
+                api_check["summary"]["passed_files"] += 1
+            
+        except json.JSONDecodeError as e:
+            file_check["error"] = f"JSON parse error: {str(e)}"
+            api_check["all_passed"] = False
+            api_check["summary"]["failed_files"] += 1
         except Exception as e:
-            print(f"WARNING: Could not check {filename}: {e}")
+            file_check["error"] = f"Read error: {str(e)}"
+            api_check["all_passed"] = False
+            api_check["summary"]["failed_files"] += 1
+        
+        api_check["files"][filename] = file_check
     
     return api_check
 
@@ -245,14 +312,27 @@ def main():
     print()
     print("Checking API evidence...")
     api_check = check_api_evidence()
-    print(f"   Checked files: {len(api_check['checked_files'])}")
-    print(f"   All use localhost:8010: {api_check['all_use_8010']}")
+    print(f"   Total files: {api_check['summary']['total_files']}")
+    print(f"   Passed files: {api_check['summary']['passed_files']}")
+    print(f"   Failed files: {api_check['summary']['failed_files']}")
     
-    if not api_check["all_use_8010"]:
+    if not api_check["all_passed"]:
         all_passed = False
-        print("   ❌ Found API calls not using localhost:8010:")
-        for call in api_check["non_8010_calls"]:
-            print(f"      - {call['file']}: {call['url']}")
+        print("   ❌ API evidence check failed:")
+        for filename, file_check in api_check["files"].items():
+            if not file_check["passed"]:
+                print(f"      - {filename}:")
+                print(f"        exists: {file_check['exists']}")
+                print(f"        readable: {file_check['readable']}")
+                print(f"        api_call_count: {file_check['api_call_count']}")
+                print(f"        error: {file_check['error']}")
+                if file_check["non_8010_calls"]:
+                    print(f"        non_8010_calls: {file_check['non_8010_calls'][:3]}")  # Show first 3
+    else:
+        print("   ✅ All API evidence files passed")
+        # Print summary of API call counts
+        for filename, file_check in api_check["files"].items():
+            print(f"      {filename}: {file_check['api_call_count']} API calls")
     
     # Check backend logs
     print()

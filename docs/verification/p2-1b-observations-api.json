@@ -1,6 +1,108 @@
 {
   "positions": [
     {
+      "position_id": "pos_265107db95b8",
+      "symbol": "603002.SH",
+      "name": "宏昌电子",
+      "entry_price": 12.34,
+      "quantity": 100,
+      "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260706_152813",
+      "lifecycle_state": "open",
+      "opened_at": "2026-07-06T15:28:38.388864",
+      "closed_at": null,
+      "template_id": "template_execution_feedback_v1",
+      "latest_signal": null
+    },
+    {
+      "position_id": "pos_793a503b630d",
+      "symbol": "603002.SH",
+      "name": "宏昌电子",
+      "entry_price": 12.34,
+      "quantity": 100,
+      "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260706_152731",
+      "lifecycle_state": "open",
+      "opened_at": "2026-07-06T15:27:57.356020",
+      "closed_at": null,
+      "template_id": "template_execution_feedback_v1",
+      "latest_signal": null
+    },
+    {
+      "position_id": "pos_31ff78d83610",
+      "symbol": "603002.SH",
+      "name": "宏昌电子",
+      "entry_price": 12.34,
+      "quantity": 100,
+      "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260706_152534",
+      "lifecycle_state": "open",
+      "opened_at": "2026-07-06T15:26:01.919497",
+      "closed_at": null,
+      "template_id": "template_execution_feedback_v1",
+      "latest_signal": {
+        "signal_type": "hold",
+        "as_of_date": "2026-07-06T00:00:00",
+        "market_data_state": "ok",
+        "plain_explanation": null,
+        "triggered_invalidations": []
+      }
+    },
+    {
+      "position_id": "pos_2c36480af8ef",
+      "symbol": "603002.SH",
+      "name": "宏昌电子",
+      "entry_price": 12.34,
+      "quantity": 100,
+      "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260706_152459",
+      "lifecycle_state": "open",
+      "opened_at": "2026-07-06T15:25:24.347577",
+      "closed_at": null,
+      "template_id": "template_execution_feedback_v1",
+      "latest_signal": {
+        "signal_type": "hold",
+        "as_of_date": "2026-07-06T00:00:00",
+        "market_data_state": "ok",
+        "plain_explanation": null,
+        "triggered_invalidations": []
+      }
+    },
+    {
+      "position_id": "pos_59ccfa84e71f",
+      "symbol": "603002.SH",
+      "name": "宏昌电子",
+      "entry_price": 12.34,
+      "quantity": 100,
+      "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260706_152417",
+      "lifecycle_state": "open",
+      "opened_at": "2026-07-06T15:24:42.930865",
+      "closed_at": null,
+      "template_id": "template_execution_feedback_v1",
+      "latest_signal": {
+        "signal_type": "hold",
+        "as_of_date": "2026-07-06T00:00:00",
+        "market_data_state": "ok",
+        "plain_explanation": null,
+        "triggered_invalidations": []
+      }
+    },
+    {
+      "position_id": "pos_920c6372f390",
+      "symbol": "603002.SH",
+      "name": "宏昌电子",
+      "entry_price": 12.34,
+      "quantity": 100,
+      "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260706_151222",
+      "lifecycle_state": "open",
+      "opened_at": "2026-07-06T15:12:51.713918",
+      "closed_at": null,
+      "template_id": "template_execution_feedback_v1",
+      "latest_signal": {
+        "signal_type": "hold",
+        "as_of_date": "2026-07-06T00:00:00",
+        "market_data_state": "ok",
+        "plain_explanation": null,
+        "triggered_invalidations": []
+      }
+    },
+    {
       "position_id": "pos_add6ab92c9fc",
       "symbol": "603002.SH",
       "name": "宏昌电子",
@@ -11,7 +113,13 @@
       "opened_at": "2026-07-06T15:12:12.072617",
       "closed_at": null,
       "template_id": "template_execution_feedback_v1",
-      "latest_signal": null
+      "latest_signal": {
+        "signal_type": "hold",
+        "as_of_date": "2026-07-06T00:00:00",
+        "market_data_state": "ok",
+        "plain_explanation": null,
+        "triggered_invalidations": []
+      }
     },
     {
       "position_id": "pos_e67d51d0c113",
@@ -24,7 +132,13 @@
       "opened_at": "2026-07-06T15:11:30.945483",
       "closed_at": null,
       "template_id": "template_execution_feedback_v1",
-      "latest_signal": null
+      "latest_signal": {
+        "signal_type": "hold",
+        "as_of_date": "2026-07-06T00:00:00",
+        "market_data_state": "ok",
+        "plain_explanation": null,
+        "triggered_invalidations": []
+      }
     },
     {
       "position_id": "pos_4670453296c0",
@@ -37,7 +151,13 @@
       "opened_at": "2026-07-06T15:10:37.529328",
       "closed_at": null,
       "template_id": "template_execution_feedback_v1",
-      "latest_signal": null
+      "latest_signal": {
+        "signal_type": "hold",
+        "as_of_date": "2026-07-06T00:00:00",
+        "market_data_state": "ok",
+        "plain_explanation": null,
+        "triggered_invalidations": []
+      }
     },
     {
       "position_id": "pos_5446e1a4c7a8",
@@ -629,5 +749,5 @@
       }
     }
   ],
-  "total": 34
+  "total": 40
 }
