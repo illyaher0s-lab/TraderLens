@@ -1,10 +1,10 @@
 # P2-1D Observations DOM Evidence
 
-**Timestamp**: 2026-07-06T18:26:41.397991
+**Timestamp**: 2026-07-06T20:02:49.935000
 
 **URL**: http://localhost:3000/observations?status=closed
 
-**Position ID**: pos_20db2f454148
+**Position ID**: pos_3233645f056f
 
 **Position found in DOM**: Yes
 

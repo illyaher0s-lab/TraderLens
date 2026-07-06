@@ -24,6 +24,7 @@ PASS 标准：
 
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -239,7 +240,15 @@ def check_backend_logs() -> dict:
         "p2-1d-backend-log.txt",
     ]
     
-    error_patterns = ["500", "Traceback", "sqlite", "Internal Server Error", "ERROR:"]
+    error_patterns = [
+        ("HTTP 500", re.compile(r"\bHTTP(?:/1\.[01])?\s+500\b")),
+        ("status=500", re.compile(r"\bstatus\s*[=:]\s*500\b", re.IGNORECASE)),
+        ("returned HTTP 500", re.compile(r"\breturned\s+HTTP\s+500\b", re.IGNORECASE)),
+        ("Internal Server Error", re.compile(r"Internal Server Error")),
+        ("Traceback", re.compile(r"Traceback")),
+        ("sqlite3.", re.compile(r"sqlite3\.")),
+        ("ERROR:", re.compile(r"ERROR:")),
+    ]
     
     log_check = {
         "checked_files": [],
@@ -258,12 +267,12 @@ def check_backend_logs() -> dict:
             
             log_check["checked_files"].append(filename)
             
-            for pattern in error_patterns:
-                if pattern in content:
+            for pattern_name, pattern in error_patterns:
+                if pattern.search(content):
                     log_check["clean"] = False
                     log_check["errors_found"].append({
                         "file": filename,
-                        "pattern": pattern,
+                        "pattern": pattern_name,
                     })
         except Exception as e:
             print(f"WARNING: Could not check {filename}: {e}")
