@@ -243,9 +243,21 @@ def main():
         print("[5/10] Submitting friend stock request via Workbench...")
         from playwright.sync_api import sync_playwright
         
+        workbench_network_logs = []
+        
         with sync_playwright() as p:
             browser = p.chromium.launch()
             page = browser.new_page()
+            
+            # 捕获网络请求
+            def handle_response(response):
+                workbench_network_logs.append({
+                    "url": response.url,
+                    "method": response.request.method,
+                    "status": response.status,
+                })
+            
+            page.on("response", handle_response)
             
             # 记录提交前时间
             before_submit = datetime.now()
@@ -255,9 +267,9 @@ def main():
             page.goto("http://localhost:3000/workbench", wait_until="networkidle")
             time.sleep(2)
             
-            # 单句：帮我看看宏昌电子并加入观察池
-            message = f"帮我看看宏昌电子（603002）并加入观察池，备注 {run_id}"
-            print(f"Message: {message}")
+            # 第一句：帮我看看宏昌电子
+            first_message = f"帮我看看宏昌电子（603002），备注 {run_id}"
+            print(f"First message: {first_message}")
             
             # 找到输入框
             input_selectors = [
@@ -272,8 +284,8 @@ def main():
                 try:
                     if page.locator(selector).count() > 0:
                         input_element = page.locator(selector).first
-                        input_element.fill(message)
-                        print(f"Filled input via selector: {selector}")
+                        input_element.fill(first_message)
+                        print(f"Filled first input via selector: {selector}")
                         break
                 except:
                     continue
@@ -285,26 +297,75 @@ def main():
             
             time.sleep(0.5)
             
-            # 提交
+            # 提交第一句
             with page.expect_response(lambda r: "/api/agent/workbench/message" in r.url and r.request.method == "POST", timeout=30000) as response_info:
                 page.keyboard.press("Enter")
             
-            response = response_info.value
-            response_data = {
-                "status": response.status,
-                "data": response.json()
+            first_response = response_info.value
+            first_response_data = {
+                "status": first_response.status,
+                "data": first_response.json()
             }
-            print(f"Response captured: status={response.status}")
+            print(f"First response captured: status={first_response.status}")
             
-            if response.status != 200:
-                print(f"FAIL: Workbench POST returned {response.status}")
+            if first_response.status != 200:
+                print(f"FAIL: First workbench POST returned {first_response.status}")
                 browser.close()
                 return 1
             
-            print("Workbench POST 200")
+            print("First workbench POST 200")
+            
+            # 等待第一句响应完成
+            time.sleep(5)
+            
+            # 刷新页面重置 UI 状态
+            print("Refreshing page to reset UI state...")
+            page.goto("http://localhost:3000/workbench", wait_until="networkidle")
+            time.sleep(2)
+            
+            # 第二句：加入观察
+            second_message = "加入观察"
+            print(f"Second message: {second_message}")
+            
+            # 填充第二句
+            input_element = None
+            for selector in input_selectors:
+                try:
+                    if page.locator(selector).count() > 0:
+                        input_element = page.locator(selector).first
+                        input_element.fill(second_message)
+                        print(f"Filled second input via selector: {selector}")
+                        break
+                except:
+                    continue
+            
+            if not input_element:
+                print("FAIL: Could not find input field for second message")
+                browser.close()
+                return 1
+            
+            time.sleep(0.5)
+            
+            # 提交第二句
+            with page.expect_response(lambda r: "/api/agent/workbench/message" in r.url and r.request.method == "POST", timeout=30000) as response_info:
+                page.keyboard.press("Enter")
+            
+            second_response = response_info.value
+            second_response_data = {
+                "status": second_response.status,
+                "data": second_response.json()
+            }
+            print(f"Second response captured: status={second_response.status}")
+            
+            if second_response.status != 200:
+                print(f"FAIL: Second workbench POST returned {second_response.status}")
+                browser.close()
+                return 1
+            
+            print("Second workbench POST 200")
             
             # 提取 position_id
-            artifact_ids = response_data["data"].get("artifact_ids", [])
+            artifact_ids = second_response_data["data"].get("artifact_ids", [])
             print(f"artifact_ids: {artifact_ids}")
             
             position_id = None
@@ -315,14 +376,21 @@ def main():
             
             if not position_id:
                 print("FAIL: No position_id found in response")
-                print("Response may indicate friend_stock → observation flow not yet implemented")
-                print(f"Full response keys: {list(response_data['data'].keys())}")
+                print("This indicates add-to-observation logic not yet implemented")
+                print(f"Full response keys: {list(second_response_data['data'].keys())}")
                 browser.close()
                 return 1
             
             print(f"Position created: {position_id}")
             
             browser.close()
+        
+        # 保存真实捕获的 workbench network log
+        workbench_network_path = PROJECT_ROOT / "docs/verification/p2-2-workbench-network-log.json"
+        with open(workbench_network_path, "w", encoding="utf-8") as f:
+            json.dump(workbench_network_logs, f, indent=2, ensure_ascii=False)
+        print(f"Saved workbench network log: {len(workbench_network_logs)} requests")
+        print()
         
         print()
         
@@ -360,9 +428,21 @@ def main():
         # Step 7: 验证 /observations 页面
         print("[7/10] Verifying /observations page...")
         
+        observations_network_logs = []
+        
         with sync_playwright() as p:
             browser = p.chromium.launch()
             page = browser.new_page()
+            
+            # 捕获网络请求
+            def handle_response(response):
+                observations_network_logs.append({
+                    "url": response.url,
+                    "method": response.request.method,
+                    "status": response.status,
+                })
+            
+            page.on("response", handle_response)
             
             page.goto("http://localhost:3000/observations", wait_until="networkidle")
             time.sleep(2)
@@ -385,31 +465,15 @@ def main():
             
             browser.close()
         
-        print()
-        
-        # Step 8-10: 生成其他证据文件（network logs 等）
-        print("[8/10] Generating evidence files...")
-        
-        # 创建占位符 network logs（简化版，真实版需要在 Playwright 中捕获）
-        workbench_network_log = [
-            {"url": "http://localhost:8010/api/agent/workbench/message", "method": "POST", "status": 200},
-            {"url": "http://localhost:8010/api/agent/workbench/message", "method": "POST", "status": 200},
-        ]
-        
-        workbench_network_path = PROJECT_ROOT / "docs/verification/p2-2-workbench-network-log.json"
-        with open(workbench_network_path, "w", encoding="utf-8") as f:
-            json.dump(workbench_network_log, f, indent=2, ensure_ascii=False)
-        
-        observations_network_log = [
-            {"url": "http://localhost:3000/observations", "method": "GET", "status": 200},
-            {"url": "http://localhost:8010/api/observations", "method": "GET", "status": 200},
-        ]
-        
+        # 保存真实捕获的 observations network log
         observations_network_path = PROJECT_ROOT / "docs/verification/p2-2-observations-network-log.json"
         with open(observations_network_path, "w", encoding="utf-8") as f:
-            json.dump(observations_network_log, f, indent=2, ensure_ascii=False)
+            json.dump(observations_network_logs, f, indent=2, ensure_ascii=False)
+        print(f"Saved observations network log: {len(observations_network_logs)} requests")
+        print()
         
-        print("Evidence files generated")
+        # Step 8: 验证完成
+        print("[8/10] Verification complete")
         print()
         
         # 成功
