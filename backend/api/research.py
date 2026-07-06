@@ -1134,6 +1134,10 @@ def create_research_app(
             )
             create_session(db.conn, session)
             
+            # Initialize claimed_stock for new session
+            claimed_stock = None
+            open_positions = []
+            
             # Task 20A: Record pipeline activity artifacts
             # Artifact 0: Context loaded (new session, no prior context)
             context_loaded_artifact = ArtifactRef(
