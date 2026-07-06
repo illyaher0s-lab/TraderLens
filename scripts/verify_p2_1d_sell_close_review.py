@@ -1,26 +1,28 @@
 #!/usr/bin/env python3
 """
-P2-1D Sell Close P&L Review 端到端验证
+P2-1D Sell Close P&L Review 端到端验收
 
 自动化流程：
 1. 检查端口占用
 2. 启动后端 (8010)
 3. 启动前端 (3000)
 4. 等待服务就绪
-5. Playwright 打开 /workbench，输入买入信息
-6. 验证 DB 写入 open position
-7. Playwright 输入卖出信息
-8. 验证 position closed，P&L 和 review 生成
-9. 验证 /api/observations?status=closed 返回
-10. 验证 /observations 页面显示 closed position
-11. 保存 8 个证据文件
-12. 清理进程
+5. 生成唯一 run_id 用于数据隔离
+6. Playwright 打开 /workbench，输入包含 run_id 的买入信息
+7. 验证 DB 写入 open position（强关联 run_id）
+8. Playwright 输入包含 run_id 的卖出信息
+9. 验证 position closed，P&L 和 review 生成
+10. 验证 /api/observations?status=closed 返回
+11. 验证 /observations 页面显示 closed position
+12. 保存 8 个证据文件，包含 run_id
+13. 清理进程
 
 PASS 标准：
 - 买入 Workbench POST 200
 - 卖出 Workbench POST 200
 - DB path = D:\\Codex\\TraderLens\\data\\live_trade.db
 - 本次 position lifecycle_state 从 open 变 closed
+- entry_thesis 和 reason 包含本次 run_id（数据隔离）
 - P&L 记录存在，source = calculated_from_confirmed_details
 - review 记录存在，plan_adherence.followed_plan = None (honest unclassified)
 - 所有 API 使用 localhost:8010
@@ -44,6 +46,9 @@ if sys.platform == "win32":
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(PROJECT_ROOT))
+
+# Import runtime test helpers
+from scripts.runtime_test_helpers import generate_run_id
 
 print("=" * 100)
 print("P2-1D Sell Close P&L Review End-to-End Verification")
@@ -90,6 +95,12 @@ def main():
     frontend_proc = None
     backend_log_file = None
     backend_log_path = None
+    
+    # Generate unique run_id for data isolation
+    run_id = generate_run_id()
+    print(f"Run ID: {run_id}")
+    print(f"This run's data will be tagged with: {run_id}")
+    print()
     
     try:
         # Step 1: 检查端口占用
@@ -186,10 +197,10 @@ def main():
         
         print(f"✅ DB path verified: {db_path}")
         
-        # Save DB path check
+        # Save DB path check with run_id
         db_check_path = PROJECT_ROOT / "docs/verification/p2-1d-db-path-check.json"
         with open(db_check_path, "w", encoding="utf-8") as f:
-            json.dump({"live_trade_db_path": db_path, "expected": expected_db_path, "match": True}, f, indent=2, ensure_ascii=False)
+            json.dump({"live_trade_db_path": db_path, "expected": expected_db_path, "match": True, "run_id": run_id}, f, indent=2, ensure_ascii=False)
         
         print()
         
@@ -268,8 +279,8 @@ def main():
             page.goto("http://localhost:3000/workbench", wait_until="networkidle")
             time.sleep(2)
             
-            # Input buy execution
-            buy_message = "已买入宏昌电子（603002）100 股，成交价 12.50"
+            # Input buy execution (with run_id for data isolation)
+            buy_message = f"已买入宏昌电子（603002）100 股，成交价 12.50，备注 {run_id}"
             
             # Try multiple selectors for input field
             input_selectors = [
@@ -366,14 +377,22 @@ def main():
             with open(open_api_path, "w", encoding="utf-8") as f:
                 json.dump(open_positions_before, f, indent=2, ensure_ascii=False)
             
-            # Verify position is open
-            found_open = any(p["position_id"] == position_id for p in open_positions_before["positions"])
+            # Verify position is open AND contains run_id
+            found_open = False
+            for p in open_positions_before["positions"]:
+                if p["position_id"] == position_id:
+                    # Check if entry_thesis contains run_id
+                    if run_id in p.get("entry_thesis", ""):
+                        found_open = True
+                        print(f"✅ Position {position_id} is open and tagged with {run_id}")
+                        break
+                    else:
+                        print(f"⚠️ Position {position_id} found but missing run_id tag")
+            
             if not found_open:
-                print(f"❌ FAIL: Position {position_id} not found in open positions")
+                print(f"❌ FAIL: Position {position_id} not found or not tagged with {run_id}")
                 browser.close()
                 return 1
-            
-            print(f"✅ Position {position_id} is open")
             
             # Step 8: Submit sell execution
             print("\n[8/12] Playwright: Submitting sell execution via Workbench...")
@@ -384,7 +403,7 @@ def main():
             page.goto("http://localhost:3000/workbench", wait_until="networkidle")
             time.sleep(2)
             
-            sell_message = "已卖出宏昌电子（603002）100 股，成交价 13.00"
+            sell_message = f"已卖出宏昌电子（603002）100 股，成交价 13.00，备注 {run_id}"
             
             # Find and fill input field (fresh page)
             input_element = None
