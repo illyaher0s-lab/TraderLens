@@ -503,12 +503,16 @@ def handle_add_to_observation(
     # Extract stock info from claimed_stock
     ticker = claimed_stock.get("ticker")
     company_name = claimed_stock.get("company_name", ticker)
+    original_context = claimed_stock.get("original_context", "")  # May contain run_id
     
     # Create observation position
     position_id = f"pos_{uuid.uuid4().hex[:12]}"
     
-    # Build entry_thesis from user message and claimed stock
-    entry_thesis = f"用户请求加入观察池：{company_name}（{ticker}）。原始输入：{user_message}"
+    # Build entry_thesis from user message, claimed stock, and original context
+    if original_context:
+        entry_thesis = f"用户请求加入观察池：{company_name}（{ticker}）。原始上下文：{original_context}。当前输入：{user_message}"
+    else:
+        entry_thesis = f"用户请求加入观察池：{company_name}（{ticker}）。原始输入：{user_message}"
     
     # Generate placeholder evidence chain IDs (friend_stock observation has no real evidence chain)
     execution_card_id = f"exec_card_{uuid.uuid4().hex[:12]}"

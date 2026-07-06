@@ -1,0 +1,47 @@
+[
+  {
+    "url": "http://localhost:8010/api/agent/workbench/message",
+    "method": "POST",
+    "status": 200,
+    "request": {
+      "message": "帮我看看宏昌电子（603002），备注 P2RUN_20260706_171027"
+    },
+    "response": {
+      "conversation_id": "sess_29156c033553",
+      "workflow_type": "friend_stock",
+      "stage": "created",
+      "agent_reply": "已识别 宏昌电子 (603002.SH)。当前为测试模式，已记录为待研究。 研究ID: flow_0bbe6fff2719",
+      "approval_card": null,
+      "artifact_ids": [
+        "flow_0bbe6fff2719",
+        "msg_a363e59977fe",
+        "msg_49b3676fbf1c",
+        "intent_sess_29156c033553"
+      ],
+      "next_required_user_action": "wait_for_research"
+    }
+  },
+  {
+    "url": "http://localhost:8010/api/agent/workbench/message",
+    "method": "POST",
+    "status": 200,
+    "request": {
+      "conversation_id": "sess_29156c033553",
+      "message": "加入观察"
+    },
+    "response": {
+      "conversation_id": "sess_29156c033553",
+      "workflow_type": "add_to_observation",
+      "stage": "created",
+      "agent_reply": "已将 宏昌电子（603002.SH）加入观察池。观察位置ID：pos_27d4518ca1ec",
+      "approval_card": null,
+      "artifact_ids": [
+        "pos_27d4518ca1ec",
+        "msg_8980184761ef",
+        "msg_6fd631d6e128",
+        "intent_sess_29156c033553"
+      ],
+      "next_required_user_action": "confirm_stock_from_context"
+    }
+  }
+]

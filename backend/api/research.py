@@ -1217,6 +1217,7 @@ def create_research_app(
                         claimed_stock = {
                             "ticker": flow.get("raw_code_input"),
                             "company_name": flow.get("raw_company_input"),
+                            "original_context": flow.get("source_note", ""),  # Preserve original user message
                         }
 
             cursor = db.conn.cursor()
