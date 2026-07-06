@@ -1,6 +1,45 @@
 {
   "positions": [
     {
+      "position_id": "pos_398494a2c0d9",
+      "symbol": "603002.SH",
+      "name": "宏昌电子",
+      "entry_price": 1.0,
+      "quantity": 1,
+      "entry_thesis": "用户请求加入观察池：宏昌电子（603002.SH）。原始上下文：workbench: 帮我看看宏昌电子（603002），备注 P2RUN_20260706_172541。当前输入：加入观察",
+      "lifecycle_state": "open",
+      "opened_at": "2026-07-06T17:26:09.381696",
+      "closed_at": null,
+      "template_id": "",
+      "latest_signal": null
+    },
+    {
+      "position_id": "pos_db90f7f9804a",
+      "symbol": "603002.SH",
+      "name": "宏昌电子",
+      "entry_price": 1.0,
+      "quantity": 1,
+      "entry_thesis": "用户请求加入观察池：宏昌电子（603002.SH）。原始上下文：workbench: 帮我看看宏昌电子（603002），备注 P2RUN_20260706_172425。当前输入：加入观察",
+      "lifecycle_state": "open",
+      "opened_at": "2026-07-06T17:24:53.685732",
+      "closed_at": null,
+      "template_id": "",
+      "latest_signal": null
+    },
+    {
+      "position_id": "pos_829b9c17135b",
+      "symbol": "603002.SH",
+      "name": "宏昌电子",
+      "entry_price": 1.0,
+      "quantity": 1,
+      "entry_thesis": "用户请求加入观察池：宏昌电子（603002.SH）。原始上下文：workbench: 帮我看看宏昌电子（603002），备注 P2RUN_20260706_172301。当前输入：加入观察",
+      "lifecycle_state": "open",
+      "opened_at": "2026-07-06T17:23:30.608356",
+      "closed_at": null,
+      "template_id": "",
+      "latest_signal": null
+    },
+    {
       "position_id": "pos_88f6308340a2",
       "symbol": "603002.SH",
       "name": "宏昌电子",
@@ -578,5 +617,5 @@
       }
     }
   ],
-  "total": 31
+  "total": 34
 }

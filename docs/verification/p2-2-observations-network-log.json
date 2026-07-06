@@ -2,49 +2,41 @@
   {
     "url": "http://localhost:3000/observations",
     "method": "GET",
-    "status": 200,
-    "ok": true
+    "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783330028576",
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783329984613",
     "method": "GET",
-    "status": 200,
-    "ok": true
+    "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783330028576",
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783329984613",
     "method": "GET",
-    "status": 200,
-    "ok": true
+    "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
     "method": "GET",
-    "status": 200,
-    "ok": true
+    "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app/observations/page.js",
     "method": "GET",
-    "status": 200,
-    "ok": true
+    "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783330028576",
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783329984613",
     "method": "GET",
-    "status": 200,
-    "ok": true
-  },
-  {
-    "url": "http://localhost:8010/api/observations?status=open",
-    "method": "GET",
-    "status": 200,
-    "ok": true
+    "status": 200
   },
   {
     "url": "http://localhost:8010/api/observations?status=open",
     "method": "GET",
-    "status": 200,
-    "ok": true
+    "status": 200
+  },
+  {
+    "url": "http://localhost:8010/api/observations?status=open",
+    "method": "GET",
+    "status": 200
   }
 ]
