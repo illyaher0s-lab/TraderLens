@@ -37,6 +37,7 @@ import time
 import requests
 from datetime import datetime
 from pathlib import Path
+from playwright.sync_api import sync_playwright
 
 # Fix Windows GBK encoding
 if sys.platform == "win32":
@@ -233,93 +234,139 @@ def main():
                         break
             except:
                 pass
-            # Step 5: 提交两句 Workbench 消息（通过 API）
-            print("[5/10] Submitting friend stock request via Workbench API...")
-            before_submit = datetime.now()
-            print(f"Before submit timestamp: {before_submit.isoformat()}")
+        # Step 5: 提交两句 Workbench 消息（通过浏览器）
+        print("[5/10] Submitting friend stock request via Workbench...")
+        before_submit = datetime.now()
+        print(f"Before submit timestamp: {before_submit.isoformat()}")
         
+        # 捕获 workbench network logs（真实捕获）
+        workbench_network_logs = []
+        
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            context = browser.new_context()
+            page = context.new_page()
+            
+            # 监听网络请求
+            def handle_response(response):
+                if "/api/agent/workbench/" in response.url or "/api/observations" in response.url:
+                    try:
+                        workbench_network_logs.append({
+                            "url": response.url,
+                            "status": response.status,
+                            "method": response.request.method,
+                        })
+                    except:
+                        pass
+            
+            page.on("response", handle_response)
+            
+            # 访问 Workbench
+            page.goto("http://localhost:3000/workbench", wait_until="networkidle")
+            time.sleep(2)
+            
+            # 第一句：帮我看看宏昌电子
             first_message = f"帮我看看宏昌电子（603002），备注 {run_id}"
             print(f"First message: {first_message}")
-        
-            # 第一次请求：触发 friend_stock_flow
-            first_response = requests.post(
-                "http://localhost:8010/api/agent/workbench/message",
-                json={"message": first_message},
-                timeout=30
-            )
-        
-            if first_response.status_code != 200:
-                print(f"FAIL: First workbench POST returned {first_response.status_code}")
+            
+            # 尝试多个可能的 input selector
+            input_selectors = [
+                "input[type=\"text\"]",
+                "textarea",
+                "[contenteditable=\"true\"]",
+            ]
+            
+            # 填充第一句
+            input_element = None
+            for selector in input_selectors:
+                try:
+                    if page.locator(selector).count() > 0:
+                        input_element = page.locator(selector).first
+                        input_element.fill(first_message)
+                        print(f"Filled first input via selector: {selector}")
+                        break
+                except:
+                    continue
+            
+            if not input_element:
+                print("FAIL: Could not find input field")
+                browser.close()
                 return 1
-        
-            first_data = first_response.json()
-            conversation_id = first_data.get("conversation_id")
-            print(f"First workbench POST 200, conversation_id: {conversation_id}")
-        
-            # 等待第一次响应处理完成
-            time.sleep(2)
-        
-            # 第二次请求：加入观察（在同一个 session 中）
+            
+            time.sleep(0.5)
+            
+            # 提交第一句
+            page.keyboard.press("Enter")
+            time.sleep(5)  # 等待响应完成
+            
+            print("First message submitted")
+            
+            # 第二句：加入观察
             second_message = "加入观察"
             print(f"Second message: {second_message}")
-        
-            second_response = requests.post(
-                "http://localhost:8010/api/agent/workbench/message",
-                json={
-                    "conversation_id": conversation_id,
-                    "message": second_message
-                },
-                timeout=30
-            )
-        
-            if second_response.status_code != 200:
-                print(f"FAIL: Second workbench POST returned {second_response.status_code}")
+            
+            # 填充第二句
+            input_element = None
+            for selector in input_selectors:
+                try:
+                    if page.locator(selector).count() > 0:
+                        element = page.locator(selector).first
+                        if element.is_visible() and element.is_enabled():
+                            element.click()
+                            time.sleep(0.3)
+                            element.fill(second_message)
+                            input_element = element
+                            print(f"Filled second input via selector: {selector}")
+                            break
+                except Exception as e:
+                    print(f"Selector {selector} failed: {e}")
+                    continue
+            
+            if not input_element:
+                print("FAIL: Could not find input field for second message")
+                browser.close()
                 return 1
+            
+            time.sleep(0.5)
+            
+            # 提交第二句
+            page.keyboard.press("Enter")
+            time.sleep(5)  # 等待响应完成
+            
+            print("Second message submitted")
+            
+            browser.close()
         
-            second_data = second_response.json()
-            print("Second workbench POST 200")
+        # 保存真实捕获的 workbench network log
+        workbench_network_path = PROJECT_ROOT / "docs/verification/p2-2-workbench-network-log.json"
+        with open(workbench_network_path, "w", encoding="utf-8") as f:
+            json.dump(workbench_network_logs, f, indent=2, ensure_ascii=False)
+        print(f"Saved workbench network log: {len(workbench_network_logs)} requests")
         
-            # 保存真实捕获的 workbench network log
-            workbench_network_logs = [
-                {
-                    "url": "http://localhost:8010/api/agent/workbench/message",
-                    "method": "POST",
-                    "status": first_response.status_code,
-                    "request": {"message": first_message},
-                    "response": first_data
-                },
-                {
-                    "url": "http://localhost:8010/api/agent/workbench/message",
-                    "method": "POST",
-                    "status": second_response.status_code,
-                    "request": {"conversation_id": conversation_id, "message": second_message},
-                    "response": second_data
-                }
-            ]
+        # 使用 API 获取 position_id（验证后端已创建）
+        time.sleep(2)
+        observations_response = requests.get(
+            "http://localhost:8010/api/observations?status=open",
+            timeout=10
+        )
         
-            workbench_network_path = PROJECT_ROOT / "docs/verification/p2-2-workbench-network-log.json"
-            with open(workbench_network_path, "w", encoding="utf-8") as f:
-                json.dump(workbench_network_logs, f, indent=2, ensure_ascii=False)
-            print(f"Saved workbench network log: {len(workbench_network_logs)} requests")
+        if observations_response.status_code != 200:
+            print(f"FAIL: /api/observations returned {observations_response.status_code}")
+            return 1
         
-            # 提取 position_id
-            artifact_ids = second_data.get("artifact_ids", [])
-            print(f"artifact_ids: {artifact_ids}")
+        observations_data = observations_response.json()
         
-            position_id = None
-            for aid in artifact_ids:
-                if aid.startswith("pos_"):
-                    position_id = aid
-                    break
+        # 查找带 run_id 的 position
+        position_id = None
+        for pos in observations_data:
+            if run_id in pos.get("entry_thesis", ""):
+                position_id = pos.get("position_id")
+                print(f"Position created: {position_id}")
+                break
         
-            if not position_id:
-                print("FAIL: No position_id found in response")
-                print("This indicates add-to-observation logic not yet implemented")
-                print(f"Full response keys: {list(second_data.keys())}")
-                print(f"agent_reply: {second_data.get('agent_reply')}")
-                return 1
-        
-            print(f"Position created: {position_id}")
+        if not position_id:
+            print(f"FAIL: No position found with run_id {run_id}")
+            return 1
         
         print()
         
