@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-07-07T14:56:44.117838",
-  "run_id": "P2RUN_20260707_145527",
-  "conversation_id": "sess_f909c4298bad",
-  "idea_id": "idea_61a5bb49707c",
+  "timestamp": "2026-07-07T15:16:07.228293",
+  "run_id": "P2RUN_20260707_151510",
+  "conversation_id": "sess_82784772a376",
+  "idea_id": "idea_4fb1c282cfd4",
   "workflow_type": "strategy_idea",
   "route_decision_workflow_kind": "strategy_idea",
   "decision": "rejected",

@@ -223,7 +223,7 @@ M docs/verification/*.md (test evidence)
 
 ```bash
 # 1. npm run build
-cd frontend && npm run build
+npm run build
 # Exit Code: 0 ✅
 
 # 2. P3-3 验收
@@ -255,11 +255,11 @@ cd frontend && npm run build
 
 # 6. Git Status
 git status --short
-# M docs/verification/* (test evidence only)
+# (clean after committing evidence files)
 
 # 7. Commit Hash
 git rev-parse --short HEAD
-# 88f8281
+# 13403cd
 ```
 
 ---
@@ -284,7 +284,7 @@ git rev-parse --short HEAD
 ## 交付状态
 
 **完成时间**: 2026-07-07 15:19  
-**最终 Commit**: `88f8281`  
+**最终 Commit**: `13403cd`  
 **验收状态**: ✅ **全部通过**
 
 **核心交付**:

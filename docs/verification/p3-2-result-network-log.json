@@ -1,50 +1,50 @@
 [
   {
-    "url": "http://localhost:8010/api/strategy-ideas?conversation_id=sess_f909c4298bad",
+    "url": "http://localhost:8010/api/strategy-ideas?conversation_id=sess_82784772a376",
     "status": 200,
     "body": {
       "ideas": [
         {
-          "idea_id": "idea_61a5bb49707c",
-          "conversation_id": "sess_f909c4298bad",
+          "idea_id": "idea_4fb1c282cfd4",
+          "conversation_id": "sess_82784772a376",
           "workflow_type": "strategy_idea",
-          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_145527",
+          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_151510",
           "claimed_entry": "未提取",
           "claimed_exit": "未提取",
           "claimed_edge": null,
           "decision": "rejected",
           "path_type": "no_template_fit",
           "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_763da9d17c81",
-          "extraction_artifact_id": "extract_93cb5e8c1f57",
+          "mapping_artifact_id": "mapping_c2bab3e28550",
+          "extraction_artifact_id": "extract_a393c4276eba",
           "mapped_template_id": null,
           "template_version": null,
-          "created_at": "2026-07-07T14:56:32.037663"
+          "created_at": "2026-07-07T15:15:55.078774"
         }
       ]
     }
   },
   {
-    "url": "http://localhost:8010/api/strategy-ideas?conversation_id=sess_f909c4298bad",
+    "url": "http://localhost:8010/api/strategy-ideas?conversation_id=sess_82784772a376",
     "status": 200,
     "body": {
       "ideas": [
         {
-          "idea_id": "idea_61a5bb49707c",
-          "conversation_id": "sess_f909c4298bad",
+          "idea_id": "idea_4fb1c282cfd4",
+          "conversation_id": "sess_82784772a376",
           "workflow_type": "strategy_idea",
-          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_145527",
+          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_151510",
           "claimed_entry": "未提取",
           "claimed_exit": "未提取",
           "claimed_edge": null,
           "decision": "rejected",
           "path_type": "no_template_fit",
           "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_763da9d17c81",
-          "extraction_artifact_id": "extract_93cb5e8c1f57",
+          "mapping_artifact_id": "mapping_c2bab3e28550",
+          "extraction_artifact_id": "extract_a393c4276eba",
           "mapped_template_id": null,
           "template_version": null,
-          "created_at": "2026-07-07T14:56:32.037663"
+          "created_at": "2026-07-07T15:15:55.078774"
         }
       ]
     }

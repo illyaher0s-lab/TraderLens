@@ -1,20 +1,20 @@
 {
-  "idea_id": "idea_1f3c8e0e4b43",
-  "conversation_id": "sess_38871adaea83",
+  "idea_id": "idea_668d3d789d76",
+  "conversation_id": "sess_73ff33046f61",
   "workflow_type": "strategy_idea",
-  "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_144812",
+  "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_151349",
   "agent_reply": "",
   "extraction": {
-    "extraction_id": "extract_d114b9d646f7",
-    "idea_id": "idea_1f3c8e0e4b43",
+    "extraction_id": "extract_c437d9d52b23",
+    "idea_id": "idea_668d3d789d76",
     "claimed_entry": "未提取",
     "claimed_exit": "未提取",
     "claimed_edge": null,
     "extraction_source": "llm_assisted"
   },
   "mapping": {
-    "mapping_id": "mapping_2dfbe7e7dedc",
-    "idea_id": "idea_1f3c8e0e4b43",
+    "mapping_id": "mapping_9542f1dfc8dc",
+    "idea_id": "idea_668d3d789d76",
     "path_type": "no_template_fit",
     "matched_template_id": null,
     "template_version": null,
@@ -22,9 +22,9 @@
     "live_eligible": false
   },
   "rejection": {
-    "idea_id": "idea_1f3c8e0e4b43",
+    "idea_id": "idea_668d3d789d76",
     "rejection_reason": "no_approved_template",
-    "rejected_at": "2026-07-07T14:48:59.283165"
+    "rejected_at": "2026-07-07T15:14:22.799657"
   },
   "decision": "rejected",
   "rejection_reason": "no_approved_template",
@@ -32,8 +32,8 @@
   "mapping_reason": "当前系统暂无已批准模板库。",
   "mapped_template_id": null,
   "template_version": null,
-  "extraction_artifact_id": "extract_d114b9d646f7",
-  "mapping_artifact_id": "mapping_2dfbe7e7dedc",
-  "rejection_artifact_id": "idea_1f3c8e0e4b43_rejected",
-  "created_at": "2026-07-07T14:48:59.173988"
+  "extraction_artifact_id": "extract_c437d9d52b23",
+  "mapping_artifact_id": "mapping_9542f1dfc8dc",
+  "rejection_artifact_id": "idea_668d3d789d76_rejected",
+  "created_at": "2026-07-07T15:14:22.695720"
 }
