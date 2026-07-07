@@ -1,25 +1,25 @@
 [
   {
-    "url": "http://localhost:8010/api/strategy-ideas/idea_668d3d789d76",
+    "url": "http://localhost:8010/api/strategy-ideas/idea_3544b6f6504b",
     "method": "GET",
     "status": 200,
     "response": {
-      "idea_id": "idea_668d3d789d76",
-      "conversation_id": "sess_73ff33046f61",
+      "idea_id": "idea_3544b6f6504b",
+      "conversation_id": "sess_731e9da33024",
       "workflow_type": "strategy_idea",
-      "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_151349",
+      "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_161449",
       "agent_reply": "",
       "extraction": {
-        "extraction_id": "extract_c437d9d52b23",
-        "idea_id": "idea_668d3d789d76",
+        "extraction_id": "extract_47bdbcc417b2",
+        "idea_id": "idea_3544b6f6504b",
         "claimed_entry": "未提取",
         "claimed_exit": "未提取",
         "claimed_edge": null,
         "extraction_source": "llm_assisted"
       },
       "mapping": {
-        "mapping_id": "mapping_9542f1dfc8dc",
-        "idea_id": "idea_668d3d789d76",
+        "mapping_id": "mapping_6fddd97f7aa8",
+        "idea_id": "idea_3544b6f6504b",
         "path_type": "no_template_fit",
         "matched_template_id": null,
         "template_version": null,
@@ -27,9 +27,9 @@
         "live_eligible": false
       },
       "rejection": {
-        "idea_id": "idea_668d3d789d76",
+        "idea_id": "idea_3544b6f6504b",
         "rejection_reason": "no_approved_template",
-        "rejected_at": "2026-07-07T15:14:22.799657"
+        "rejected_at": "2026-07-07T16:15:30.001321"
       },
       "decision": "rejected",
       "rejection_reason": "no_approved_template",
@@ -37,33 +37,33 @@
       "mapping_reason": "当前系统暂无已批准模板库。",
       "mapped_template_id": null,
       "template_version": null,
-      "extraction_artifact_id": "extract_c437d9d52b23",
-      "mapping_artifact_id": "mapping_9542f1dfc8dc",
-      "rejection_artifact_id": "idea_668d3d789d76_rejected",
-      "created_at": "2026-07-07T15:14:22.695720"
+      "extraction_artifact_id": "extract_47bdbcc417b2",
+      "mapping_artifact_id": "mapping_6fddd97f7aa8",
+      "rejection_artifact_id": "idea_3544b6f6504b_rejected",
+      "created_at": "2026-07-07T16:15:29.877106"
     }
   },
   {
-    "url": "http://localhost:8010/api/strategy-ideas/idea_668d3d789d76",
+    "url": "http://localhost:8010/api/strategy-ideas/idea_3544b6f6504b",
     "method": "GET",
     "status": 200,
     "response": {
-      "idea_id": "idea_668d3d789d76",
-      "conversation_id": "sess_73ff33046f61",
+      "idea_id": "idea_3544b6f6504b",
+      "conversation_id": "sess_731e9da33024",
       "workflow_type": "strategy_idea",
-      "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_151349",
+      "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_161449",
       "agent_reply": "",
       "extraction": {
-        "extraction_id": "extract_c437d9d52b23",
-        "idea_id": "idea_668d3d789d76",
+        "extraction_id": "extract_47bdbcc417b2",
+        "idea_id": "idea_3544b6f6504b",
         "claimed_entry": "未提取",
         "claimed_exit": "未提取",
         "claimed_edge": null,
         "extraction_source": "llm_assisted"
       },
       "mapping": {
-        "mapping_id": "mapping_9542f1dfc8dc",
-        "idea_id": "idea_668d3d789d76",
+        "mapping_id": "mapping_6fddd97f7aa8",
+        "idea_id": "idea_3544b6f6504b",
         "path_type": "no_template_fit",
         "matched_template_id": null,
         "template_version": null,
@@ -71,9 +71,9 @@
         "live_eligible": false
       },
       "rejection": {
-        "idea_id": "idea_668d3d789d76",
+        "idea_id": "idea_3544b6f6504b",
         "rejection_reason": "no_approved_template",
-        "rejected_at": "2026-07-07T15:14:22.799657"
+        "rejected_at": "2026-07-07T16:15:30.001321"
       },
       "decision": "rejected",
       "rejection_reason": "no_approved_template",
@@ -81,10 +81,10 @@
       "mapping_reason": "当前系统暂无已批准模板库。",
       "mapped_template_id": null,
       "template_version": null,
-      "extraction_artifact_id": "extract_c437d9d52b23",
-      "mapping_artifact_id": "mapping_9542f1dfc8dc",
-      "rejection_artifact_id": "idea_668d3d789d76_rejected",
-      "created_at": "2026-07-07T15:14:22.695720"
+      "extraction_artifact_id": "extract_47bdbcc417b2",
+      "mapping_artifact_id": "mapping_6fddd97f7aa8",
+      "rejection_artifact_id": "idea_3544b6f6504b_rejected",
+      "created_at": "2026-07-07T16:15:29.877106"
     }
   }
 ]

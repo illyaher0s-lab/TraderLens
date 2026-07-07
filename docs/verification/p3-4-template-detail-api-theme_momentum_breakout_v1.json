@@ -1,0 +1,68 @@
+{
+  "template_id": "theme_momentum_breakout_v1",
+  "version": "v1",
+  "status": "approved",
+  "hypothesis_types": [
+    "momentum",
+    "macd_crossover"
+  ],
+  "market_fit": "A-share momentum with MACD confirmation",
+  "entry_rules": "MACD golden cross confirmed by 2-day price strength",
+  "exit_rules": "Max 15 days hold or 8% stop-loss",
+  "risk_rules": "Green/yellow market regime, min 50M avg daily volume",
+  "position_sizing_rules": "Equal weight across max 5 positions, daily rebalance",
+  "validation_gate_profile": "standard",
+  "core_entry_rule_id": "macd_crossover_entry",
+  "supported_universe_rule_types": [
+    "sector_plus_tags"
+  ],
+  "sample_split_rule_ids": [
+    "fixed_ratio_70_30"
+  ],
+  "benchmark_rule_id": "theme_then_industry_then_equal_weight",
+  "strategy_config_payload": {
+    "entry": {
+      "macd_fast": 12,
+      "macd_slow": 26,
+      "macd_signal": 9,
+      "confirm_days": 2
+    },
+    "exit": {
+      "max_holding_days": 15,
+      "stop_loss_pct": 8
+    },
+    "risk": {
+      "market_regime_allowed": [
+        "green",
+        "yellow"
+      ],
+      "min_avg_amount_20d": 50000000
+    },
+    "rebalance": {
+      "frequency": "daily",
+      "max_positions": 5
+    }
+  },
+  "default_cost_model": "base",
+  "default_fill_model": "market_open",
+  "default_risk_rules": {},
+  "forbidden_fields": [
+    "status",
+    "hash",
+    "oos_start",
+    "oos_end",
+    "gate_verdict"
+  ],
+  "forbidden_evidence_terms": [
+    "announcement",
+    "disclosure",
+    "report"
+  ],
+  "forbidden_market": [
+    "limit_up",
+    "st_stock",
+    "delisting_risk"
+  ],
+  "template_hash": "2e81b78bb6f45212be7329cb42dd2c03",
+  "frozen_template_hash": "21766a55add97c9c31bfd80bbeda8ae863a75bb4022576371952932f21a98a62"
+}

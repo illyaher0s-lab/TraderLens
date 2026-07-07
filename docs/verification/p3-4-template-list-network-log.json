@@ -1,0 +1,10 @@
+[
+  {
+    "url": "http://localhost:8010/api/strategy-templates",
+    "method": "GET"
+  },
+  {
+    "url": "http://localhost:8010/api/strategy-templates",
+    "method": "GET"
+  }
+]

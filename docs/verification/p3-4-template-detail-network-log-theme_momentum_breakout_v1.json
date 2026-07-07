@@ -1,0 +1,10 @@
+[
+  {
+    "url": "http://localhost:8010/api/strategy-templates/theme_momentum_breakout_v1",
+    "method": "GET"
+  },
+  {
+    "url": "http://localhost:8010/api/strategy-templates/theme_momentum_breakout_v1",
+    "method": "GET"
+  }
+]
