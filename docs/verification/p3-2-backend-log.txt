@@ -1,22 +1,14 @@
-INFO:     Started server process [36700]
+INFO:     Started server process [33612]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8010 (Press CTRL+C to quit)
 Research API starting in DETERMINISTIC mode (fake agents for testing, Serenity=stub)
-INFO:     127.0.0.1:56925 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56929 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53802 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52195 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:64814 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61105 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51609 - "OPTIONS /api/agent/workbench/message HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51609 - "POST /api/agent/workbench/message HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51609 - "GET /api/agent/workbench/sess_befe49039169 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60319 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62237 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59431 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59434 - "GET /api/strategy-ideas/idea_208211a9550d HTTP/1.1" 200 OK
-INFO:     127.0.0.1:61249 - "GET /api/strategy-ideas?conversation_id=sess_befe49039169 HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:64209 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49756 - "OPTIONS /api/agent/workbench/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49756 - "POST /api/agent/workbench/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49756 - "GET /api/agent/workbench/sess_9f4d0f52dad6 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50531 - "GET /api/strategy-ideas/idea_e92cf2d66ffa HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53668 - "GET /api/strategy-ideas?conversation_id=sess_9f4d0f52dad6 HTTP/1.1" 500 Internal Server Error
 ERROR:    Exception in ASGI application
 Traceback (most recent call last):
   File "D:\Codex\TraderLens\.venv\Lib\site-packages\uvicorn\protocols\http\h11_impl.py", line 415, in run_asgi
