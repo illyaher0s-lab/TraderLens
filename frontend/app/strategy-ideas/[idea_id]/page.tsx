@@ -45,6 +45,9 @@ interface StrategyIdeaDetail {
   mismatch_reasons: Record<string, string>;
   final_reason: string | null;
   live_eligible: boolean;
+  candidate_status: string | null;
+  candidate_reason: string | null;
+  required_next_step: string | null;
   extraction_artifact_id: string | null;
   mapping_artifact_id: string | null;
   rejection_artifact_id: string | null;
@@ -377,6 +380,57 @@ export default function StrategyIdeaDetailPage() {
                   </span>
                 </div>
               )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Candidate Status (if candidate) */}
+      {idea.candidate_status && (
+        <section style={styles.section}>
+          <h2 style={styles.sectionTitle}>候选策略状态</h2>
+          <div style={{...styles.card, borderLeft: "4px solid #f59e0b"}}>
+            <div style={styles.detailGrid}>
+              <div style={styles.detailRow}>
+                <span style={styles.detailLabel}>候选状态</span>
+                <span style={styles.detailValue}>
+                  {idea.candidate_status === "candidate_unapproved" && "候选未批准"}
+                  {idea.candidate_status !== "candidate_unapproved" && idea.candidate_status}
+                </span>
+              </div>
+              <div style={styles.detailRow}>
+                <span style={styles.detailLabel}>候选原因</span>
+                <span style={styles.detailValue}>
+                  {idea.candidate_reason === "no_approved_template_fit" && "无批准模板匹配"}
+                  {idea.candidate_reason !== "no_approved_template_fit" && idea.candidate_reason}
+                </span>
+              </div>
+              <div style={styles.detailRow}>
+                <span style={styles.detailLabel}>需要的下一步</span>
+                <span style={styles.detailValue}>
+                  {idea.required_next_step === "template_approval_required" && "需要模板批准"}
+                  {idea.required_next_step !== "template_approval_required" && idea.required_next_step}
+                </span>
+              </div>
+              <div style={styles.detailRow}>
+                <span style={styles.detailLabel}>Live 资格</span>
+                <span style={styles.detailValue}>
+                  {idea.live_eligible ? "是" : "否"}
+                </span>
+              </div>
+            </div>
+            
+            <div style={{
+              marginTop: "16px",
+              padding: "12px",
+              backgroundColor: "#fef3c7",
+              border: "1px solid #fbbf24",
+              borderRadius: "6px",
+              fontSize: "14px",
+              color: "#92400e",
+              textAlign: "center" as const,
+            }}>
+              ⚠️ 此策略不可交易 / 不生成信号
             </div>
           </div>
         </section>

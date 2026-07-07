@@ -235,6 +235,10 @@ def handle_strategy_idea(
             "considered_template_ids": eval_result["considered_template_ids"],
             "mismatch_reasons": eval_result["mismatch_reasons"],
             "final_reason": eval_result["final_reason"],
+            # Candidate fields
+            "candidate_status": "candidate_unapproved" if eval_result["final_reason"] == "no_template_fit" else None,
+            "candidate_reason": "no_approved_template_fit" if eval_result["final_reason"] == "no_template_fit" else None,
+            "required_next_step": "template_approval_required" if eval_result["final_reason"] == "no_template_fit" else None,
         })
         mapping_artifact = ArtifactRef(
             artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",

@@ -46,9 +46,9 @@ def create_idea(request: CreateIdeaRequest):
 
 
 @router.get("")
-def list_ideas(conversation_id: str = None):
+def list_ideas(conversation_id: str = None, candidate_status: str = None):
     """
-    List strategy ideas, optionally filtered by conversation_id.
+    List strategy ideas, optionally filtered by conversation_id or candidate_status.
     
     Queries agent_artifact_refs for strategy_idea artifacts.
     """
@@ -154,8 +154,15 @@ def list_ideas(conversation_id: str = None):
                 "mismatch_reasons": mapping.get("mismatch_reasons", {}) if mapping else {},
                 "final_reason": mapping.get("final_reason") if mapping else None,
                 "live_eligible": mapping.get("live_eligible", False) if mapping else False,
+                "candidate_status": mapping.get("candidate_status") if mapping else None,
+                "candidate_reason": mapping.get("candidate_reason") if mapping else None,
+                "required_next_step": mapping.get("required_next_step") if mapping else None,
                 "created_at": created_at,
             })
+        
+        # Filter by candidate_status if provided
+        if candidate_status:
+            ideas = [idea for idea in ideas if idea.get("candidate_status") == candidate_status]
         
         return {"ideas": ideas}
         
@@ -274,6 +281,9 @@ def get_idea(idea_id: str):
             "mismatch_reasons": mapping.get("mismatch_reasons", {}) if mapping else {},
             "final_reason": mapping.get("final_reason") if mapping else None,
             "live_eligible": mapping.get("live_eligible", False) if mapping else False,
+            "candidate_status": mapping.get("candidate_status") if mapping else None,
+            "candidate_reason": mapping.get("candidate_reason") if mapping else None,
+            "required_next_step": mapping.get("required_next_step") if mapping else None,
             "extraction_artifact_id": extraction_artifact_id,
             "mapping_artifact_id": mapping_artifact_id,
             "rejection_artifact_id": rejection_artifact_id,
