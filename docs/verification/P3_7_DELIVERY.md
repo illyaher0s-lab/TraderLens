@@ -152,9 +152,15 @@ Created minimal `/strategies` page and read-only API endpoint for approved strat
 
 **Branch**: `feat/p2-1-observation-pool-page`
 
-**Final Commit**: TBD (will be added after commit)
+**Final Commit**: `69bd95e`
 
-**Status**: Clean (pending commit)
+**Commit History**:
+- `9506900`: feat(P3-7): add strategy library shell page and API
+- `3ee133f`: chore(P3-7): add verification evidence
+- `db49886`: docs(P3-7): add delivery report
+- `69bd95e`: chore(P3-7): add P2 regression evidence
+
+**Status**: Clean
 
 **Files Modified**:
 - `backend/api/strategies.py` (new)

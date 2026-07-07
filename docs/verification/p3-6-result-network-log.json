@@ -1,18 +1,18 @@
 [
   {
-    "url": "http://localhost:3000/strategy-ideas/idea_1933717a32cb",
+    "url": "http://localhost:3000/strategy-ideas/idea_f025c8e8c2da",
     "method": "GET"
   },
   {
-    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783418571788",
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783433167649",
     "method": "GET"
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783418571788",
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783433167649",
     "method": "GET"
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783418571788",
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783433167649",
     "method": "GET"
   },
   {
@@ -24,11 +24,11 @@
     "method": "GET"
   },
   {
-    "url": "http://localhost:8010/api/strategy-ideas/idea_1933717a32cb",
+    "url": "http://localhost:8010/api/strategy-ideas/idea_f025c8e8c2da",
     "method": "GET"
   },
   {
-    "url": "http://localhost:8010/api/strategy-ideas/idea_1933717a32cb",
+    "url": "http://localhost:8010/api/strategy-ideas/idea_f025c8e8c2da",
     "method": "GET"
   }
 ]
