@@ -208,65 +208,108 @@ async def main():
             print("Step 6: SKIP (no templates in library)")
             print()
         
-        # Step 7: Verify mapping display in idea detail page
-        print("Step 7: Verifying mapping display in idea detail page...")
+        # Step 7: Submit strategy idea via Workbench and verify mapping display
+        print("Step 7: Submitting strategy idea via Workbench...")
+        network_log.clear()
         
-        # Get existing ideas from API
+        await page.goto("http://localhost:3000/workbench", wait_until="networkidle", timeout=30000)
+        await asyncio.sleep(2)
+        
+        strategy_message = f"我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 {RUN_ID}"
+        
+        # Fill input field
+        input_selector = 'input[type="text"], textarea, input[placeholder*="输入"], textarea[placeholder*="输入"]'
+        await page.fill(input_selector, strategy_message)
+        await asyncio.sleep(0.5)
+        
+        # Submit
+        await page.press(input_selector, "Enter")
+        print(f"[OK] Submitted strategy idea with run_id {RUN_ID}")
+        
+        # Wait for response (up to 30 seconds)
+        await asyncio.sleep(10)
+        
+        # Save Workbench network log
+        workbench_network_path = DOCS_DIR / "p3-4-workbench-network-log.json"
+        workbench_network_path.write_text(json.dumps(network_log, indent=2), encoding="utf-8")
+        print("[OK] Saved Workbench network log")
+        
+        # Get ideas from API and find the one we just submitted
         response = requests.get("http://localhost:8010/api/strategy-ideas", timeout=10)
         ideas = response.json().get("ideas", [])
         
-        if not ideas:
-            print("[WARN] No existing strategy ideas found, skipping mapping verification")
-            idea_id = None
-            idea = None
+        idea = None
+        for i in ideas:
+            if RUN_ID in i.get("original_message", ""):
+                idea = i
+                break
+        
+        if not idea:
+            print(f"[FAIL] Could not find idea with run_id {RUN_ID}")
+            print(f"[DEBUG] Found {len(ideas)} ideas in total")
+            return 1
+        
+        idea_id = idea["idea_id"]
+        conversation_id = idea["conversation_id"]
+        print(f"[OK] Found idea {idea_id} for conversation {conversation_id}")
+        
+        # Save Workbench response
+        workbench_response_path = DOCS_DIR / "p3-4-workbench-response.json"
+        workbench_response_path.write_text(json.dumps(idea, indent=2, ensure_ascii=False), encoding="utf-8")
+        print("[OK] Saved Workbench response")
+        print()
+        
+        # Step 8: Verify idea detail page mapping display
+        print("Step 8: Verifying idea detail page mapping display...")
+        network_log.clear()
+        
+        await page.goto(f"http://localhost:3000/strategy-ideas/{idea_id}", wait_until="networkidle", timeout=30000)
+        await asyncio.sleep(2)
+        
+        # Save DOM
+        content = await page.content()
+        dom_path = DOCS_DIR / f"p3-4-idea-detail-dom-{idea_id}.md"
+        dom_path.write_text(f"# Idea Detail Page DOM\n\n```html\n{content}\n```", encoding="utf-8")
+        print("[OK] Saved idea detail page DOM")
+        
+        # Verify this is our idea (contains run_id)
+        if RUN_ID not in content:
+            print(f"[FAIL] run_id {RUN_ID} not found in idea detail DOM")
+            return 1
+        print(f"[OK] Verified this is our idea (contains {RUN_ID})")
+        
+        # Verify mapping display
+        if "模板映射" not in content:
+            print("[FAIL] Mapping section not found in idea detail")
+            return 1
+        
+        if "匹配路径" not in content:
+            print("[FAIL] Path type not found in mapping section")
+            return 1
+        
+        # Verify mapping status shows correctly
+        if idea.get("mapped_template_id"):
+            # Should show template link
+            if idea["mapped_template_id"] not in content:
+                print(f"[FAIL] Template ID {idea['mapped_template_id']} not found in mapping")
+                return 1
+            print(f"[OK] Mapping shows template {idea['mapped_template_id']}")
         else:
-            # Use the first idea
-            idea = ideas[0]
-            idea_id = idea["idea_id"]
-            print(f"[OK] Using existing idea {idea_id} for mapping verification")
-            
-            # Navigate to idea detail page
-            network_log.clear()
-            await page.goto(f"http://localhost:3000/strategy-ideas/{idea_id}", wait_until="networkidle", timeout=30000)
-            await asyncio.sleep(2)
-            
-            # Save DOM
-            content = await page.content()
-            dom_path = DOCS_DIR / f"p3-4-idea-detail-dom-{idea_id}.md"
-            dom_path.write_text(f"# Idea Detail Page DOM\n\n```html\n{content}\n```", encoding="utf-8")
-            print("[OK] Saved idea detail page DOM")
-            
-            # Verify mapping display
-            if "模板映射" not in content:
-                print("[FAIL] Mapping section not found in idea detail")
-                return 1
-            
-            if "匹配路径" not in content:
-                print("[FAIL] Path type not found in mapping section")
-                return 1
-            
-            # Verify mapping status shows correctly
-            if idea.get("mapped_template_id"):
-                # Should show template link
-                if idea["mapped_template_id"] not in content:
-                    print(f"[FAIL] Template ID {idea['mapped_template_id']} not found in mapping")
-                    return 1
-                print(f"[OK] Mapping shows template {idea['mapped_template_id']}")
-            else:
-                # Should show no template
-                if "无匹配模板" not in content and "null" not in content and "没有匹配" not in content:
-                    print("[WARN] No template indicator may not be clear")
-                print("[OK] Mapping section verified")
+            # Should show no template
+            if "无匹配模板" not in content and "null" not in content and "没有匹配" not in content:
+                print("[WARN] No template indicator may not be clear")
+            print("[OK] Mapping section verified (no template)")
         
         print()
         
-        # Step 8: Save evidence summary
-        print("Step 8: Saving evidence summary...")
+        # Step 9: Save evidence summary
+        print("Step 9: Saving evidence summary...")
         summary = {
             "run_id": RUN_ID,
+            "conversation_id": conversation_id,
+            "idea_id": idea_id,
             "template_count": len(templates),
             "sample_template_id": template_id,
-            "idea_id": idea_id,
             "idea_decision": idea.get("decision"),
             "idea_path_type": idea.get("path_type"),
             "idea_mapped_template_id": idea.get("mapped_template_id"),
@@ -283,10 +326,12 @@ async def main():
         print("=" * 100)
         print()
         print(f"Run ID: {RUN_ID}")
+        print(f"Conversation ID: {conversation_id}")
+        print(f"Idea ID: {idea_id}")
         print(f"Template Count: {len(templates)}")
         if template_id:
             print(f"Sample Template: {template_id}")
-        print(f"Test Idea ID: {idea_id}")
+        print(f"Idea Decision: {idea.get('decision')}")
         print(f"Mapping Status: {idea.get('path_type')}")
         print()
         print(f"Evidence files saved to: {DOCS_DIR}/")
