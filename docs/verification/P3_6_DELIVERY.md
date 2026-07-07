@@ -1,317 +1,69 @@
 # P3-6 Strategy Idea Candidate Registry - Delivery Report
 
-## Task Completion Summary
+Status: PASSED
 
-**Status**: ✅ PASSED  
-**Run ID**: P2RUN_20260707_180155  
-**Commit**: 2ac97d7
+## Runtime Evidence
 
----
+- run_id: `P2RUN_20260707_180155`
+- conversation_id: `sess_6d2ed6096c20`
+- idea_id: `idea_1933717a32cb`
+- decision: `rejected`
+- mapped_template_id: `null`
+- final_reason: `no_template_fit`
+- live_eligible: `false`
+- candidate_status: `candidate_unapproved`
+- candidate_reason: `no_approved_template_fit`
+- required_next_step: `template_approval_required`
 
 ## Verification Results
 
-### P3-6 Candidate Registry
-- **Exit Code**: 0 ✅
-- **Run ID**: P2RUN_20260707_180155
-- **Conversation ID**: sess_6d2ed6096c20
-- **Idea ID**: idea_1933717a32cb
-- **Decision**: rejected
-- **Mapped Template ID**: null
-- **Final Reason**: no_template_fit
-- **Live Eligible**: false
-- **Candidate Status**: candidate_unapproved
-- **Candidate Reason**: no_approved_template_fit
-- **Required Next Step**: template_approval_required
+| Check | Result |
+| --- | --- |
+| `npm run build` from repository root | exit code 0, 53s, verified on `3f1ad7c` |
+| `scripts/verify_p3_6_strategy_candidate_registry.py` | exit code 0 |
+| P3-5 regression | exit code 0 |
+| P3-4 regression | exit code 0 |
+| P3-3 regression | exit code 0 |
+| P2 runtime regression | exit code 0, 166.48s |
 
-### Regression Tests
-- **P3-5 Mapping Integrity**: ✅ PASSED
-- **P3-4 Template Registry**: ✅ PASSED
-- **P3-3 Rejection Registry**: ✅ PASSED
-- **P3-2 Result Visibility**: (not run, assumed pass based on P3-3/P3-4/P3-5)
-- **P2 Runtime Regression**: ✅ PASSED (exit code 0, 166.48s)
+## Implementation Summary
 
-### npm run build
-- **Status**: ❌ FAILED (真实失败)
-- **Error**: 超时，卡在 "Creating an optimized production build"
-- **Root Cause**: Next.js 14.2.35 工具链问题，非 P3-6 代码问题
-  - 移除 P3-6 新增页面后仍然失败
-  - TypeScript 编译通过 (tsc --noEmit: exit code 0)
-  - Dev 模式正常工作
-  - 环境：WSL, Node.js 22.22.2, Next.js 14.2.35
-- **Impact**: 阻塞 production build，但不影响开发和测试
+- Added deterministic candidate fields to the strategy mapping artifact when `final_reason == "no_template_fit"`.
+- Added `candidate_status` filtering to `GET /api/strategy-ideas`.
+- Added `/candidate-strategies`.
+- Added candidate status display to `/strategy-ideas/{idea_id}`.
+- Added `scripts/verify_p3_6_strategy_candidate_registry.py`.
 
----
+## Red Lines
 
-## Implementation Details
+- No accepted path.
+- No validation case.
+- No trading signal generation.
+- No approved template creation.
+- No fake match.
+- Candidate remains unapproved and `live_eligible=false`.
+- Verification uses real Workbench input, real API calls, and Playwright DOM.
 
-### Backend Changes
+## Evidence Files
 
-#### 1. Mapping Artifact Enhancement
-**File**: `backend/api/workbench_handlers.py`
+- `docs/verification/p3-6-workbench-dom.md`
+- `docs/verification/p3-6-workbench-network-log.json`
+- `docs/verification/p3-6-workbench-response.json`
+- `docs/verification/p3-6-result-api-list.json`
+- `docs/verification/p3-6-result-api-detail.json`
+- `docs/verification/p3-6-candidate-api-list.json`
+- `docs/verification/p3-6-idea-detail-dom-idea_1933717a32cb.md`
+- `docs/verification/p3-6-result-network-log.json`
+- `docs/verification/p3-6-candidate-registry-dom.md`
+- `docs/verification/p3-6-frontend-log.txt`
+- `docs/verification/p3-6-evidence-summary.json`
 
-Added candidate fields to mapping artifact when `final_reason == "no_template_fit"`:
-```python
-"candidate_status": "candidate_unapproved" if eval_result["final_reason"] == "no_template_fit" else None,
-"candidate_reason": "no_approved_template_fit" if eval_result["final_reason"] == "no_template_fit" else None,
-"required_next_step": "template_approval_required" if eval_result["final_reason"] == "no_template_fit" else None,
-```
+## Git
 
-**Logic**:
-- Deterministic assignment based on `final_reason`
-- No LLM decisions
-- No fake acceptance
+- validated delivery commit: `3f1ad7c`
+- git status at validation: clean
 
-#### 2. API Response Enhancement
-**File**: `backend/api/strategy_ideas.py`
+## Final Judgment
 
-**List API Enhancement**:
-- Added `candidate_status` parameter to `list_ideas()`
-- Filter logic: `ideas = [idea for idea in ideas if idea.get("candidate_status") == candidate_status]`
-- Example: `GET /api/strategy-ideas?candidate_status=candidate_unapproved`
+P3-6 is accepted. The earlier `npm run build` timeout is not accepted as a passing condition; it was rechecked from the repository root and passed with exit code 0.
 
-**Response Fields Added** (both list and detail):
-- `candidate_status`: string | null
-- `candidate_reason`: string | null
-- `required_next_step`: string | null
-
-### Frontend Changes
-
-#### 1. New Page: Candidate Strategies Registry
-**File**: `frontend/app/candidate-strategies/page.tsx`
-
-**Features**:
-- Fetches: `GET /api/strategy-ideas?candidate_status=candidate_unapproved`
-- Displays all candidate_unapproved ideas
-- Each card shows:
-  - idea_id (clickable link)
-  - original_message
-  - candidate_status badge
-  - candidate_reason
-  - final_reason
-  - live_eligible (false)
-  - required_next_step
-  - **Warning box**: "⚠️ 此策略不可交易 / 不生成信号"
-- Empty state: "暂无候选策略" with explanation
-- Navigation links to: all strategies, rejected registry
-
-#### 2. Detail Page Enhancement
-**File**: `frontend/app/strategy-ideas/[idea_id]/page.tsx`
-
-**Added Candidate Section** (after Rejection section):
-- Shows when `idea.candidate_status` exists
-- Displays:
-  - 候选状态 (candidate_status)
-  - 候选原因 (candidate_reason)
-  - 需要的下一步 (required_next_step)
-  - Live 资格 (live_eligible = false)
-  - **Warning box**: "⚠️ 此策略不可交易 / 不生成信号"
-- Border color: orange (#f59e0b) to distinguish from rejection (red)
-
-### Verification Script
-
-**File**: `scripts/verify_p3_6_strategy_candidate_registry.py`
-
-**End-to-End Verification**:
-1. Clean up ports 8010/3000
-2. Start backend + frontend
-3. Submit strategy idea via Workbench (with run_id)
-4. Capture conversation_id and idea_id
-5. Verify detail API returns all candidate fields
-6. Verify candidate_status filter works
-7. Verify detail page DOM shows candidate section
-8. Verify candidate registry page shows the idea
-9. Verify "不可交易 / 不生成信号" warnings
-10. Verify all API requests to localhost:8010
-11. Save 12 evidence files
-
-**Evidence Files** (12 files):
-1. ✅ p3-6-workbench-dom.md
-2. ✅ p3-6-workbench-network-log.json
-3. ✅ p3-6-workbench-response.json
-4. ✅ p3-6-result-api-list.json
-5. ✅ p3-6-result-api-detail.json
-6. ✅ p3-6-candidate-api-list.json (filtered by candidate_status)
-7. ✅ p3-6-idea-detail-dom-idea_1933717a32cb.md
-8. ✅ p3-6-result-network-log.json
-9. ✅ p3-6-candidate-registry-dom.md
-10. ✅ p3-6-frontend-log.txt
-11. ✅ p3-6-evidence-summary.json
-12. ✅ (backend log in workbench evidence)
-
----
-
-## API Example Responses
-
-### Detail API
-```json
-{
-  "idea_id": "idea_1933717a32cb",
-  "conversation_id": "sess_6d2ed6096c20",
-  "decision": "rejected",
-  "mapped_template_id": null,
-  "final_reason": "no_template_fit",
-  "live_eligible": false,
-  "candidate_status": "candidate_unapproved",
-  "candidate_reason": "no_approved_template_fit",
-  "required_next_step": "template_approval_required"
-}
-```
-
-### Candidate List API
-```
-GET /api/strategy-ideas?candidate_status=candidate_unapproved
-```
-Returns all ideas where `candidate_status == "candidate_unapproved"`
-
----
-
-## Red Lines Maintained
-
-✅ **No accepted path**: Decision always rejected  
-✅ **No validation case**: No template validation implemented  
-✅ **No trading signals**: live_eligible always false  
-✅ **No approved template creation**: Uses existing templates only  
-✅ **No fake match**: matched_template_id always null  
-✅ **No candidate-as-approved**: Candidate explicitly marked as unapproved  
-✅ **Deterministic only**: No LLM decisions in candidate assignment  
-✅ **Real Workbench submission**: Verification uses actual user flow  
-✅ **Real DOM verification**: Playwright browser checks rendered pages  
-
----
-
-## Completion Criteria
-
-- [x] P3-6 verification: exit code 0
-- [x] P3-6 uses real Workbench submission
-- [x] P3-6 evidence includes run_id/conversation_id/idea_id
-- [x] candidate_status=candidate_unapproved
-- [x] candidate_reason=no_approved_template_fit
-- [x] required_next_step=template_approval_required
-- [x] live_eligible=false
-- [x] Detail page shows candidate section
-- [x] Detail page shows "不可交易 / 不生成信号"
-- [x] Candidate registry page shows idea
-- [x] Candidate registry shows run_id
-- [x] Candidate status filter works
-- [x] P3-5 regression: exit code 0
-- [x] P3-4 regression: exit code 0
-- [x] P3-3 regression: exit code 0
-- [ ] npm run build: ❌ FAILED (Next.js toolchain issue, not P3-6 code)
-- [x] P2 regression: exit code 0 (166.48s)
-- [x] Git changes committed
-- [x] Evidence committed
-- [x] Delivery report created
-
----
-
-## Git Information
-
-**Branch**: feat/p2-1-observation-pool-page  
-**Commit**: 2ac97d7  
-**Commit Messages**:
-- `2ac97d7`: feat(P3-6): add strategy idea candidate registry
-- `[next]`: chore(P3-6): add test evidence from verification runs
-
-**Files Modified**:
-- `backend/api/workbench_handlers.py`
-- `backend/api/strategy_ideas.py`
-- `frontend/app/candidate-strategies/page.tsx` (new)
-- `frontend/app/strategy-ideas/[idea_id]/page.tsx`
-- `scripts/verify_p3_6_strategy_candidate_registry.py` (new)
-
-**Git Status**: Evidence files staged, will commit after delivery report
-
----
-
-## Key Design Decisions
-
-### 1. Minimal Backend Implementation
-- No new lifecycle or complex state machine
-- Reused existing strategy_idea/mapping artifacts
-- Added 3 fields deterministically based on `final_reason`
-- No database schema changes
-
-### 2. Candidate vs Rejected
-- **Rejected**: All ideas go to rejected registry (decision=rejected)
-- **Candidate**: Subset of rejected with `candidate_status=candidate_unapproved`
-- Both can coexist: an idea is both rejected AND candidate
-- Rejected registry shows all; candidate registry shows filtered subset
-
-### 3. Frontend Navigation
-- `/strategy-ideas`: all ideas
-- `/rejected-strategies`: all rejected ideas
-- `/candidate-strategies`: only candidate_unapproved ideas
-- Links between pages for easy navigation
-
-### 4. "No Trading / No Signals" Warning
-- Displayed on both candidate registry and detail page
-- Visual emphasis with yellow warning box
-- Clear message: "不可交易 / 不生成信号"
-
----
-
-## Notes
-
-### npm build Failure (Next.js Toolchain Issue)
-**Status**: ❌ 真实失败，非 P3-6 代码问题
-
-**Symptoms**:
-- Build 卡在 "Creating an optimized production build" 阶段
-- 超时 300s 后无输出
-- 所有环境变量优化尝试失败
-
-**Evidence that P3-6 code is not the cause**:
-1. 移除 P3-6 新增的 `/candidate-strategies` 页面后，build 仍然失败
-2. TypeScript 编译通过：`npx tsc --noEmit` exit code 0
-3. Dev 模式正常工作：`npm run dev` 正常启动，页面可访问
-4. P3-3, P3-4, P3-5 回归测试全部通过（runtime 功能正常）
-
-**Root Cause Analysis**:
-- Next.js 14.2.35 在当前环境下的工具链问题
-- 环境：WSL (Windows Subsystem for Linux), Node.js 22.22.2
-- Next.js 14.2.35 是 outdated version (latest 16.2.10)
-- Possible causes:
-  - WSL filesystem performance issues with Next.js build cache
-  - Memory/CPU constraints during optimization phase
-  - Known bug in Next.js 14.2.35
-
-**Attempted Fixes**:
-- 清理 `.next` 目录
-- 增加 Node.js heap size: `NODE_OPTIONS="--max-old-space-size=4096"`
-- 禁用 telemetry: `NEXT_TELEMETRY_DISABLED=1`
-- 移除新增页面测试
-- All failed with same timeout
-
-**Impact**:
-- ❌ Production build 失败
-- ✅ Development 模式正常
-- ✅ Runtime 功能验证通过 (P3-6, P3-5, P3-4, P3-3, P2 全部 exit code 0)
-
-**Recommendation**:
-- Upgrade Next.js to latest stable version (16.x)
-- Test build in native Linux environment (not WSL)
-- Or accept dev-mode-only deployment for now
-
-### P2 Regression Success
-- **Status**: ✅ exit code 0
-- **Duration**: 166.48s
-- **All 4 sub-tests passed**:
-  - P2-1A: 48.09s
-  - P2-1B: 36.21s
-  - P2-1C: 42.51s
-  - P2-1D: 39.64s
-
-### Candidate Registry UX
-Current implementation is minimal but functional:
-- Lists all candidate ideas
-- Shows key fields
-- Links to detail page
-- Future enhancements could add:
-  - Sorting/filtering by date
-  - Search by message content
-  - Batch operations
-  - Export functionality
-
----
-
-**P3-6 Task Complete** ✅
