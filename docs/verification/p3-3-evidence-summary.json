@@ -1,15 +1,15 @@
 {
-  "run_id": "P2RUN_20260707_161449",
-  "timestamp": "2026-07-07T16:15:52.590801",
-  "conversation_id": "sess_731e9da33024",
-  "idea_id": "idea_3544b6f6504b",
+  "run_id": "P2RUN_20260707_163500",
+  "timestamp": "2026-07-07T16:35:53.878034",
+  "conversation_id": "sess_61459bb0076e",
+  "idea_id": "idea_3eb55eb95e7a",
   "workflow_type": "strategy_idea",
   "route_decision_workflow_kind": "strategy_idea",
   "decision": "rejected",
   "rejection_reason": "no_approved_template",
-  "extraction_artifact_id": "extract_47bdbcc417b2",
-  "mapping_artifact_id": "mapping_6fddd97f7aa8",
-  "rejection_artifact_id": "idea_3544b6f6504b_rejected",
+  "extraction_artifact_id": "extract_7649e4aa08e0",
+  "mapping_artifact_id": "mapping_ee3e8411e5ee",
+  "rejection_artifact_id": "idea_3eb55eb95e7a_rejected",
   "detail_page_verified": true,
   "rejected_registry_verified": true
 }

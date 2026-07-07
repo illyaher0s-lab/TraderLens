@@ -1,10 +1,11 @@
 {
-  "run_id": "P2RUN_20260707_161323",
+  "run_id": "P2RUN_20260707_163218",
+  "conversation_id": "sess_a9b3aed1aed2",
+  "idea_id": "idea_dd2060ce5944",
   "template_count": 4,
   "sample_template_id": "theme_momentum_breakout_v1",
-  "idea_id": "idea_2fcde339d5ef",
   "idea_decision": "rejected",
   "idea_path_type": "no_template_fit",
   "idea_mapped_template_id": null,
-  "timestamp": "2026-07-07T16:14:25.027073"
+  "timestamp": "2026-07-07T16:33:38.821889"
 }

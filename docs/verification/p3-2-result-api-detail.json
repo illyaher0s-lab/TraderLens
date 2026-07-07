@@ -1,20 +1,20 @@
 {
-  "idea_id": "idea_18c5883911ca",
-  "conversation_id": "sess_3a4cb9f62bf4",
+  "idea_id": "idea_d70f45343565",
+  "conversation_id": "sess_a7af86529c63",
   "workflow_type": "strategy_idea",
-  "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_161620",
+  "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_163615",
   "agent_reply": "",
   "extraction": {
-    "extraction_id": "extract_9cfd39ba1db5",
-    "idea_id": "idea_18c5883911ca",
+    "extraction_id": "extract_5e3d1d44cf76",
+    "idea_id": "idea_d70f45343565",
     "claimed_entry": "未提取",
     "claimed_exit": "未提取",
     "claimed_edge": null,
     "extraction_source": "llm_assisted"
   },
   "mapping": {
-    "mapping_id": "mapping_3d32ae2a9b67",
-    "idea_id": "idea_18c5883911ca",
+    "mapping_id": "mapping_b04f567be793",
+    "idea_id": "idea_d70f45343565",
     "path_type": "no_template_fit",
     "matched_template_id": null,
     "template_version": null,
@@ -22,9 +22,9 @@
     "live_eligible": false
   },
   "rejection": {
-    "idea_id": "idea_18c5883911ca",
+    "idea_id": "idea_d70f45343565",
     "rejection_reason": "no_approved_template",
-    "rejected_at": "2026-07-07T16:17:05.045816"
+    "rejected_at": "2026-07-07T16:36:47.120645"
   },
   "decision": "rejected",
   "rejection_reason": "no_approved_template",
@@ -32,8 +32,8 @@
   "mapping_reason": "当前系统暂无已批准模板库。",
   "mapped_template_id": null,
   "template_version": null,
-  "extraction_artifact_id": "extract_9cfd39ba1db5",
-  "mapping_artifact_id": "mapping_3d32ae2a9b67",
-  "rejection_artifact_id": "idea_18c5883911ca_rejected",
-  "created_at": "2026-07-07T16:17:04.893209"
+  "extraction_artifact_id": "extract_5e3d1d44cf76",
+  "mapping_artifact_id": "mapping_b04f567be793",
+  "rejection_artifact_id": "idea_d70f45343565_rejected",
+  "created_at": "2026-07-07T16:36:47.008347"
 }

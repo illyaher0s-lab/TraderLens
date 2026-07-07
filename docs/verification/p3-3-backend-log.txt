@@ -1,14 +1,14 @@
-INFO:     Started server process [18448]
+INFO:     Started server process [36364]
 INFO:     Waiting for application startup.
 Research API starting in DETERMINISTIC mode (fake agents for testing, Serenity=stub)
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8010 (Press CTRL+C to quit)
-INFO:     127.0.0.1:53040 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50955 - "OPTIONS /api/agent/workbench/message HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50955 - "POST /api/agent/workbench/message HTTP/1.1" 200 OK
-INFO:     127.0.0.1:50955 - "GET /api/agent/workbench/sess_731e9da33024 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:59580 - "GET /api/strategy-ideas/idea_3544b6f6504b HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53257 - "GET /api/strategy-ideas/idea_3544b6f6504b HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63456 - "GET /api/strategy-ideas/idea_3544b6f6504b HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60134 - "GET /api/strategy-ideas HTTP/1.1" 200 OK
-INFO:     127.0.0.1:60134 - "GET /api/strategy-ideas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64090 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62461 - "OPTIONS /api/agent/workbench/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62461 - "POST /api/agent/workbench/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62461 - "GET /api/agent/workbench/sess_61459bb0076e HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56925 - "GET /api/strategy-ideas/idea_3eb55eb95e7a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57768 - "GET /api/strategy-ideas/idea_3eb55eb95e7a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52626 - "GET /api/strategy-ideas/idea_3eb55eb95e7a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52626 - "GET /api/strategy-ideas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57768 - "GET /api/strategy-ideas HTTP/1.1" 200 OK

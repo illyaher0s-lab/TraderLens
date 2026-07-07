@@ -1,0 +1,10 @@
+[
+  {
+    "url": "http://localhost:8010/api/agent/workbench/message",
+    "method": "POST"
+  },
+  {
+    "url": "http://localhost:8010/api/agent/workbench/sess_a9b3aed1aed2",
+    "method": "GET"
+  }
+]
