@@ -16,11 +16,7 @@ Exit code 0 = PASS, non-zero = FAIL
 
 import asyncio
 import json
-import os
-import sqlite3
-import subprocess
 import sys
-import time
 from datetime import datetime
 from pathlib import Path
 from playwright.async_api import async_playwright
@@ -28,7 +24,16 @@ from playwright.async_api import async_playwright
 # Paths
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent
-BACKEND_DIR = PROJECT_ROOT / "backend"
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from scripts.runtime_process_helpers import (
+    check_and_release_ports,
+    start_backend,
+    start_frontend,
+    stop_process,
+)
+from scripts.verify_p3_2_strategy_result_visibility import read_route_decision_workflow_kind
+
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 VENV_PYTHON = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
 DB_PATH = PROJECT_ROOT / "data" / "research.db"
@@ -49,117 +54,31 @@ print("=" * 100)
 print()
 
 
-def kill_port(port: int):
-    """Kill process using the specified port."""
-    try:
-        result = subprocess.run(
-            ["netstat", "-ano"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        for line in result.stdout.splitlines():
-            if f":{port}" in line and "LISTENING" in line:
-                parts = line.split()
-                pid = parts[-1]
-                subprocess.run(["taskkill", "/PID", pid, "/F"], check=False)
-                print(f"[OK] Killed process {pid} on port {port}")
-                time.sleep(1)
-                return
-    except Exception as e:
-        print(f"[WARN] Could not kill port {port}: {e}")
-
-
 def check_ports():
     """Check and free ports 8010 and 3000."""
     print("Step 0: Checking for existing processes on ports 8010 and 3000...")
-    for port in [8010, 3000]:
-        kill_port(port)
+    check_and_release_ports([8010, 3000])
     print("[OK] Ports 8010 and 3000 are available")
     print()
 
 
-def start_backend():
-    """Start backend server."""
-    print("Step 1: Starting backend on port 8010...")
-    
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(PROJECT_ROOT)
-    
-    process = subprocess.Popen(
-        [str(VENV_PYTHON), "-m", "uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8010"],
-        cwd=PROJECT_ROOT,
-        env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
-    )
-    
-    # Wait for backend to be ready
-    import requests
-    for attempt in range(60):
-        time.sleep(1)
-        try:
-            response = requests.get("http://localhost:8010/health", timeout=2)
-            if response.status_code == 200:
-                # Verify process is still alive
-                if process.poll() is not None:
-                    print(f"[FAIL] Backend process died after starting")
-                    sys.exit(1)
-                print(f"[OK] Backend ready after {attempt + 1} attempts")
-                print()
-                return process
-        except:
-            pass
-    
-    print("[FAIL] Backend did not start within 60 seconds")
-    process.kill()
-    sys.exit(1)
-
-
-def start_frontend():
-    """Start frontend server."""
-    print("Step 2: Starting frontend on port 3000...")
-    
-    process = subprocess.Popen(
-        ["cmd", "/c", "npm", "run", "dev", "--", "--port", "3000"],
-        cwd=FRONTEND_DIR,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
-    )
-    
-    # Wait for frontend to be ready
-    import requests
-    for attempt in range(60):
-        time.sleep(1)
-        try:
-            response = requests.get("http://localhost:3000", timeout=2)
-            if response.status_code == 200:
-                # Verify process is still alive
-                if process.poll() is not None:
-                    print(f"[FAIL] Frontend process died after starting")
-                    sys.exit(1)
-                print(f"[OK] Frontend ready on port 3000 after {attempt + 1} attempts")
-                print()
-                return process
-        except:
-            pass
-    
-    print("[FAIL] Frontend did not start within 60 seconds")
-    process.kill()
-    sys.exit(1)
-
-
 async def main():
     check_ports()
-    backend_process = start_backend()
-    frontend_process = start_frontend()
-    
-    backend_log_lines = []
-    frontend_log_lines = []
+    print("Step 1: Starting backend on port 8010...")
+    backend_process = start_backend(
+        port=8010,
+        project_root=PROJECT_ROOT,
+        timeout_seconds=60,
+        extra_env={
+            "RESEARCH_CONVERSATION_MODE": "deterministic",
+            "SERENITY_EXECUTION_MODE": "stub",
+        },
+    )
+    print()
+
+    print("Step 2: Starting frontend on port 3000...")
+    frontend_process = start_frontend(port=3000, project_root=PROJECT_ROOT, timeout_seconds=90)
+    print()
     
     try:
         async with async_playwright() as p:
@@ -245,40 +164,9 @@ async def main():
             # Step 4: Verify route_decision.workflow_kind from DB
             print("Step 4: Verifying route_decision.workflow_kind from DB...")
             
-            conn = sqlite3.connect(DB_PATH)
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            
-            # Try workflow_intent artifact type
-            cursor.execute("""
-                SELECT content FROM agent_artifact_refs
-                WHERE session_id = ? AND artifact_type = 'workflow_intent'
-                ORDER BY created_at DESC LIMIT 1
-            """, (conversation_id,))
-            
-            row = cursor.fetchone()
-            if not row:
-                # Try intent_ artifact_id pattern
-                cursor.execute("""
-                    SELECT content FROM agent_artifact_refs
-                    WHERE session_id = ? AND artifact_id LIKE 'intent_%'
-                    ORDER BY created_at DESC LIMIT 1
-                """, (conversation_id,))
-                row = cursor.fetchone()
-            
-            conn.close()
-            
-            if not row or not row["content"]:
-                print(f"[FAIL] route_decision.workflow_kind not found in DB for session {conversation_id}")
-                print(f"       Cannot fallback to workflow_type - must have real route_decision")
-                sys.exit(1)
-            
-            intent_data = json.loads(row["content"])
-            route_decision_workflow_kind = intent_data.get("route_decision", {}).get("workflow_kind")
-            
-            if not route_decision_workflow_kind:
-                print(f"[FAIL] route_decision.workflow_kind is None in DB")
-                sys.exit(1)
+            route_decision_workflow_kind = read_route_decision_workflow_kind(
+                DB_PATH, conversation_id
+            )
             
             assert route_decision_workflow_kind == "strategy_idea", \
                 f"route_decision.workflow_kind={route_decision_workflow_kind}, expected strategy_idea"
@@ -350,9 +238,9 @@ async def main():
             assert RUN_ID in detail_dom
             
             print(f"[OK] Detail page verified")
-            print(f"  DOM contains idea_id: ✓")
-            print(f"  DOM contains run_id: ✓")
-            print(f"  API requests to localhost:8010: ✓")
+            print(f"  DOM contains idea_id: [OK]")
+            print(f"  DOM contains run_id: [OK]")
+            print(f"  API requests to localhost:8010: [OK]")
             print()
             
             # Step 7: Verify rejected registry page
@@ -382,8 +270,8 @@ async def main():
             assert "无批准模板" in registry_dom or "no_approved_template" in registry_dom
             
             print(f"[OK] Rejected registry verified")
-            print(f"  DOM contains rejected ideas: ✓")
-            print(f"  API requests to localhost:8010: ✓")
+            print(f"  DOM contains rejected ideas: [OK]")
+            print(f"  API requests to localhost:8010: [OK]")
             print()
             
             # Step 8: Save evidence summary
@@ -414,26 +302,8 @@ async def main():
             await browser.close()
     
     finally:
-        # Save logs
-        if backend_process.stdout:
-            backend_log_lines = backend_process.stdout.readlines()
-        if frontend_process.stdout:
-            frontend_log_lines = frontend_process.stdout.readlines()
-        
-        with open(DOCS_DIR / "p3-3-backend-log.txt", "w", encoding="utf-8") as f:
-            f.writelines(backend_log_lines)
-        
-        with open(DOCS_DIR / "p3-3-frontend-log.txt", "w", encoding="utf-8") as f:
-            f.writelines(frontend_log_lines)
-        
-        # Terminate processes
-        backend_process.terminate()
-        frontend_process.terminate()
-        
-        time.sleep(2)
-        
-        backend_process.kill()
-        frontend_process.kill()
+        stop_process(backend_process, "Backend", DOCS_DIR / "p3-3-backend-log.txt", release_ports=[8010])
+        stop_process(frontend_process, "Frontend", DOCS_DIR / "p3-3-frontend-log.txt", release_ports=[3000])
     
     print("=" * 100)
     print("[OK] P3-3 Verification PASSED")

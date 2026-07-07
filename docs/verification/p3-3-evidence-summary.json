@@ -1,0 +1,15 @@
+{
+  "run_id": "P2RUN_20260707_144812",
+  "timestamp": "2026-07-07T14:49:18.481181",
+  "conversation_id": "sess_38871adaea83",
+  "idea_id": "idea_1f3c8e0e4b43",
+  "workflow_type": "strategy_idea",
+  "route_decision_workflow_kind": "strategy_idea",
+  "decision": "rejected",
+  "rejection_reason": "no_approved_template",
+  "extraction_artifact_id": "extract_d114b9d646f7",
+  "mapping_artifact_id": "mapping_2dfbe7e7dedc",
+  "rejection_artifact_id": "idea_1f3c8e0e4b43_rejected",
+  "detail_page_verified": true,
+  "rejected_registry_verified": true
+}

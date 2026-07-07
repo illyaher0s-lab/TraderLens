@@ -14,10 +14,7 @@ Verifies:
 
 import asyncio
 import json
-import os
-import subprocess
 import sys
-import time
 from datetime import datetime
 from pathlib import Path
 
@@ -26,6 +23,12 @@ PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from playwright.async_api import async_playwright
+from scripts.runtime_process_helpers import (
+    check_and_release_ports,
+    start_backend,
+    start_frontend,
+    stop_process,
+)
 
 
 def generate_run_id():
@@ -65,46 +68,6 @@ def read_route_decision_workflow_kind(db_path: Path, conversation_id: str) -> st
     return workflow_kind
 
 
-def is_port_in_use(port: int) -> bool:
-    import socket
-
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(("localhost", port)) == 0
-
-
-def get_port_pids(port: int) -> list[int]:
-    command = (
-        f"Get-NetTCPConnection -LocalPort {port} -ErrorAction SilentlyContinue "
-        "| Select-Object -ExpandProperty OwningProcess -Unique"
-    )
-    result = subprocess.run(
-        ["powershell", "-NoProfile", "-Command", command],
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        return []
-    pids = []
-    for line in result.stdout.splitlines():
-        line = line.strip()
-        if line.isdigit():
-            pids.append(int(line))
-    return pids
-
-
-def release_port(port: int) -> None:
-    pids = get_port_pids(port)
-    for pid in pids:
-        subprocess.run(
-            ["taskkill", "/F", "/PID", str(pid)],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-    time.sleep(2)
-    if is_port_in_use(port):
-        raise RuntimeError(f"Port {port} still in use after targeted kill attempt")
-
-
 async def main():
     run_id = generate_run_id()
     print(f"\n{'='*100}")
@@ -125,125 +88,29 @@ async def main():
     try:
         # Step 0: Check and kill existing processes on ports 8010 and 3000
         print("Step 0: Checking for existing processes on ports 8010 and 3000...")
-
-        if is_port_in_use(8010):
-            print("[WARN] Port 8010 is in use, attempting targeted kill...")
-            release_port(8010)
-        
-        if is_port_in_use(3000):
-            print("[WARN] Port 3000 is in use, attempting targeted kill...")
-            release_port(3000)
-        
-        print("[OK] Ports 8010 and 3000 are available")
+        check_and_release_ports([8010, 3000])
         
         # Step 1: Start backend
         print("Step 1: Starting backend on port 8010...")
-        backend_env = os.environ.copy()
-        backend_env["RESEARCH_CONVERSATION_MODE"] = "deterministic"
-        backend_env["SERENITY_EXECUTION_MODE"] = "stub"
-        
         backend_log_path = evidence_dir / "p3-2-backend-log.txt"
-        backend_log = open(backend_log_path, "w", encoding="utf-8")
-        
-        backend_process = subprocess.Popen(
-            [
-                sys.executable,
-                "-m",
-                "uvicorn",
-                "backend.app.main:app",
-                "--host",
-                "0.0.0.0",
-                "--port",
-                "8010",
-            ],
-            cwd=PROJECT_ROOT,
-            env=backend_env,
-            stdout=backend_log,
-            stderr=subprocess.STDOUT,
+        backend_process = start_backend(
+            port=8010,
+            project_root=PROJECT_ROOT,
+            timeout_seconds=60,
+            extra_env={
+                "RESEARCH_CONVERSATION_MODE": "deterministic",
+                "SERENITY_EXECUTION_MODE": "stub",
+            },
         )
-        
-        # Verify backend process is still alive after starting
-        time.sleep(2)
-        if backend_process.poll() is not None:
-            backend_log.close()
-            with open(backend_log_path, "r", encoding="utf-8") as f:
-                log_content = f.read()
-            raise RuntimeError(f"Backend process died immediately. Exit code: {backend_process.returncode}\n\nLog:\n{log_content}")
-        
-        # Wait for backend to be ready
-        max_retries = 30
-        backend_ready = False
-        for i in range(max_retries):
-            try:
-                import urllib.request
-                response = urllib.request.urlopen("http://localhost:8010/health", timeout=2)
-                if response.status == 200:
-                    # Verify backend process is still alive
-                    if backend_process.poll() is not None:
-                        backend_log.close()
-                        with open(backend_log_path, "r", encoding="utf-8") as f:
-                            log_content = f.read()
-                        raise RuntimeError(f"Backend /health 200 but process died. Exit code: {backend_process.returncode}\n\nLog:\n{log_content}")
-                    print(f"[OK] Backend ready after {i+1} attempts")
-                    backend_ready = True
-                    break
-            except:
-                if backend_process.poll() is not None:
-                    backend_log.close()
-                    with open(backend_log_path, "r", encoding="utf-8") as f:
-                        log_content = f.read()
-                    raise RuntimeError(f"Backend process died while waiting. Exit code: {backend_process.returncode}\n\nLog:\n{log_content}")
-                if i == max_retries - 1:
-                    raise TimeoutError("Backend failed to start after 30 seconds")
-                time.sleep(1)
-        
-        if not backend_ready:
-            raise RuntimeError("Backend did not become ready")
 
         # Step 2: Start frontend
         print("\nStep 2: Starting frontend on port 3000...")
         frontend_log_path = evidence_dir / "p3-2-frontend-log.txt"
-        frontend_log = open(frontend_log_path, "w", encoding="utf-8")
-        
-        frontend_process = subprocess.Popen(
-            ["cmd", "/c", "npm", "run", "dev", "--", "--port", "3000"],
-            cwd=PROJECT_ROOT / "frontend",
-            stdout=frontend_log,
-            stderr=subprocess.STDOUT,
+        frontend_process = start_frontend(
+            port=3000,
+            project_root=PROJECT_ROOT,
+            timeout_seconds=90,
         )
-        
-        # Verify frontend process is still alive after starting
-        time.sleep(2)
-        if frontend_process.poll() is not None:
-            frontend_log.close()
-            with open(frontend_log_path, "r", encoding="utf-8") as f:
-                log_content = f.read()
-            raise RuntimeError(f"Frontend process died immediately. Exit code: {frontend_process.returncode}\n\nLog:\n{log_content}")
-        
-        # Wait for frontend - must be on port 3000
-        max_retries = 60
-        frontend_ready = False
-        for i in range(max_retries):
-            try:
-                import urllib.request
-                # Must be exactly port 3000, not 3001/3004
-                response = urllib.request.urlopen("http://localhost:3000", timeout=2)
-                if response.status == 200:
-                    print(f"[OK] Frontend ready on port 3000 after {i+1} attempts")
-                    frontend_ready = True
-                    break
-            except Exception as e:
-                if frontend_process.poll() is not None:
-                    frontend_log.close()
-                    with open(frontend_log_path, "r", encoding="utf-8") as f:
-                        log_content = f.read()
-                    raise RuntimeError(f"Frontend process died while waiting. Exit code: {frontend_process.returncode}\n\nLog:\n{log_content}")
-                if i == max_retries - 1:
-                    raise TimeoutError("Frontend failed to start on port 3000 after 60 seconds")
-                time.sleep(1)
-        
-        if not frontend_ready:
-            raise RuntimeError("Frontend did not become ready on port 3000")
 
         # Step 3: Submit strategy idea via Workbench (browser)
         print("\nStep 3: Opening Workbench in browser...")
@@ -556,14 +423,10 @@ async def main():
                 pass
         
         if backend_process:
-            backend_process.terminate()
-            backend_process.wait(timeout=5)
-            backend_log.close()
+            stop_process(backend_process, "Backend", backend_log_path, release_ports=[8010])
         
         if frontend_process:
-            frontend_process.terminate()
-            frontend_process.wait(timeout=5)
-            frontend_log.close()
+            stop_process(frontend_process, "Frontend", frontend_log_path, release_ports=[3000])
 
 
 if __name__ == "__main__":

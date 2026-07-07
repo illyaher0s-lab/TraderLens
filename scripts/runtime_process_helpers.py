@@ -16,7 +16,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Callable, Optional
 
 import requests
 
@@ -36,6 +36,8 @@ def get_port_owner_pid(port: int) -> Optional[int]:
         ["powershell", "-NoProfile", "-Command", command],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     
     if result.returncode != 0 or not result.stdout.strip():
@@ -54,12 +56,48 @@ def get_process_command_line(pid: int) -> Optional[str]:
         ["powershell", "-NoProfile", "-Command", command],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     
     if result.returncode != 0:
         return None
     
     return result.stdout.strip() or None
+
+
+def get_parent_pid(pid: int) -> Optional[int]:
+    """Get parent PID for a process."""
+    command = f"Get-WmiObject Win32_Process -Filter \"ProcessId = {pid}\" | Select-Object -ExpandProperty ParentProcessId"
+    result = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", command],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+    )
+
+    if result.returncode != 0 or not result.stdout.strip():
+        return None
+
+    try:
+        return int(result.stdout.strip())
+    except ValueError:
+        return None
+
+
+def is_descendant_process(parent_pid: int, child_pid: int) -> bool:
+    """Return True when child_pid belongs to parent_pid's process tree."""
+    current_pid = child_pid
+    visited: set[int] = set()
+
+    while current_pid and current_pid not in visited:
+        if current_pid == parent_pid:
+            return True
+        visited.add(current_pid)
+        current_pid = get_parent_pid(current_pid)
+
+    return False
 
 
 def release_port(port: int) -> None:
@@ -101,12 +139,15 @@ def wait_for_http(
     process: Optional[subprocess.Popen] = None,
     process_name: str = "process",
     expected_port: Optional[int] = None,
+    port_owner_validator: Optional[Callable[[int], bool]] = None,
 ) -> bool:
     """
     Wait for HTTP endpoint to respond with 200.
     
     If process is provided, checks process.poll() after each attempt.
-    If expected_port is provided, verifies port owner matches process PID.
+    If expected_port is provided, verifies the port owner is accepted by
+    port_owner_validator. Without a custom validator, the owner must match the
+    process PID.
     If process died, prints stderr/stdout tail and returns False.
     
     Returns True if endpoint is ready, False if timeout or process died.
@@ -153,8 +194,18 @@ def wait_for_http(
                 # Verify port ownership if expected_port provided
                 if expected_port and process:
                     port_owner = get_port_owner_pid(expected_port)
-                    if port_owner != process.pid:
-                        print(f"[FAIL] Port {expected_port} is owned by PID {port_owner}, not {process.pid}")
+                    if port_owner is None:
+                        print(f"[FAIL] Port {expected_port} has no listener after {url} returned 200")
+                        return False
+
+                    owner_ok = (
+                        port_owner_validator(port_owner)
+                        if port_owner_validator
+                        else port_owner == process.pid
+                    )
+
+                    if not owner_ok:
+                        print(f"[FAIL] Port {expected_port} is owned by PID {port_owner}, not {process.pid} or its expected child")
                         if port_owner:
                             cmdline = get_process_command_line(port_owner)
                             print(f"[FAIL] Port owner command: {cmdline}")
@@ -162,7 +213,7 @@ def wait_for_http(
                 
                 print(f"[OK] {process_name} ready after {attempt + 1} seconds")
                 if expected_port and process:
-                    print(f"[OK] Port {expected_port} owned by PID {process.pid} (verified)")
+                    print(f"[OK] Port {expected_port} ownership verified")
                 return True
         except requests.exceptions.RequestException:
             pass
@@ -175,6 +226,7 @@ def start_backend(
     port: int = 8010,
     project_root: Optional[Path] = None,
     timeout_seconds: int = 60,
+    extra_env: Optional[dict[str, str]] = None,
 ) -> subprocess.Popen:
     """
     Start backend server on specified port.
@@ -182,7 +234,7 @@ def start_backend(
     Verifies:
     - Process stays alive during startup
     - /health returns 200
-    - Port owner PID matches started process PID
+    - Port owner PID belongs to the started Python process tree
     
     Returns: Popen process if successful
     Exits with code 1 if startup fails
@@ -194,6 +246,8 @@ def start_backend(
     
     env = os.environ.copy()
     env["PYTHONPATH"] = str(project_root)
+    if extra_env:
+        env.update(extra_env)
     
     print(f"Starting backend on port {port}...")
     print(f"  Python: {venv_python}")
@@ -215,6 +269,8 @@ def start_backend(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         bufsize=1,
         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
     )
@@ -224,7 +280,17 @@ def start_backend(
     # Wait for health check
     health_url = f"http://localhost:{port}/health"
     
-    if not wait_for_http(health_url, timeout_seconds, process, "Backend", expected_port=port):
+    def backend_owner_validator(port_owner_pid: int) -> bool:
+        return port_owner_pid == process.pid or is_descendant_process(process.pid, port_owner_pid)
+
+    if not wait_for_http(
+        health_url,
+        timeout_seconds,
+        process,
+        "Backend",
+        expected_port=port,
+        port_owner_validator=backend_owner_validator,
+    ):
         process.kill()
         sys.exit(1)
     
@@ -240,7 +306,7 @@ def start_frontend(
     Start frontend dev server on specified port.
     
     Enforces exact port (no auto-increment to 3001/3004).
-    Verifies port owner matches started process.
+    Verifies port owner belongs to the started npm/cmd process tree.
     
     Returns: Popen process if successful
     Exits with code 1 if startup fails
@@ -259,6 +325,8 @@ def start_frontend(
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         bufsize=1,
         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
     )
@@ -268,7 +336,17 @@ def start_frontend(
     # Wait for frontend
     frontend_url = f"http://localhost:{port}"
     
-    if not wait_for_http(frontend_url, timeout_seconds, process, "Frontend", expected_port=port):
+    def frontend_owner_validator(port_owner_pid: int) -> bool:
+        return port_owner_pid == process.pid or is_descendant_process(process.pid, port_owner_pid)
+
+    if not wait_for_http(
+        frontend_url,
+        timeout_seconds,
+        process,
+        "Frontend",
+        expected_port=port,
+        port_owner_validator=frontend_owner_validator,
+    ):
         process.kill()
         sys.exit(1)
     
@@ -279,6 +357,7 @@ def stop_process(
     process: subprocess.Popen,
     name: str = "process",
     save_log: Optional[Path] = None,
+    release_ports: Optional[list[int]] = None,
 ) -> None:
     """
     Stop process gracefully, then forcefully.
@@ -286,31 +365,43 @@ def stop_process(
     Optionally saves stdout to log file.
     """
     try:
-        # Capture remaining output
-        log_lines = []
-        if process.stdout:
-            try:
-                # Non-blocking read of remaining output
-                remaining = process.stdout.read()
-                if remaining:
-                    log_lines.append(remaining)
-            except:
-                pass
-        
-        # Save log if requested
-        if save_log and log_lines:
+        if process.poll() is None:
+            process.terminate()
+
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            pass
+
+        if release_ports:
+            for port in release_ports:
+                if get_port_owner_pid(port) is not None:
+                    release_port(port)
+
+        if process.poll() is None:
+            subprocess.run(
+                ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+                capture_output=True,
+                check=False,
+            )
+
+        try:
+            stdout, stderr = process.communicate(timeout=1)
+        except subprocess.TimeoutExpired:
+            stdout, stderr = "", ""
+            if process.stdout:
+                process.stdout.close()
+            if process.stderr:
+                process.stderr.close()
+
+        if save_log:
             save_log.parent.mkdir(parents=True, exist_ok=True)
             with open(save_log, "w", encoding="utf-8") as f:
-                f.writelines(log_lines)
+                if stdout:
+                    f.write(stdout)
+                if stderr:
+                    f.write(stderr)
             print(f"[OK] Saved {name} log to {save_log}")
-        
-        # Terminate process
-        process.terminate()
-        try:
-            process.wait(timeout=3)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            process.wait(timeout=1)
         
         print(f"[OK] {name} process stopped")
     except Exception as e:
