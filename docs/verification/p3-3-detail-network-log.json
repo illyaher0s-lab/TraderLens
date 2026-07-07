@@ -1,25 +1,25 @@
 [
   {
-    "url": "http://localhost:8010/api/strategy-ideas/idea_f0f71616e2c2",
+    "url": "http://localhost:8010/api/strategy-ideas/idea_9521c74277e1",
     "method": "GET",
     "status": 200,
     "response": {
-      "idea_id": "idea_f0f71616e2c2",
-      "conversation_id": "sess_24fdb3cc5c6e",
+      "idea_id": "idea_9521c74277e1",
+      "conversation_id": "sess_c23fbd2ffcde",
       "workflow_type": "strategy_idea",
-      "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_171259",
+      "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_180747",
       "agent_reply": "",
       "extraction": {
-        "extraction_id": "extract_978378306dfe",
-        "idea_id": "idea_f0f71616e2c2",
+        "extraction_id": "extract_dbcb7cbeed3a",
+        "idea_id": "idea_9521c74277e1",
         "claimed_entry": "未提取",
         "claimed_exit": "未提取",
         "claimed_edge": null,
         "extraction_source": "llm_assisted"
       },
       "mapping": {
-        "mapping_id": "mapping_f9d015fdd1fc",
-        "idea_id": "idea_f0f71616e2c2",
+        "mapping_id": "mapping_a51704a85958",
+        "idea_id": "idea_9521c74277e1",
         "path_type": "no_template_fit",
         "matched_template_id": null,
         "template_version": null,
@@ -37,12 +37,15 @@
           "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
           "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
         },
-        "final_reason": "no_template_fit"
+        "final_reason": "no_template_fit",
+        "candidate_status": "candidate_unapproved",
+        "candidate_reason": "no_approved_template_fit",
+        "required_next_step": "template_approval_required"
       },
       "rejection": {
-        "idea_id": "idea_f0f71616e2c2",
+        "idea_id": "idea_9521c74277e1",
         "rejection_reason": "no_approved_template",
-        "rejected_at": "2026-07-07T17:13:39.946912"
+        "rejected_at": "2026-07-07T18:08:37.285731"
       },
       "decision": "rejected",
       "rejection_reason": "no_approved_template",
@@ -64,33 +67,36 @@
       },
       "final_reason": "no_template_fit",
       "live_eligible": false,
-      "extraction_artifact_id": "extract_978378306dfe",
-      "mapping_artifact_id": "mapping_f9d015fdd1fc",
-      "rejection_artifact_id": "idea_f0f71616e2c2_rejected",
-      "created_at": "2026-07-07T17:13:39.825105"
+      "candidate_status": "candidate_unapproved",
+      "candidate_reason": "no_approved_template_fit",
+      "required_next_step": "template_approval_required",
+      "extraction_artifact_id": "extract_dbcb7cbeed3a",
+      "mapping_artifact_id": "mapping_a51704a85958",
+      "rejection_artifact_id": "idea_9521c74277e1_rejected",
+      "created_at": "2026-07-07T18:08:37.179337"
     }
   },
   {
-    "url": "http://localhost:8010/api/strategy-ideas/idea_f0f71616e2c2",
+    "url": "http://localhost:8010/api/strategy-ideas/idea_9521c74277e1",
     "method": "GET",
     "status": 200,
     "response": {
-      "idea_id": "idea_f0f71616e2c2",
-      "conversation_id": "sess_24fdb3cc5c6e",
+      "idea_id": "idea_9521c74277e1",
+      "conversation_id": "sess_c23fbd2ffcde",
       "workflow_type": "strategy_idea",
-      "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_171259",
+      "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_180747",
       "agent_reply": "",
       "extraction": {
-        "extraction_id": "extract_978378306dfe",
-        "idea_id": "idea_f0f71616e2c2",
+        "extraction_id": "extract_dbcb7cbeed3a",
+        "idea_id": "idea_9521c74277e1",
         "claimed_entry": "未提取",
         "claimed_exit": "未提取",
         "claimed_edge": null,
         "extraction_source": "llm_assisted"
       },
       "mapping": {
-        "mapping_id": "mapping_f9d015fdd1fc",
-        "idea_id": "idea_f0f71616e2c2",
+        "mapping_id": "mapping_a51704a85958",
+        "idea_id": "idea_9521c74277e1",
         "path_type": "no_template_fit",
         "matched_template_id": null,
         "template_version": null,
@@ -108,12 +114,15 @@
           "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
           "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
         },
-        "final_reason": "no_template_fit"
+        "final_reason": "no_template_fit",
+        "candidate_status": "candidate_unapproved",
+        "candidate_reason": "no_approved_template_fit",
+        "required_next_step": "template_approval_required"
       },
       "rejection": {
-        "idea_id": "idea_f0f71616e2c2",
+        "idea_id": "idea_9521c74277e1",
         "rejection_reason": "no_approved_template",
-        "rejected_at": "2026-07-07T17:13:39.946912"
+        "rejected_at": "2026-07-07T18:08:37.285731"
       },
       "decision": "rejected",
       "rejection_reason": "no_approved_template",
@@ -135,10 +144,13 @@
       },
       "final_reason": "no_template_fit",
       "live_eligible": false,
-      "extraction_artifact_id": "extract_978378306dfe",
-      "mapping_artifact_id": "mapping_f9d015fdd1fc",
-      "rejection_artifact_id": "idea_f0f71616e2c2_rejected",
-      "created_at": "2026-07-07T17:13:39.825105"
+      "candidate_status": "candidate_unapproved",
+      "candidate_reason": "no_approved_template_fit",
+      "required_next_step": "template_approval_required",
+      "extraction_artifact_id": "extract_dbcb7cbeed3a",
+      "mapping_artifact_id": "mapping_a51704a85958",
+      "rejection_artifact_id": "idea_9521c74277e1_rejected",
+      "created_at": "2026-07-07T18:08:37.179337"
     }
   }
 ]

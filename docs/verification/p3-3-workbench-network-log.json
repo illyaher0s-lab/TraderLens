@@ -4,197 +4,197 @@
     "method": "POST",
     "status": 200,
     "response": {
-      "conversation_id": "sess_24fdb3cc5c6e",
+      "conversation_id": "sess_c23fbd2ffcde",
       "workflow_type": "strategy_idea",
       "stage": "created",
       "agent_reply": "已提取策略想法：\n入场条件：未提取\n出场条件：未提取\n当前系统暂无已批准模板库。策略想法已记录，但不可用于实盘交易。\n该策略想法已记录到拒绝注册表，不会生成交易信号。",
       "approval_card": null,
       "artifact_ids": [
-        "idea_f0f71616e2c2",
-        "extract_978378306dfe",
-        "mapping_f9d015fdd1fc",
-        "idea_f0f71616e2c2_rejected",
-        "msg_2428ce790803",
-        "msg_9424836576c0",
-        "intent_sess_24fdb3cc5c6e"
+        "idea_9521c74277e1",
+        "extract_dbcb7cbeed3a",
+        "mapping_a51704a85958",
+        "idea_9521c74277e1_rejected",
+        "msg_75d188dea6b1",
+        "msg_0a36f4145161",
+        "intent_sess_c23fbd2ffcde"
       ],
       "next_required_user_action": "wait_for_extraction"
     }
   },
   {
-    "url": "http://localhost:8010/api/agent/workbench/sess_24fdb3cc5c6e",
+    "url": "http://localhost:8010/api/agent/workbench/sess_c23fbd2ffcde",
     "method": "GET",
     "status": 200,
     "response": {
       "session": {
-        "session_id": "sess_24fdb3cc5c6e",
+        "session_id": "sess_c23fbd2ffcde",
         "workflow_kind": "strategy_idea",
         "workflow_state": "created",
         "title": "策略想法验证",
-        "created_at": "2026-07-07T17:13:39.825105",
-        "updated_at": "2026-07-07T17:13:39.825105"
+        "created_at": "2026-07-07T18:08:37.179337",
+        "updated_at": "2026-07-07T18:08:37.179337"
       },
       "timeline": [
         {
           "type": "artifact_ref",
           "content": {
-            "artifact_ref_id": "artref_9bfe48e1b0ed",
-            "session_id": "sess_24fdb3cc5c6e",
-            "artifact_id": "context_loaded_sess_24fdb3cc5c6e",
+            "artifact_ref_id": "artref_d607ca4d2b63",
+            "session_id": "sess_c23fbd2ffcde",
+            "artifact_id": "context_loaded_sess_c23fbd2ffcde",
             "artifact_type": "context_loaded",
-            "created_at": "2026-07-07T17:13:39.825105",
+            "created_at": "2026-07-07T18:08:37.179337",
             "artifact_content": null
           }
         },
         {
           "type": "artifact_ref",
           "content": {
-            "artifact_ref_id": "artref_755b54a2f76b",
-            "session_id": "sess_24fdb3cc5c6e",
-            "artifact_id": "prescan_sess_24fdb3cc5c6e",
+            "artifact_ref_id": "artref_6c638a130cef",
+            "session_id": "sess_c23fbd2ffcde",
+            "artifact_id": "prescan_sess_c23fbd2ffcde",
             "artifact_type": "prescan_result",
-            "created_at": "2026-07-07T17:13:39.825105",
+            "created_at": "2026-07-07T18:08:37.179337",
             "artifact_content": null
           }
         },
         {
           "type": "artifact_ref",
           "content": {
-            "artifact_ref_id": "artref_47b51d745e20",
-            "session_id": "sess_24fdb3cc5c6e",
-            "artifact_id": "intent_sess_24fdb3cc5c6e",
+            "artifact_ref_id": "artref_f9f245a227f9",
+            "session_id": "sess_c23fbd2ffcde",
+            "artifact_id": "intent_sess_c23fbd2ffcde",
             "artifact_type": "intent_extraction",
-            "created_at": "2026-07-07T17:13:39.825105",
+            "created_at": "2026-07-07T18:08:37.179337",
             "artifact_content": null
           }
         },
         {
           "type": "artifact_ref",
           "content": {
-            "artifact_ref_id": "artref_32d92f8fa716",
-            "session_id": "sess_24fdb3cc5c6e",
-            "artifact_id": "route_sess_24fdb3cc5c6e",
+            "artifact_ref_id": "artref_6d5a3af754e2",
+            "session_id": "sess_c23fbd2ffcde",
+            "artifact_id": "route_sess_c23fbd2ffcde",
             "artifact_type": "workflow_route_decision",
-            "created_at": "2026-07-07T17:13:39.825105",
+            "created_at": "2026-07-07T18:08:37.179337",
             "artifact_content": "{\"workflow_kind\": \"strategy_idea\", \"workflow_state\": \"created\", \"route_reason\": \"\\u68c0\\u6d4b\\u5230\\u7b56\\u7565\\u89c4\\u5219\\u7ed3\\u6784\", \"next_required_user_action\": \"wait_for_extraction\", \"allowed_to_start_workflow\": true}"
           }
         },
         {
           "type": "message",
           "content": {
-            "message_id": "msg_2428ce790803",
-            "session_id": "sess_24fdb3cc5c6e",
+            "message_id": "msg_75d188dea6b1",
+            "session_id": "sess_c23fbd2ffcde",
             "role": "user",
-            "content": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_171259",
-            "created_at": "2026-07-07T17:13:39.825105"
+            "content": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_180747",
+            "created_at": "2026-07-07T18:08:37.179337"
           }
         },
         {
           "type": "artifact_ref",
           "content": {
-            "artifact_ref_id": "artref_ed46c4d8af7d",
-            "session_id": "sess_24fdb3cc5c6e",
-            "artifact_id": "action_started_37203c8f",
+            "artifact_ref_id": "artref_d111dc217e03",
+            "session_id": "sess_c23fbd2ffcde",
+            "artifact_id": "action_started_977f7697",
             "artifact_type": "workflow_action_started",
-            "created_at": "2026-07-07T17:13:39.825105",
+            "created_at": "2026-07-07T18:08:37.179337",
             "artifact_content": null
           }
         },
         {
           "type": "artifact_ref",
           "content": {
-            "artifact_ref_id": "artref_a46718772ed8",
-            "session_id": "sess_24fdb3cc5c6e",
-            "artifact_id": "idea_f0f71616e2c2",
+            "artifact_ref_id": "artref_7930751bcfe6",
+            "session_id": "sess_c23fbd2ffcde",
+            "artifact_id": "idea_9521c74277e1",
             "artifact_type": "strategy_idea",
-            "created_at": "2026-07-07T17:13:39.825105",
+            "created_at": "2026-07-07T18:08:37.179337",
             "artifact_content": null
           }
         },
         {
           "type": "artifact_ref",
           "content": {
-            "artifact_ref_id": "artref_c3049473b8db",
-            "session_id": "sess_24fdb3cc5c6e",
-            "artifact_id": "extract_978378306dfe",
+            "artifact_ref_id": "artref_6d5fca4cd588",
+            "session_id": "sess_c23fbd2ffcde",
+            "artifact_id": "extract_dbcb7cbeed3a",
             "artifact_type": "strategy_idea_extraction",
-            "created_at": "2026-07-07T17:13:39.825105",
-            "artifact_content": "{\"extraction_id\": \"extract_978378306dfe\", \"idea_id\": \"idea_f0f71616e2c2\", \"claimed_entry\": \"\\u672a\\u63d0\\u53d6\", \"claimed_exit\": \"\\u672a\\u63d0\\u53d6\", \"claimed_edge\": null, \"extraction_source\": \"llm_assisted\"}"
+            "created_at": "2026-07-07T18:08:37.179337",
+            "artifact_content": "{\"extraction_id\": \"extract_dbcb7cbeed3a\", \"idea_id\": \"idea_9521c74277e1\", \"claimed_entry\": \"\\u672a\\u63d0\\u53d6\", \"claimed_exit\": \"\\u672a\\u63d0\\u53d6\", \"claimed_edge\": null, \"extraction_source\": \"llm_assisted\"}"
           }
         },
         {
           "type": "artifact_ref",
           "content": {
-            "artifact_ref_id": "artref_73ab160bb750",
-            "session_id": "sess_24fdb3cc5c6e",
-            "artifact_id": "mapping_f9d015fdd1fc",
+            "artifact_ref_id": "artref_50acad5edbb1",
+            "session_id": "sess_c23fbd2ffcde",
+            "artifact_id": "mapping_a51704a85958",
             "artifact_type": "strategy_template_mapping",
-            "created_at": "2026-07-07T17:13:39.825105",
-            "artifact_content": "{\"mapping_id\": \"mapping_f9d015fdd1fc\", \"idea_id\": \"idea_f0f71616e2c2\", \"path_type\": \"no_template_fit\", \"matched_template_id\": null, \"template_version\": null, \"mapping_reason\": \"no_template_fit\", \"live_eligible\": false, \"considered_template_ids\": [\"theme_momentum_breakout_v1\", \"relative_strength_rotation_v1\", \"volume_breakout_followthrough_v1\", \"trend_pullback_watch_v1\"], \"mismatch_reasons\": {\"theme_momentum_breakout_v1\": \"\\u5165\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u51fa\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u7b56\\u7565\\u63cf\\u8ff0\\u672a\\u63d0\\u53caMACD\\u6307\\u6807\\uff0c\\u4e0d\\u7b26\\u5408theme_momentum_breakout_v1\\u7684MACD\\u52a8\\u91cf\\u5047\\u8bbe; \\u7b56\\u7565\\u63cf\\u8ff0\\u672a\\u660e\\u786e\\u7a81\\u7834\\u903b\\u8f91\\uff0c\\u4e0d\\u7b26\\u5408theme_momentum_breakout_v1\\u7684\\u7a81\\u7834\\u5047\\u8bbe\", \"relative_strength_rotation_v1\": \"\\u5165\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u51fa\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u7b56\\u7565\\u63cf\\u8ff0\\u672a\\u63d0\\u53ca\\u76f8\\u5bf9\\u5f3a\\u5ea6\\uff0c\\u4e0d\\u7b26\\u5408relative_strength_rotation_v1\\u7684\\u76f8\\u5bf9\\u5f3a\\u5ea6\\u5047\\u8bbe\", \"volume_breakout_followthrough_v1\": \"\\u5165\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u51fa\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u7b56\\u7565\\u63cf\\u8ff0\\u672a\\u660e\\u786e\\u7a81\\u7834\\u903b\\u8f91\\uff0c\\u4e0d\\u7b26\\u5408volume_breakout_followthrough_v1\\u7684\\u7a81\\u7834\\u5047\\u8bbe\", \"trend_pullback_watch_v1\": \"\\u5165\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u51fa\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6\"}, \"final_reason\": \"no_template_fit\"}"
+            "created_at": "2026-07-07T18:08:37.179337",
+            "artifact_content": "{\"mapping_id\": \"mapping_a51704a85958\", \"idea_id\": \"idea_9521c74277e1\", \"path_type\": \"no_template_fit\", \"matched_template_id\": null, \"template_version\": null, \"mapping_reason\": \"no_template_fit\", \"live_eligible\": false, \"considered_template_ids\": [\"theme_momentum_breakout_v1\", \"relative_strength_rotation_v1\", \"volume_breakout_followthrough_v1\", \"trend_pullback_watch_v1\"], \"mismatch_reasons\": {\"theme_momentum_breakout_v1\": \"\\u5165\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u51fa\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u7b56\\u7565\\u63cf\\u8ff0\\u672a\\u63d0\\u53caMACD\\u6307\\u6807\\uff0c\\u4e0d\\u7b26\\u5408theme_momentum_breakout_v1\\u7684MACD\\u52a8\\u91cf\\u5047\\u8bbe; \\u7b56\\u7565\\u63cf\\u8ff0\\u672a\\u660e\\u786e\\u7a81\\u7834\\u903b\\u8f91\\uff0c\\u4e0d\\u7b26\\u5408theme_momentum_breakout_v1\\u7684\\u7a81\\u7834\\u5047\\u8bbe\", \"relative_strength_rotation_v1\": \"\\u5165\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u51fa\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u7b56\\u7565\\u63cf\\u8ff0\\u672a\\u63d0\\u53ca\\u76f8\\u5bf9\\u5f3a\\u5ea6\\uff0c\\u4e0d\\u7b26\\u5408relative_strength_rotation_v1\\u7684\\u76f8\\u5bf9\\u5f3a\\u5ea6\\u5047\\u8bbe\", \"volume_breakout_followthrough_v1\": \"\\u5165\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u51fa\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u7b56\\u7565\\u63cf\\u8ff0\\u672a\\u660e\\u786e\\u7a81\\u7834\\u903b\\u8f91\\uff0c\\u4e0d\\u7b26\\u5408volume_breakout_followthrough_v1\\u7684\\u7a81\\u7834\\u5047\\u8bbe\", \"trend_pullback_watch_v1\": \"\\u5165\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6; \\u51fa\\u573a\\u6761\\u4ef6\\u672a\\u660e\\u786e\\u63d0\\u53d6\"}, \"final_reason\": \"no_template_fit\", \"candidate_status\": \"candidate_unapproved\", \"candidate_reason\": \"no_approved_template_fit\", \"required_next_step\": \"template_approval_required\"}"
           }
         },
         {
           "type": "artifact_ref",
           "content": {
-            "artifact_ref_id": "artref_e90f41a95809",
-            "session_id": "sess_24fdb3cc5c6e",
-            "artifact_id": "idea_f0f71616e2c2_rejected",
+            "artifact_ref_id": "artref_661f7be5cfe9",
+            "session_id": "sess_c23fbd2ffcde",
+            "artifact_id": "idea_9521c74277e1_rejected",
             "artifact_type": "strategy_idea_rejected",
-            "created_at": "2026-07-07T17:13:39.825105",
-            "artifact_content": "{\"idea_id\": \"idea_f0f71616e2c2\", \"rejection_reason\": \"no_approved_template\", \"rejected_at\": \"2026-07-07T17:13:39.946912\"}"
+            "created_at": "2026-07-07T18:08:37.179337",
+            "artifact_content": "{\"idea_id\": \"idea_9521c74277e1\", \"rejection_reason\": \"no_approved_template\", \"rejected_at\": \"2026-07-07T18:08:37.285731\"}"
           }
         },
         {
           "type": "artifact_ref",
           "content": {
-            "artifact_ref_id": "artref_0de1dbca3d92",
-            "session_id": "sess_24fdb3cc5c6e",
-            "artifact_id": "action_completed_96b32b9d",
+            "artifact_ref_id": "artref_3bb58765e990",
+            "session_id": "sess_c23fbd2ffcde",
+            "artifact_id": "action_completed_99ba3809",
             "artifact_type": "workflow_action_completed",
-            "created_at": "2026-07-07T17:13:39.825105",
+            "created_at": "2026-07-07T18:08:37.179337",
             "artifact_content": null
           }
         },
         {
           "type": "message",
           "content": {
-            "message_id": "msg_9424836576c0",
-            "session_id": "sess_24fdb3cc5c6e",
+            "message_id": "msg_0a36f4145161",
+            "session_id": "sess_c23fbd2ffcde",
             "role": "agent",
             "content": "已提取策略想法：\n入场条件：未提取\n出场条件：未提取\n当前系统暂无已批准模板库。策略想法已记录，但不可用于实盘交易。\n该策略想法已记录到拒绝注册表，不会生成交易信号。",
-            "created_at": "2026-07-07T17:13:39.825105"
+            "created_at": "2026-07-07T18:08:37.179337"
           }
         },
         {
           "type": "artifact_ref",
           "content": {
-            "artifact_ref_id": "artref_de8885f6258d",
-            "session_id": "sess_24fdb3cc5c6e",
-            "artifact_id": "msg_2428ce790803",
+            "artifact_ref_id": "artref_27a05447711f",
+            "session_id": "sess_c23fbd2ffcde",
+            "artifact_id": "msg_75d188dea6b1",
             "artifact_type": "user_message",
-            "created_at": "2026-07-07T17:13:39.825105",
+            "created_at": "2026-07-07T18:08:37.179337",
             "artifact_content": null
           }
         },
         {
           "type": "artifact_ref",
           "content": {
-            "artifact_ref_id": "artref_762de8e38347",
-            "session_id": "sess_24fdb3cc5c6e",
-            "artifact_id": "msg_9424836576c0",
+            "artifact_ref_id": "artref_b598ded33575",
+            "session_id": "sess_c23fbd2ffcde",
+            "artifact_id": "msg_0a36f4145161",
             "artifact_type": "agent_message",
-            "created_at": "2026-07-07T17:13:39.825105",
+            "created_at": "2026-07-07T18:08:37.179337",
             "artifact_content": null
           }
         },
         {
           "type": "artifact_ref",
           "content": {
-            "artifact_ref_id": "artref_08cf9bcc7c03",
-            "session_id": "sess_24fdb3cc5c6e",
-            "artifact_id": "intent_sess_24fdb3cc5c6e",
+            "artifact_ref_id": "artref_219b40f22cdb",
+            "session_id": "sess_c23fbd2ffcde",
+            "artifact_id": "intent_sess_c23fbd2ffcde",
             "artifact_type": "workflow_intent",
-            "created_at": "2026-07-07T17:13:39.825105",
+            "created_at": "2026-07-07T18:08:37.179337",
             "artifact_content": null
           }
         }

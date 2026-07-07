@@ -7,19 +7,19 @@
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 3.2s
+ ✓ Ready in 3.5s
  ○ Compiling / ...
- ✓ Compiled / in 1136ms (483 modules)
- GET / 200 in 1475ms
+ ✓ Compiled / in 1119ms (483 modules)
+ GET / 200 in 1453ms
  ○ Compiling /strategy-templates ...
- ✓ Compiled /strategy-templates in 608ms (495 modules)
- GET /strategy-templates 200 in 818ms
- ✓ Compiled /strategy-templates/[template_id] in 470ms (503 modules)
- GET /strategy-templates/theme_momentum_breakout_v1 200 in 1128ms
+ ✓ Compiled /strategy-templates in 682ms (495 modules)
+ GET /strategy-templates 200 in 889ms
+ ✓ Compiled /strategy-templates/[template_id] in 486ms (503 modules)
+ GET /strategy-templates/theme_momentum_breakout_v1 200 in 1129ms
  ○ Compiling /workbench ...
- ✓ Compiled /workbench in 538ms (521 modules)
- GET /workbench 200 in 684ms
+ ✓ Compiled /workbench in 547ms (521 modules)
+ GET /workbench 200 in 694ms
  ○ Compiling /strategy-ideas/[idea_id] ...
- ✓ Compiled /strategy-ideas/[idea_id] in 684ms (527 modules)
- GET /strategy-ideas/idea_b0d6bab71ea1 200 in 1368ms
+ ✓ Compiled /strategy-ideas/[idea_id] in 745ms (527 modules)
+ GET /strategy-ideas/idea_bdfefbbef739 200 in 1418ms
 [?25h

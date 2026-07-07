@@ -6,6 +6,176 @@
     "response": {
       "ideas": [
         {
+          "idea_id": "idea_9521c74277e1",
+          "conversation_id": "sess_c23fbd2ffcde",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_180747",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_a51704a85958",
+          "extraction_artifact_id": "extract_dbcb7cbeed3a",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "candidate_status": "candidate_unapproved",
+          "candidate_reason": "no_approved_template_fit",
+          "required_next_step": "template_approval_required",
+          "created_at": "2026-07-07T18:08:37.179337"
+        },
+        {
+          "idea_id": "idea_bdfefbbef739",
+          "conversation_id": "sess_4f35ba4016c7",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_180616",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_43c250b433d9",
+          "extraction_artifact_id": "extract_da72ca52bde7",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "candidate_status": "candidate_unapproved",
+          "candidate_reason": "no_approved_template_fit",
+          "required_next_step": "template_approval_required",
+          "created_at": "2026-07-07T18:07:14.924931"
+        },
+        {
+          "idea_id": "idea_93b58985ad62",
+          "conversation_id": "sess_31393018d7d6",
+          "workflow_type": "strategy_idea",
+          "original_message": "[P2RUN_20260707_180523] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+          "claimed_entry": "下午两点半后买入",
+          "claimed_exit": "次日早盘卖出",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_824041edd743",
+          "extraction_artifact_id": "extract_36094b1157ec",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "candidate_status": "candidate_unapproved",
+          "candidate_reason": "no_approved_template_fit",
+          "required_next_step": "template_approval_required",
+          "created_at": "2026-07-07T18:06:01.680752"
+        },
+        {
+          "idea_id": "idea_1933717a32cb",
+          "conversation_id": "sess_6d2ed6096c20",
+          "workflow_type": "strategy_idea",
+          "original_message": "[P2RUN_20260707_180155] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+          "claimed_entry": "下午两点半后买入",
+          "claimed_exit": "次日早盘卖出",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_6e2e8fdf4d69",
+          "extraction_artifact_id": "extract_f005b66e8b8b",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "candidate_status": "candidate_unapproved",
+          "candidate_reason": "no_approved_template_fit",
+          "required_next_step": "template_approval_required",
+          "created_at": "2026-07-07T18:02:40.465888"
+        },
+        {
+          "idea_id": "idea_05efd4f1df7a",
+          "conversation_id": "sess_cd982e99a5e8",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_171416",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_aeec9e5ecf45",
+          "extraction_artifact_id": "extract_5e69df5dcb14",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
+          "created_at": "2026-07-07T17:14:56.017155"
+        },
+        {
           "idea_id": "idea_f0f71616e2c2",
           "conversation_id": "sess_24fdb3cc5c6e",
           "workflow_type": "strategy_idea",
@@ -34,6 +204,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:13:39.825105"
         },
         {
@@ -65,6 +238,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:12:24.226236"
         },
         {
@@ -96,6 +272,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:10:50.058856"
         },
         {
@@ -127,6 +306,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:07:26.741204"
         },
         {
@@ -158,6 +340,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:06:20.714286"
         },
         {
@@ -189,6 +374,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:05:04.673704"
         },
         {
@@ -220,6 +408,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:03:53.546164"
         },
         {
@@ -241,6 +432,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T16:36:47.008347"
         },
         {
@@ -262,6 +456,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T16:35:35.086900"
         },
         {
@@ -283,6 +480,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T16:33:21.584338"
         },
         {
@@ -304,6 +504,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T16:17:04.893209"
         },
         {
@@ -325,6 +528,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T16:15:29.877106"
         },
         {
@@ -346,6 +552,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T16:12:18.398433"
         },
         {
@@ -367,6 +576,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T15:16:48.839846"
         },
         {
@@ -388,6 +600,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T15:15:55.078774"
         },
         {
@@ -409,6 +624,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T15:14:22.695720"
         },
         {
@@ -430,6 +648,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:56:32.037663"
         },
         {
@@ -451,6 +672,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:51:33.117727"
         },
         {
@@ -472,6 +696,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:50:26.992063"
         },
         {
@@ -493,6 +720,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:48:59.173988"
         },
         {
@@ -514,6 +744,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:47:17.866918"
         },
         {
@@ -535,6 +768,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:44:30.850044"
         },
         {
@@ -556,6 +792,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:42:28.224117"
         },
         {
@@ -577,6 +816,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:38:34.795462"
         },
         {
@@ -598,6 +840,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:36:03.874647"
         },
         {
@@ -619,6 +864,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:33:35.510529"
         },
         {
@@ -640,6 +888,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:00:59.081875"
         },
         {
@@ -661,6 +912,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:00:10.735759"
         },
         {
@@ -682,6 +936,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:59:22.136256"
         },
         {
@@ -703,6 +960,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:57:06.128378"
         },
         {
@@ -724,6 +984,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:55:34.845565"
         },
         {
@@ -745,6 +1008,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:54:14.241302"
         },
         {
@@ -766,6 +1032,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:52:32.182402"
         },
         {
@@ -787,6 +1056,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:38:57.782351"
         },
         {
@@ -808,6 +1080,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:37:17.482186"
         },
         {
@@ -829,6 +1104,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:36:29.689009"
         },
         {
@@ -850,6 +1128,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:35:07.732859"
         },
         {
@@ -871,6 +1152,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:33:58.079804"
         },
         {
@@ -892,6 +1176,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:32:28.111478"
         },
         {
@@ -913,6 +1200,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:00:12.288760"
         },
         {
@@ -934,6 +1224,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T12:59:18.656169"
         },
         {
@@ -955,6 +1248,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T12:57:53.906797"
         },
         {
@@ -976,6 +1272,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T12:41:58.558041"
         },
         {
@@ -997,6 +1296,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T12:37:35.165234"
         },
         {
@@ -1018,112 +1320,10 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T12:34:35.118310"
-        },
-        {
-          "idea_id": "idea_086ec37fd16f",
-          "conversation_id": "sess_b0d1848b75f9",
-          "workflow_type": "strategy_idea",
-          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_112542",
-          "claimed_entry": "未提取",
-          "claimed_exit": "未提取",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_1f21f8dc5d10",
-          "extraction_artifact_id": "extract_01f3b26c79c0",
-          "mapped_template_id": null,
-          "template_version": null,
-          "considered_template_ids": [],
-          "mismatch_reasons": {},
-          "final_reason": null,
-          "live_eligible": false,
-          "created_at": "2026-07-07T11:26:09.159107"
-        },
-        {
-          "idea_id": "idea_5f9343ef95d0",
-          "conversation_id": "sess_c398a2b70f53",
-          "workflow_type": "strategy_idea",
-          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_112152",
-          "claimed_entry": "未提取",
-          "claimed_exit": "未提取",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_7e41b3d63a5c",
-          "extraction_artifact_id": "extract_00f3f2c72674",
-          "mapped_template_id": null,
-          "template_version": null,
-          "considered_template_ids": [],
-          "mismatch_reasons": {},
-          "final_reason": null,
-          "live_eligible": false,
-          "created_at": "2026-07-07T11:22:33.778065"
-        },
-        {
-          "idea_id": "idea_58e9f072a089",
-          "conversation_id": "sess_3f6533816b51",
-          "workflow_type": "strategy_idea",
-          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260706_224908",
-          "claimed_entry": "未提取",
-          "claimed_exit": "未提取",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_f7b06a8c0dfc",
-          "extraction_artifact_id": "extract_bfab720c2b60",
-          "mapped_template_id": null,
-          "template_version": null,
-          "considered_template_ids": [],
-          "mismatch_reasons": {},
-          "final_reason": null,
-          "live_eligible": false,
-          "created_at": "2026-07-06T22:49:19.543143"
-        },
-        {
-          "idea_id": "idea_93294ec45694",
-          "conversation_id": "sess_8b2bd291b7ec",
-          "workflow_type": "strategy_idea",
-          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260706_215452",
-          "claimed_entry": "未提取",
-          "claimed_exit": "未提取",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_164e7e8e8a2f",
-          "extraction_artifact_id": "extract_cc7611cd572a",
-          "mapped_template_id": null,
-          "template_version": null,
-          "considered_template_ids": [],
-          "mismatch_reasons": {},
-          "final_reason": null,
-          "live_eligible": false,
-          "created_at": "2026-07-06T21:55:21.011656"
-        },
-        {
-          "idea_id": "idea_a14fd8fbe4f8",
-          "conversation_id": "sess_335f985527e8",
-          "workflow_type": "strategy_idea",
-          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260706_203323",
-          "claimed_entry": "未提取",
-          "claimed_exit": "未提取",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_11f497521fa3",
-          "extraction_artifact_id": "extract_f709e2d4eadd",
-          "mapped_template_id": null,
-          "template_version": null,
-          "considered_template_ids": [],
-          "mismatch_reasons": {},
-          "final_reason": null,
-          "live_eligible": false,
-          "created_at": "2026-07-06T20:33:34.463539"
         }
       ]
     }
@@ -1135,6 +1335,176 @@
     "response": {
       "ideas": [
         {
+          "idea_id": "idea_9521c74277e1",
+          "conversation_id": "sess_c23fbd2ffcde",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_180747",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_a51704a85958",
+          "extraction_artifact_id": "extract_dbcb7cbeed3a",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "candidate_status": "candidate_unapproved",
+          "candidate_reason": "no_approved_template_fit",
+          "required_next_step": "template_approval_required",
+          "created_at": "2026-07-07T18:08:37.179337"
+        },
+        {
+          "idea_id": "idea_bdfefbbef739",
+          "conversation_id": "sess_4f35ba4016c7",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_180616",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_43c250b433d9",
+          "extraction_artifact_id": "extract_da72ca52bde7",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "candidate_status": "candidate_unapproved",
+          "candidate_reason": "no_approved_template_fit",
+          "required_next_step": "template_approval_required",
+          "created_at": "2026-07-07T18:07:14.924931"
+        },
+        {
+          "idea_id": "idea_93b58985ad62",
+          "conversation_id": "sess_31393018d7d6",
+          "workflow_type": "strategy_idea",
+          "original_message": "[P2RUN_20260707_180523] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+          "claimed_entry": "下午两点半后买入",
+          "claimed_exit": "次日早盘卖出",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_824041edd743",
+          "extraction_artifact_id": "extract_36094b1157ec",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "candidate_status": "candidate_unapproved",
+          "candidate_reason": "no_approved_template_fit",
+          "required_next_step": "template_approval_required",
+          "created_at": "2026-07-07T18:06:01.680752"
+        },
+        {
+          "idea_id": "idea_1933717a32cb",
+          "conversation_id": "sess_6d2ed6096c20",
+          "workflow_type": "strategy_idea",
+          "original_message": "[P2RUN_20260707_180155] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+          "claimed_entry": "下午两点半后买入",
+          "claimed_exit": "次日早盘卖出",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_6e2e8fdf4d69",
+          "extraction_artifact_id": "extract_f005b66e8b8b",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "candidate_status": "candidate_unapproved",
+          "candidate_reason": "no_approved_template_fit",
+          "required_next_step": "template_approval_required",
+          "created_at": "2026-07-07T18:02:40.465888"
+        },
+        {
+          "idea_id": "idea_05efd4f1df7a",
+          "conversation_id": "sess_cd982e99a5e8",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_171416",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_aeec9e5ecf45",
+          "extraction_artifact_id": "extract_5e69df5dcb14",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
+          "created_at": "2026-07-07T17:14:56.017155"
+        },
+        {
           "idea_id": "idea_f0f71616e2c2",
           "conversation_id": "sess_24fdb3cc5c6e",
           "workflow_type": "strategy_idea",
@@ -1163,6 +1533,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:13:39.825105"
         },
         {
@@ -1194,6 +1567,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:12:24.226236"
         },
         {
@@ -1225,6 +1601,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:10:50.058856"
         },
         {
@@ -1256,6 +1635,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:07:26.741204"
         },
         {
@@ -1287,6 +1669,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:06:20.714286"
         },
         {
@@ -1318,6 +1703,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:05:04.673704"
         },
         {
@@ -1349,6 +1737,9 @@
           },
           "final_reason": "no_template_fit",
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T17:03:53.546164"
         },
         {
@@ -1370,6 +1761,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T16:36:47.008347"
         },
         {
@@ -1391,6 +1785,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T16:35:35.086900"
         },
         {
@@ -1412,6 +1809,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T16:33:21.584338"
         },
         {
@@ -1433,6 +1833,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T16:17:04.893209"
         },
         {
@@ -1454,6 +1857,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T16:15:29.877106"
         },
         {
@@ -1475,6 +1881,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T16:12:18.398433"
         },
         {
@@ -1496,6 +1905,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T15:16:48.839846"
         },
         {
@@ -1517,6 +1929,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T15:15:55.078774"
         },
         {
@@ -1538,6 +1953,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T15:14:22.695720"
         },
         {
@@ -1559,6 +1977,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:56:32.037663"
         },
         {
@@ -1580,6 +2001,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:51:33.117727"
         },
         {
@@ -1601,6 +2025,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:50:26.992063"
         },
         {
@@ -1622,6 +2049,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:48:59.173988"
         },
         {
@@ -1643,6 +2073,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:47:17.866918"
         },
         {
@@ -1664,6 +2097,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:44:30.850044"
         },
         {
@@ -1685,6 +2121,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:42:28.224117"
         },
         {
@@ -1706,6 +2145,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:38:34.795462"
         },
         {
@@ -1727,6 +2169,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:36:03.874647"
         },
         {
@@ -1748,6 +2193,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:33:35.510529"
         },
         {
@@ -1769,6 +2217,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:00:59.081875"
         },
         {
@@ -1790,6 +2241,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T14:00:10.735759"
         },
         {
@@ -1811,6 +2265,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:59:22.136256"
         },
         {
@@ -1832,6 +2289,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:57:06.128378"
         },
         {
@@ -1853,6 +2313,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:55:34.845565"
         },
         {
@@ -1874,6 +2337,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:54:14.241302"
         },
         {
@@ -1895,6 +2361,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:52:32.182402"
         },
         {
@@ -1916,6 +2385,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:38:57.782351"
         },
         {
@@ -1937,6 +2409,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:37:17.482186"
         },
         {
@@ -1958,6 +2433,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:36:29.689009"
         },
         {
@@ -1979,6 +2457,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:35:07.732859"
         },
         {
@@ -2000,6 +2481,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:33:58.079804"
         },
         {
@@ -2021,6 +2505,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:32:28.111478"
         },
         {
@@ -2042,6 +2529,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T13:00:12.288760"
         },
         {
@@ -2063,6 +2553,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T12:59:18.656169"
         },
         {
@@ -2084,6 +2577,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T12:57:53.906797"
         },
         {
@@ -2105,6 +2601,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T12:41:58.558041"
         },
         {
@@ -2126,6 +2625,9 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T12:37:35.165234"
         },
         {
@@ -2147,112 +2649,10 @@
           "mismatch_reasons": {},
           "final_reason": null,
           "live_eligible": false,
+          "candidate_status": null,
+          "candidate_reason": null,
+          "required_next_step": null,
           "created_at": "2026-07-07T12:34:35.118310"
-        },
-        {
-          "idea_id": "idea_086ec37fd16f",
-          "conversation_id": "sess_b0d1848b75f9",
-          "workflow_type": "strategy_idea",
-          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_112542",
-          "claimed_entry": "未提取",
-          "claimed_exit": "未提取",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_1f21f8dc5d10",
-          "extraction_artifact_id": "extract_01f3b26c79c0",
-          "mapped_template_id": null,
-          "template_version": null,
-          "considered_template_ids": [],
-          "mismatch_reasons": {},
-          "final_reason": null,
-          "live_eligible": false,
-          "created_at": "2026-07-07T11:26:09.159107"
-        },
-        {
-          "idea_id": "idea_5f9343ef95d0",
-          "conversation_id": "sess_c398a2b70f53",
-          "workflow_type": "strategy_idea",
-          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_112152",
-          "claimed_entry": "未提取",
-          "claimed_exit": "未提取",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_7e41b3d63a5c",
-          "extraction_artifact_id": "extract_00f3f2c72674",
-          "mapped_template_id": null,
-          "template_version": null,
-          "considered_template_ids": [],
-          "mismatch_reasons": {},
-          "final_reason": null,
-          "live_eligible": false,
-          "created_at": "2026-07-07T11:22:33.778065"
-        },
-        {
-          "idea_id": "idea_58e9f072a089",
-          "conversation_id": "sess_3f6533816b51",
-          "workflow_type": "strategy_idea",
-          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260706_224908",
-          "claimed_entry": "未提取",
-          "claimed_exit": "未提取",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_f7b06a8c0dfc",
-          "extraction_artifact_id": "extract_bfab720c2b60",
-          "mapped_template_id": null,
-          "template_version": null,
-          "considered_template_ids": [],
-          "mismatch_reasons": {},
-          "final_reason": null,
-          "live_eligible": false,
-          "created_at": "2026-07-06T22:49:19.543143"
-        },
-        {
-          "idea_id": "idea_93294ec45694",
-          "conversation_id": "sess_8b2bd291b7ec",
-          "workflow_type": "strategy_idea",
-          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260706_215452",
-          "claimed_entry": "未提取",
-          "claimed_exit": "未提取",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_164e7e8e8a2f",
-          "extraction_artifact_id": "extract_cc7611cd572a",
-          "mapped_template_id": null,
-          "template_version": null,
-          "considered_template_ids": [],
-          "mismatch_reasons": {},
-          "final_reason": null,
-          "live_eligible": false,
-          "created_at": "2026-07-06T21:55:21.011656"
-        },
-        {
-          "idea_id": "idea_a14fd8fbe4f8",
-          "conversation_id": "sess_335f985527e8",
-          "workflow_type": "strategy_idea",
-          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260706_203323",
-          "claimed_entry": "未提取",
-          "claimed_exit": "未提取",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_11f497521fa3",
-          "extraction_artifact_id": "extract_f709e2d4eadd",
-          "mapped_template_id": null,
-          "template_version": null,
-          "considered_template_ids": [],
-          "mismatch_reasons": {},
-          "final_reason": null,
-          "live_eligible": false,
-          "created_at": "2026-07-06T20:33:34.463539"
         }
       ]
     }

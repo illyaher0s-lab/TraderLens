@@ -6,13 +6,13 @@
     "ok": true
   },
   {
-    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783415821379",
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783419077885",
     "method": "GET",
     "status": 200,
     "ok": true
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783415821379",
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783419077885",
     "method": "GET",
     "status": 200,
     "ok": true
@@ -30,7 +30,7 @@
     "ok": true
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783415821379",
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783419077885",
     "method": "GET",
     "status": 200,
     "ok": true
@@ -42,7 +42,7 @@
     "ok": true
   },
   {
-    "url": "http://localhost:8010/api/agent/workbench/sess_36f8c83aa347",
+    "url": "http://localhost:8010/api/agent/workbench/sess_46b81a2d1bcf",
     "method": "GET",
     "status": 200,
     "ok": true

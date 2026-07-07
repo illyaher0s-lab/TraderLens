@@ -1,0 +1,13 @@
+{
+  "run_id": "P2RUN_20260707_180155",
+  "conversation_id": "sess_6d2ed6096c20",
+  "idea_id": "idea_1933717a32cb",
+  "decision": "rejected",
+  "mapped_template_id": null,
+  "final_reason": "no_template_fit",
+  "live_eligible": false,
+  "candidate_status": "candidate_unapproved",
+  "candidate_reason": "no_approved_template_fit",
+  "required_next_step": "template_approval_required",
+  "verification_timestamp": "2026-07-07T18:03:00.901080"
+}

@@ -7,17 +7,17 @@
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 3.1s
+ ✓ Ready in 13.4s
  ○ Compiling / ...
- ✓ Compiled / in 1135ms (483 modules)
- GET / 200 in 1463ms
+ ✓ Compiled / in 1126ms (483 modules)
+ GET / 200 in 71ms
  ○ Compiling /workbench ...
- ✓ Compiled /workbench in 553ms (505 modules)
- GET /workbench 200 in 771ms
+ ✓ Compiled /workbench in 587ms (505 modules)
+ GET /workbench 200 in 786ms
  ○ Compiling /strategy-ideas/[idea_id] ...
- ✓ Compiled /strategy-ideas/[idea_id] in 753ms (515 modules)
- GET /strategy-ideas/idea_f0f71616e2c2 200 in 1469ms
+ ✓ Compiled /strategy-ideas/[idea_id] in 687ms (515 modules)
+ GET /strategy-ideas/idea_9521c74277e1 200 in 1373ms
  ○ Compiling /rejected-strategies ...
- ✓ Compiled /rejected-strategies in 768ms (521 modules)
- GET /rejected-strategies 200 in 940ms
+ ✓ Compiled /rejected-strategies in 704ms (521 modules)
+ GET /rejected-strategies 200 in 857ms
 [?25h
