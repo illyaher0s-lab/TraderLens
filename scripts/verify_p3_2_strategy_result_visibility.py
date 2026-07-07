@@ -51,6 +51,32 @@ async def main():
     browser = None
 
     try:
+        # Step 0: Check and kill existing processes on ports 8010 and 3000
+        print("Step 0: Checking for existing processes on ports 8010 and 3000...")
+        import socket
+        
+        def is_port_in_use(port):
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                return s.connect_ex(('localhost', port)) == 0
+        
+        if is_port_in_use(8010):
+            print(f"[WARN] Port 8010 is in use, attempting to kill...")
+            subprocess.run(["taskkill", "/F", "/FI", "IMAGENAME eq python.exe"], 
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            time.sleep(2)
+            if is_port_in_use(8010):
+                raise RuntimeError("Port 8010 still in use after kill attempt")
+        
+        if is_port_in_use(3000):
+            print(f"[WARN] Port 3000 is in use, attempting to kill...")
+            subprocess.run(["taskkill", "/F", "/FI", "IMAGENAME eq node.exe"], 
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            time.sleep(2)
+            if is_port_in_use(3000):
+                raise RuntimeError("Port 3000 still in use after kill attempt")
+        
+        print("[OK] Ports 8010 and 3000 are available")
+        
         # Step 1: Start backend
         print("Step 1: Starting backend on port 8010...")
         backend_env = os.environ.copy()
@@ -77,6 +103,14 @@ async def main():
             stderr=subprocess.STDOUT,
         )
         
+        # Verify backend process is still alive after starting
+        time.sleep(2)
+        if backend_process.poll() is not None:
+            backend_log.close()
+            with open(backend_log_path, "r", encoding="utf-8") as f:
+                log_content = f.read()
+            raise RuntimeError(f"Backend process died immediately. Exit code: {backend_process.returncode}\n\nLog:\n{log_content}")
+        
         # Wait for backend to be ready
         max_retries = 30
         for i in range(max_retries):
@@ -97,25 +131,44 @@ async def main():
         frontend_log = open(frontend_log_path, "w", encoding="utf-8")
         
         frontend_process = subprocess.Popen(
-            ["cmd", "/c", "npm", "run", "dev"],
+            ["cmd", "/c", "npm", "run", "dev", "--", "--port", "3000"],
             cwd=PROJECT_ROOT / "frontend",
             stdout=frontend_log,
             stderr=subprocess.STDOUT,
         )
         
-        # Wait for frontend
+        # Verify frontend process is still alive after starting
+        time.sleep(2)
+        if frontend_process.poll() is not None:
+            frontend_log.close()
+            with open(frontend_log_path, "r", encoding="utf-8") as f:
+                log_content = f.read()
+            raise RuntimeError(f"Frontend process died immediately. Exit code: {frontend_process.returncode}\n\nLog:\n{log_content}")
+        
+        # Wait for frontend - must be on port 3000
         max_retries = 60
+        frontend_ready = False
         for i in range(max_retries):
             try:
                 import urllib.request
+                # Must be exactly port 3000, not 3001/3004
                 response = urllib.request.urlopen("http://localhost:3000", timeout=2)
                 if response.status == 200:
-                    print(f"[OK] Frontend ready after {i+1} attempts")
+                    print(f"[OK] Frontend ready on port 3000 after {i+1} attempts")
+                    frontend_ready = True
                     break
-            except:
+            except Exception as e:
+                if frontend_process.poll() is not None:
+                    frontend_log.close()
+                    with open(frontend_log_path, "r", encoding="utf-8") as f:
+                        log_content = f.read()
+                    raise RuntimeError(f"Frontend process died while waiting. Exit code: {frontend_process.returncode}\n\nLog:\n{log_content}")
                 if i == max_retries - 1:
-                    raise TimeoutError("Frontend failed to start after 60 seconds")
+                    raise TimeoutError("Frontend failed to start on port 3000 after 60 seconds")
                 time.sleep(1)
+        
+        if not frontend_ready:
+            raise RuntimeError("Frontend did not become ready on port 3000")
 
         # Step 3: Submit strategy idea via Workbench (browser)
         print("\nStep 3: Opening Workbench in browser...")
