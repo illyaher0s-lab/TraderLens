@@ -5,7 +5,7 @@
     "method": "POST"
   },
   {
-    "url": "http://localhost:8010/api/agent/workbench/sess_b0d1848b75f9",
+    "url": "http://localhost:8010/api/agent/workbench/sess_579464f30055",
     "status": 200,
     "method": "GET"
   }

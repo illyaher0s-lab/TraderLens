@@ -1,13 +1,13 @@
-INFO:     Started server process [532]
+INFO:     Started server process [37720]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8010 (Press CTRL+C to quit)
 Research API starting in DETERMINISTIC mode (fake agents for testing, Serenity=stub)
-INFO:     127.0.0.1:58084 - "GET /api/health/runtime HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52743 - "OPTIONS /api/agent/workbench/message HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52743 - "POST /api/agent/workbench/message HTTP/1.1" 200 OK
-INFO:     127.0.0.1:52743 - "GET /api/agent/workbench/sess_751a5cf8f17a HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51610 - "GET /api/observations?status=open HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63336 - "GET /api/observations?status=open HTTP/1.1" 200 OK
-INFO:     127.0.0.1:55152 - "GET /api/observations?status=open HTTP/1.1" 200 OK
-INFO:     127.0.0.1:65264 - "GET /api/health/runtime HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60089 - "GET /api/health/runtime HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52997 - "OPTIONS /api/agent/workbench/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52997 - "POST /api/agent/workbench/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52997 - "GET /api/agent/workbench/sess_f8f875dd24e4 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62884 - "GET /api/observations?status=open HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56361 - "GET /api/observations?status=open HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56701 - "GET /api/observations?status=open HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59744 - "GET /api/health/runtime HTTP/1.1" 200 OK

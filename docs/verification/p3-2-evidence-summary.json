@@ -1,9 +1,10 @@
 {
-  "timestamp": "2026-07-07T11:22:46.567396",
-  "run_id": "P2RUN_20260707_112152",
-  "conversation_id": "sess_c398a2b70f53",
-  "idea_id": "idea_5f9343ef95d0",
+  "timestamp": "2026-07-07T12:59:31.099851",
+  "run_id": "P2RUN_20260707_125840",
+  "conversation_id": "sess_a60685802896",
+  "idea_id": "idea_e80224c378e4",
   "workflow_type": "strategy_idea",
+  "route_decision_workflow_kind": "strategy_idea",
   "decision": "rejected",
   "verification": {
     "workbench_submission": "[OK]",
@@ -19,6 +20,7 @@
     "p3-2-result-api-detail.json",
     "p3-2-result-api-list.json",
     "p3-2-result-dom.md",
+    "p3-2-result-network-log.json",
     "p3-2-backend-log.txt",
     "p3-2-frontend-log.txt"
   ]

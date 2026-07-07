@@ -1,17 +1,17 @@
 {
-  "conversation_id": "sess_b0d1848b75f9",
+  "conversation_id": "sess_579464f30055",
   "workflow_type": "strategy_idea",
   "stage": "created",
   "agent_reply": "已提取策略想法：\n入场条件：未提取\n出场条件：未提取\n当前系统暂无已批准模板库。策略想法已记录，但不可用于实盘交易。\n该策略想法已记录到拒绝注册表，不会生成交易信号。",
   "approval_card": null,
   "artifact_ids": [
-    "idea_086ec37fd16f",
-    "extract_01f3b26c79c0",
-    "mapping_1f21f8dc5d10",
-    "idea_086ec37fd16f_rejected",
-    "msg_f215d9b8c116",
-    "msg_9bbc47a42168",
-    "intent_sess_b0d1848b75f9"
+    "idea_d3f3c4ee7c97",
+    "extract_230dfe820bf6",
+    "mapping_24fb2f6f9888",
+    "idea_d3f3c4ee7c97_rejected",
+    "msg_d41e990f924c",
+    "msg_11e8e4320381",
+    "intent_sess_579464f30055"
   ],
   "next_required_user_action": "wait_for_extraction"
 }

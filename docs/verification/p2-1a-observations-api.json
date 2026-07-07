@@ -1,14 +1,14 @@
 {
   "positions": [
     {
-      "position_id": "pos_e03f39e28f60",
+      "position_id": "pos_d2ff77b5169c",
       "symbol": "603002.SH",
       "name": "宏昌电子",
       "entry_price": 12.34,
       "quantity": 100,
-      "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260707_112252",
+      "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260707_130030",
       "lifecycle_state": "open",
-      "opened_at": "2026-07-07T11:23:23.488069",
+      "opened_at": "2026-07-07T13:00:58.865000",
       "closed_at": null,
       "template_id": "template_execution_feedback_v1",
       "latest_signal": null
@@ -26,7 +26,7 @@
       "template_id": "",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -45,7 +45,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -64,7 +64,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -83,7 +83,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -102,7 +102,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -121,7 +121,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -140,7 +140,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -159,7 +159,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -178,7 +178,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -197,7 +197,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -216,7 +216,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -235,7 +235,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -254,7 +254,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -273,7 +273,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -292,7 +292,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -311,7 +311,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -330,7 +330,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -349,7 +349,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -368,7 +368,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -387,7 +387,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -406,7 +406,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -425,7 +425,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -444,7 +444,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -463,7 +463,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -482,7 +482,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -501,7 +501,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []
@@ -520,7 +520,7 @@
       "template_id": "template_execution_feedback_v1",
       "latest_signal": {
         "signal_type": "hold",
-        "as_of_date": "2026-07-06T00:00:00",
+        "as_of_date": "2026-07-07T00:00:00",
         "market_data_state": "ok",
         "plain_explanation": null,
         "triggered_invalidations": []

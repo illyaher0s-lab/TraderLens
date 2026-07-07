@@ -33,6 +33,78 @@ def generate_run_id():
     return f"P2RUN_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
 
+def read_route_decision_workflow_kind(db_path: Path, conversation_id: str) -> str:
+    """Read the persisted router decision for a workbench conversation."""
+    import sqlite3
+
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT content FROM agent_artifact_refs
+            WHERE session_id = ? AND artifact_type = 'workflow_route_decision'
+            ORDER BY created_at DESC LIMIT 1
+            """,
+            (conversation_id,),
+        )
+        route_row = cursor.fetchone()
+    finally:
+        conn.close()
+
+    assert route_row and route_row["content"], (
+        f"Missing persisted workflow_route_decision artifact for {conversation_id}"
+    )
+
+    route_decision = json.loads(route_row["content"])
+    workflow_kind = route_decision.get("workflow_kind")
+    assert workflow_kind, (
+        f"workflow_route_decision artifact for {conversation_id} has no workflow_kind"
+    )
+    return workflow_kind
+
+
+def is_port_in_use(port: int) -> bool:
+    import socket
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(("localhost", port)) == 0
+
+
+def get_port_pids(port: int) -> list[int]:
+    command = (
+        f"Get-NetTCPConnection -LocalPort {port} -ErrorAction SilentlyContinue "
+        "| Select-Object -ExpandProperty OwningProcess -Unique"
+    )
+    result = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", command],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return []
+    pids = []
+    for line in result.stdout.splitlines():
+        line = line.strip()
+        if line.isdigit():
+            pids.append(int(line))
+    return pids
+
+
+def release_port(port: int) -> None:
+    pids = get_port_pids(port)
+    for pid in pids:
+        subprocess.run(
+            ["taskkill", "/F", "/PID", str(pid)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    time.sleep(2)
+    if is_port_in_use(port):
+        raise RuntimeError(f"Port {port} still in use after targeted kill attempt")
+
+
 async def main():
     run_id = generate_run_id()
     print(f"\n{'='*100}")
@@ -53,27 +125,14 @@ async def main():
     try:
         # Step 0: Check and kill existing processes on ports 8010 and 3000
         print("Step 0: Checking for existing processes on ports 8010 and 3000...")
-        import socket
-        
-        def is_port_in_use(port):
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                return s.connect_ex(('localhost', port)) == 0
-        
+
         if is_port_in_use(8010):
-            print(f"[WARN] Port 8010 is in use, attempting to kill...")
-            subprocess.run(["taskkill", "/F", "/FI", "IMAGENAME eq python.exe"], 
-                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            time.sleep(2)
-            if is_port_in_use(8010):
-                raise RuntimeError("Port 8010 still in use after kill attempt")
+            print("[WARN] Port 8010 is in use, attempting targeted kill...")
+            release_port(8010)
         
         if is_port_in_use(3000):
-            print(f"[WARN] Port 3000 is in use, attempting to kill...")
-            subprocess.run(["taskkill", "/F", "/FI", "IMAGENAME eq node.exe"], 
-                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            time.sleep(2)
-            if is_port_in_use(3000):
-                raise RuntimeError("Port 3000 still in use after kill attempt")
+            print("[WARN] Port 3000 is in use, attempting targeted kill...")
+            release_port(3000)
         
         print("[OK] Ports 8010 and 3000 are available")
         
@@ -276,46 +335,10 @@ async def main():
 
             # Verify route_decision.workflow_kind from intent artifact
             print(f"\n[Verifying route_decision.workflow_kind from DB...]")
-            import sqlite3
             db_path = PROJECT_ROOT / "data" / "research.db"
-            conn = sqlite3.connect(db_path)
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            
-            # Try to find intent artifact with route_decision
-            cursor.execute("""
-                SELECT content FROM agent_artifact_refs
-                WHERE session_id = ? AND artifact_type = 'workflow_intent'
-                ORDER BY created_at DESC LIMIT 1
-            """, (conversation_id,))
-            intent_row = cursor.fetchone()
-            
-            route_decision_workflow_kind = None
-            if intent_row and intent_row["content"]:
-                intent_data = json.loads(intent_row["content"])
-                route_decision = intent_data.get("route_decision", {})
-                route_decision_workflow_kind = route_decision.get("workflow_kind")
-            
-            # If not found in intent artifact, try reading from artifact with id pattern intent_*
-            if not route_decision_workflow_kind:
-                cursor.execute("""
-                    SELECT artifact_id, content FROM agent_artifact_refs
-                    WHERE session_id = ? AND artifact_id LIKE 'intent_%'
-                    ORDER BY created_at DESC LIMIT 1
-                """, (conversation_id,))
-                intent_by_id_row = cursor.fetchone()
-                if intent_by_id_row and intent_by_id_row["content"]:
-                    intent_data = json.loads(intent_by_id_row["content"])
-                    route_decision = intent_data.get("route_decision", {})
-                    route_decision_workflow_kind = route_decision.get("workflow_kind")
-            
-            conn.close()
-            
-            if not route_decision_workflow_kind:
-                # Fallback: if we can't find route_decision, at least verify workflow_type was set correctly
-                print(f"[WARN] route_decision.workflow_kind not found in DB, using workflow_type as fallback")
-                route_decision_workflow_kind = workflow_type
-            
+            route_decision_workflow_kind = read_route_decision_workflow_kind(
+                db_path, conversation_id
+            )
             assert route_decision_workflow_kind == "strategy_idea", \
                 f"route_decision.workflow_kind must be 'strategy_idea', got '{route_decision_workflow_kind}'"
             print(f"[OK] route_decision.workflow_kind = {route_decision_workflow_kind} (verified)")
@@ -476,6 +499,7 @@ async def main():
             "conversation_id": conversation_id,
             "idea_id": idea_id,
             "workflow_type": workflow_type,
+            "route_decision_workflow_kind": route_decision_workflow_kind,
             "decision": detail_data["decision"],
             "verification": {
                 "workbench_submission": "[OK]",
