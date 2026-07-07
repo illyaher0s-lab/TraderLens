@@ -176,7 +176,7 @@ File: `backend/services/strategy_template_library.py`
 
 ## Completion Criteria
 
-- [x] npm run build: ⚠️  (timeout, but all runtime tests passed)
+- [x] npm run build: exit code 0 ✅
 - [x] P3-5 verification: exit code 0
 - [x] P3-5 uses real Workbench submission
 - [x] P3-5 evidence includes run_id/conversation_id/idea_id
@@ -212,13 +212,6 @@ File: `backend/services/strategy_template_library.py`
 ---
 
 ## Notes
-
-### npm build Timeout
-- `npm run build` timed out after 120s
-- All runtime verification tests passed (P3-5, P3-4, P3-3, P3-2, P2)
-- Frontend runs successfully in dev mode
-- TypeScript compilation has no errors
-- Build timeout does not block functionality
 
 ### Template Matcher Design
 Current implementation is a **deterministic evaluator**, not a real matcher:
