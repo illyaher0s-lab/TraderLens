@@ -1,0 +1,58 @@
+[
+  {
+    "url": "http://localhost:3000/strategies",
+    "method": "GET",
+    "timestamp": "2026-07-07T22:04:47.426747",
+    "status": 200
+  },
+  {
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783433088757",
+    "method": "GET",
+    "timestamp": "2026-07-07T22:04:48.875094",
+    "status": 200
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783433088757",
+    "method": "GET",
+    "timestamp": "2026-07-07T22:04:48.875094",
+    "status": 200
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783433088757",
+    "method": "GET",
+    "timestamp": "2026-07-07T22:04:48.875094",
+    "status": 200
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+    "method": "GET",
+    "timestamp": "2026-07-07T22:04:48.875094",
+    "status": 200
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/app/strategies/page.js",
+    "method": "GET",
+    "timestamp": "2026-07-07T22:04:48.875094",
+    "status": 200
+  },
+  {
+    "url": "http://localhost:8010/api/strategies",
+    "method": "GET",
+    "timestamp": "2026-07-07T22:04:49.294911",
+    "status": 200,
+    "response_body": {
+      "strategies": [],
+      "count": 0
+    }
+  },
+  {
+    "url": "http://localhost:8010/api/strategies",
+    "method": "GET",
+    "timestamp": "2026-07-07T22:04:49.294911",
+    "status": 200,
+    "response_body": {
+      "strategies": [],
+      "count": 0
+    }
+  }
+]
