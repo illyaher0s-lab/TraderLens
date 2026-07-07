@@ -94,7 +94,7 @@ def list_ideas(conversation_id: str = None):
             
             # Get extraction artifact
             cursor.execute("""
-                SELECT content FROM agent_artifact_refs
+                SELECT artifact_id, content FROM agent_artifact_refs
                 WHERE session_id = ? AND artifact_type = 'strategy_idea_extraction'
                 ORDER BY created_at DESC LIMIT 1
             """, (session_id,))
@@ -103,7 +103,7 @@ def list_ideas(conversation_id: str = None):
             
             # Get mapping artifact
             cursor.execute("""
-                SELECT content FROM agent_artifact_refs
+                SELECT artifact_id, content FROM agent_artifact_refs
                 WHERE session_id = ? AND artifact_type = 'strategy_template_mapping'
                 ORDER BY created_at DESC LIMIT 1
             """, (session_id,))
