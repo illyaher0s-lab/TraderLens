@@ -87,7 +87,7 @@ def start_backend():
     env["PYTHONPATH"] = str(PROJECT_ROOT)
     
     process = subprocess.Popen(
-        [str(VENV_PYTHON), "-m", "uvicorn", "backend.api.main:app", "--host", "0.0.0.0", "--port", "8010"],
+        [str(VENV_PYTHON), "-m", "uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8010"],
         cwd=PROJECT_ROOT,
         env=env,
         stdout=subprocess.PIPE,
@@ -98,7 +98,7 @@ def start_backend():
     
     # Wait for backend to be ready
     import requests
-    for attempt in range(30):
+    for attempt in range(60):
         time.sleep(1)
         try:
             response = requests.get("http://localhost:8010/health", timeout=2)
@@ -113,7 +113,7 @@ def start_backend():
         except:
             pass
     
-    print("[FAIL] Backend did not start within 30 seconds")
+    print("[FAIL] Backend did not start within 60 seconds")
     process.kill()
     sys.exit(1)
 

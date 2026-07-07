@@ -148,8 +148,8 @@ def list_ideas(conversation_id: str = None):
                 "rejection_reason": rejection_reason,
                 "mapping_artifact_id": mapping_row["artifact_id"] if mapping_row else None,
                 "extraction_artifact_id": extraction_row["artifact_id"] if extraction_row else None,
-                "mapped_template_id": mapping.get("matched_template_id"),
-                "template_version": mapping.get("template_version"),
+                "mapped_template_id": mapping.get("matched_template_id") if mapping else None,
+                "template_version": mapping.get("template_version") if mapping else None,
                 "created_at": created_at,
             })
         
