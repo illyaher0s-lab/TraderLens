@@ -132,6 +132,7 @@ def list_ideas(conversation_id: str = None):
             ideas.append({
                 "idea_id": idea_id,
                 "conversation_id": session_id,
+                "workflow_type": "strategy_idea",
                 "original_message": original_message,
                 "claimed_entry": extraction.get("claimed_entry", "未提取"),
                 "claimed_exit": extraction.get("claimed_exit", "未提取"),
@@ -229,6 +230,7 @@ def get_idea(idea_id: str):
         return {
             "idea_id": idea_id,
             "conversation_id": session_id,
+            "workflow_type": "strategy_idea",
             "original_message": original_message,
             "agent_reply": agent_reply,
             "extraction": extraction,

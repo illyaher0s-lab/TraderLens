@@ -185,9 +185,12 @@ async def main():
             workflow_type = workbench_response.get("workflow_type")
             artifact_ids = workbench_response.get("artifact_ids", [])
             
+            # Red line: workflow_type must equal strategy_idea
+            assert workflow_type == "strategy_idea", f"workflow_type must be 'strategy_idea', got '{workflow_type}'"
+            
             print(f"\n[OK] Workbench Response:")
             print(f"  conversation_id: {conversation_id}")
-            print(f"  workflow_type: {workflow_type}")
+            print(f"  workflow_type: {workflow_type} (verified)")
             print(f"  artifact_ids: {len(artifact_ids)} artifacts")
 
             # Find idea_id from artifacts
@@ -202,6 +205,31 @@ async def main():
             
             print(f"  idea_id: {idea_id}")
 
+            # Verify route_decision.workflow_kind from intent artifact
+            print(f"\n[Verifying route_decision.workflow_kind from DB...]")
+            import sqlite3
+            db_path = PROJECT_ROOT / "data" / "research.db"
+            conn = sqlite3.connect(db_path)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT content FROM agent_artifact_refs
+                WHERE session_id = ? AND artifact_type = 'workflow_intent'
+                ORDER BY created_at DESC LIMIT 1
+            """, (conversation_id,))
+            intent_row = cursor.fetchone()
+            conn.close()
+            
+            route_decision_workflow_kind = None
+            if intent_row and intent_row["content"]:
+                intent_data = json.loads(intent_row["content"])
+                route_decision = intent_data.get("route_decision", {})
+                route_decision_workflow_kind = route_decision.get("workflow_kind")
+            
+            assert route_decision_workflow_kind == "strategy_idea", \
+                f"route_decision.workflow_kind must be 'strategy_idea', got '{route_decision_workflow_kind}'"
+            print(f"[OK] route_decision.workflow_kind = {route_decision_workflow_kind} (verified)")
+            
             # Save workbench response
             workbench_response_path = evidence_dir / "p3-2-workbench-response.json"
             with open(workbench_response_path, "w", encoding="utf-8") as f:
@@ -233,10 +261,12 @@ async def main():
                 # Verify fields
                 assert detail_data["idea_id"] == idea_id, "idea_id mismatch"
                 assert detail_data["conversation_id"] == conversation_id, "conversation_id mismatch"
+                assert detail_data["workflow_type"] == "strategy_idea", f"detail API workflow_type must be 'strategy_idea', got '{detail_data.get('workflow_type')}'"
                 assert detail_data["decision"] in ["accepted", "rejected"], "Invalid decision"
                 assert run_id in detail_data["original_message"], f"run_id {run_id} not in original_message"
                 
                 print(f"  [OK] idea_id: {detail_data['idea_id']}")
+                print(f"  [OK] workflow_type: {detail_data['workflow_type']} (verified)")
                 print(f"  [OK] decision: {detail_data['decision']}")
                 print(f"  [OK] run_id found in original_message")
                 print(f"  [OK] extraction: {detail_data.get('extraction', {}).get('claimed_entry', 'N/A')}")
@@ -269,10 +299,12 @@ async def main():
                         break
                 
                 assert our_idea is not None, f"idea_id {idea_id} not found in list"
+                assert our_idea["workflow_type"] == "strategy_idea", f"list API workflow_type must be 'strategy_idea', got '{our_idea.get('workflow_type')}'"
                 assert run_id in our_idea["original_message"], f"run_id {run_id} not in list item"
                 
                 print(f"  [OK] Found {len(ideas)} idea(s)")
                 print(f"  [OK] idea_id {idea_id} found in list")
+                print(f"  [OK] workflow_type: {our_idea['workflow_type']} (verified)")
                 print(f"  [OK] run_id found in list item")
                 
             except urllib.error.HTTPError as e:
@@ -281,11 +313,45 @@ async def main():
             # Step 6: Verify /strategy-ideas page DOM
             print(f"\nStep 6: Verifying /strategy-ideas page...")
             
+            # Capture network requests for result page
+            result_page_responses = []
+            
+            async def capture_result_page_response(response):
+                if "/api/" in response.url:
+                    try:
+                        body = await response.json()
+                        result_page_responses.append({
+                            "url": response.url,
+                            "status": response.status,
+                            "body": body,
+                        })
+                    except:
+                        result_page_responses.append({
+                            "url": response.url,
+                            "status": response.status,
+                            "body": None,
+                        })
+            
+            page.on("response", capture_result_page_response)
+            
             await page.goto(f"http://localhost:3000/strategy-ideas?conversation_id={conversation_id}", 
                           wait_until="domcontentloaded", timeout=30000)
             print("[OK] Strategy ideas page loaded")
 
             await asyncio.sleep(2)
+            
+            # Save result page network log
+            result_network_log_path = evidence_dir / "p3-2-result-network-log.json"
+            with open(result_network_log_path, "w", encoding="utf-8") as f:
+                json.dump(result_page_responses, f, indent=2, ensure_ascii=False)
+            print(f"[OK] Saved result page network log to {result_network_log_path}")
+            
+            # Verify all API requests point to localhost:8010
+            for req in result_page_responses:
+                url = req["url"]
+                if "/api/" in url:
+                    assert "localhost:8010" in url, f"API request must point to localhost:8010, got: {url}"
+            print(f"[OK] All API requests point to localhost:8010")
 
             # Capture page content
             page_dom = await page.inner_text("body")
@@ -335,6 +401,7 @@ async def main():
                 "p3-2-result-api-detail.json",
                 "p3-2-result-api-list.json",
                 "p3-2-result-dom.md",
+                "p3-2-result-network-log.json",
                 "p3-2-backend-log.txt",
                 "p3-2-frontend-log.txt",
             ],

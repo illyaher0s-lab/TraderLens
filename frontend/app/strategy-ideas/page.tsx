@@ -10,7 +10,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -25,7 +25,7 @@ interface StrategyIdea {
   created_at: string;
 }
 
-export default function StrategyIdeasPage() {
+function StrategyIdeasContent() {
   const searchParams = useSearchParams();
   const conversationId = searchParams.get("conversation_id");
   
@@ -194,6 +194,14 @@ export default function StrategyIdeasPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function StrategyIdeasPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: "32px", textAlign: "center" }}>加载中...</div>}>
+      <StrategyIdeasContent />
+    </Suspense>
   );
 }
 
