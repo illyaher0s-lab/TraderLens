@@ -177,17 +177,25 @@ function StrategyIdeasContent() {
                 </div>
               </div>
 
-              {/* IDs for debugging */}
+              {/* Footer Actions */}
               <div style={styles.cardFooter}>
                 <span style={styles.cardFooterText}>
                   Idea ID: {idea.idea_id}
                 </span>
-                <Link 
-                  href={`/workbench?conversation_id=${idea.conversation_id}`}
-                  style={styles.cardFooterLink}
-                >
-                  查看对话 →
-                </Link>
+                <div style={styles.cardFooterActions}>
+                  <Link 
+                    href={`/strategy-ideas/${idea.idea_id}`}
+                    style={styles.cardFooterLink}
+                  >
+                    查看详情
+                  </Link>
+                  <Link 
+                    href={`/workbench?conversation_id=${idea.conversation_id}`}
+                    style={styles.cardFooterLink}
+                  >
+                    查看对话 →
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
@@ -369,6 +377,10 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "10px",
     fontWeight: 400,
     color: "#808080",
+  },
+  cardFooterActions: {
+    display: "flex",
+    gap: "12px",
   },
   cardFooterLink: {
     fontSize: "12px",

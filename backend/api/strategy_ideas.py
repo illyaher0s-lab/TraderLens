@@ -129,6 +129,12 @@ def list_ideas(conversation_id: str = None):
             message_row = cursor.fetchone()
             original_message = message_row["content"] if message_row else ""
             
+            # Get rejection reason if rejected
+            rejection_reason = None
+            if rejection_row:
+                rejection_data = json.loads(rejection_row["content"]) if rejection_row["content"] else {}
+                rejection_reason = rejection_data.get("rejection_reason", "unknown")
+            
             ideas.append({
                 "idea_id": idea_id,
                 "conversation_id": session_id,
@@ -136,8 +142,14 @@ def list_ideas(conversation_id: str = None):
                 "original_message": original_message,
                 "claimed_entry": extraction.get("claimed_entry", "未提取"),
                 "claimed_exit": extraction.get("claimed_exit", "未提取"),
+                "claimed_edge": extraction.get("claimed_edge", "未提取"),
                 "decision": decision,
                 "path_type": mapping.get("path_type", "unknown"),
+                "rejection_reason": rejection_reason,
+                "mapping_artifact_id": mapping_row["artifact_id"] if mapping_row else None,
+                "extraction_artifact_id": extraction_row["artifact_id"] if extraction_row else None,
+                "mapped_template_id": mapping.get("matched_template_id"),
+                "template_version": mapping.get("template_version"),
                 "created_at": created_at,
             })
         
@@ -227,6 +239,18 @@ def get_idea(idea_id: str):
         reply_row = cursor.fetchone()
         agent_reply = reply_row["content"] if reply_row else ""
         
+        # Extract artifact IDs
+        extraction_artifact_id = extraction_row["artifact_id"] if extraction_row else None
+        mapping_artifact_id = mapping_row["artifact_id"] if mapping_row else None
+        rejection_artifact_id = rejection_row["artifact_id"] if rejection_row else None
+        
+        # Extract key fields from artifacts
+        rejection_reason = rejection.get("rejection_reason") if rejection else None
+        mapped_template_id = mapping.get("matched_template_id") if mapping else None
+        template_version = mapping.get("template_version") if mapping else None
+        path_type = mapping.get("path_type") if mapping else "unknown"
+        mapping_reason = mapping.get("mapping_reason") if mapping else None
+        
         return {
             "idea_id": idea_id,
             "conversation_id": session_id,
@@ -237,6 +261,14 @@ def get_idea(idea_id: str):
             "mapping": mapping,
             "rejection": rejection,
             "decision": "rejected" if rejection else "accepted",
+            "rejection_reason": rejection_reason,
+            "path_type": path_type,
+            "mapping_reason": mapping_reason,
+            "mapped_template_id": mapped_template_id,
+            "template_version": template_version,
+            "extraction_artifact_id": extraction_artifact_id,
+            "mapping_artifact_id": mapping_artifact_id,
+            "rejection_artifact_id": rejection_artifact_id,
             "created_at": created_at,
         }
         
