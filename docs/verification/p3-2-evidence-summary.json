@@ -1,0 +1,25 @@
+{
+  "timestamp": "2026-07-07T11:22:46.567396",
+  "run_id": "P2RUN_20260707_112152",
+  "conversation_id": "sess_c398a2b70f53",
+  "idea_id": "idea_5f9343ef95d0",
+  "workflow_type": "strategy_idea",
+  "decision": "rejected",
+  "verification": {
+    "workbench_submission": "[OK]",
+    "detail_api": "[OK]",
+    "list_api": "[OK]",
+    "page_dom": "[OK]",
+    "run_id_visible": "[OK]"
+  },
+  "evidence_files": [
+    "p3-2-workbench-dom.md",
+    "p3-2-workbench-response.json",
+    "p3-2-workbench-network-log.json",
+    "p3-2-result-api-detail.json",
+    "p3-2-result-api-list.json",
+    "p3-2-result-dom.md",
+    "p3-2-backend-log.txt",
+    "p3-2-frontend-log.txt"
+  ]
+}

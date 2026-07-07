@@ -1,15 +1,15 @@
 # P2-1D Observations DOM Evidence
 
-**Timestamp**: 2026-07-06T21:59:03.609512
+**Timestamp**: 2026-07-07T11:25:34.821649
 
 **URL**: http://localhost:3000/observations?status=closed
 
-**Position ID**: pos_abe619d8ae1f
+**Position ID**: pos_5572e039f2ab
 
 **Position found in DOM**: Yes
 
 ## Sample DOM Content
 
 ```html
- flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;"><div><h3 style="font-size: 18px; font-weight: 600; letter-spacing: -0.32px; color: rgb(23, 23, 23); margin: 0px;">宏昌电子 (603002.SH)</h3><p style="font-size: 12px; font-weight: 400; color: rgb(128, 128, 128); margin-top: 4px; margin-bottom: 0px;">2026/7/6 开仓</p></div><span style="display: inline-block; padding: 2px
+ flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;"><div><h3 style="font-size: 18px; font-weight: 600; letter-spacing: -0.32px; color: rgb(23, 23, 23); margin: 0px;">宏昌电子 (603002.SH)</h3><p style="font-size: 12px; font-weight: 400; color: rgb(128, 128, 128); margin-top: 4px; margin-bottom: 0px;">2026/7/7 开仓</p></div><span style="display: inline-block; padding: 2px
 ```

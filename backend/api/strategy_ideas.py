@@ -4,6 +4,7 @@ Strategy Ideas API
 REST endpoints for strategy idea flow.
 """
 
+import json
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -44,11 +45,201 @@ def create_idea(request: CreateIdeaRequest):
     }
 
 
+@router.get("")
+def list_ideas(conversation_id: str = None):
+    """
+    List strategy ideas, optionally filtered by conversation_id.
+    
+    Queries agent_artifact_refs for strategy_idea artifacts.
+    """
+    import sqlite3
+    from pathlib import Path
+    
+    db_path = Path(__file__).parent.parent.parent / "data" / "research.db"
+    
+    if not db_path.exists():
+        return {"ideas": []}
+    
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    
+    try:
+        cursor = conn.cursor()
+        
+        # Query strategy_idea artifacts
+        if conversation_id:
+            cursor.execute("""
+                SELECT artifact_id, session_id, content, created_at
+                FROM agent_artifact_refs
+                WHERE artifact_type = 'strategy_idea'
+                  AND session_id = ?
+                ORDER BY created_at DESC
+            """, (conversation_id,))
+        else:
+            cursor.execute("""
+                SELECT artifact_id, session_id, content, created_at
+                FROM agent_artifact_refs
+                WHERE artifact_type = 'strategy_idea'
+                ORDER BY created_at DESC
+                LIMIT 50
+            """)
+        
+        rows = cursor.fetchall()
+        ideas = []
+        
+        for row in rows:
+            idea_id = row["artifact_id"]
+            session_id = row["session_id"]
+            created_at = row["created_at"]
+            
+            # Get extraction artifact
+            cursor.execute("""
+                SELECT content FROM agent_artifact_refs
+                WHERE session_id = ? AND artifact_type = 'strategy_idea_extraction'
+                ORDER BY created_at DESC LIMIT 1
+            """, (session_id,))
+            extraction_row = cursor.fetchone()
+            extraction = json.loads(extraction_row["content"]) if extraction_row and extraction_row["content"] else {}
+            
+            # Get mapping artifact
+            cursor.execute("""
+                SELECT content FROM agent_artifact_refs
+                WHERE session_id = ? AND artifact_type = 'strategy_template_mapping'
+                ORDER BY created_at DESC LIMIT 1
+            """, (session_id,))
+            mapping_row = cursor.fetchone()
+            mapping = json.loads(mapping_row["content"]) if mapping_row and mapping_row["content"] else {}
+            
+            # Check for rejection
+            cursor.execute("""
+                SELECT content FROM agent_artifact_refs
+                WHERE session_id = ? AND artifact_type = 'strategy_idea_rejected'
+                ORDER BY created_at DESC LIMIT 1
+            """, (session_id,))
+            rejection_row = cursor.fetchone()
+            
+            decision = "rejected" if rejection_row else "accepted"
+            
+            # Get original message
+            cursor.execute("""
+                SELECT content FROM agent_messages
+                WHERE session_id = ? AND role = 'user'
+                ORDER BY created_at ASC LIMIT 1
+            """, (session_id,))
+            message_row = cursor.fetchone()
+            original_message = message_row["content"] if message_row else ""
+            
+            ideas.append({
+                "idea_id": idea_id,
+                "conversation_id": session_id,
+                "original_message": original_message,
+                "claimed_entry": extraction.get("claimed_entry", "未提取"),
+                "claimed_exit": extraction.get("claimed_exit", "未提取"),
+                "decision": decision,
+                "path_type": mapping.get("path_type", "unknown"),
+                "created_at": created_at,
+            })
+        
+        return {"ideas": ideas}
+        
+    finally:
+        conn.close()
+
+
 @router.get("/{idea_id}")
 def get_idea(idea_id: str):
-    """Get strategy idea status and full chain."""
-    # Placeholder - would fetch from DB
-    raise HTTPException(status_code=501, detail="Not implemented")
+    """
+    Get strategy idea detail with full artifact chain.
+    
+    Returns: idea, extraction, mapping, rejection (if exists).
+    """
+    import sqlite3
+    from pathlib import Path
+    
+    db_path = Path(__file__).parent.parent.parent / "data" / "research.db"
+    
+    if not db_path.exists():
+        raise HTTPException(status_code=404, detail="Database not found")
+    
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    
+    try:
+        cursor = conn.cursor()
+        
+        # Get idea artifact
+        cursor.execute("""
+            SELECT artifact_id, session_id, content, created_at
+            FROM agent_artifact_refs
+            WHERE artifact_id = ? AND artifact_type = 'strategy_idea'
+        """, (idea_id,))
+        
+        idea_row = cursor.fetchone()
+        if not idea_row:
+            raise HTTPException(status_code=404, detail="Strategy idea not found")
+        
+        session_id = idea_row["session_id"]
+        created_at = idea_row["created_at"]
+        
+        # Get extraction
+        cursor.execute("""
+            SELECT artifact_id, content, created_at FROM agent_artifact_refs
+            WHERE session_id = ? AND artifact_type = 'strategy_idea_extraction'
+            ORDER BY created_at DESC LIMIT 1
+        """, (session_id,))
+        extraction_row = cursor.fetchone()
+        extraction = json.loads(extraction_row["content"]) if extraction_row and extraction_row["content"] else None
+        
+        # Get mapping
+        cursor.execute("""
+            SELECT artifact_id, content, created_at FROM agent_artifact_refs
+            WHERE session_id = ? AND artifact_type = 'strategy_template_mapping'
+            ORDER BY created_at DESC LIMIT 1
+        """, (session_id,))
+        mapping_row = cursor.fetchone()
+        mapping = json.loads(mapping_row["content"]) if mapping_row and mapping_row["content"] else None
+        
+        # Get rejection (if exists)
+        cursor.execute("""
+            SELECT artifact_id, content, created_at FROM agent_artifact_refs
+            WHERE session_id = ? AND artifact_type = 'strategy_idea_rejected'
+            ORDER BY created_at DESC LIMIT 1
+        """, (session_id,))
+        rejection_row = cursor.fetchone()
+        rejection = json.loads(rejection_row["content"]) if rejection_row and rejection_row["content"] else None
+        
+        # Get original message
+        cursor.execute("""
+            SELECT content FROM agent_messages
+            WHERE session_id = ? AND role = 'user'
+            ORDER BY created_at ASC LIMIT 1
+        """, (session_id,))
+        message_row = cursor.fetchone()
+        original_message = message_row["content"] if message_row else ""
+        
+        # Get agent reply
+        cursor.execute("""
+            SELECT content FROM agent_messages
+            WHERE session_id = ? AND role = 'assistant'
+            ORDER BY created_at DESC LIMIT 1
+        """, (session_id,))
+        reply_row = cursor.fetchone()
+        agent_reply = reply_row["content"] if reply_row else ""
+        
+        return {
+            "idea_id": idea_id,
+            "conversation_id": session_id,
+            "original_message": original_message,
+            "agent_reply": agent_reply,
+            "extraction": extraction,
+            "mapping": mapping,
+            "rejection": rejection,
+            "decision": "rejected" if rejection else "accepted",
+            "created_at": created_at,
+        }
+        
+    finally:
+        conn.close()
 
 
 @router.post("/{idea_id}/validate")

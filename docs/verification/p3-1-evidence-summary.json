@@ -1,16 +1,16 @@
 {
-  "run_id": "P2RUN_20260706_215452",
-  "strategy_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260706_215452",
-  "timestamp": "2026-07-06T21:55:14.953108",
+  "run_id": "P2RUN_20260707_112542",
+  "strategy_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_112542",
+  "timestamp": "2026-07-07T11:26:03.507720",
   "workflow_type": "strategy_idea",
   "artifact_ids": [
-    "idea_93294ec45694",
-    "extract_cc7611cd572a",
-    "mapping_164e7e8e8a2f",
-    "idea_93294ec45694_rejected",
-    "msg_67d60750e14f",
-    "msg_5962c888b6b1",
-    "intent_sess_8b2bd291b7ec"
+    "idea_086ec37fd16f",
+    "extract_01f3b26c79c0",
+    "mapping_1f21f8dc5d10",
+    "idea_086ec37fd16f_rejected",
+    "msg_f215d9b8c116",
+    "msg_9bbc47a42168",
+    "intent_sess_b0d1848b75f9"
   ],
   "has_reject": true,
   "has_accept": false,

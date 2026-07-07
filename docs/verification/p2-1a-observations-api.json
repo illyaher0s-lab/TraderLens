@@ -1,14 +1,14 @@
 {
   "positions": [
     {
-      "position_id": "pos_e047cc3eaf96",
+      "position_id": "pos_e03f39e28f60",
       "symbol": "603002.SH",
       "name": "宏昌电子",
       "entry_price": 12.34,
       "quantity": 100,
-      "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260706_215610",
+      "entry_thesis": "用户自主买入：已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260707_112252",
       "lifecycle_state": "open",
-      "opened_at": "2026-07-06T21:56:40.994999",
+      "opened_at": "2026-07-07T11:23:23.488069",
       "closed_at": null,
       "template_id": "template_execution_feedback_v1",
       "latest_signal": null
