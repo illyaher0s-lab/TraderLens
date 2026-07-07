@@ -198,16 +198,17 @@ from scripts.runtime_process_helpers import (
 
 ### Commit History
 ```
-88f8281 docs(P3-3): final delivery report - all tests passed
+36e14b3 docs(P3-3): closeout delivery report commit sync
+e0be53f docs(P3-3): final delivery report - all tests passed
 81c4c29 fix(infra): enforce shared runtime startup helpers
 f49a0d9 docs(infra): runtime startup stability - final delivery
 0c53a97 fix(API): add artifact_id to SELECT in list_ideas
-1ef2c90 fix(infra): enforce port ownership verification in runtime helpers
 ```
 
-### Final Commit
-- **Hash**: `88f8281`
-- **Message**: docs(P3-3): final delivery report - all tests passed
+### Validated Delivery Commit
+- **Hash**: `36e14b3`
+- **Message**: docs(P3-3): closeout delivery report commit sync
+- **Note**: This report records the validated delivery commit. A later docs-only report-sync commit may contain this line; use `git rev-parse --short HEAD` for the repository's current HEAD.
 
 ### Git Status
 ```
@@ -259,7 +260,7 @@ git status --short
 
 # 7. Commit Hash
 git rev-parse --short HEAD
-# 13403cd
+# 36e14b3
 ```
 
 ---
@@ -284,7 +285,7 @@ git rev-parse --short HEAD
 ## 交付状态
 
 **完成时间**: 2026-07-07 15:19  
-**最终 Commit**: `13403cd`  
+**Validated Delivery Commit**: `36e14b3`  
 **验收状态**: ✅ **全部通过**
 
 **核心交付**:
