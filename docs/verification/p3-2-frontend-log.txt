@@ -1,13 +1,17 @@
 
 > traderlens@0.1.0 dev
-> next dev frontend
+> next dev frontend --port 3000
 
- ⚠ Port 3000 is in use, trying 3001 instead.
- ⚠ Port 3001 is in use, trying 3002 instead.
- ⚠ Port 3002 is in use, trying 3003 instead.
   ▲ Next.js 14.2.35
-  - Local:        http://localhost:3003
+  - Local:        http://localhost:3000
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 8.3s
+ ✓ Ready in 14.4s
+ ○ Compiling / ...
+ ✓ Compiled / in 6.4s (497 modules)
+ GET / 200 in 1137ms
+ GET / 200 in 104ms
+ ○ Compiling /workbench ...
+ ✓ Compiled /workbench in 911ms (519 modules)
+ GET /workbench 200 in 1168ms

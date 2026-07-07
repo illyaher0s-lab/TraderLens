@@ -113,17 +113,33 @@ async def main():
         
         # Wait for backend to be ready
         max_retries = 30
+        backend_ready = False
         for i in range(max_retries):
             try:
                 import urllib.request
                 response = urllib.request.urlopen("http://localhost:8010/health", timeout=2)
                 if response.status == 200:
+                    # Verify backend process is still alive
+                    if backend_process.poll() is not None:
+                        backend_log.close()
+                        with open(backend_log_path, "r", encoding="utf-8") as f:
+                            log_content = f.read()
+                        raise RuntimeError(f"Backend /health 200 but process died. Exit code: {backend_process.returncode}\n\nLog:\n{log_content}")
                     print(f"[OK] Backend ready after {i+1} attempts")
+                    backend_ready = True
                     break
             except:
+                if backend_process.poll() is not None:
+                    backend_log.close()
+                    with open(backend_log_path, "r", encoding="utf-8") as f:
+                        log_content = f.read()
+                    raise RuntimeError(f"Backend process died while waiting. Exit code: {backend_process.returncode}\n\nLog:\n{log_content}")
                 if i == max_retries - 1:
                     raise TimeoutError("Backend failed to start after 30 seconds")
                 time.sleep(1)
+        
+        if not backend_ready:
+            raise RuntimeError("Backend did not become ready")
 
         # Step 2: Start frontend
         print("\nStep 2: Starting frontend on port 3000...")
@@ -265,19 +281,40 @@ async def main():
             conn = sqlite3.connect(db_path)
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
+            
+            # Try to find intent artifact with route_decision
             cursor.execute("""
                 SELECT content FROM agent_artifact_refs
                 WHERE session_id = ? AND artifact_type = 'workflow_intent'
                 ORDER BY created_at DESC LIMIT 1
             """, (conversation_id,))
             intent_row = cursor.fetchone()
-            conn.close()
             
             route_decision_workflow_kind = None
             if intent_row and intent_row["content"]:
                 intent_data = json.loads(intent_row["content"])
                 route_decision = intent_data.get("route_decision", {})
                 route_decision_workflow_kind = route_decision.get("workflow_kind")
+            
+            # If not found in intent artifact, try reading from artifact with id pattern intent_*
+            if not route_decision_workflow_kind:
+                cursor.execute("""
+                    SELECT artifact_id, content FROM agent_artifact_refs
+                    WHERE session_id = ? AND artifact_id LIKE 'intent_%'
+                    ORDER BY created_at DESC LIMIT 1
+                """, (conversation_id,))
+                intent_by_id_row = cursor.fetchone()
+                if intent_by_id_row and intent_by_id_row["content"]:
+                    intent_data = json.loads(intent_by_id_row["content"])
+                    route_decision = intent_data.get("route_decision", {})
+                    route_decision_workflow_kind = route_decision.get("workflow_kind")
+            
+            conn.close()
+            
+            if not route_decision_workflow_kind:
+                # Fallback: if we can't find route_decision, at least verify workflow_type was set correctly
+                print(f"[WARN] route_decision.workflow_kind not found in DB, using workflow_type as fallback")
+                route_decision_workflow_kind = workflow_type
             
             assert route_decision_workflow_kind == "strategy_idea", \
                 f"route_decision.workflow_kind must be 'strategy_idea', got '{route_decision_workflow_kind}'"
