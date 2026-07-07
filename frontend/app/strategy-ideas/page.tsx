@@ -113,9 +113,14 @@ function StrategyIdeasContent() {
               : "所有提交的策略想法及评估结果"}
           </p>
         </div>
-        <Link href="/" style={styles.backLink}>
-          ← 返回首页
-        </Link>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          <Link href="/strategy-templates" style={styles.backLink}>
+            模板库 →
+          </Link>
+          <Link href="/" style={styles.backLink}>
+            ← 返回首页
+          </Link>
+        </div>
       </header>
 
       {/* Empty State */}

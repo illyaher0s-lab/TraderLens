@@ -249,7 +249,16 @@ export default function StrategyIdeaDetailPage() {
               <div style={styles.detailRow}>
                 <span style={styles.detailLabel}>匹配模板</span>
                 <span style={styles.detailValue}>
-                  {idea.mapped_template_id || "null"}
+                  {idea.mapped_template_id ? (
+                    <Link
+                      href={`/strategy-templates/${idea.mapped_template_id}`}
+                      className="text-blue-600 hover:text-blue-700 underline"
+                    >
+                      {idea.mapped_template_id}
+                    </Link>
+                  ) : (
+                    <span className="text-gray-400">无匹配模板</span>
+                  )}
                 </span>
               </div>
               {idea.template_version && (

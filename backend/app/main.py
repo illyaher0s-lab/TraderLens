@@ -11,6 +11,7 @@ from backend.api.signal_board import router as signal_board_router, init_signal_
 from backend.api.observations import router as observations_router
 from backend.api.research import create_research_app
 from backend.api.strategy_ideas import router as strategy_ideas_router
+from backend.api.strategy_templates import router as strategy_templates_router
 from backend.db.research import ResearchDB
 
 
@@ -29,6 +30,7 @@ app.add_middleware(
 app.include_router(signal_board_router)
 app.include_router(observations_router)
 app.include_router(strategy_ideas_router)
+app.include_router(strategy_templates_router)
 
 # Runtime health
 from backend.api.runtime_health import router as runtime_health_router

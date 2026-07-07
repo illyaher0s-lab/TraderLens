@@ -245,6 +245,18 @@ def start_backend(
     venv_python = project_root / ".venv" / "Scripts" / "python.exe"
     
     env = os.environ.copy()
+    
+    # Load .env.local if it exists
+    env_local = Path(project_root) / ".env.local"
+    if env_local.exists():
+        with open(env_local, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, value = line.split("=", 1)
+                    env[key.strip()] = value.strip()
+    
+    env["PYTHONUNBUFFERED"] = "1"
     env["PYTHONPATH"] = str(project_root)
     if extra_env:
         env.update(extra_env)
