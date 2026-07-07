@@ -210,11 +210,19 @@ def handle_strategy_idea(
         attach_artifact_ref(db_conn, extraction_artifact, content=extraction_content)
         artifact_ids.append(extraction_result.extraction_id)
 
+        # Evaluate against all approved templates
+        from backend.services.template_matcher import evaluate_templates_for_idea
+        eval_result = evaluate_templates_for_idea(
+            claimed_entry=extraction_result.claimed_entry,
+            claimed_exit=extraction_result.claimed_exit,
+            claimed_edge=extraction_result.claimed_edge,
+        )
+        
         mapping_result = flow_service.map_to_template(
             idea=idea,
-            matched_template_id=None,
-            template_version=None,
-            mapping_reason="当前系统暂无已批准模板库。",
+            matched_template_id=eval_result["matched_template_id"],
+            template_version=eval_result["template_version"],
+            mapping_reason=eval_result["final_reason"],
         )
         mapping_content = json.dumps({
             "mapping_id": mapping_result.mapping_id,
@@ -224,6 +232,9 @@ def handle_strategy_idea(
             "template_version": mapping_result.template_version,
             "mapping_reason": mapping_result.mapping_reason,
             "live_eligible": mapping_result.live_eligible,
+            "considered_template_ids": eval_result["considered_template_ids"],
+            "mismatch_reasons": eval_result["mismatch_reasons"],
+            "final_reason": eval_result["final_reason"],
         })
         mapping_artifact = ArtifactRef(
             artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",

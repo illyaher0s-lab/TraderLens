@@ -1,17 +1,31 @@
 {
-  "idea_id": "idea_dd2060ce5944",
-  "conversation_id": "sess_a9b3aed1aed2",
+  "idea_id": "idea_b0d6bab71ea1",
+  "conversation_id": "sess_699cfa320e8a",
   "workflow_type": "strategy_idea",
-  "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_163218",
+  "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_171135",
   "claimed_entry": "未提取",
   "claimed_exit": "未提取",
   "claimed_edge": null,
   "decision": "rejected",
   "path_type": "no_template_fit",
   "rejection_reason": "no_approved_template",
-  "mapping_artifact_id": "mapping_cc4907572062",
-  "extraction_artifact_id": "extract_eb1c6d036069",
+  "mapping_artifact_id": "mapping_2c73973114cc",
+  "extraction_artifact_id": "extract_44f80b9e8627",
   "mapped_template_id": null,
   "template_version": null,
-  "created_at": "2026-07-07T16:33:21.584338"
+  "considered_template_ids": [
+    "theme_momentum_breakout_v1",
+    "relative_strength_rotation_v1",
+    "volume_breakout_followthrough_v1",
+    "trend_pullback_watch_v1"
+  ],
+  "mismatch_reasons": {
+    "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+    "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+    "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+    "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+  },
+  "final_reason": "no_template_fit",
+  "live_eligible": false,
+  "created_at": "2026-07-07T17:12:24.226236"
 }

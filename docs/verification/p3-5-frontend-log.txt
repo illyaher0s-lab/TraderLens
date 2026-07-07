@@ -1,0 +1,20 @@
+
+> traderlens@0.1.0 dev
+> next dev frontend
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 3.1s
+ ○ Compiling / ...
+ ✓ Compiled / in 1193ms (483 modules)
+ GET / 200 in 1549ms
+ ○ Compiling /workbench ...
+ ✓ Compiled /workbench in 604ms (505 modules)
+ GET /workbench 200 in 847ms
+ ○ Compiling /strategy-ideas/[idea_id] ...
+ ✓ Compiled /strategy-ideas/[idea_id] in 911ms (515 modules)
+ GET /strategy-ideas/idea_2513680193b1 200 in 1563ms
+[?25h

@@ -1,0 +1,66 @@
+{
+  "idea_id": "idea_2513680193b1",
+  "conversation_id": "sess_cab73948d02f",
+  "workflow_type": "strategy_idea",
+  "original_message": "[P2RUN_20260707_170647] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+  "agent_reply": "",
+  "extraction": {
+    "extraction_id": "extract_80221e315984",
+    "idea_id": "idea_2513680193b1",
+    "claimed_entry": "下午两点半后买入",
+    "claimed_exit": "次日早盘卖出",
+    "claimed_edge": null,
+    "extraction_source": "llm_assisted"
+  },
+  "mapping": {
+    "mapping_id": "mapping_c40eb1aff585",
+    "idea_id": "idea_2513680193b1",
+    "path_type": "no_template_fit",
+    "matched_template_id": null,
+    "template_version": null,
+    "mapping_reason": "no_template_fit",
+    "live_eligible": false,
+    "considered_template_ids": [
+      "theme_momentum_breakout_v1",
+      "relative_strength_rotation_v1",
+      "volume_breakout_followthrough_v1",
+      "trend_pullback_watch_v1"
+    ],
+    "mismatch_reasons": {
+      "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+      "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+      "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+      "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+    },
+    "final_reason": "no_template_fit"
+  },
+  "rejection": {
+    "idea_id": "idea_2513680193b1",
+    "rejection_reason": "no_approved_template",
+    "rejected_at": "2026-07-07T17:07:26.855562"
+  },
+  "decision": "rejected",
+  "rejection_reason": "no_approved_template",
+  "path_type": "no_template_fit",
+  "mapping_reason": "no_template_fit",
+  "mapped_template_id": null,
+  "template_version": null,
+  "considered_template_ids": [
+    "theme_momentum_breakout_v1",
+    "relative_strength_rotation_v1",
+    "volume_breakout_followthrough_v1",
+    "trend_pullback_watch_v1"
+  ],
+  "mismatch_reasons": {
+    "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+    "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+    "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+    "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+  },
+  "final_reason": "no_template_fit",
+  "live_eligible": false,
+  "extraction_artifact_id": "extract_80221e315984",
+  "mapping_artifact_id": "mapping_c40eb1aff585",
+  "rejection_artifact_id": "idea_2513680193b1_rejected",
+  "created_at": "2026-07-07T17:07:26.741204"
+}

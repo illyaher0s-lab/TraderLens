@@ -150,6 +150,10 @@ def list_ideas(conversation_id: str = None):
                 "extraction_artifact_id": extraction_row["artifact_id"] if extraction_row else None,
                 "mapped_template_id": mapping.get("matched_template_id") if mapping else None,
                 "template_version": mapping.get("template_version") if mapping else None,
+                "considered_template_ids": mapping.get("considered_template_ids", []) if mapping else [],
+                "mismatch_reasons": mapping.get("mismatch_reasons", {}) if mapping else {},
+                "final_reason": mapping.get("final_reason") if mapping else None,
+                "live_eligible": mapping.get("live_eligible", False) if mapping else False,
                 "created_at": created_at,
             })
         
@@ -266,6 +270,10 @@ def get_idea(idea_id: str):
             "mapping_reason": mapping_reason,
             "mapped_template_id": mapped_template_id,
             "template_version": template_version,
+            "considered_template_ids": mapping.get("considered_template_ids", []) if mapping else [],
+            "mismatch_reasons": mapping.get("mismatch_reasons", {}) if mapping else {},
+            "final_reason": mapping.get("final_reason") if mapping else None,
+            "live_eligible": mapping.get("live_eligible", False) if mapping else False,
             "extraction_artifact_id": extraction_artifact_id,
             "mapping_artifact_id": mapping_artifact_id,
             "rejection_artifact_id": rejection_artifact_id,

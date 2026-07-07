@@ -1,0 +1,17 @@
+{
+  "run_id": "P2RUN_20260707_170647",
+  "conversation_id": "sess_cab73948d02f",
+  "idea_id": "idea_2513680193b1",
+  "decision": "rejected",
+  "mapped_template_id": null,
+  "considered_template_ids": [
+    "theme_momentum_breakout_v1",
+    "relative_strength_rotation_v1",
+    "volume_breakout_followthrough_v1",
+    "trend_pullback_watch_v1"
+  ],
+  "mismatch_reasons_count": 4,
+  "final_reason": "no_template_fit",
+  "live_eligible": false,
+  "verification_timestamp": "2026-07-07T17:07:39.388862"
+}

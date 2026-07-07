@@ -6,6 +6,244 @@
     "response": {
       "ideas": [
         {
+          "idea_id": "idea_f0f71616e2c2",
+          "conversation_id": "sess_24fdb3cc5c6e",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_171259",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_f9d015fdd1fc",
+          "extraction_artifact_id": "extract_978378306dfe",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:13:39.825105"
+        },
+        {
+          "idea_id": "idea_b0d6bab71ea1",
+          "conversation_id": "sess_699cfa320e8a",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_171135",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_2c73973114cc",
+          "extraction_artifact_id": "extract_44f80b9e8627",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:12:24.226236"
+        },
+        {
+          "idea_id": "idea_1091f60d384a",
+          "conversation_id": "sess_d8116f75b606",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_170948",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_2b8c140ecc97",
+          "extraction_artifact_id": "extract_ebd10bf8ad09",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:10:50.058856"
+        },
+        {
+          "idea_id": "idea_2513680193b1",
+          "conversation_id": "sess_cab73948d02f",
+          "workflow_type": "strategy_idea",
+          "original_message": "[P2RUN_20260707_170647] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+          "claimed_entry": "下午两点半后买入",
+          "claimed_exit": "次日早盘卖出",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_c40eb1aff585",
+          "extraction_artifact_id": "extract_80221e315984",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:07:26.741204"
+        },
+        {
+          "idea_id": "idea_f5b345715a48",
+          "conversation_id": "sess_a886f34a29f0",
+          "workflow_type": "strategy_idea",
+          "original_message": "[P2RUN_20260707_170544] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+          "claimed_entry": "下午两点半后买入",
+          "claimed_exit": "次日早盘卖出",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_96934a17eedb",
+          "extraction_artifact_id": "extract_a699eae14727",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:06:20.714286"
+        },
+        {
+          "idea_id": "idea_f90abfef01dd",
+          "conversation_id": "sess_c70045f2ab9f",
+          "workflow_type": "strategy_idea",
+          "original_message": "[P2RUN_20260707_170427] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+          "claimed_entry": "下午两点半后买入",
+          "claimed_exit": "次日早盘卖出",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_6132018269bc",
+          "extraction_artifact_id": "extract_a371478039f1",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:05:04.673704"
+        },
+        {
+          "idea_id": "idea_e951483cf310",
+          "conversation_id": "sess_fa4a17fde892",
+          "workflow_type": "strategy_idea",
+          "original_message": "[P2RUN_20260707_170315] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+          "claimed_entry": "下午两点半后买入",
+          "claimed_exit": "次日早盘卖出",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_ea3cf670130b",
+          "extraction_artifact_id": "extract_7cc06f179781",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:03:53.546164"
+        },
+        {
+          "idea_id": "idea_d70f45343565",
+          "conversation_id": "sess_a7af86529c63",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_163615",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_b04f567be793",
+          "extraction_artifact_id": "extract_5e3d1d44cf76",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
+          "created_at": "2026-07-07T16:36:47.008347"
+        },
+        {
           "idea_id": "idea_3eb55eb95e7a",
           "conversation_id": "sess_61459bb0076e",
           "workflow_type": "strategy_idea",
@@ -20,6 +258,10 @@
           "extraction_artifact_id": "extract_7649e4aa08e0",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T16:35:35.086900"
         },
         {
@@ -37,6 +279,10 @@
           "extraction_artifact_id": "extract_eb1c6d036069",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T16:33:21.584338"
         },
         {
@@ -54,6 +300,10 @@
           "extraction_artifact_id": "extract_9cfd39ba1db5",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T16:17:04.893209"
         },
         {
@@ -71,6 +321,10 @@
           "extraction_artifact_id": "extract_47bdbcc417b2",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T16:15:29.877106"
         },
         {
@@ -88,6 +342,10 @@
           "extraction_artifact_id": "extract_16bd58f30547",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T16:12:18.398433"
         },
         {
@@ -105,6 +363,10 @@
           "extraction_artifact_id": "extract_468fd17b75e4",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T15:16:48.839846"
         },
         {
@@ -122,6 +384,10 @@
           "extraction_artifact_id": "extract_a393c4276eba",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T15:15:55.078774"
         },
         {
@@ -139,6 +405,10 @@
           "extraction_artifact_id": "extract_c437d9d52b23",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T15:14:22.695720"
         },
         {
@@ -156,6 +426,10 @@
           "extraction_artifact_id": "extract_93cb5e8c1f57",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:56:32.037663"
         },
         {
@@ -173,6 +447,10 @@
           "extraction_artifact_id": "extract_d22d2b2a6a25",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:51:33.117727"
         },
         {
@@ -190,6 +468,10 @@
           "extraction_artifact_id": "extract_020456f68802",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:50:26.992063"
         },
         {
@@ -207,6 +489,10 @@
           "extraction_artifact_id": "extract_d114b9d646f7",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:48:59.173988"
         },
         {
@@ -224,6 +510,10 @@
           "extraction_artifact_id": "extract_93e4a1c9becf",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:47:17.866918"
         },
         {
@@ -241,6 +531,10 @@
           "extraction_artifact_id": "extract_4945127366e5",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:44:30.850044"
         },
         {
@@ -258,6 +552,10 @@
           "extraction_artifact_id": "extract_7efe08c902cf",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:42:28.224117"
         },
         {
@@ -275,6 +573,10 @@
           "extraction_artifact_id": "extract_5380ad88f145",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:38:34.795462"
         },
         {
@@ -292,6 +594,10 @@
           "extraction_artifact_id": "extract_20457aefd7c8",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:36:03.874647"
         },
         {
@@ -309,6 +615,10 @@
           "extraction_artifact_id": "extract_faa2386c6122",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:33:35.510529"
         },
         {
@@ -326,6 +636,10 @@
           "extraction_artifact_id": "extract_933c3d627e6e",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:00:59.081875"
         },
         {
@@ -343,6 +657,10 @@
           "extraction_artifact_id": "extract_f320df3ef533",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:00:10.735759"
         },
         {
@@ -360,6 +678,10 @@
           "extraction_artifact_id": "extract_d96a2278b5dc",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:59:22.136256"
         },
         {
@@ -377,6 +699,10 @@
           "extraction_artifact_id": "extract_befbde286bf2",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:57:06.128378"
         },
         {
@@ -394,6 +720,10 @@
           "extraction_artifact_id": "extract_90e98f9f36d9",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:55:34.845565"
         },
         {
@@ -411,6 +741,10 @@
           "extraction_artifact_id": "extract_571230c659bf",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:54:14.241302"
         },
         {
@@ -428,6 +762,10 @@
           "extraction_artifact_id": "extract_66d4ec1ae081",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:52:32.182402"
         },
         {
@@ -445,6 +783,10 @@
           "extraction_artifact_id": "extract_2e7196565efd",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:38:57.782351"
         },
         {
@@ -462,6 +804,10 @@
           "extraction_artifact_id": "extract_b791a2c1117a",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:37:17.482186"
         },
         {
@@ -479,6 +825,10 @@
           "extraction_artifact_id": "extract_95e2d8788538",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:36:29.689009"
         },
         {
@@ -496,6 +846,10 @@
           "extraction_artifact_id": "extract_031276c79369",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:35:07.732859"
         },
         {
@@ -513,6 +867,10 @@
           "extraction_artifact_id": "extract_e60c695dfb5f",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:33:58.079804"
         },
         {
@@ -530,6 +888,10 @@
           "extraction_artifact_id": "extract_98d791c0eabd",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:32:28.111478"
         },
         {
@@ -547,6 +909,10 @@
           "extraction_artifact_id": "extract_230dfe820bf6",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:00:12.288760"
         },
         {
@@ -564,6 +930,10 @@
           "extraction_artifact_id": "extract_4e869c5db3cb",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T12:59:18.656169"
         },
         {
@@ -581,6 +951,10 @@
           "extraction_artifact_id": "extract_82e5d5552cc6",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T12:57:53.906797"
         },
         {
@@ -598,6 +972,10 @@
           "extraction_artifact_id": "extract_c8b7c4709158",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T12:41:58.558041"
         },
         {
@@ -615,6 +993,10 @@
           "extraction_artifact_id": "extract_4e0e17cdad95",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T12:37:35.165234"
         },
         {
@@ -632,6 +1014,10 @@
           "extraction_artifact_id": "extract_750578695701",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T12:34:35.118310"
         },
         {
@@ -649,6 +1035,10 @@
           "extraction_artifact_id": "extract_01f3b26c79c0",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T11:26:09.159107"
         },
         {
@@ -666,6 +1056,10 @@
           "extraction_artifact_id": "extract_00f3f2c72674",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T11:22:33.778065"
         },
         {
@@ -683,6 +1077,10 @@
           "extraction_artifact_id": "extract_bfab720c2b60",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-06T22:49:19.543143"
         },
         {
@@ -700,6 +1098,10 @@
           "extraction_artifact_id": "extract_cc7611cd572a",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-06T21:55:21.011656"
         },
         {
@@ -717,109 +1119,11 @@
           "extraction_artifact_id": "extract_f709e2d4eadd",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-06T20:33:34.463539"
-        },
-        {
-          "idea_id": "idea_26586949d663",
-          "conversation_id": "sess_84f2c911d654",
-          "workflow_type": "strategy_idea",
-          "original_message": "朋友推荐了宏昌电子",
-          "claimed_entry": "下午两点半后买入",
-          "claimed_exit": "次日早盘卖出",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_2c4d5fc08fd6",
-          "extraction_artifact_id": "extract_538087b13716",
-          "mapped_template_id": null,
-          "template_version": null,
-          "created_at": "2026-07-02T20:52:35.751709"
-        },
-        {
-          "idea_id": "idea_db16d62dd9dc",
-          "conversation_id": "sess_cf9d357d3311",
-          "workflow_type": "strategy_idea",
-          "original_message": "朋友推荐了宏昌电子",
-          "claimed_entry": "下午两点半后买入",
-          "claimed_exit": "次日早盘卖出",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_e55f57337571",
-          "extraction_artifact_id": "extract_eff17ba3920e",
-          "mapped_template_id": null,
-          "template_version": null,
-          "created_at": "2026-07-02T20:47:49.459114"
-        },
-        {
-          "idea_id": "idea_af7cc2bde1d3",
-          "conversation_id": "sess_a8793c630527",
-          "workflow_type": "strategy_idea",
-          "original_message": "朋友推荐了宏昌电子",
-          "claimed_entry": "下午两点半后买入",
-          "claimed_exit": "次日早盘卖出",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_8fea983e882b",
-          "extraction_artifact_id": "extract_32b0fd9bc729",
-          "mapped_template_id": null,
-          "template_version": null,
-          "created_at": "2026-07-02T20:35:39.051306"
-        },
-        {
-          "idea_id": "idea_84f06b2d8cb7",
-          "conversation_id": "sess_0c1e1c12242a",
-          "workflow_type": "strategy_idea",
-          "original_message": "朋友推荐了宏昌电子",
-          "claimed_entry": "下午两点半后买入",
-          "claimed_exit": "次日早盘卖出",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_eae41655126e",
-          "extraction_artifact_id": "extract_6c5fb8ff8a1c",
-          "mapped_template_id": null,
-          "template_version": null,
-          "created_at": "2026-07-02T20:31:10.628663"
-        },
-        {
-          "idea_id": "idea_539e2a512329",
-          "conversation_id": "sess_9440528f82bb",
-          "workflow_type": "strategy_idea",
-          "original_message": "刷到策略下午两点半买第二天卖",
-          "claimed_entry": "下午两点半后买入",
-          "claimed_exit": "次日早盘卖出",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_09c7b62185c6",
-          "extraction_artifact_id": "extract_3467ad6628a0",
-          "mapped_template_id": null,
-          "template_version": null,
-          "created_at": "2026-07-02T18:41:59.693928"
-        },
-        {
-          "idea_id": "idea_3efde7cd690c",
-          "conversation_id": "sess_2688d7dd781d",
-          "workflow_type": "strategy_idea",
-          "original_message": "看一下宏昌电子适不适合买入",
-          "claimed_entry": "未提取",
-          "claimed_exit": "未提取",
-          "claimed_edge": "未提取",
-          "decision": "accepted",
-          "path_type": "unknown",
-          "rejection_reason": null,
-          "mapping_artifact_id": null,
-          "extraction_artifact_id": "extract_85ab17f30ee8",
-          "mapped_template_id": null,
-          "template_version": null,
-          "created_at": "2026-07-01T23:13:55.570853"
         }
       ]
     }
@@ -831,6 +1135,244 @@
     "response": {
       "ideas": [
         {
+          "idea_id": "idea_f0f71616e2c2",
+          "conversation_id": "sess_24fdb3cc5c6e",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_171259",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_f9d015fdd1fc",
+          "extraction_artifact_id": "extract_978378306dfe",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:13:39.825105"
+        },
+        {
+          "idea_id": "idea_b0d6bab71ea1",
+          "conversation_id": "sess_699cfa320e8a",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_171135",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_2c73973114cc",
+          "extraction_artifact_id": "extract_44f80b9e8627",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:12:24.226236"
+        },
+        {
+          "idea_id": "idea_1091f60d384a",
+          "conversation_id": "sess_d8116f75b606",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_170948",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_2b8c140ecc97",
+          "extraction_artifact_id": "extract_ebd10bf8ad09",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:10:50.058856"
+        },
+        {
+          "idea_id": "idea_2513680193b1",
+          "conversation_id": "sess_cab73948d02f",
+          "workflow_type": "strategy_idea",
+          "original_message": "[P2RUN_20260707_170647] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+          "claimed_entry": "下午两点半后买入",
+          "claimed_exit": "次日早盘卖出",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_c40eb1aff585",
+          "extraction_artifact_id": "extract_80221e315984",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:07:26.741204"
+        },
+        {
+          "idea_id": "idea_f5b345715a48",
+          "conversation_id": "sess_a886f34a29f0",
+          "workflow_type": "strategy_idea",
+          "original_message": "[P2RUN_20260707_170544] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+          "claimed_entry": "下午两点半后买入",
+          "claimed_exit": "次日早盘卖出",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_96934a17eedb",
+          "extraction_artifact_id": "extract_a699eae14727",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:06:20.714286"
+        },
+        {
+          "idea_id": "idea_f90abfef01dd",
+          "conversation_id": "sess_c70045f2ab9f",
+          "workflow_type": "strategy_idea",
+          "original_message": "[P2RUN_20260707_170427] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+          "claimed_entry": "下午两点半后买入",
+          "claimed_exit": "次日早盘卖出",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_6132018269bc",
+          "extraction_artifact_id": "extract_a371478039f1",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:05:04.673704"
+        },
+        {
+          "idea_id": "idea_e951483cf310",
+          "conversation_id": "sess_fa4a17fde892",
+          "workflow_type": "strategy_idea",
+          "original_message": "[P2RUN_20260707_170315] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+          "claimed_entry": "下午两点半后买入",
+          "claimed_exit": "次日早盘卖出",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_ea3cf670130b",
+          "extraction_artifact_id": "extract_7cc06f179781",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [
+            "theme_momentum_breakout_v1",
+            "relative_strength_rotation_v1",
+            "volume_breakout_followthrough_v1",
+            "trend_pullback_watch_v1"
+          ],
+          "mismatch_reasons": {
+            "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+            "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+            "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+            "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+          },
+          "final_reason": "no_template_fit",
+          "live_eligible": false,
+          "created_at": "2026-07-07T17:03:53.546164"
+        },
+        {
+          "idea_id": "idea_d70f45343565",
+          "conversation_id": "sess_a7af86529c63",
+          "workflow_type": "strategy_idea",
+          "original_message": "我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_163615",
+          "claimed_entry": "未提取",
+          "claimed_exit": "未提取",
+          "claimed_edge": null,
+          "decision": "rejected",
+          "path_type": "no_template_fit",
+          "rejection_reason": "no_approved_template",
+          "mapping_artifact_id": "mapping_b04f567be793",
+          "extraction_artifact_id": "extract_5e3d1d44cf76",
+          "mapped_template_id": null,
+          "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
+          "created_at": "2026-07-07T16:36:47.008347"
+        },
+        {
           "idea_id": "idea_3eb55eb95e7a",
           "conversation_id": "sess_61459bb0076e",
           "workflow_type": "strategy_idea",
@@ -845,6 +1387,10 @@
           "extraction_artifact_id": "extract_7649e4aa08e0",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T16:35:35.086900"
         },
         {
@@ -862,6 +1408,10 @@
           "extraction_artifact_id": "extract_eb1c6d036069",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T16:33:21.584338"
         },
         {
@@ -879,6 +1429,10 @@
           "extraction_artifact_id": "extract_9cfd39ba1db5",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T16:17:04.893209"
         },
         {
@@ -896,6 +1450,10 @@
           "extraction_artifact_id": "extract_47bdbcc417b2",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T16:15:29.877106"
         },
         {
@@ -913,6 +1471,10 @@
           "extraction_artifact_id": "extract_16bd58f30547",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T16:12:18.398433"
         },
         {
@@ -930,6 +1492,10 @@
           "extraction_artifact_id": "extract_468fd17b75e4",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T15:16:48.839846"
         },
         {
@@ -947,6 +1513,10 @@
           "extraction_artifact_id": "extract_a393c4276eba",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T15:15:55.078774"
         },
         {
@@ -964,6 +1534,10 @@
           "extraction_artifact_id": "extract_c437d9d52b23",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T15:14:22.695720"
         },
         {
@@ -981,6 +1555,10 @@
           "extraction_artifact_id": "extract_93cb5e8c1f57",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:56:32.037663"
         },
         {
@@ -998,6 +1576,10 @@
           "extraction_artifact_id": "extract_d22d2b2a6a25",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:51:33.117727"
         },
         {
@@ -1015,6 +1597,10 @@
           "extraction_artifact_id": "extract_020456f68802",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:50:26.992063"
         },
         {
@@ -1032,6 +1618,10 @@
           "extraction_artifact_id": "extract_d114b9d646f7",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:48:59.173988"
         },
         {
@@ -1049,6 +1639,10 @@
           "extraction_artifact_id": "extract_93e4a1c9becf",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:47:17.866918"
         },
         {
@@ -1066,6 +1660,10 @@
           "extraction_artifact_id": "extract_4945127366e5",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:44:30.850044"
         },
         {
@@ -1083,6 +1681,10 @@
           "extraction_artifact_id": "extract_7efe08c902cf",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:42:28.224117"
         },
         {
@@ -1100,6 +1702,10 @@
           "extraction_artifact_id": "extract_5380ad88f145",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:38:34.795462"
         },
         {
@@ -1117,6 +1723,10 @@
           "extraction_artifact_id": "extract_20457aefd7c8",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:36:03.874647"
         },
         {
@@ -1134,6 +1744,10 @@
           "extraction_artifact_id": "extract_faa2386c6122",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:33:35.510529"
         },
         {
@@ -1151,6 +1765,10 @@
           "extraction_artifact_id": "extract_933c3d627e6e",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:00:59.081875"
         },
         {
@@ -1168,6 +1786,10 @@
           "extraction_artifact_id": "extract_f320df3ef533",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T14:00:10.735759"
         },
         {
@@ -1185,6 +1807,10 @@
           "extraction_artifact_id": "extract_d96a2278b5dc",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:59:22.136256"
         },
         {
@@ -1202,6 +1828,10 @@
           "extraction_artifact_id": "extract_befbde286bf2",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:57:06.128378"
         },
         {
@@ -1219,6 +1849,10 @@
           "extraction_artifact_id": "extract_90e98f9f36d9",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:55:34.845565"
         },
         {
@@ -1236,6 +1870,10 @@
           "extraction_artifact_id": "extract_571230c659bf",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:54:14.241302"
         },
         {
@@ -1253,6 +1891,10 @@
           "extraction_artifact_id": "extract_66d4ec1ae081",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:52:32.182402"
         },
         {
@@ -1270,6 +1912,10 @@
           "extraction_artifact_id": "extract_2e7196565efd",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:38:57.782351"
         },
         {
@@ -1287,6 +1933,10 @@
           "extraction_artifact_id": "extract_b791a2c1117a",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:37:17.482186"
         },
         {
@@ -1304,6 +1954,10 @@
           "extraction_artifact_id": "extract_95e2d8788538",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:36:29.689009"
         },
         {
@@ -1321,6 +1975,10 @@
           "extraction_artifact_id": "extract_031276c79369",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:35:07.732859"
         },
         {
@@ -1338,6 +1996,10 @@
           "extraction_artifact_id": "extract_e60c695dfb5f",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:33:58.079804"
         },
         {
@@ -1355,6 +2017,10 @@
           "extraction_artifact_id": "extract_98d791c0eabd",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:32:28.111478"
         },
         {
@@ -1372,6 +2038,10 @@
           "extraction_artifact_id": "extract_230dfe820bf6",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T13:00:12.288760"
         },
         {
@@ -1389,6 +2059,10 @@
           "extraction_artifact_id": "extract_4e869c5db3cb",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T12:59:18.656169"
         },
         {
@@ -1406,6 +2080,10 @@
           "extraction_artifact_id": "extract_82e5d5552cc6",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T12:57:53.906797"
         },
         {
@@ -1423,6 +2101,10 @@
           "extraction_artifact_id": "extract_c8b7c4709158",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T12:41:58.558041"
         },
         {
@@ -1440,6 +2122,10 @@
           "extraction_artifact_id": "extract_4e0e17cdad95",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T12:37:35.165234"
         },
         {
@@ -1457,6 +2143,10 @@
           "extraction_artifact_id": "extract_750578695701",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T12:34:35.118310"
         },
         {
@@ -1474,6 +2164,10 @@
           "extraction_artifact_id": "extract_01f3b26c79c0",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T11:26:09.159107"
         },
         {
@@ -1491,6 +2185,10 @@
           "extraction_artifact_id": "extract_00f3f2c72674",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-07T11:22:33.778065"
         },
         {
@@ -1508,6 +2206,10 @@
           "extraction_artifact_id": "extract_bfab720c2b60",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-06T22:49:19.543143"
         },
         {
@@ -1525,6 +2227,10 @@
           "extraction_artifact_id": "extract_cc7611cd572a",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-06T21:55:21.011656"
         },
         {
@@ -1542,109 +2248,11 @@
           "extraction_artifact_id": "extract_f709e2d4eadd",
           "mapped_template_id": null,
           "template_version": null,
+          "considered_template_ids": [],
+          "mismatch_reasons": {},
+          "final_reason": null,
+          "live_eligible": false,
           "created_at": "2026-07-06T20:33:34.463539"
-        },
-        {
-          "idea_id": "idea_26586949d663",
-          "conversation_id": "sess_84f2c911d654",
-          "workflow_type": "strategy_idea",
-          "original_message": "朋友推荐了宏昌电子",
-          "claimed_entry": "下午两点半后买入",
-          "claimed_exit": "次日早盘卖出",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_2c4d5fc08fd6",
-          "extraction_artifact_id": "extract_538087b13716",
-          "mapped_template_id": null,
-          "template_version": null,
-          "created_at": "2026-07-02T20:52:35.751709"
-        },
-        {
-          "idea_id": "idea_db16d62dd9dc",
-          "conversation_id": "sess_cf9d357d3311",
-          "workflow_type": "strategy_idea",
-          "original_message": "朋友推荐了宏昌电子",
-          "claimed_entry": "下午两点半后买入",
-          "claimed_exit": "次日早盘卖出",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_e55f57337571",
-          "extraction_artifact_id": "extract_eff17ba3920e",
-          "mapped_template_id": null,
-          "template_version": null,
-          "created_at": "2026-07-02T20:47:49.459114"
-        },
-        {
-          "idea_id": "idea_af7cc2bde1d3",
-          "conversation_id": "sess_a8793c630527",
-          "workflow_type": "strategy_idea",
-          "original_message": "朋友推荐了宏昌电子",
-          "claimed_entry": "下午两点半后买入",
-          "claimed_exit": "次日早盘卖出",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_8fea983e882b",
-          "extraction_artifact_id": "extract_32b0fd9bc729",
-          "mapped_template_id": null,
-          "template_version": null,
-          "created_at": "2026-07-02T20:35:39.051306"
-        },
-        {
-          "idea_id": "idea_84f06b2d8cb7",
-          "conversation_id": "sess_0c1e1c12242a",
-          "workflow_type": "strategy_idea",
-          "original_message": "朋友推荐了宏昌电子",
-          "claimed_entry": "下午两点半后买入",
-          "claimed_exit": "次日早盘卖出",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_eae41655126e",
-          "extraction_artifact_id": "extract_6c5fb8ff8a1c",
-          "mapped_template_id": null,
-          "template_version": null,
-          "created_at": "2026-07-02T20:31:10.628663"
-        },
-        {
-          "idea_id": "idea_539e2a512329",
-          "conversation_id": "sess_9440528f82bb",
-          "workflow_type": "strategy_idea",
-          "original_message": "刷到策略下午两点半买第二天卖",
-          "claimed_entry": "下午两点半后买入",
-          "claimed_exit": "次日早盘卖出",
-          "claimed_edge": null,
-          "decision": "rejected",
-          "path_type": "no_template_fit",
-          "rejection_reason": "no_approved_template",
-          "mapping_artifact_id": "mapping_09c7b62185c6",
-          "extraction_artifact_id": "extract_3467ad6628a0",
-          "mapped_template_id": null,
-          "template_version": null,
-          "created_at": "2026-07-02T18:41:59.693928"
-        },
-        {
-          "idea_id": "idea_3efde7cd690c",
-          "conversation_id": "sess_2688d7dd781d",
-          "workflow_type": "strategy_idea",
-          "original_message": "看一下宏昌电子适不适合买入",
-          "claimed_entry": "未提取",
-          "claimed_exit": "未提取",
-          "claimed_edge": "未提取",
-          "decision": "accepted",
-          "path_type": "unknown",
-          "rejection_reason": null,
-          "mapping_artifact_id": null,
-          "extraction_artifact_id": "extract_85ab17f30ee8",
-          "mapped_template_id": null,
-          "template_version": null,
-          "created_at": "2026-07-01T23:13:55.570853"
         }
       ]
     }

@@ -1,8 +1,8 @@
 # P3-2 Strategy Ideas Page DOM
 
-**Captured at:** 2026-07-07T16:36:58.805354
+**Captured at:** 2026-07-07T17:15:07.803953
 
-**URL:** http://localhost:3000/strategy-ideas?conversation_id=sess_a7af86529c63
+**URL:** http://localhost:3000/strategy-ideas?conversation_id=sess_cd982e99a5e8
 
 ## Page Text
 
@@ -15,13 +15,13 @@
 ← 返回首页
 策略想法
 
-2026/7/7 16:36:47
+2026/7/7 17:14:56
 
 已拒绝
 
 原始描述
 
-我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_163615
+我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 P2RUN_20260707_171416
 
 提取结果
 
@@ -31,7 +31,7 @@
 未提取
 模板匹配
 无匹配模板
-Idea ID: idea_d70f45343565
+Idea ID: idea_05efd4f1df7a
 查看详情
 查看对话 →
 ```

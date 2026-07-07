@@ -1,18 +1,18 @@
-INFO:     Started server process [24404]
+INFO:     Started server process [11056]
 INFO:     Waiting for application startup.
 Research API starting in REAL mode (LLM + Tushare enabled, Serenity=two_phase)
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8010 (Press CTRL+C to quit)
-INFO:     127.0.0.1:50424 - "GET /health HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63896 - "GET /api/strategy-templates HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56134 - "GET /api/strategy-templates/theme_momentum_breakout_v1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63653 - "GET /api/strategy-templates HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63653 - "GET /api/strategy-templates HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63653 - "GET /api/strategy-templates/theme_momentum_breakout_v1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63653 - "GET /api/strategy-templates/theme_momentum_breakout_v1 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:51540 - "OPTIONS /api/agent/workbench/message HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56666 - "POST /api/agent/workbench/message HTTP/1.1" 200 OK
-INFO:     127.0.0.1:56666 - "GET /api/agent/workbench/sess_a9b3aed1aed2 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:49476 - "GET /api/strategy-ideas HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53102 - "GET /api/strategy-ideas/idea_dd2060ce5944 HTTP/1.1" 200 OK
-INFO:     127.0.0.1:53102 - "GET /api/strategy-ideas/idea_dd2060ce5944 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58464 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65385 - "GET /api/strategy-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:52245 - "GET /api/strategy-templates/theme_momentum_breakout_v1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55443 - "GET /api/strategy-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55443 - "GET /api/strategy-templates HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55443 - "GET /api/strategy-templates/theme_momentum_breakout_v1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55443 - "GET /api/strategy-templates/theme_momentum_breakout_v1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54851 - "OPTIONS /api/agent/workbench/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64849 - "POST /api/agent/workbench/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64849 - "GET /api/agent/workbench/sess_699cfa320e8a HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59859 - "GET /api/strategy-ideas HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53549 - "GET /api/strategy-ideas/idea_b0d6bab71ea1 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53549 - "GET /api/strategy-ideas/idea_b0d6bab71ea1 HTTP/1.1" 200 OK

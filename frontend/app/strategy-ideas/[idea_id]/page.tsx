@@ -41,6 +41,10 @@ interface StrategyIdeaDetail {
   mapping_reason: string | null;
   mapped_template_id: string | null;
   template_version: string | null;
+  considered_template_ids: string[];
+  mismatch_reasons: Record<string, string>;
+  final_reason: string | null;
+  live_eligible: boolean;
   extraction_artifact_id: string | null;
   mapping_artifact_id: string | null;
   rejection_artifact_id: string | null;
@@ -280,9 +284,65 @@ export default function StrategyIdeaDetailPage() {
               <div style={styles.detailRow}>
                 <span style={styles.detailLabel}>Live 资格</span>
                 <span style={styles.detailValue}>
-                  {idea.mapping.live_eligible ? "是" : "否"}
+                  {idea.live_eligible ? "是" : "否"}
                 </span>
               </div>
+              
+              {/* Considered Templates */}
+              {idea.considered_template_ids && idea.considered_template_ids.length > 0 && (
+                <div style={styles.detailRow}>
+                  <span style={styles.detailLabel}>已评估模板</span>
+                  <span style={styles.detailValue}>
+                    {idea.considered_template_ids.map((templateId, idx) => (
+                      <span key={templateId}>
+                        <Link
+                          href={`/strategy-templates/${templateId}`}
+                          className="text-blue-600 hover:text-blue-700 underline"
+                        >
+                          {templateId}
+                        </Link>
+                        {idx < idea.considered_template_ids.length - 1 && ", "}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              )}
+              
+              {/* Mismatch Reasons */}
+              {idea.mismatch_reasons && Object.keys(idea.mismatch_reasons).length > 0 && (
+                <div style={{...styles.detailRow, flexDirection: "column", alignItems: "flex-start"}}>
+                  <span style={styles.detailLabel}>不匹配原因</span>
+                  <div style={{marginTop: "8px", width: "100%"}}>
+                    {Object.entries(idea.mismatch_reasons).map(([templateId, reason]) => (
+                      <div key={templateId} style={{marginBottom: "12px", paddingLeft: "16px"}}>
+                        <div style={{fontWeight: 500, color: "#374151", marginBottom: "4px"}}>
+                          <Link
+                            href={`/strategy-templates/${templateId}`}
+                            className="text-blue-600 hover:text-blue-700 underline"
+                          >
+                            {templateId}
+                          </Link>
+                        </div>
+                        <div style={{color: "#6b7280", fontSize: "14px"}}>
+                          {reason}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Final Reason */}
+              {idea.final_reason && (
+                <div style={styles.detailRow}>
+                  <span style={styles.detailLabel}>最终结论</span>
+                  <span style={styles.detailValue}>
+                    {idea.final_reason === "no_template_fit" && "无模板匹配"}
+                    {idea.final_reason === "no_approved_template" && "无批准模板"}
+                    {idea.final_reason !== "no_template_fit" && idea.final_reason !== "no_approved_template" && idea.final_reason}
+                  </span>
+                </div>
+              )}
             </div>
           ) : (
             <p style={styles.emptyText}>无映射结果</p>

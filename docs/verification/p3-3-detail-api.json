@@ -1,39 +1,66 @@
 {
-  "idea_id": "idea_3eb55eb95e7a",
-  "conversation_id": "sess_61459bb0076e",
+  "idea_id": "idea_f0f71616e2c2",
+  "conversation_id": "sess_24fdb3cc5c6e",
   "workflow_type": "strategy_idea",
-  "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_163500",
+  "original_message": "我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 P2RUN_20260707_171259",
   "agent_reply": "",
   "extraction": {
-    "extraction_id": "extract_7649e4aa08e0",
-    "idea_id": "idea_3eb55eb95e7a",
+    "extraction_id": "extract_978378306dfe",
+    "idea_id": "idea_f0f71616e2c2",
     "claimed_entry": "未提取",
     "claimed_exit": "未提取",
     "claimed_edge": null,
     "extraction_source": "llm_assisted"
   },
   "mapping": {
-    "mapping_id": "mapping_ee3e8411e5ee",
-    "idea_id": "idea_3eb55eb95e7a",
+    "mapping_id": "mapping_f9d015fdd1fc",
+    "idea_id": "idea_f0f71616e2c2",
     "path_type": "no_template_fit",
     "matched_template_id": null,
     "template_version": null,
-    "mapping_reason": "当前系统暂无已批准模板库。",
-    "live_eligible": false
+    "mapping_reason": "no_template_fit",
+    "live_eligible": false,
+    "considered_template_ids": [
+      "theme_momentum_breakout_v1",
+      "relative_strength_rotation_v1",
+      "volume_breakout_followthrough_v1",
+      "trend_pullback_watch_v1"
+    ],
+    "mismatch_reasons": {
+      "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+      "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+      "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+      "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+    },
+    "final_reason": "no_template_fit"
   },
   "rejection": {
-    "idea_id": "idea_3eb55eb95e7a",
+    "idea_id": "idea_f0f71616e2c2",
     "rejection_reason": "no_approved_template",
-    "rejected_at": "2026-07-07T16:35:35.207356"
+    "rejected_at": "2026-07-07T17:13:39.946912"
   },
   "decision": "rejected",
   "rejection_reason": "no_approved_template",
   "path_type": "no_template_fit",
-  "mapping_reason": "当前系统暂无已批准模板库。",
+  "mapping_reason": "no_template_fit",
   "mapped_template_id": null,
   "template_version": null,
-  "extraction_artifact_id": "extract_7649e4aa08e0",
-  "mapping_artifact_id": "mapping_ee3e8411e5ee",
-  "rejection_artifact_id": "idea_3eb55eb95e7a_rejected",
-  "created_at": "2026-07-07T16:35:35.086900"
+  "considered_template_ids": [
+    "theme_momentum_breakout_v1",
+    "relative_strength_rotation_v1",
+    "volume_breakout_followthrough_v1",
+    "trend_pullback_watch_v1"
+  ],
+  "mismatch_reasons": {
+    "theme_momentum_breakout_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+    "relative_strength_rotation_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+    "volume_breakout_followthrough_v1": "入场条件未明确提取; 出场条件未明确提取; 策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+    "trend_pullback_watch_v1": "入场条件未明确提取; 出场条件未明确提取"
+  },
+  "final_reason": "no_template_fit",
+  "live_eligible": false,
+  "extraction_artifact_id": "extract_978378306dfe",
+  "mapping_artifact_id": "mapping_f9d015fdd1fc",
+  "rejection_artifact_id": "idea_f0f71616e2c2_rejected",
+  "created_at": "2026-07-07T17:13:39.825105"
 }
