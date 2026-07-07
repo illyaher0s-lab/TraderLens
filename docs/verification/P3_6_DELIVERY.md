@@ -28,11 +28,17 @@
 - **P3-4 Template Registry**: ✅ PASSED
 - **P3-3 Rejection Registry**: ✅ PASSED
 - **P3-2 Result Visibility**: (not run, assumed pass based on P3-3/P3-4/P3-5)
-- **P2 Runtime Regression**: ⏱️ TIMEOUT (but P3-3/P3-4/P3-5 passed, core functionality verified)
+- **P2 Runtime Regression**: ✅ PASSED (exit code 0, 166.48s)
 
 ### npm run build
-- **Status**: ⏱️ IN PROGRESS (did not timeout but still running after 90s)
-- **Note**: All runtime verification tests passed
+- **Status**: ❌ FAILED (真实失败)
+- **Error**: 超时，卡在 "Creating an optimized production build"
+- **Root Cause**: Next.js 14.2.35 工具链问题，非 P3-6 代码问题
+  - 移除 P3-6 新增页面后仍然失败
+  - TypeScript 编译通过 (tsc --noEmit: exit code 0)
+  - Dev 模式正常工作
+  - 环境：WSL, Node.js 22.22.2, Next.js 14.2.35
+- **Impact**: 阻塞 production build，但不影响开发和测试
 
 ---
 
@@ -190,8 +196,8 @@ Returns all ideas where `candidate_status == "candidate_unapproved"`
 - [x] P3-5 regression: exit code 0
 - [x] P3-4 regression: exit code 0
 - [x] P3-3 regression: exit code 0
-- [ ] npm run build: ⏱️ (in progress, not blocking)
-- [ ] P2 regression: ⏱️ TIMEOUT (not blocking, P3-3/P3-4/P3-5 passed)
+- [ ] npm run build: ❌ FAILED (Next.js toolchain issue, not P3-6 code)
+- [x] P2 regression: exit code 0 (166.48s)
 - [x] Git changes committed
 - [x] Evidence committed
 - [x] Delivery report created
@@ -246,15 +252,54 @@ Returns all ideas where `candidate_status == "candidate_unapproved"`
 
 ## Notes
 
-### npm build and P2 Timeout
-- Both commands timed out during verification
-- **Root cause**: Long compilation time, not errors
-- **Evidence**: 
-  - P3-3, P3-4, P3-5 all passed (runtime functionality verified)
-  - Frontend runs successfully in dev mode
-  - Build starts successfully (no syntax errors)
-- **Impact**: None on functionality
-- **Local verification recommended**: Run build manually to confirm completion
+### npm build Failure (Next.js Toolchain Issue)
+**Status**: ❌ 真实失败，非 P3-6 代码问题
+
+**Symptoms**:
+- Build 卡在 "Creating an optimized production build" 阶段
+- 超时 300s 后无输出
+- 所有环境变量优化尝试失败
+
+**Evidence that P3-6 code is not the cause**:
+1. 移除 P3-6 新增的 `/candidate-strategies` 页面后，build 仍然失败
+2. TypeScript 编译通过：`npx tsc --noEmit` exit code 0
+3. Dev 模式正常工作：`npm run dev` 正常启动，页面可访问
+4. P3-3, P3-4, P3-5 回归测试全部通过（runtime 功能正常）
+
+**Root Cause Analysis**:
+- Next.js 14.2.35 在当前环境下的工具链问题
+- 环境：WSL (Windows Subsystem for Linux), Node.js 22.22.2
+- Next.js 14.2.35 是 outdated version (latest 16.2.10)
+- Possible causes:
+  - WSL filesystem performance issues with Next.js build cache
+  - Memory/CPU constraints during optimization phase
+  - Known bug in Next.js 14.2.35
+
+**Attempted Fixes**:
+- 清理 `.next` 目录
+- 增加 Node.js heap size: `NODE_OPTIONS="--max-old-space-size=4096"`
+- 禁用 telemetry: `NEXT_TELEMETRY_DISABLED=1`
+- 移除新增页面测试
+- All failed with same timeout
+
+**Impact**:
+- ❌ Production build 失败
+- ✅ Development 模式正常
+- ✅ Runtime 功能验证通过 (P3-6, P3-5, P3-4, P3-3, P2 全部 exit code 0)
+
+**Recommendation**:
+- Upgrade Next.js to latest stable version (16.x)
+- Test build in native Linux environment (not WSL)
+- Or accept dev-mode-only deployment for now
+
+### P2 Regression Success
+- **Status**: ✅ exit code 0
+- **Duration**: 166.48s
+- **All 4 sub-tests passed**:
+  - P2-1A: 48.09s
+  - P2-1B: 36.21s
+  - P2-1C: 42.51s
+  - P2-1D: 39.64s
 
 ### Candidate Registry UX
 Current implementation is minimal but functional:
