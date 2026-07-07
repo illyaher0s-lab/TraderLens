@@ -3,19 +3,19 @@
     "url": "http://localhost:8010/api/agent/workbench/message",
     "status": 200,
     "body": {
-      "conversation_id": "sess_0f45cb01e787",
+      "conversation_id": "sess_c4578c727b07",
       "workflow_type": "strategy_idea",
       "stage": "created",
       "agent_reply": "已提取策略想法：\n入场条件：未提取\n出场条件：未提取\n当前系统暂无已批准模板库。策略想法已记录，但不可用于实盘交易。\n该策略想法已记录到拒绝注册表，不会生成交易信号。",
       "approval_card": null,
       "artifact_ids": [
-        "idea_87dde5ec9a19",
-        "extract_031276c79369",
-        "mapping_269e3343f294",
-        "idea_87dde5ec9a19_rejected",
-        "msg_d9d1c23911de",
-        "msg_e15a43c9bee3",
-        "intent_sess_0f45cb01e787"
+        "idea_a9e9ecd3c806",
+        "extract_2e7196565efd",
+        "mapping_25e39efc04a1",
+        "idea_a9e9ecd3c806_rejected",
+        "msg_b7849b6bac1e",
+        "msg_c1976c9f0d53",
+        "intent_sess_c4578c727b07"
       ],
       "next_required_user_action": "wait_for_extraction"
     }

@@ -2,8 +2,8 @@
 Runtime Process Helpers
 
 Shared utilities for runtime verification scripts:
-- Port cleanup
-- HTTP health check with timeout
+- Port cleanup with ownership verification
+- HTTP health check with PID validation
 - Backend/Frontend process management
 - Process health monitoring
 - Log capture
@@ -21,36 +21,78 @@ from typing import Optional, Dict, Any
 import requests
 
 
+def get_port_owner_pid(port: int) -> Optional[int]:
+    """
+    Get PID of process owning the specified port.
+    
+    Returns None if port is not in use.
+    Uses PowerShell Get-NetTCPConnection.
+    """
+    command = (
+        f"Get-NetTCPConnection -LocalPort {port} -State Listen -ErrorAction SilentlyContinue "
+        "| Select-Object -ExpandProperty OwningProcess -Unique"
+    )
+    result = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", command],
+        capture_output=True,
+        text=True,
+    )
+    
+    if result.returncode != 0 or not result.stdout.strip():
+        return None
+    
+    try:
+        return int(result.stdout.strip())
+    except ValueError:
+        return None
+
+
+def get_process_command_line(pid: int) -> Optional[str]:
+    """Get command line of process by PID."""
+    command = f"Get-WmiObject Win32_Process -Filter \"ProcessId = {pid}\" | Select-Object -ExpandProperty CommandLine"
+    result = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", command],
+        capture_output=True,
+        text=True,
+    )
+    
+    if result.returncode != 0:
+        return None
+    
+    return result.stdout.strip() or None
+
+
 def release_port(port: int) -> None:
     """
     Kill process using the specified port.
     
-    Uses netstat to find PID, then taskkill /PID (not /FI IMAGENAME).
+    Only kills the specific PID owning the port, not all python.exe/node.exe.
     """
-    try:
-        result = subprocess.run(
-            ["netstat", "-ano"],
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        
-        for line in result.stdout.splitlines():
-            if f":{port}" in line and "LISTENING" in line:
-                parts = line.split()
-                pid = parts[-1]
-                
-                # Kill specific PID, not all python.exe or node.exe
-                subprocess.run(
-                    ["taskkill", "/PID", pid, "/F"],
-                    capture_output=True,
-                    check=False,
-                )
-                print(f"[OK] Killed process {pid} on port {port}")
-                time.sleep(1)
-                return
-    except Exception as e:
-        print(f"[WARN] Could not kill port {port}: {e}")
+    owner_pid = get_port_owner_pid(port)
+    
+    if owner_pid is None:
+        return
+    
+    print(f"[INFO] Port {port} is owned by PID {owner_pid}")
+    
+    # Get command line for logging
+    cmdline = get_process_command_line(owner_pid)
+    if cmdline:
+        print(f"[INFO] Process command: {cmdline[:100]}...")
+    
+    # Kill specific PID
+    subprocess.run(
+        ["taskkill", "/F", "/PID", str(owner_pid)],
+        capture_output=True,
+        check=False,
+    )
+    
+    print(f"[OK] Killed PID {owner_pid} on port {port}")
+    time.sleep(2)
+    
+    # Verify port is free
+    if get_port_owner_pid(port) is not None:
+        raise RuntimeError(f"Port {port} still in use after killing PID {owner_pid}")
 
 
 def wait_for_http(
@@ -58,11 +100,13 @@ def wait_for_http(
     timeout_seconds: int = 60,
     process: Optional[subprocess.Popen] = None,
     process_name: str = "process",
+    expected_port: Optional[int] = None,
 ) -> bool:
     """
     Wait for HTTP endpoint to respond with 200.
     
     If process is provided, checks process.poll() after each attempt.
+    If expected_port is provided, verifies port owner matches process PID.
     If process died, prints stderr/stdout tail and returns False.
     
     Returns True if endpoint is ready, False if timeout or process died.
@@ -76,19 +120,25 @@ def wait_for_http(
             
             # Print stderr tail
             if process.stderr:
-                stderr_lines = process.stderr.readlines()
-                if stderr_lines:
-                    print(f"\n{process_name} stderr (last 20 lines):")
-                    for line in stderr_lines[-20:]:
-                        print(f"  {line.rstrip()}")
+                try:
+                    stderr_lines = process.stderr.readlines()
+                    if stderr_lines:
+                        print(f"\n{process_name} stderr (last 20 lines):")
+                        for line in stderr_lines[-20:]:
+                            print(f"  {line.rstrip()}")
+                except:
+                    pass
             
             # Print stdout tail
             if process.stdout:
-                stdout_lines = process.stdout.readlines()
-                if stdout_lines:
-                    print(f"\n{process_name} stdout (last 20 lines):")
-                    for line in stdout_lines[-20:]:
-                        print(f"  {line.rstrip()}")
+                try:
+                    stdout_lines = process.stdout.readlines()
+                    if stdout_lines:
+                        print(f"\n{process_name} stdout (last 20 lines):")
+                        for line in stdout_lines[-20:]:
+                            print(f"  {line.rstrip()}")
+                except:
+                    pass
             
             return False
         
@@ -100,7 +150,19 @@ def wait_for_http(
                     print(f"[FAIL] {process_name} died immediately after responding")
                     return False
                 
+                # Verify port ownership if expected_port provided
+                if expected_port and process:
+                    port_owner = get_port_owner_pid(expected_port)
+                    if port_owner != process.pid:
+                        print(f"[FAIL] Port {expected_port} is owned by PID {port_owner}, not {process.pid}")
+                        if port_owner:
+                            cmdline = get_process_command_line(port_owner)
+                            print(f"[FAIL] Port owner command: {cmdline}")
+                        return False
+                
                 print(f"[OK] {process_name} ready after {attempt + 1} seconds")
+                if expected_port and process:
+                    print(f"[OK] Port {expected_port} owned by PID {process.pid} (verified)")
                 return True
         except requests.exceptions.RequestException:
             pass
@@ -116,6 +178,11 @@ def start_backend(
 ) -> subprocess.Popen:
     """
     Start backend server on specified port.
+    
+    Verifies:
+    - Process stays alive during startup
+    - /health returns 200
+    - Port owner PID matches started process PID
     
     Returns: Popen process if successful
     Exits with code 1 if startup fails
@@ -152,10 +219,12 @@ def start_backend(
         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
     )
     
+    print(f"[INFO] Started backend process PID {process.pid}")
+    
     # Wait for health check
     health_url = f"http://localhost:{port}/health"
     
-    if not wait_for_http(health_url, timeout_seconds, process, "Backend"):
+    if not wait_for_http(health_url, timeout_seconds, process, "Backend", expected_port=port):
         process.kill()
         sys.exit(1)
     
@@ -171,6 +240,7 @@ def start_frontend(
     Start frontend dev server on specified port.
     
     Enforces exact port (no auto-increment to 3001/3004).
+    Verifies port owner matches started process.
     
     Returns: Popen process if successful
     Exits with code 1 if startup fails
@@ -193,10 +263,12 @@ def start_frontend(
         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
     )
     
+    print(f"[INFO] Started frontend process PID {process.pid}")
+    
     # Wait for frontend
     frontend_url = f"http://localhost:{port}"
     
-    if not wait_for_http(frontend_url, timeout_seconds, process, "Frontend"):
+    if not wait_for_http(frontend_url, timeout_seconds, process, "Frontend", expected_port=port):
         process.kill()
         sys.exit(1)
     
@@ -248,11 +320,24 @@ def stop_process(
 def check_and_release_ports(ports: list[int]) -> None:
     """
     Check and release multiple ports.
+    Verifies each port is free after release.
     """
     print(f"Checking ports {ports}...")
     for port in ports:
-        release_port(port)
-    print(f"[OK] Ports {ports} are available")
+        owner = get_port_owner_pid(port)
+        if owner:
+            print(f"[WARN] Port {port} is in use, releasing...")
+            release_port(port)
+        else:
+            print(f"[OK] Port {port} is free")
+    
+    # Final verification
+    for port in ports:
+        owner = get_port_owner_pid(port)
+        if owner:
+            raise RuntimeError(f"Port {port} still in use by PID {owner} after release")
+    
+    print(f"[OK] All ports {ports} are available")
     print()
 
 

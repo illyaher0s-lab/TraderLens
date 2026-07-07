@@ -7,11 +7,10 @@
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 10.3s
+ ✓ Ready in 5.4s
  ○ Compiling / ...
- ✓ Compiled / in 1409ms (483 modules)
- GET / 200 in 1786ms
- GET / 200 in 80ms
+ ✓ Compiled / in 1505ms (483 modules)
+ GET / 200 in 600ms
  ○ Compiling /workbench ...
- ✓ Compiled /workbench in 644ms (505 modules)
- GET /workbench 200 in 878ms
+ ✓ Compiled /workbench in 649ms (505 modules)
+ GET /workbench 200 in 910ms
