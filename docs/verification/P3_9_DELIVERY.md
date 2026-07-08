@@ -176,9 +176,14 @@ Created minimal strategy validation status shell with empty state API and page.
 
 **Branch**: `feat/p2-1-observation-pool-page`
 
-**Final Commit**: TBD (will be added after commit)
+**Final Commit**: `854a64f`
 
-**Status**: Clean (pending commit)
+**Commit History**:
+- `50b82ed`: feat(P3-9): add strategy validation status shell
+- `0e49fbf`: chore(P3-9): add verification evidence and delivery report
+- `854a64f`: chore(P3-9): add P2, P3-6, P3-8 regression evidence
+
+**Status**: Clean
 
 **Files Modified**:
 - `backend/api/strategy_validations.py` (new)
