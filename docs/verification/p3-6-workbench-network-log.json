@@ -2,66 +2,66 @@
   {
     "url": "http://localhost:3000/workbench",
     "method": "GET",
-    "timestamp": "2026-07-08T09:33:35.407070",
+    "timestamp": "2026-07-08T09:53:59.375259",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783474416644",
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783475640427",
     "method": "GET",
-    "timestamp": "2026-07-08T09:33:36.745154",
+    "timestamp": "2026-07-08T09:54:00.558818",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783474416644",
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783475640427",
     "method": "GET",
-    "timestamp": "2026-07-08T09:33:36.745154",
+    "timestamp": "2026-07-08T09:54:00.558818",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783474416644",
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783475640427",
     "method": "GET",
-    "timestamp": "2026-07-08T09:33:36.745154",
+    "timestamp": "2026-07-08T09:54:00.558818",
     "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:33:36.745154",
+    "timestamp": "2026-07-08T09:54:00.558818",
     "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app/workbench/page.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:33:36.746153",
+    "timestamp": "2026-07-08T09:54:00.559818",
     "status": 200
   },
   {
     "url": "http://localhost:8010/api/agent/workbench/message",
     "method": "POST",
-    "timestamp": "2026-07-08T09:33:37.632891",
+    "timestamp": "2026-07-08T09:54:01.459318",
     "status": 200,
     "response_body": {
-      "conversation_id": "sess_26d382451ec1",
+      "conversation_id": "sess_43ecec0dd363",
       "workflow_type": "strategy_idea",
       "stage": "created",
       "agent_reply": "已提取策略想法：\n入场条件：下午两点半后买入\n出场条件：次日早盘卖出\n当前系统暂无已批准模板库。策略想法已记录，但不可用于实盘交易。\n该策略想法已记录到拒绝注册表，不会生成交易信号。",
       "approval_card": null,
       "artifact_ids": [
-        "idea_41985c97700d",
-        "extract_585d28559ec3",
-        "mapping_c00a8eb36ad3",
-        "idea_41985c97700d_rejected",
-        "msg_d3300bf1142f",
-        "msg_33103a574f70",
-        "intent_sess_26d382451ec1"
+        "idea_607883713b3b",
+        "extract_f6924452a1ce",
+        "mapping_398a7a64c655",
+        "idea_607883713b3b_rejected",
+        "msg_675829804e35",
+        "msg_297f3dc496aa",
+        "intent_sess_43ecec0dd363"
       ],
       "next_required_user_action": "wait_for_extraction"
     }
   },
   {
-    "url": "http://localhost:8010/api/agent/workbench/sess_26d382451ec1",
+    "url": "http://localhost:8010/api/agent/workbench/sess_43ecec0dd363",
     "method": "GET",
-    "timestamp": "2026-07-08T09:33:38.182128",
+    "timestamp": "2026-07-08T09:54:02.050885",
     "status": 200
   }
 ]

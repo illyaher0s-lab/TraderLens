@@ -1,9 +1,9 @@
 ====================================================================================================
 P2 Runtime Regression Gate - Detailed Log
 ====================================================================================================
-Timestamp: 2026-07-08T09:37:59.402233
+Timestamp: 2026-07-08T09:57:21.833153
 Overall Success: True
-Overall Duration: 160.49s
+Overall Duration: 165.25s
 
 ====================================================================================================
 Pre-Cleanup Results
@@ -17,8 +17,8 @@ Signals removed: 3
 Script: P2-1A: Workbench → Observations
 ====================================================================================================
 Exit Code: 0
-Duration: 42.83s
-Run ID: P2RUN_20260708_093519
+Duration: 42.24s
+Run ID: P2RUN_20260708_095436
 Success: True
 
 STDOUT:
@@ -29,13 +29,13 @@ P2-1A Workbench → Observation Pool End-to-End Verification
 PROJECT_ROOT: D:\Codex\TraderLens
 Current working directory: D:\Codex\TraderLens
 
-Run ID: P2RUN_20260708_093519
-This run's data will be tagged with: P2RUN_20260708_093519
+Run ID: P2RUN_20260708_095436
+This run's data will be tagged with: P2RUN_20260708_095436
 
 [1/10] Checking port availability...
 Port 8010 available
 WARNING: Port 3000 already in use, attempting to kill...
-Killed process 23024 on port 3000
+Killed process 24652 on port 3000
 Port 3000 available
 
 [2/10] Starting backend on port 8010...
@@ -52,8 +52,8 @@ Port 3000 available
 ✅ /workbench is accessible
 
 [6/10] Opening Workbench with Playwright and submitting buy execution...
-📍 Before submit timestamp: 2026-07-08T09:35:44.477384
-Test message: 已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260708_093519
+📍 Before submit timestamp: 2026-07-08T09:55:01.909228
+Test message: 已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260708_095436
 ✅ Filled input via selector: input[type="text"]
 ✅ Clicked send button via selector: button:has-text("发送")
 ⏳ Waiting for agent response (up to 90 seconds)...
@@ -67,12 +67,12 @@ Test message: 已买入宏昌电子（603002）100 股，成交价 12.34，备�
 ✅ Saved observations API response to docs\verification\p2-1a-observations-api.json
 Total positions in API response: 28
 ✅ Found target position created by this test:
-   - Position ID: pos_881b76274cc8
+   - Position ID: pos_3f04598d4d65
    - Symbol: 603002.SH
    - Name: 宏昌电子
    - Entry Price: 12.34
    - Quantity: 100
-   - Opened At: 2026-07-08T09:35:44.960839 (>= 2026-07-08T09:35:44.477384)
+   - Opened At: 2026-07-08T09:55:02.437751 (>= 2026-07-08T09:55:01.909228)
 
 [8/10] Opening /observations page with Playwright...
 ✅ Saved observations DOM to docs\verification\p2-1a-observations-dom.md
@@ -128,13 +128,13 @@ Cleaning up processes...
 Script: P2-1B: Observations UX
 ====================================================================================================
 Exit Code: 0
-Duration: 37.46s
-Run ID: P2RUN_20260708_093601
+Duration: 38.79s
+Run ID: P2RUN_20260708_095519
 Success: True
 
 STDOUT:
-Run ID: P2RUN_20260708_093601
-This run's data will be tagged with: P2RUN_20260708_093601
+Run ID: P2RUN_20260708_095519
+This run's data will be tagged with: P2RUN_20260708_095519
 
 ====================================================================================================
 P2-1B Observations Pool UX Verification
@@ -146,7 +146,7 @@ Current working directory: D:\Codex\TraderLens
 [1/8] Checking port availability...
 Port 8010 available
 WARNING: Port 3000 already in use, attempting to kill...
-Killed process 61220 on port 3000
+Killed process 50424 on port 3000
 Port 3000 available
 
 [2/8] Starting backend on port 8010...
@@ -160,8 +160,8 @@ Port 3000 available
 ✅ Frontend ready after 3 seconds
 
 [5/8] Creating test position via Workbench...
-📍 Before submit timestamp: 2026-07-08T09:36:24.471235
-Test message: 已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260708_093601
+📍 Before submit timestamp: 2026-07-08T09:55:42.027368
+Test message: 已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260708_095519
 ✅ Filled input via selector: input[type="text"]
 ✅ Clicked send button via selector: button:has-text("发送")
 ⏳ Waiting for agent response (up to 30 seconds)...
@@ -182,9 +182,9 @@ Test message: 已买入宏昌电子（603002）100 股，成交价 12.34，备�
 ✅ GET /api/observations?status=open: HTTP 200
 ✅ Saved observations API response to docs\verification\p2-1b-observations-api.json
 Total positions in API response: 29
-✅ Found target position: pos_dd7c57d18009
-   - opened_at: 2026-07-08T09:36:28.970716 (>= 2026-07-08T09:36:24.471235)
-   - run_id in entry_thesis: P2RUN_20260708_093601 ✓
+✅ Found target position: pos_eab035ce44bd
+   - opened_at: 2026-07-08T09:55:46.855740 (>= 2026-07-08T09:55:42.027368)
+   - run_id in entry_thesis: P2RUN_20260708_095519 ✓
 
 [8/8] Verifying database path...
 ✅ DB path exists: D:\Codex\TraderLens\data\live_trade.db
@@ -220,13 +220,13 @@ Cleaning up processes...
 Script: P2-1C: Daily Signal Generation
 ====================================================================================================
 Exit Code: 0
-Duration: 40.4s
-Run ID: P2RUN_20260708_093639
+Duration: 42.63s
+Run ID: P2RUN_20260708_095557
 Success: True
 
 STDOUT:
-Run ID: P2RUN_20260708_093639
-This run's data will be tagged with: P2RUN_20260708_093639
+Run ID: P2RUN_20260708_095557
+This run's data will be tagged with: P2RUN_20260708_095557
 
 ====================================================================================================
 P2-1C Observation Daily Signal Runtime Loop Verification
@@ -238,8 +238,8 @@ Current working directory: D:\Codex\TraderLens
 [1/10] Checking port availability...
 Port 8010 available
 WARNING: Port 3000 already in use, attempting to kill...
-Killed process 44004 on port 3000
-Killed process 44004 on port 3000
+Killed process 47588 on port 3000
+Killed process 47588 on port 3000
 Port 3000 available
 
 [2/10] Starting backend on port 8010...
@@ -250,11 +250,11 @@ Port 3000 available
 [4/10] Starting frontend on port 3000...
 ✅ Frontend process started
 ⏳ Waiting for frontend to be ready...
-✅ Frontend ready after 2 seconds
+✅ Frontend ready after 3 seconds
 
 [5/10] Creating test position via Workbench...
-📍 Before submit timestamp: 2026-07-08T09:37:01.856455
-Test message: 已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260708_093639
+📍 Before submit timestamp: 2026-07-08T09:56:22.568536
+Test message: 已买入宏昌电子（603002）100 股，成交价 12.34，备注 P2RUN_20260708_095557
 ✅ Filled input via selector: input[type="text"]
 ✅ Clicked send button via selector: button:has-text("发送")
 ⏳ Waiting for agent response (up to 30 seconds)...
@@ -271,9 +271,9 @@ Generated 30 signal(s)
 ✅ GET /api/observations?status=open: HTTP 200
 ✅ Saved observations API response to docs\verification\p2-1c-observations-api.json
 Total positions in API response: 30
-✅ Found target position: pos_b66d36a9b473
-   - opened_at: 2026-07-08T09:37:06.456723 (>= 2026-07-08T09:37:01.856455)
-   - run_id in entry_thesis: P2RUN_20260708_093639 ✓
+✅ Found target position: pos_33bff9ec365d
+   - opened_at: 2026-07-08T09:56:27.342969 (>= 2026-07-08T09:56:22.568536)
+   - run_id in entry_thesis: P2RUN_20260708_095557 ✓
    - latest_signal.signal_type: hold
    - latest_signal.market_data_state: ok
 ✅ Signal validation passed
@@ -324,8 +324,8 @@ Cleaning up processes...
 Script: P2-1D: Sell Close P&L Review
 ====================================================================================================
 Exit Code: 0
-Duration: 39.77s
-Run ID: P2RUN_20260708_093719
+Duration: 41.55s
+Run ID: P2RUN_20260708_095640
 Success: True
 
 STDOUT:
@@ -336,13 +336,13 @@ P2-1D Sell Close P&L Review End-to-End Verification
 PROJECT_ROOT: D:\Codex\TraderLens
 Current working directory: D:\Codex\TraderLens
 
-Run ID: P2RUN_20260708_093719
-This run's data will be tagged with: P2RUN_20260708_093719
+Run ID: P2RUN_20260708_095640
+This run's data will be tagged with: P2RUN_20260708_095640
 
 [1/12] Checking port availability...
 ✅ Port 8010 available
 ⚠️ Port 3000 already in use, attempting to kill...
-✅ Killed process 34348 on port 3000
+✅ Killed process 14372 on port 3000
 ✅ Port 3000 available
 
 [2/12] Starting backend on port 8010...
@@ -361,12 +361,12 @@ This run's data will be tagged with: P2RUN_20260708_093719
 ✅ Buy response captured: status=200
 ✅ Buy workbench POST 200
 ⚠️ No timeline artifacts in response. Response keys: ['conversation_id', 'workflow_type', 'stage', 'agent_reply', 'approval_card', 'artifact_ids', 'next_required_user_action']
-Found artifact_ids: ['log_0ad02fdce23f', 'pos_6ef700563b6a', 'action_completed_be2779ae', 'msg_97cd9f45cb6e', 'msg_d055f43543a0', 'intent_sess_9d8fe66b3874']
-✅ Position ID from artifact_ids[1]: pos_6ef700563b6a
-✅ Position created: pos_6ef700563b6a
+Found artifact_ids: ['log_d4496004ecdc', 'pos_a6466bc8218f', 'action_completed_57465889', 'msg_c7c2229c0418', 'msg_76c502c1aca2', 'intent_sess_7ed2ec59e3aa']
+✅ Position ID from artifact_ids[1]: pos_a6466bc8218f
+✅ Position created: pos_a6466bc8218f
 
 [7/12] Querying open positions before sell...
-✅ Position pos_6ef700563b6a is open and tagged with P2RUN_20260708_093719
+✅ Position pos_a6466bc8218f is open and tagged with P2RUN_20260708_095640
 
 [8/12] Playwright: Submitting sell execution via Workbench...
 ⏳ Refreshing page to reset UI state...
@@ -375,11 +375,11 @@ Found artifact_ids: ['log_0ad02fdce23f', 'pos_6ef700563b6a', 'action_completed_b
 ✅ Sell response received: status=200
 ✅ Sell response captured: status=200
 ✅ Sell workbench POST 200
-Found artifact_ids: ['log_5bcb952c7c4c', 'review_74b67f3058b6', 'action_completed_f161e79b', 'msg_ac5024a6e62c', 'msg_332963837655', 'intent_sess_b79fa846ed90']
-✅ Discipline review created: review_74b67f3058b6
+Found artifact_ids: ['log_02b14ce7ccd1', 'review_a23b7ffa60ec', 'action_completed_f88d37f0', 'msg_0abeac0e10cd', 'msg_dbecab440d29', 'intent_sess_9860d85f8f6f']
+✅ Discipline review created: review_a23b7ffa60ec
 
 [9/12] Verifying position closed...
-✅ Position pos_6ef700563b6a is now closed
+✅ Position pos_a6466bc8218f is now closed
 
 [10/12] Verifying P&L and review...
 ✅ P&L source: calculated_from_confirmed_details

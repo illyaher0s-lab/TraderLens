@@ -6,13 +6,7 @@
     "ok": true
   },
   {
-    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783474634307",
-    "method": "GET",
-    "status": 200,
-    "ok": true
-  },
-  {
-    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783474634307",
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783475795109",
     "method": "GET",
     "status": 200,
     "ok": true
@@ -24,13 +18,19 @@
     "ok": true
   },
   {
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783475795109",
+    "method": "GET",
+    "status": 200,
+    "ok": true
+  },
+  {
     "url": "http://localhost:3000/_next/static/chunks/app/observations/page.js",
     "method": "GET",
     "status": 200,
     "ok": true
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783474634307",
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783475795109",
     "method": "GET",
     "status": 200,
     "ok": true

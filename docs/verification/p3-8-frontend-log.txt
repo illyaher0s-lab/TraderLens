@@ -7,23 +7,23 @@
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 3.1s
+ ✓ Ready in 7.8s
  ○ Compiling / ...
- ✓ Compiled / in 1771ms (483 modules)
- GET / 200 in 2065ms
- GET / 200 in 110ms
+ ✓ Compiled / in 1682ms (483 modules)
+ GET / 200 in 678ms
  ○ Compiling /strategies ...
- ✓ Compiled /strategies in 740ms (495 modules)
- GET /strategies 200 in 1035ms
+ ✓ Compiled /strategies in 974ms (495 modules)
+ GET /strategies 200 in 1221ms
  ○ Compiling /strategy-ideas ...
- ✓ Compiled /strategy-ideas in 668ms (503 modules)
- GET /strategy-ideas 200 in 939ms
+ ✓ Compiled /strategy-ideas in 789ms (503 modules)
+ GET /strategy-ideas 200 in 1125ms
  ○ Compiling /candidate-strategies ...
- ✓ Compiled /candidate-strategies in 760ms (509 modules)
- GET /candidate-strategies 200 in 982ms
+ ✓ Compiled /candidate-strategies in 848ms (509 modules)
+ GET /candidate-strategies 200 in 1091ms
  ○ Compiling /rejected-strategies ...
- ✓ Compiled /rejected-strategies in 853ms (515 modules)
- GET /rejected-strategies 200 in 1026ms
+ ✓ Compiled /rejected-strategies in 952ms (515 modules)
+ GET /rejected-strategies 200 in 1094ms
  ○ Compiling /strategy-templates ...
- ✓ Compiled /strategy-templates in 982ms (521 modules)
- GET /strategy-templates 200 in 1143ms
+ ✓ Compiled /strategy-templates in 806ms (521 modules)
+ GET /strategy-templates 200 in 968ms
+[?25h
