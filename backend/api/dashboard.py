@@ -95,11 +95,17 @@ def get_dashboard_today() -> Dict[str, Any]:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        # Get all strategy ideas
+        # Get all strategy ideas with their mappings in one query
         cursor.execute("""
-            SELECT artifact_id, session_id, content
-            FROM agent_artifact_refs
-            WHERE artifact_type = 'strategy_idea'
+            SELECT 
+                i.artifact_id,
+                i.session_id,
+                m.content as mapping_content
+            FROM agent_artifact_refs i
+            LEFT JOIN agent_artifact_refs m 
+                ON i.session_id = m.session_id 
+                AND m.artifact_type = 'strategy_idea_mapping'
+            WHERE i.artifact_type = 'strategy_idea'
         """)
         
         idea_rows = cursor.fetchall()
@@ -108,27 +114,22 @@ def get_dashboard_today() -> Dict[str, Any]:
         candidates_count = 0
         rejected_count = 0
         
-        # Count candidates and rejected
+        # Count candidates and rejected from joined data
         for row in idea_rows:
-            # Get mapping artifact for this idea
-            session_id = row["session_id"]
-            cursor.execute("""
-                SELECT content FROM agent_artifact_refs
-                WHERE session_id = ? AND artifact_type = 'strategy_idea_mapping'
-                ORDER BY created_at DESC LIMIT 1
-            """, (session_id,))
-            
-            mapping_row = cursor.fetchone()
-            if mapping_row:
-                mapping_data = json.loads(mapping_row["content"])
-                
-                # Check candidate status
-                if mapping_data.get("candidate_status") == "candidate_unapproved":
-                    candidates_count += 1
-                
-                # Check decision
-                if mapping_data.get("decision") == "rejected":
-                    rejected_count += 1
+            mapping_content = row["mapping_content"]
+            if mapping_content:
+                try:
+                    mapping_data = json.loads(mapping_content)
+                    
+                    # Check candidate status
+                    if mapping_data.get("candidate_status") == "candidate_unapproved":
+                        candidates_count += 1
+                    
+                    # Check decision
+                    if mapping_data.get("decision") == "rejected":
+                        rejected_count += 1
+                except json.JSONDecodeError:
+                    pass
         
         conn.close()
         
