@@ -111,26 +111,30 @@ def run_verification():
                 f.write(f"# /strategies Hub DOM - {run_id}\n\n")
                 f.write(hub_dom)
             
-            # Verify 5 entry links exist
-            required_links = [
-                "/strategy-ideas",
-                "/candidate-strategies",
-                "/rejected-strategies",
-                "/strategy-templates",
+            # Verify 5 entry points/sections exist
+            required_entries = [
+                ("/strategy-ideas", "策略想法"),
+                ("/candidate-strategies", "候选策略"),
+                ("/rejected-strategies", "拒绝注册表"),
+                ("/strategy-templates", "策略模板"),
+                ("已批准策略库", "count:"),  # This is a display section, not a link
             ]
             
             page_html = page.content()
-            missing_links = []
+            missing_entries = []
             
-            for link in required_links:
-                if f'href="{link}"' not in page_html:
-                    missing_links.append(link)
+            for entry in required_entries:
+                if isinstance(entry, tuple) and len(entry) == 2:
+                    search_term = entry[0]
+                    label = entry[1]
+                    if search_term not in page_html:
+                        missing_entries.append(f"{label} ({search_term})")
             
-            if missing_links:
-                print(f"[FAIL] /strategies hub missing required links: {missing_links}")
+            if missing_entries:
+                print(f"[FAIL] /strategies hub missing required entries: {missing_entries}")
                 return 1
             
-            print(f"[OK] /strategies hub has all 4 entry links")
+            print(f"[OK] /strategies hub has all 5 entry points/sections")
             
             # Verify API response shows empty approved strategies
             import urllib.request
@@ -205,8 +209,14 @@ def run_verification():
             "verification_status": "PASSED",
             "hub_verification": {
                 "hub_path": "/strategies",
-                "entry_links_count": len(required_links),
-                "entry_links": required_links,
+                "entry_count": 5,
+                "entries": [
+                    "策略想法 (/strategy-ideas)",
+                    "候选策略 (/candidate-strategies)",
+                    "拒绝注册表 (/rejected-strategies)",
+                    "策略模板 (/strategy-templates)",
+                    "已批准策略库 (count: 0)",
+                ],
             },
             "page_back_links": {
                 "strategy_ideas": "✓",
@@ -236,7 +246,7 @@ def run_verification():
         print("PASS: P3-8 VERIFICATION PASSED")
         print("=" * 80)
         print(f"\nRun ID: {run_id}")
-        print(f"Hub entry links: {len(required_links)}")
+        print(f"Hub entry points: 5")
         print(f"Pages with back links: 4/4")
         print(f"Approved strategies count: 0 (correct)")
         

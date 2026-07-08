@@ -110,7 +110,7 @@ export default function StrategiesPage() {
 
       {/* Navigation Links */}
       <section style={styles.linksSection}>
-        <h3 style={styles.linksTitle}>相关页面</h3>
+        <h3 style={styles.linksTitle}>策略工作区</h3>
         <div style={styles.linksGrid}>
           <Link href="/strategy-ideas" style={styles.linkCard}>
             <div style={styles.linkIcon}>💡</div>
@@ -143,6 +143,16 @@ export default function StrategiesPage() {
               <div style={styles.linkDesc}>已批准的策略模板库</div>
             </div>
           </Link>
+
+          <div style={{...styles.linkCard, cursor: 'default', backgroundColor: '#f9fafb'}}>
+            <div style={styles.linkIcon}>✅</div>
+            <div style={styles.linkContent}>
+              <div style={styles.linkLabel}>已批准策略库</div>
+              <div style={styles.linkDesc}>
+                当前为空 (count: {data?.count || 0})
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </main>

@@ -1,7 +1,7 @@
 {
-  "run_id": "P2RUN_20260708_090319",
-  "conversation_id": "sess_b7106b65b5f9",
-  "idea_id": "idea_a62ebef6929e",
+  "run_id": "P2RUN_20260708_093232",
+  "conversation_id": "sess_26d382451ec1",
+  "idea_id": "idea_41985c97700d",
   "decision": "rejected",
   "mapped_template_id": null,
   "final_reason": "no_template_fit",
@@ -9,5 +9,5 @@
   "candidate_status": "candidate_unapproved",
   "candidate_reason": "no_approved_template_fit",
   "required_next_step": "template_approval_required",
-  "verification_timestamp": "2026-07-08T09:04:22.745825"
+  "verification_timestamp": "2026-07-08T09:33:59.497627"
 }

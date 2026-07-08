@@ -1,6 +1,40 @@
 {
   "ideas": [
     {
+      "idea_id": "idea_41985c97700d",
+      "conversation_id": "sess_26d382451ec1",
+      "workflow_type": "strategy_idea",
+      "original_message": "[P2RUN_20260708_093232] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+      "claimed_entry": "下午两点半后买入",
+      "claimed_exit": "次日早盘卖出",
+      "claimed_edge": null,
+      "decision": "rejected",
+      "path_type": "no_template_fit",
+      "rejection_reason": "no_approved_template",
+      "mapping_artifact_id": "mapping_c00a8eb36ad3",
+      "extraction_artifact_id": "extract_585d28559ec3",
+      "mapped_template_id": null,
+      "template_version": null,
+      "considered_template_ids": [
+        "theme_momentum_breakout_v1",
+        "relative_strength_rotation_v1",
+        "volume_breakout_followthrough_v1",
+        "trend_pullback_watch_v1"
+      ],
+      "mismatch_reasons": {
+        "theme_momentum_breakout_v1": "策略描述未提及MACD指标，不符合theme_momentum_breakout_v1的MACD动量假设; 策略描述未明确突破逻辑，不符合theme_momentum_breakout_v1的突破假设",
+        "relative_strength_rotation_v1": "策略描述未提及相对强度，不符合relative_strength_rotation_v1的相对强度假设",
+        "volume_breakout_followthrough_v1": "策略描述未明确突破逻辑，不符合volume_breakout_followthrough_v1的突破假设",
+        "trend_pullback_watch_v1": "策略规则与trend_pullback_watch_v1模板规则差异过大，无法自动映射"
+      },
+      "final_reason": "no_template_fit",
+      "live_eligible": false,
+      "candidate_status": "candidate_unapproved",
+      "candidate_reason": "no_approved_template_fit",
+      "required_next_step": "template_approval_required",
+      "created_at": "2026-07-08T09:33:37.949677"
+    },
+    {
       "idea_id": "idea_a62ebef6929e",
       "conversation_id": "sess_b7106b65b5f9",
       "workflow_type": "strategy_idea",

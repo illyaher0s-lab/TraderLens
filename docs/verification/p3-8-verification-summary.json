@@ -1,15 +1,16 @@
 {
-  "run_id": "P3_8_RUN_20260708_090107",
-  "timestamp": "2026-07-08T09:02:19.444587",
+  "run_id": "P3_8_RUN_20260708_094045",
+  "timestamp": "2026-07-08T09:41:53.630967",
   "verification_status": "PASSED",
   "hub_verification": {
     "hub_path": "/strategies",
-    "entry_links_count": 4,
-    "entry_links": [
-      "/strategy-ideas",
-      "/candidate-strategies",
-      "/rejected-strategies",
-      "/strategy-templates"
+    "entry_count": 5,
+    "entries": [
+      "策略想法 (/strategy-ideas)",
+      "候选策略 (/candidate-strategies)",
+      "拒绝注册表 (/rejected-strategies)",
+      "策略模板 (/strategy-templates)",
+      "已批准策略库 (count: 0)"
     ]
   },
   "page_back_links": {

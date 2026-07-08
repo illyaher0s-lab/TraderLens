@@ -2,43 +2,43 @@
   {
     "url": "http://localhost:3000/strategies",
     "method": "GET",
-    "timestamp": "2026-07-08T09:01:57.024157",
+    "timestamp": "2026-07-08T09:41:31.875894",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783472518077",
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783474892953",
     "method": "GET",
-    "timestamp": "2026-07-08T09:01:58.239387",
+    "timestamp": "2026-07-08T09:41:33.103091",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783472518077",
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783474892953",
     "method": "GET",
-    "timestamp": "2026-07-08T09:01:58.239387",
+    "timestamp": "2026-07-08T09:41:33.103091",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783472518077",
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783474892953",
     "method": "GET",
-    "timestamp": "2026-07-08T09:01:58.239387",
+    "timestamp": "2026-07-08T09:41:33.104091",
     "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:01:58.240435",
+    "timestamp": "2026-07-08T09:41:33.104091",
     "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app/strategies/page.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:01:58.240435",
+    "timestamp": "2026-07-08T09:41:33.104091",
     "status": 200
   },
   {
     "url": "http://localhost:8010/api/strategies",
     "method": "GET",
-    "timestamp": "2026-07-08T09:01:58.674391",
+    "timestamp": "2026-07-08T09:41:33.539880",
     "status": 200,
     "response_body": {
       "strategies": [],
@@ -48,7 +48,7 @@
   {
     "url": "http://localhost:8010/api/strategies",
     "method": "GET",
-    "timestamp": "2026-07-08T09:01:58.674391",
+    "timestamp": "2026-07-08T09:41:33.539880",
     "status": 200,
     "response_body": {
       "strategies": [],
@@ -58,241 +58,241 @@
   {
     "url": "http://localhost:3000/strategy-ideas",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:03.629797",
+    "timestamp": "2026-07-08T09:41:38.497832",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/webpack/7d6d9cc8b57196e5.webpack.hot-update.json",
+    "url": "http://localhost:3000/_next/static/webpack/957fa51257fd1aa9.webpack.hot-update.json",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:04.746835",
+    "timestamp": "2026-07-08T09:41:39.187341",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/webpack/webpack.7d6d9cc8b57196e5.hot-update.js",
+    "url": "http://localhost:3000/_next/static/webpack/webpack.957fa51257fd1aa9.hot-update.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:04.770249",
+    "timestamp": "2026-07-08T09:41:39.212283",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783472524887",
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783474899313",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:05.048791",
+    "timestamp": "2026-07-08T09:41:39.446810",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783472524887",
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783474899313",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:05.048791",
+    "timestamp": "2026-07-08T09:41:39.447817",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783472524887",
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783474899313",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:05.049789",
+    "timestamp": "2026-07-08T09:41:39.447817",
     "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:05.049789",
+    "timestamp": "2026-07-08T09:41:39.448817",
     "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app/strategy-ideas/page.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:05.049789",
+    "timestamp": "2026-07-08T09:41:39.448817",
     "status": 200
   },
   {
     "url": "http://localhost:8010/api/strategy-ideas?",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:05.839503",
+    "timestamp": "2026-07-08T09:41:40.117468",
     "status": 200
   },
   {
     "url": "http://localhost:8010/api/strategy-ideas?",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:05.839503",
+    "timestamp": "2026-07-08T09:41:40.117468",
     "status": 200
   },
   {
     "url": "http://localhost:3000/candidate-strategies",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:08.104925",
+    "timestamp": "2026-07-08T09:41:42.339950",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/webpack/dfdec0cea9a6b20f.webpack.hot-update.json",
+    "url": "http://localhost:3000/_next/static/webpack/941c834bef0487c5.webpack.hot-update.json",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:09.079659",
+    "timestamp": "2026-07-08T09:41:43.130018",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/webpack/webpack.dfdec0cea9a6b20f.hot-update.js",
+    "url": "http://localhost:3000/_next/static/webpack/webpack.941c834bef0487c5.hot-update.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:09.101498",
+    "timestamp": "2026-07-08T09:41:43.147291",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783472529171",
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783474903205",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:09.295937",
+    "timestamp": "2026-07-08T09:41:43.316072",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783472529171",
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783474903205",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:09.295937",
+    "timestamp": "2026-07-08T09:41:43.317502",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783472529171",
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783474903205",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:09.295937",
+    "timestamp": "2026-07-08T09:41:43.317502",
     "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:09.295937",
+    "timestamp": "2026-07-08T09:41:43.317502",
     "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app/candidate-strategies/page.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:09.297135",
+    "timestamp": "2026-07-08T09:41:43.317502",
     "status": 200
   },
   {
     "url": "http://localhost:8010/api/strategy-ideas?candidate_status=candidate_unapproved",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:09.959863",
+    "timestamp": "2026-07-08T09:41:43.929519",
     "status": 200
   },
   {
     "url": "http://localhost:8010/api/strategy-ideas?candidate_status=candidate_unapproved",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:09.959863",
+    "timestamp": "2026-07-08T09:41:43.930533",
     "status": 200
   },
   {
     "url": "http://localhost:3000/rejected-strategies",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:12.147217",
+    "timestamp": "2026-07-08T09:41:46.145042",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/webpack/f059c634435ab55d.webpack.hot-update.json",
+    "url": "http://localhost:3000/_next/static/webpack/c740054ec9f53b9c.webpack.hot-update.json",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:13.014176",
+    "timestamp": "2026-07-08T09:41:47.025282",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/webpack/webpack.f059c634435ab55d.hot-update.js",
+    "url": "http://localhost:3000/_next/static/webpack/webpack.c740054ec9f53b9c.hot-update.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:13.034833",
+    "timestamp": "2026-07-08T09:41:47.044965",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783472533084",
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783474907109",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:13.135639",
+    "timestamp": "2026-07-08T09:41:47.169353",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783472533084",
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783474907109",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:13.135639",
+    "timestamp": "2026-07-08T09:41:47.170408",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783472533084",
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783474907109",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:13.135639",
+    "timestamp": "2026-07-08T09:41:47.171408",
     "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:13.135639",
+    "timestamp": "2026-07-08T09:41:47.171408",
     "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app/rejected-strategies/page.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:13.137131",
+    "timestamp": "2026-07-08T09:41:47.172392",
     "status": 200
   },
   {
     "url": "http://localhost:8010/api/strategy-ideas",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:13.754495",
+    "timestamp": "2026-07-08T09:41:47.757236",
     "status": 200
   },
   {
     "url": "http://localhost:8010/api/strategy-ideas",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:13.754495",
+    "timestamp": "2026-07-08T09:41:47.758230",
     "status": 200
   },
   {
     "url": "http://localhost:3000/strategy-templates",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:15.929375",
+    "timestamp": "2026-07-08T09:41:50.005860",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/webpack/16aed28e20d2b37c.webpack.hot-update.json",
+    "url": "http://localhost:3000/_next/static/webpack/16e3a4bcfbdc5910.webpack.hot-update.json",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:16.815975",
+    "timestamp": "2026-07-08T09:41:51.011024",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/webpack/webpack.16aed28e20d2b37c.hot-update.js",
+    "url": "http://localhost:3000/_next/static/webpack/webpack.16e3a4bcfbdc5910.hot-update.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:16.843667",
+    "timestamp": "2026-07-08T09:41:51.032296",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783472536899",
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783474911084",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:16.955984",
+    "timestamp": "2026-07-08T09:41:51.142266",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783472536899",
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783474911084",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:16.955984",
+    "timestamp": "2026-07-08T09:41:51.143266",
     "status": 200
   },
   {
-    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783472536899",
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783474911084",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:16.956990",
+    "timestamp": "2026-07-08T09:41:51.144266",
     "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:16.956990",
+    "timestamp": "2026-07-08T09:41:51.145742",
     "status": 200
   },
   {
     "url": "http://localhost:3000/_next/static/chunks/app/strategy-templates/page.js",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:16.957992",
+    "timestamp": "2026-07-08T09:41:51.146741",
     "status": 200
   },
   {
     "url": "http://localhost:8010/api/strategy-templates",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:17.559028",
+    "timestamp": "2026-07-08T09:41:51.786148",
     "status": 200
   },
   {
     "url": "http://localhost:8010/api/strategy-templates",
     "method": "GET",
-    "timestamp": "2026-07-08T09:02:17.559028",
+    "timestamp": "2026-07-08T09:41:51.787147",
     "status": 200
   }
 ]
