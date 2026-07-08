@@ -127,7 +127,8 @@ All prior phases remain passing:
 
 ## Commit Information
 
-- **Commit hash**: cad4417
+- **Previous closeout commit hash**: 5d0e4d0
+- **Final closeout commit hash**: repository HEAD after this report commit
 - **Branch**: feat/p2-1-observation-pool-page
 - **Git status**: clean ✅
 

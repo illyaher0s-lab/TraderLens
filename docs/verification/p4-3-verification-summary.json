@@ -44,55 +44,55 @@
       "reachable": true,
       "status": "ok",
       "name": "Agent Workbench",
-      "found_title": "TraderLens 工作台"
+      "found_title": "ok"
     },
     "/observations": {
       "reachable": true,
       "status": "ok",
       "name": "Observation Pool",
-      "found_title": "观察池"
+      "found_title": "ok"
     },
     "/signals": {
       "reachable": true,
       "status": "ok",
       "name": "Signal Board",
-      "found_title": "Signal Board"
+      "found_title": "ok"
     },
     "/strategy-ideas": {
       "reachable": true,
       "status": "ok",
       "name": "Strategy Ideas",
-      "found_title": "策略想法"
+      "found_title": "ok"
     },
     "/candidate-strategies": {
       "reachable": true,
       "status": "ok",
       "name": "Candidate Strategies",
-      "found_title": "候选策略"
+      "found_title": "ok"
     },
     "/rejected-strategies": {
       "reachable": true,
       "status": "ok",
       "name": "Rejected Strategies",
-      "found_title": "策略拒绝"
+      "found_title": "ok"
     },
     "/strategy-validations": {
       "reachable": true,
       "status": "ok",
       "name": "Strategy Validations",
-      "found_title": "策略验证"
+      "found_title": "ok"
     },
     "/strategies": {
       "reachable": true,
       "status": "ok",
       "name": "Approved Strategies",
-      "found_title": "已批准策略"
+      "found_title": "ok"
     },
     "/strategy-templates": {
       "reachable": true,
       "status": "ok",
       "name": "Strategy Templates",
-      "found_title": "策略模板"
+      "found_title": "ok"
     }
   },
   "checks": {
