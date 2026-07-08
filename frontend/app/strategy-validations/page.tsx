@@ -1,9 +1,9 @@
 /**
- * Approved Strategy Library
+ * Strategy Validations - Shell Page
  * 
- * P3-7: Shell page for approved strategy library (currently empty)
- * - Display empty state (no approved strategies yet)
- * - Explain difference between strategies, candidates, templates
+ * P3-9: Shell page for strategy validation cases (currently empty)
+ * - Display empty state (no validation cases yet)
+ * - Explain validation process
  * - Link to related pages
  */
 
@@ -12,38 +12,38 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-interface StrategyLibraryResponse {
-  strategies: any[];
+interface ValidationResponse {
+  validations: any[];
   count: number;
 }
 
-export default function StrategiesPage() {
-  const [data, setData] = useState<StrategyLibraryResponse | null>(null);
+export default function StrategyValidationsPage() {
+  const [data, setData] = useState<ValidationResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8010";
 
   useEffect(() => {
-    loadStrategies();
+    loadValidations();
   }, []);
 
-  const loadStrategies = async () => {
+  const loadValidations = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      const url = `${API_BASE_URL}/api/strategies`;
+      const url = `${API_BASE_URL}/api/strategy-validations`;
       const response = await fetch(url);
       
       if (!response.ok) {
-        throw new Error(`Failed to load strategies: HTTP ${response.status}`);
+        throw new Error(`Failed to load validations: HTTP ${response.status}`);
       }
       
       const responseData = await response.json();
       setData(responseData);
     } catch (err) {
-      console.error("Failed to load strategies:", err);
+      console.error("Failed to load validations:", err);
       setError(
         err instanceof Error 
           ? err.message 
@@ -75,64 +75,50 @@ export default function StrategiesPage() {
       {/* Header */}
       <header style={styles.header}>
         <div>
-          <h1 style={styles.title}>已批准策略库</h1>
+          <h1 style={styles.title}>策略验证</h1>
           <p style={styles.subtitle}>
-            可交易的生产环境策略（当前为空）
+            通过模板匹配的策略验证案例（当前为空）
           </p>
+        </div>
+        <div style={styles.headerActions}>
+          <Link href="/strategies" style={styles.headerLink}>
+            ← 返回策略工作区
+          </Link>
         </div>
       </header>
 
       {/* Empty State */}
       <div style={styles.emptyState}>
-        <div style={styles.emptyIcon}>📋</div>
-        <h2 style={styles.emptyTitle}>当前没有已批准策略</h2>
+        <div style={styles.emptyIcon}>🔬</div>
+        <h2 style={styles.emptyTitle}>当前没有策略验证案例</h2>
         <p style={styles.emptyText}>
-          已批准策略是经过完整验证、可用于实盘交易的策略。
-        </p>
-        <p style={styles.emptyText}>
-          策略数量: <strong>{data?.count || 0}</strong>
+          验证案例数量: <strong>{data?.count || 0}</strong>
         </p>
         
         <div style={styles.infoBox}>
-          <h3 style={styles.infoTitle}>什么可以成为已批准策略？</h3>
+          <h3 style={styles.infoTitle}>什么是策略验证？</h3>
           <ul style={styles.infoList}>
-            <li>策略想法 (Strategy Ideas) 提交后会被评估</li>
-            <li>如果无法匹配已批准模板，会成为候选策略 (Candidate)</li>
-            <li>如果完全不符合要求，会进入拒绝注册表 (Rejected)</li>
-            <li>只有通过模板匹配和完整验证的策略才能进入此库</li>
+            <li>只有通过已批准模板匹配的策略想法才会进入验证流程</li>
+            <li>验证包括：回测验证、成本计算、风控检查、生存约束检查</li>
+            <li>通过全部验证门的策略才能进入已批准策略库</li>
+            <li>候选策略需要先获得模板批准才能进入验证</li>
           </ul>
         </div>
 
         <div style={styles.warningBox}>
-          ⚠️ 候选策略和拒绝的想法不会出现在此页面
+          ℹ️ 当前没有策略通过模板匹配进入验证阶段
         </div>
       </div>
 
       {/* Navigation Links */}
       <section style={styles.linksSection}>
-        <h3 style={styles.linksTitle}>策略工作区</h3>
+        <h3 style={styles.linksTitle}>相关页面</h3>
         <div style={styles.linksGrid}>
-          <Link href="/strategy-ideas" style={styles.linkCard}>
-            <div style={styles.linkIcon}>💡</div>
-            <div style={styles.linkContent}>
-              <div style={styles.linkLabel}>策略想法</div>
-              <div style={styles.linkDesc}>所有提交的策略想法</div>
-            </div>
-          </Link>
-
           <Link href="/candidate-strategies" style={styles.linkCard}>
             <div style={styles.linkIcon}>🔍</div>
             <div style={styles.linkContent}>
               <div style={styles.linkLabel}>候选策略</div>
-              <div style={styles.linkDesc}>无匹配模板但值得复查</div>
-            </div>
-          </Link>
-
-          <Link href="/rejected-strategies" style={styles.linkCard}>
-            <div style={styles.linkIcon}>❌</div>
-            <div style={styles.linkContent}>
-              <div style={styles.linkLabel}>拒绝注册表</div>
-              <div style={styles.linkDesc}>被拒绝的策略想法</div>
+              <div style={styles.linkDesc}>等待模板批准的策略</div>
             </div>
           </Link>
 
@@ -144,23 +130,13 @@ export default function StrategiesPage() {
             </div>
           </Link>
 
-          <Link href="/strategy-validations" style={styles.linkCard}>
-            <div style={styles.linkIcon}>🔬</div>
+          <Link href="/strategy-ideas" style={styles.linkCard}>
+            <div style={styles.linkIcon}>💡</div>
             <div style={styles.linkContent}>
-              <div style={styles.linkLabel}>策略验证</div>
-              <div style={styles.linkDesc}>通过模板匹配的验证案例</div>
+              <div style={styles.linkLabel}>策略想法</div>
+              <div style={styles.linkDesc}>所有提交的策略想法</div>
             </div>
           </Link>
-
-          <div style={{...styles.linkCard, cursor: 'default', backgroundColor: '#f9fafb'}}>
-            <div style={styles.linkIcon}>✅</div>
-            <div style={styles.linkContent}>
-              <div style={styles.linkLabel}>已批准策略库</div>
-              <div style={styles.linkDesc}>
-                当前为空 (count: {data?.count || 0})
-              </div>
-            </div>
-          </div>
         </div>
       </section>
     </main>
@@ -175,6 +151,9 @@ const styles = {
     fontFamily: "system-ui, -apple-system, sans-serif",
   },
   header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: "32px",
     paddingBottom: "24px",
     borderBottom: "2px solid #e5e7eb",
@@ -189,6 +168,20 @@ const styles = {
     fontSize: "16px",
     color: "#6b7280",
     margin: 0,
+  },
+  headerActions: {
+    display: "flex",
+    gap: "1rem",
+  },
+  headerLink: {
+    fontSize: "14px",
+    color: "#2563eb",
+    textDecoration: "none",
+    padding: "8px 16px",
+    borderRadius: "6px",
+    border: "1px solid #e5e7eb",
+    backgroundColor: "#ffffff",
+    transition: "all 0.2s",
   },
   loadingText: {
     fontSize: "16px",
@@ -250,11 +243,11 @@ const styles = {
   warningBox: {
     marginTop: "24px",
     fontSize: "14px",
-    color: "#92400e",
-    backgroundColor: "#fef3c7",
+    color: "#1e40af",
+    backgroundColor: "#dbeafe",
     padding: "12px 24px",
     borderRadius: "6px",
-    border: "1px solid #fbbf24",
+    border: "1px solid #93c5fd",
   },
   linksSection: {
     marginTop: "32px",
