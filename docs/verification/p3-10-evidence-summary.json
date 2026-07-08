@@ -1,0 +1,42 @@
+{
+  "run_id": "P3_10_E2E_20260708_102624",
+  "timestamp": "2026-07-08T10:27:52.199956",
+  "verification_status": "PASSED",
+  "flow": {
+    "conversation_id": "sess_4c2d32b57525",
+    "idea_id": "idea_b272dc9bfcb8",
+    "workflow_type": "strategy_idea",
+    "decision": "rejected",
+    "final_reason": "no_template_fit",
+    "mapped_template_id": null,
+    "considered_templates_count": 4,
+    "candidate_status": "candidate_unapproved",
+    "live_eligible": false
+  },
+  "api_verification": {
+    "validations_count": 0,
+    "strategies_count": 0,
+    "templates_count": 4
+  },
+  "evidence_files": [
+    "p3-10-workbench-dom.md",
+    "p3-10-workbench-network-log.json",
+    "p3-10-workbench-response.json",
+    "p3-10-idea-detail-api.json",
+    "p3-10-idea-list-api.json",
+    "p3-10-candidate-api.json",
+    "p3-10-validations-api.json",
+    "p3-10-strategies-api.json",
+    "p3-10-templates-api.json",
+    "p3-10-strategies-dom.md",
+    "p3-10-idea-detail-dom.md",
+    "p3-10-candidate-dom.md",
+    "p3-10-rejected-dom.md",
+    "p3-10-validations-dom.md",
+    "p3-10-templates-dom.md",
+    "p3-10-network-log.json",
+    "p3-10-backend-log.txt",
+    "p3-10-frontend-log.txt",
+    "p3-10-evidence-summary.json"
+  ]
+}

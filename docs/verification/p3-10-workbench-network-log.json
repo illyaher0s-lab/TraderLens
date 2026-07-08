@@ -1,0 +1,67 @@
+[
+  {
+    "url": "http://localhost:3000/workbench",
+    "method": "GET",
+    "timestamp": "2026-07-08T10:27:10.224348",
+    "status": 200
+  },
+  {
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783477631330",
+    "method": "GET",
+    "timestamp": "2026-07-08T10:27:11.459225",
+    "status": 200
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783477631330",
+    "method": "GET",
+    "timestamp": "2026-07-08T10:27:11.459225",
+    "status": 200
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783477631330",
+    "method": "GET",
+    "timestamp": "2026-07-08T10:27:11.459225",
+    "status": 200
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+    "method": "GET",
+    "timestamp": "2026-07-08T10:27:11.459225",
+    "status": 200
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/app/workbench/page.js",
+    "method": "GET",
+    "timestamp": "2026-07-08T10:27:11.460730",
+    "status": 200
+  },
+  {
+    "url": "http://localhost:8010/api/agent/workbench/message",
+    "method": "POST",
+    "timestamp": "2026-07-08T10:27:12.396780",
+    "status": 200,
+    "response_body": {
+      "conversation_id": "sess_4c2d32b57525",
+      "workflow_type": "strategy_idea",
+      "stage": "created",
+      "agent_reply": "已提取策略想法：\n入场条件：下午两点半后买入\n出场条件：次日早盘卖出\n当前系统暂无已批准模板库。策略想法已记录，但不可用于实盘交易。\n该策略想法已记录到拒绝注册表，不会生成交易信号。",
+      "approval_card": null,
+      "artifact_ids": [
+        "idea_b272dc9bfcb8",
+        "extract_22ea2e975a5f",
+        "mapping_f737a2467396",
+        "idea_b272dc9bfcb8_rejected",
+        "msg_bdb4ae9510b9",
+        "msg_7610d7c48e9e",
+        "intent_sess_4c2d32b57525"
+      ],
+      "next_required_user_action": "wait_for_extraction"
+    }
+  },
+  {
+    "url": "http://localhost:8010/api/agent/workbench/sess_4c2d32b57525",
+    "method": "GET",
+    "timestamp": "2026-07-08T10:27:13.011941",
+    "status": 200
+  }
+]

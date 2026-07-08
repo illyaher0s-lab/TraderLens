@@ -1,0 +1,84 @@
+{
+  "templates": [
+    {
+      "template_id": "theme_momentum_breakout_v1",
+      "version": "v1",
+      "status": "approved",
+      "hypothesis_types": [
+        "momentum",
+        "macd_crossover"
+      ],
+      "market_fit": "A-share momentum with MACD confirmation",
+      "entry_rules": "MACD golden cross confirmed by 2-day price strength",
+      "exit_rules": "Max 15 days hold or 8% stop-loss",
+      "risk_rules": "Green/yellow market regime, min 50M avg daily volume",
+      "position_sizing_rules": "Equal weight across max 5 positions, daily rebalance",
+      "validation_gate_profile": "standard",
+      "core_entry_rule_id": "macd_crossover_entry",
+      "supported_universe_rule_types": [
+        "sector_plus_tags"
+      ],
+      "template_hash": "2e81b78bb6f45212be7329cb42dd2c03"
+    },
+    {
+      "template_id": "relative_strength_rotation_v1",
+      "version": "v1",
+      "status": "approved",
+      "hypothesis_types": [
+        "relative_strength",
+        "theme_rotation"
+      ],
+      "market_fit": "A-share relative strength rotation",
+      "entry_rules": "Top 15% relative strength confirmed over 3 days",
+      "exit_rules": "Exit when rank drops below 40% or max 15 days or 8% stop-loss",
+      "risk_rules": "Green/yellow market regime, min 50M avg daily volume",
+      "position_sizing_rules": "Equal weight across max 5 positions, weekly rebalance",
+      "validation_gate_profile": "standard",
+      "core_entry_rule_id": "relative_strength_entry",
+      "supported_universe_rule_types": [
+        "sector_plus_tags"
+      ],
+      "template_hash": "f54bb1369b06cf881303ed01b4808ba6"
+    },
+    {
+      "template_id": "volume_breakout_followthrough_v1",
+      "version": "v1",
+      "status": "approved",
+      "hypothesis_types": [
+        "volume_breakout",
+        "followthrough"
+      ],
+      "market_fit": "A-share volume breakout with price confirmation",
+      "entry_rules": "40-day breakout with 2x volume, 2-day followthrough confirmation",
+      "exit_rules": "Exit if close below 10-day MA or max 8 days or 7% stop-loss",
+      "risk_rules": "Min 80M avg daily volume, reject limit-up entry",
+      "position_sizing_rules": "Equal weight across max 4 positions, daily rebalance",
+      "validation_gate_profile": "standard",
+      "core_entry_rule_id": "volume_breakout_entry",
+      "supported_universe_rule_types": [
+        "sector_plus_tags"
+      ],
+      "template_hash": "c1b0d3c5f0835fd65b17c9a71b86819c"
+    },
+    {
+      "template_id": "trend_pullback_watch_v1",
+      "version": "v1",
+      "status": "approved",
+      "hypothesis_types": [
+        "trend",
+        "pullback"
+      ],
+      "market_fit": "A-share trend pullback entry",
+      "entry_rules": "5% pullback from 50-day MA trend, 2-day confirmation",
+      "exit_rules": "Max 12 days hold or 6% stop-loss",
+      "risk_rules": "Green market regime only, min 60M avg daily volume",
+      "position_sizing_rules": "Equal weight across max 4 positions, daily rebalance",
+      "validation_gate_profile": "standard",
+      "core_entry_rule_id": "pullback_entry",
+      "supported_universe_rule_types": [
+        "sector_plus_tags"
+      ],
+      "template_hash": "2555d2c649f59e401e3a34fa7b9f4c43"
+    }
+  ]
+}
