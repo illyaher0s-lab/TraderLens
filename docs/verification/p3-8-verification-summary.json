@@ -1,0 +1,31 @@
+{
+  "run_id": "P3_8_RUN_20260708_090107",
+  "timestamp": "2026-07-08T09:02:19.444587",
+  "verification_status": "PASSED",
+  "hub_verification": {
+    "hub_path": "/strategies",
+    "entry_links_count": 4,
+    "entry_links": [
+      "/strategy-ideas",
+      "/candidate-strategies",
+      "/rejected-strategies",
+      "/strategy-templates"
+    ]
+  },
+  "page_back_links": {
+    "strategy_ideas": "✓",
+    "candidate_strategies": "✓",
+    "rejected_strategies": "✓",
+    "strategy_templates": "✓"
+  },
+  "api_verification": {
+    "strategies_count": 0,
+    "strategies_list": []
+  },
+  "evidence_files": [
+    "p3-8-strategies-hub-dom.md",
+    "p3-8-strategy-templates-dom.md",
+    "p3-8-navigation-network-log.json",
+    "p3-8-frontend-log.txt"
+  ]
+}
