@@ -1,7 +1,7 @@
 {
   "requests": [
     {
-      "url": "http://localhost:8010/api/agent/workbench/sess_b9ec2c5fc725",
+      "url": "http://localhost:8010/api/agent/workbench/sess_a22fcb3399de",
       "method": "GET",
       "headers": {
         "accept": "*/*",
@@ -27,10 +27,10 @@
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": "\"Windows\""
       },
-      "post_data": "{\"message\":\"已卖出宏昌电子（603002）100 股，成交价 13.00，备注 P2RUN_20260708_103056\"}"
+      "post_data": "{\"message\":\"已卖出宏昌电子（603002）100 股，成交价 13.00，备注 P2RUN_20260708_113422\"}"
     },
     {
-      "url": "http://localhost:8010/api/agent/workbench/sess_34d7cdca23a6",
+      "url": "http://localhost:8010/api/agent/workbench/sess_e72eb05db067",
       "method": "GET",
       "headers": {
         "accept": "*/*",
@@ -47,18 +47,18 @@
   "response": {
     "status": 200,
     "data": {
-      "conversation_id": "sess_34d7cdca23a6",
+      "conversation_id": "sess_e72eb05db067",
       "workflow_type": "execution_feedback",
       "stage": "created",
       "agent_reply": "已记录卖出：\n股票：宏昌电子 (603002.SH)\n数量：100 股\n成交价：¥13.00\n\n持仓已平仓，盈亏：¥50.00 (+4.00%)\n你可以在 /observations?status=closed 查看已平仓记录。",
       "approval_card": null,
       "artifact_ids": [
-        "log_bb3651a72d83",
-        "review_1dbb2c806636",
-        "action_completed_b7495e75",
-        "msg_c35acddaa84e",
-        "msg_c4f7a53436e5",
-        "intent_sess_34d7cdca23a6"
+        "log_9a50f37e37d2",
+        "review_3e940a3d599a",
+        "action_completed_76b6a9bf",
+        "msg_7c7c0136ca40",
+        "msg_0610a573ca30",
+        "intent_sess_e72eb05db067"
       ],
       "next_required_user_action": "confirm_execution_details"
     }
