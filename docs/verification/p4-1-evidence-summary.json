@@ -1,6 +1,6 @@
 {
-  "run_id": "P4_1_RUN_20260708_113005",
-  "timestamp": "2026-07-08T11:30:05.463975",
+  "run_id": "P4_1_RUN_20260708_120043",
+  "timestamp": "2026-07-08T12:00:43.525041",
   "checks": {
     "api_status": true,
     "dashboard_title": true,
@@ -25,25 +25,25 @@
       "count": 30,
       "items": [
         {
-          "position_id": "pos_4c3bff63ff7c",
+          "position_id": "pos_a0d632729fc5",
           "symbol": "603002.SH",
           "name": "宏昌电子",
           "entry_price": 12.34,
-          "opened_at": "2026-07-08T10:30:43.591183"
+          "opened_at": "2026-07-08T11:34:09.314927"
         },
         {
-          "position_id": "pos_2386b1d6b10b",
+          "position_id": "pos_ab393d9caf2c",
           "symbol": "603002.SH",
           "name": "宏昌电子",
           "entry_price": 12.34,
-          "opened_at": "2026-07-08T10:30:06.074640"
+          "opened_at": "2026-07-08T11:33:30.014959"
         },
         {
-          "position_id": "pos_e361e16830f9",
+          "position_id": "pos_2db0dd99e2f4",
           "symbol": "603002.SH",
           "name": "宏昌电子",
           "entry_price": 12.34,
-          "opened_at": "2026-07-08T10:29:24.221935"
+          "opened_at": "2026-07-08T11:32:46.445756"
         },
         {
           "position_id": "pos_27d4518ca1ec",
@@ -66,7 +66,7 @@
       "items": []
     },
     "strategy_workspace": {
-      "ideas_count": 69,
+      "ideas_count": 70,
       "candidates_count": 0,
       "rejected_count": 0,
       "validations_count": 0,
