@@ -134,9 +134,14 @@ WHERE i.artifact_type = 'strategy_idea'
 
 **Branch**: `feat/p2-1-observation-pool-page`
 
-**Commits**: (will be added after commit)
+**Final Commit**: `ee1ea54`
 
-**Status**: Ready to commit
+**Commit History**:
+- `d6de6f0`: feat(P4-2): optimize dashboard API and add consistency verification
+- `6a43424`: chore(P4-2): add dashboard consistency verification evidence
+- `ee1ea54`: chore(P4-2): add P4-1, P3-10, P2 regression evidence
+
+**Status**: ✅ Clean
 
 **Files Modified**:
 - `backend/api/dashboard.py` (query optimization)
