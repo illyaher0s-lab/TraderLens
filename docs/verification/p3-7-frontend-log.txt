@@ -7,11 +7,12 @@
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 13.9s
+ ✓ Ready in 2.6s
  ○ Compiling / ...
- ✓ Compiled / in 1635ms (483 modules)
- GET / 200 in 709ms
+ ✓ Compiled / in 1606ms (483 modules)
+ GET / 200 in 2028ms
+ GET / 200 in 113ms
  ○ Compiling /strategies ...
- ✓ Compiled /strategies in 1001ms (495 modules)
- GET /strategies 200 in 1241ms
+ ✓ Compiled /strategies in 758ms (495 modules)
+ GET /strategies 200 in 1062ms
 [?25h

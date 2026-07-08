@@ -1,20 +1,20 @@
 {
-  "idea_id": "idea_f025c8e8c2da",
-  "conversation_id": "sess_76b0e10c59a3",
+  "idea_id": "idea_a62ebef6929e",
+  "conversation_id": "sess_b7106b65b5f9",
   "workflow_type": "strategy_idea",
-  "original_message": "[P2RUN_20260707_220502] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
+  "original_message": "[P2RUN_20260708_090319] 我有个策略想法：下午两点半后，如果看到成交量放大且股价突破前高，就买入，第二天早盘卖出。",
   "agent_reply": "",
   "extraction": {
-    "extraction_id": "extract_7cb7d733b332",
-    "idea_id": "idea_f025c8e8c2da",
+    "extraction_id": "extract_11debdd326c6",
+    "idea_id": "idea_a62ebef6929e",
     "claimed_entry": "下午两点半后买入",
     "claimed_exit": "次日早盘卖出",
     "claimed_edge": null,
     "extraction_source": "llm_assisted"
   },
   "mapping": {
-    "mapping_id": "mapping_4f62073c639d",
-    "idea_id": "idea_f025c8e8c2da",
+    "mapping_id": "mapping_2b24d76c8662",
+    "idea_id": "idea_a62ebef6929e",
     "path_type": "no_template_fit",
     "matched_template_id": null,
     "template_version": null,
@@ -38,9 +38,9 @@
     "required_next_step": "template_approval_required"
   },
   "rejection": {
-    "idea_id": "idea_f025c8e8c2da",
+    "idea_id": "idea_a62ebef6929e",
     "rejection_reason": "no_approved_template",
-    "rejected_at": "2026-07-07T22:05:56.099359"
+    "rejected_at": "2026-07-08T09:04:01.098375"
   },
   "decision": "rejected",
   "rejection_reason": "no_approved_template",
@@ -65,8 +65,8 @@
   "candidate_status": "candidate_unapproved",
   "candidate_reason": "no_approved_template_fit",
   "required_next_step": "template_approval_required",
-  "extraction_artifact_id": "extract_7cb7d733b332",
-  "mapping_artifact_id": "mapping_4f62073c639d",
-  "rejection_artifact_id": "idea_f025c8e8c2da_rejected",
-  "created_at": "2026-07-07T22:05:55.912417"
+  "extraction_artifact_id": "extract_11debdd326c6",
+  "mapping_artifact_id": "mapping_2b24d76c8662",
+  "rejection_artifact_id": "idea_a62ebef6929e_rejected",
+  "created_at": "2026-07-08T09:04:00.945018"
 }
