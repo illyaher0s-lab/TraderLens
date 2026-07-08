@@ -193,9 +193,14 @@ Implemented minimal viable Daily Command Center on homepage `/` that displays re
 
 **Branch**: `feat/p2-1-observation-pool-page`
 
-**Commits**: (will be added after commit)
+**Final Commit**: `9e7d036`
 
-**Status**: Ready to commit
+**Commit History**:
+- `3b1313b`: feat(P4-1): implement Daily Command Center runtime shell
+- `2c28b3d`: chore(P4-1): add Daily Command Center verification evidence
+- `9e7d036`: chore(P4-1): add P3-10 and P2 regression evidence
+
+**Status**: ✅ Clean
 
 **Files Modified**:
 - `backend/api/dashboard.py` (new)
