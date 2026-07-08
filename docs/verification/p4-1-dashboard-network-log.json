@@ -1,0 +1,42 @@
+[
+  {
+    "url": "http://localhost:3000/",
+    "status": 200,
+    "method": "GET"
+  },
+  {
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783481441202",
+    "status": 200,
+    "method": "GET"
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783481441202",
+    "status": 200,
+    "method": "GET"
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+    "status": 200,
+    "method": "GET"
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/app/page.js",
+    "status": 200,
+    "method": "GET"
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783481441202",
+    "status": 200,
+    "method": "GET"
+  },
+  {
+    "url": "http://localhost:8010/api/dashboard/today",
+    "status": 200,
+    "method": "GET"
+  },
+  {
+    "url": "http://localhost:8010/api/dashboard/today",
+    "status": 200,
+    "method": "GET"
+  }
+]

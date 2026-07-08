@@ -1,0 +1,82 @@
+{
+  "run_id": "P4_1_RUN_20260708_113005",
+  "timestamp": "2026-07-08T11:30:05.463975",
+  "checks": {
+    "api_status": true,
+    "dashboard_title": true,
+    "section_observations": true,
+    "section_signals": true,
+    "section_strategy_workspace": true,
+    "section_reviews": true,
+    "navigation_links": true,
+    "api_local": true,
+    "validations_empty": true,
+    "approved_empty": true
+  },
+  "evidence_files": [
+    "p4-1-frontend-log.txt",
+    "p4-1-dashboard-api.json",
+    "p4-1-dashboard-dom.md",
+    "p4-1-dashboard-network-log.json"
+  ],
+  "api_data": {
+    "as_of_date": "2026-07-08",
+    "open_observations": {
+      "count": 30,
+      "items": [
+        {
+          "position_id": "pos_4c3bff63ff7c",
+          "symbol": "603002.SH",
+          "name": "宏昌电子",
+          "entry_price": 12.34,
+          "opened_at": "2026-07-08T10:30:43.591183"
+        },
+        {
+          "position_id": "pos_2386b1d6b10b",
+          "symbol": "603002.SH",
+          "name": "宏昌电子",
+          "entry_price": 12.34,
+          "opened_at": "2026-07-08T10:30:06.074640"
+        },
+        {
+          "position_id": "pos_e361e16830f9",
+          "symbol": "603002.SH",
+          "name": "宏昌电子",
+          "entry_price": 12.34,
+          "opened_at": "2026-07-08T10:29:24.221935"
+        },
+        {
+          "position_id": "pos_27d4518ca1ec",
+          "symbol": "603002.SH",
+          "name": "宏昌电子",
+          "entry_price": 1.0,
+          "opened_at": "2026-07-06T17:10:49.418468"
+        },
+        {
+          "position_id": "pos_2f13d842c8b3",
+          "symbol": "603002.SH",
+          "name": "宏昌电子",
+          "entry_price": 12.5,
+          "opened_at": "2026-07-06T10:51:23.116342"
+        }
+      ]
+    },
+    "today_signals": {
+      "count": 0,
+      "items": []
+    },
+    "strategy_workspace": {
+      "ideas_count": 69,
+      "candidates_count": 0,
+      "rejected_count": 0,
+      "validations_count": 0,
+      "approved_strategies_count": 0,
+      "templates_count": 4
+    },
+    "recent_reviews": {
+      "count": 0,
+      "items": []
+    },
+    "data_state": "ok"
+  }
+}
