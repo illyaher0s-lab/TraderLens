@@ -1,10 +1,10 @@
 {
-  "run_id": "P3_10_E2E_20260708_160210",
-  "timestamp": "2026-07-08T16:03:47.562908",
+  "run_id": "P3_10_E2E_20260708_164458",
+  "timestamp": "2026-07-08T16:46:27.947661",
   "verification_status": "PASSED",
   "flow": {
-    "conversation_id": "sess_c815fd835710",
-    "idea_id": "idea_2090f2464a41",
+    "conversation_id": "sess_a97185af48d5",
+    "idea_id": "idea_3e08e317748d",
     "workflow_type": "strategy_idea",
     "decision": "rejected",
     "final_reason": "no_template_fit",

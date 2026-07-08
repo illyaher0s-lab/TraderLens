@@ -7,29 +7,30 @@
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 3.1s
+ ✓ Ready in 3.2s
  ○ Compiling / ...
- ✓ Compiled / in 1451ms (489 modules)
- GET / 200 in 1861ms
+ ✓ Compiled / in 1675ms (489 modules)
+ GET / 200 in 2131ms
+ GET / 200 in 119ms
  ○ Compiling /workbench ...
- ✓ Compiled /workbench in 715ms (507 modules)
- GET /workbench 200 in 918ms
+ ✓ Compiled /workbench in 879ms (507 modules)
+ GET /workbench 200 in 1133ms
  ○ Compiling /strategies ...
- ✓ Compiled /strategies in 668ms (513 modules)
- GET /strategies 200 in 806ms
+ ✓ Compiled /strategies in 928ms (513 modules)
+ GET /strategies 200 in 1090ms
  ○ Compiling /strategy-ideas/[idea_id] ...
- ✓ Compiled /strategy-ideas/[idea_id] in 912ms (521 modules)
- GET /strategy-ideas/idea_2090f2464a41 200 in 1680ms
+ ✓ Compiled /strategy-ideas/[idea_id] in 1248ms (521 modules)
+ GET /strategy-ideas/idea_3e08e317748d 200 in 2075ms
  ○ Compiling /candidate-strategies ...
- ✓ Compiled /candidate-strategies in 750ms (527 modules)
- GET /candidate-strategies 200 in 1011ms
+ ✓ Compiled /candidate-strategies in 927ms (527 modules)
+ GET /candidate-strategies 200 in 1168ms
  ○ Compiling /rejected-strategies ...
- ✓ Compiled /rejected-strategies in 674ms (533 modules)
- GET /rejected-strategies 200 in 794ms
+ ✓ Compiled /rejected-strategies in 936ms (533 modules)
+ GET /rejected-strategies 200 in 1129ms
  ○ Compiling /strategy-validations ...
- ✓ Compiled /strategy-validations in 679ms (539 modules)
- GET /strategy-validations 200 in 791ms
+ ✓ Compiled /strategy-validations in 899ms (539 modules)
+ GET /strategy-validations 200 in 1043ms
  ○ Compiling /strategy-templates ...
- ✓ Compiled /strategy-templates in 655ms (545 modules)
- GET /strategy-templates 200 in 766ms
+ ✓ Compiled /strategy-templates in 1010ms (545 modules)
+ GET /strategy-templates 200 in 1165ms
 [?25h

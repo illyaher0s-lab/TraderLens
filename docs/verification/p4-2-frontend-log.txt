@@ -7,34 +7,35 @@
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 3.2s
+ ✓ Ready in 3.5s
  ○ Compiling / ...
- ✓ Compiled / in 1164ms (489 modules)
- GET / 200 in 1508ms
- GET / 200 in 63ms
- GET / 200 in 88ms
+ ✓ Compiled / in 1370ms (489 modules)
+ GET / 200 in 1860ms
+ GET / 200 in 81ms
+ GET / 200 in 98ms
+ GET / 200 in 59ms
  ○ Compiling /observations ...
- ✓ Compiled /observations in 741ms (497 modules)
- GET /observations 200 in 993ms
+ ✓ Compiled /observations in 788ms (497 modules)
+ GET /observations 200 in 1065ms
  ○ Compiling /signals ...
- ✓ Compiled /signals in 983ms (505 modules)
- GET /signals 200 in 1247ms
+ ✓ Compiled /signals in 668ms (505 modules)
+ GET /signals 200 in 876ms
  ○ Compiling /strategy-ideas ...
- ✓ Compiled /strategy-ideas in 686ms (511 modules)
- GET /strategy-ideas 200 in 841ms
+ ✓ Compiled /strategy-ideas in 837ms (511 modules)
+ GET /strategy-ideas 200 in 1024ms
  ○ Compiling /candidate-strategies ...
- ✓ Compiled /candidate-strategies in 646ms (517 modules)
- GET /candidate-strategies 200 in 784ms
+ ✓ Compiled /candidate-strategies in 706ms (517 modules)
+ GET /candidate-strategies 200 in 829ms
  ○ Compiling /rejected-strategies ...
- ✓ Compiled /rejected-strategies in 656ms (523 modules)
- GET /rejected-strategies 200 in 774ms
+ ✓ Compiled /rejected-strategies in 703ms (523 modules)
+ GET /rejected-strategies 200 in 820ms
  ○ Compiling /strategy-validations ...
- ✓ Compiled /strategy-validations in 721ms (529 modules)
- GET /strategy-validations 200 in 860ms
+ ✓ Compiled /strategy-validations in 722ms (529 modules)
+ GET /strategy-validations 200 in 848ms
  ○ Compiling /strategies ...
- ✓ Compiled /strategies in 755ms (535 modules)
- GET /strategies 200 in 881ms
+ ✓ Compiled /strategies in 976ms (535 modules)
+ GET /strategies 200 in 1153ms
  ○ Compiling /strategy-templates ...
- ✓ Compiled /strategy-templates in 731ms (541 modules)
- GET /strategy-templates 200 in 848ms
+ ✓ Compiled /strategy-templates in 916ms (541 modules)
+ GET /strategy-templates 200 in 1102ms
 [?25h
