@@ -1,18 +1,40 @@
 
 > traderlens@0.1.0 dev
-> next dev frontend
+> next dev frontend --port 3000
 
   ▲ Next.js 14.2.35
   - Local:        http://localhost:3000
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 7.6s
+ ✓ Ready in 3.2s
  ○ Compiling / ...
- ✓ Compiled / in 1458ms (489 modules)
- GET / 200 in 146ms
- GET / 200 in 77ms
+ ✓ Compiled / in 1164ms (489 modules)
+ GET / 200 in 1508ms
+ GET / 200 in 63ms
+ GET / 200 in 88ms
  ○ Compiling /observations ...
- ✓ Compiled /observations in 594ms (497 modules)
- GET /observations 200 in 799ms
+ ✓ Compiled /observations in 741ms (497 modules)
+ GET /observations 200 in 993ms
+ ○ Compiling /signals ...
+ ✓ Compiled /signals in 983ms (505 modules)
+ GET /signals 200 in 1247ms
+ ○ Compiling /strategy-ideas ...
+ ✓ Compiled /strategy-ideas in 686ms (511 modules)
+ GET /strategy-ideas 200 in 841ms
+ ○ Compiling /candidate-strategies ...
+ ✓ Compiled /candidate-strategies in 646ms (517 modules)
+ GET /candidate-strategies 200 in 784ms
+ ○ Compiling /rejected-strategies ...
+ ✓ Compiled /rejected-strategies in 656ms (523 modules)
+ GET /rejected-strategies 200 in 774ms
+ ○ Compiling /strategy-validations ...
+ ✓ Compiled /strategy-validations in 721ms (529 modules)
+ GET /strategy-validations 200 in 860ms
+ ○ Compiling /strategies ...
+ ✓ Compiled /strategies in 755ms (535 modules)
+ GET /strategies 200 in 881ms
+ ○ Compiling /strategy-templates ...
+ ✓ Compiled /strategy-templates in 731ms (541 modules)
+ GET /strategy-templates 200 in 848ms
 [?25h

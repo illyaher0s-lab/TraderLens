@@ -154,6 +154,20 @@ class SignalBoardDB:
                 ON planned_signals(intended_execution_date)
             """)
 
+            existing_columns = {
+                row["name"]
+                for row in conn.execute("PRAGMA table_info(planned_signals)").fetchall()
+            }
+            for column_name, column_type in {
+                "strategy_revision_id": "TEXT",
+                "lifecycle_state_at_generation": "TEXT",
+                "admission_source": "TEXT",
+            }.items():
+                if column_name not in existing_columns:
+                    conn.execute(
+                        f"ALTER TABLE planned_signals ADD COLUMN {column_name} {column_type}"
+                    )
+
             # C3 Action Plan decisions table
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS action_plan_decisions (

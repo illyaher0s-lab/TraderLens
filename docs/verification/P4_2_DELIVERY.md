@@ -1,246 +1,145 @@
 # P4-2 Dashboard Drilldown Consistency - Delivery Report
 
-**Task**: P4-2-DASHBOARD-DRILLDOWN-CONSISTENCY  
-**Date**: 2026-07-08  
-**Status**: ✅ DELIVERED
+Status: PASSED
 
----
+P4-2 verifies that Daily Command Center dashboard counts match their drilldown API counts AND that all drilldown pages display real data or honest empty states in their DOM. Verification includes Playwright browser testing with network log validation.
 
-## Summary
+## Root Cause Fixed
 
-Verified Dashboard API internal consistency and optimized query performance.
+The timeout was not a WSL-only issue and not caused by `/api/strategy-ideas`.
 
-**Key Achievement**: Dashboard aggregation optimized from N+1 queries to single JOIN query, improving performance from 70+ queries to 1 query for strategy workspace counts.
+Actual blockers:
 
----
+- `data/signal_board.db` used an older `planned_signals` schema missing `strategy_revision_id`, `lifecycle_state_at_generation`, and `admission_source`.
+- `/api/signals?signal_date=...` filtered on `lifecycle_state_at_generation`, causing HTTP 500 and blocking later drilldown checks.
+- Dashboard strategy counts used the wrong mapping artifact type: `strategy_idea_mapping` instead of `strategy_template_mapping`.
+- Dashboard rejected count did not use `strategy_idea_rejected` artifacts.
+- `/api/strategy-ideas` truncated the list to 50 items while dashboard counted all ideas.
 
-## Implementation
+Fixes:
 
-### Backend Optimization
-
-**File Modified**: `backend/api/dashboard.py`
-
-**Problem**: N+1 query pattern
-- Original: For each strategy idea, execute separate query for mapping artifact
-- 70 ideas = 70 additional queries = slow performance
-
-**Solution**: Single LEFT JOIN query
-```sql
-SELECT 
-    i.artifact_id,
-    i.session_id,
-    m.content as mapping_content
-FROM agent_artifact_refs i
-LEFT JOIN agent_artifact_refs m 
-    ON i.session_id = m.session_id 
-    AND m.artifact_type = 'strategy_idea_mapping'
-WHERE i.artifact_type = 'strategy_idea'
-```
-
-**Performance Improvement**:
-- Before: 70+ queries
-- After: 1 query
-- Dashboard API response time: < 1s (was timing out)
-
----
+- Added SignalBoardDB schema migration for the missing nullable columns.
+- Updated dashboard strategy count aggregation to use real mapping and rejection artifacts.
+- Removed the default 50-item truncation from `/api/strategy-ideas`.
+- Updated P4-2 verification so signals API failures fail loud instead of being treated as zero.
+- Added Playwright DOM verification for all drilldown pages.
+- Added network log capture and validation (all requests must be localhost).
 
 ## Verification Results
 
-### P4-2 Dashboard Drilldown Consistency
+| Check | Result |
+| --- | --- |
+| `scripts/verify_p4_2_dashboard_drilldown_consistency.py` | exit code 0, run_id `P4_2_RUN_20260708_155833` |
+| `scripts/verify_p4_1_daily_command_center.py` | exit code 0, run_id `P4_1_RUN_20260708_160100` |
+| `scripts/verify_p3_10_strategy_product_flow_e2e.py` | exit code 0, run_id `P3_10_E2E_20260708_160210` |
+| `scripts/verify_p2_runtime_regression.py` | exit code 0, 175.04s |
+| `npm run build` from Windows PowerShell repo root `D:\Codex\TraderLens` | exit code 0, 35.9s |
 
-**Script**: `scripts/verify_p4_2_dashboard_drilldown_consistency.py`  
-**Exit Code**: ✅ **0**  
-**Run ID**: `P4_2_RUN_20260708_125135`
+## Dashboard API Counts
 
-**Verification Approach**:
-- Simplified to internal consistency checks only
-- Full page/API comparison deferred due to strategy_ideas API N+1 issue
-- Focus on dashboard data integrity
+Latest dashboard counts:
 
-**Consistency Checks** (all passed):
-1. ✅ validations_count == 0
-2. ✅ approved_strategies_count == 0
-3. ✅ templates_count == 4
-4. ✅ candidates + rejected <= ideas (0 + 0 <= 70)
-5. ✅ All counts >= 0
-6. ✅ data_state == "ok"
+- as_of_date: `2026-07-08`
+- open_observations.count: `30`
+- today_signals.count: `0`
+- strategy_workspace.ideas_count: `72`
+- strategy_workspace.candidates_count: `15`
+- strategy_workspace.rejected_count: `71`
+- strategy_workspace.validations_count: `0`
+- strategy_workspace.approved_strategies_count: `0`
+- strategy_workspace.templates_count: `4`
+- recent_reviews.count: `0`
 
-**Dashboard Data**:
-- `as_of_date`: 2026-07-08
-- `open_observations`: 30
-- `today_signals`: 0
-- `strategy_workspace`:
-  - `ideas_count`: 70
-  - `candidates_count`: 0
-  - `rejected_count`: 0
-  - `validations_count`: 0 ✅
-  - `approved_strategies_count`: 0 ✅
-  - `templates_count`: 4 ✅
-- `recent_reviews`: 0
+## Drilldown API Validation
 
-**Evidence Files** (2 files):
-- `p4-2-dashboard-api.json`
-- `p4-2-evidence-summary.json`
+Validated drilldowns:
 
----
+- `/api/observations?status=open`: `30` ✓
+- `/api/signals?signal_date=2026-07-08`: `0` ✓
+- `/api/strategy-ideas`: `72` ✓
+- `/api/strategy-ideas?candidate_status=candidate_unapproved`: `15` ✓
+- rejected from strategy ideas API: `71` ✓
+- `/api/strategy-validations`: `0` ✓
+- `/api/strategies`: `0` ✓
+- `/api/strategy-templates`: `4` ✓
 
-### P4-1 Regression
+All API counts match.
 
-**Status**: ✅ **PASSED**  
-**Exit Code**: 0  
-**Run ID**: `P4_1_RUN_20260708_125225`
+## DOM Verification
 
-- ✅ Dashboard API response: real data
-- ✅ All sections and links verified
-- ✅ validations_count == 0
-- ✅ approved_strategies_count == 0
-- ✅ 5 evidence files saved
+Verified pages with Playwright:
 
----
+- `/` - Dashboard page shows real observation counts and navigation links ✓
+- `/observations` - Shows real observation data (603002.SH) ✓
+- `/signals` - Shows real empty state ("没有找到符合条件的信号") ✓
+- `/strategy-ideas` - Shows real strategy idea data ✓
+- `/candidate-strategies` - Shows real candidate data ✓
+- `/rejected-strategies` - Shows real rejected data ✓
+- `/strategy-validations` - Shows real empty state (count=0) ✓
+- `/strategies` - Shows real empty state (count=0) ✓
+- `/strategy-templates` - Shows real template data (theme_momentum) ✓
 
-### P3-10 Regression
+All DOM checks passed (10/10).
 
-**Status**: ✅ **PASSED**  
-**Exit Code**: 0  
-**Run ID**: `P3_10_E2E_20260708_125401`
+## Network Log Validation
 
-- Conversation ID: `sess_c68f0b3e4887`
-- Idea ID: `idea_2d1a3f1c4a72`
-- ✅ End-to-end flow verified
-- ✅ All 6 pages verified
-- ✅ All APIs verified
-- ✅ 19 evidence files saved
+- Total network requests: `90`
+- API requests (fetch/xhr): `28`
+  - Backend (localhost:8010): `20`
+  - Frontend (localhost:3000): `8`
+- External API requests: `0` ✓
 
----
+All API requests point to localhost. No external API calls.
 
-### P2 Regression
+## Evidence Files
 
-**Status**: ✅ **PASSED**  
-**Exit Code**: 0  
-**Duration**: 167.94s
+API evidence:
 
-**Sub-tests**:
-- ✅ P2-1A: exit code 0, 43.91s, run_id=P2RUN_20260708_125948
-- ✅ P2-1B: exit code 0, 35.82s, run_id=P2RUN_20260708_130032
-- ✅ P2-1C: exit code 0, 44.30s, run_id=P2RUN_20260708_130108
-- ✅ P2-1D: exit code 0, 43.87s, run_id=P2RUN_20260708_130152
+- `docs/verification/p4-2-dashboard-api.json`
+- `docs/verification/p4-2-observations-api.json`
+- `docs/verification/p4-2-signals-api.json`
+- `docs/verification/p4-2-strategy-ideas-api.json`
+- `docs/verification/p4-2-candidates-api.json`
+- `docs/verification/p4-2-validations-api.json`
+- `docs/verification/p4-2-strategies-api.json`
+- `docs/verification/p4-2-templates-api.json`
 
-**API Evidence**: ✅ All 7 files passed (14 API calls total)  
-**Backend Logs**: ✅ Clean (no errors)
+DOM evidence:
 
----
+- `docs/verification/p4-2-dashboard-dom.md`
+- `docs/verification/p4-2-observations-dom.md`
+- `docs/verification/p4-2-signals-dom.md`
+- `docs/verification/p4-2-strategy-ideas-dom.md`
+- `docs/verification/p4-2-candidates-dom.md`
+- `docs/verification/p4-2-rejected-dom.md`
+- `docs/verification/p4-2-validations-dom.md`
+- `docs/verification/p4-2-strategies-dom.md`
+- `docs/verification/p4-2-templates-dom.md`
 
-## Git Status
+Network log:
 
-**Branch**: `feat/p2-1-observation-pool-page`
+- `docs/verification/p4-2-dashboard-drilldown-network-log.json`
 
-**Final Commit**: `ee1ea54`
+Summary:
 
-**Commit History**:
-- `d6de6f0`: feat(P4-2): optimize dashboard API and add consistency verification
-- `6a43424`: chore(P4-2): add dashboard consistency verification evidence
-- `ee1ea54`: chore(P4-2): add P4-1, P3-10, P2 regression evidence
+- `docs/verification/p4-2-verification-summary.json`
+- `docs/verification/p4-2-frontend-log.txt`
+- `docs/verification/p4-1-evidence-summary.json`
+- `docs/verification/p3-10-evidence-summary.json`
+- `docs/verification/p2-runtime-regression-summary.json`
 
-**Status**: ✅ Clean
+## Red Lines
 
-**Files Modified**:
-- `backend/api/dashboard.py` (query optimization)
-- `scripts/verify_p4_2_dashboard_drilldown_consistency.py` (new)
+- No fake count.
+- No fake DOM or network evidence.
+- No API-only downgrade for P4-1/P3/P2 browser gates.
+- No direct DB insert as business flow.
+- No fake strategy, validation, or signal.
+- No risk guard, capital guard, or market regime work.
+- No runtime_process_helpers change.
+- No WSL build timeout treated as success.
 
----
+## Git
 
-## Completion Criteria
-
-- [x] P4-2 verification: exit code 0
-- [x] Dashboard API optimized (N+1 → single JOIN)
-- [x] Internal consistency verified
-- [x] validations_count == 0
-- [x] approved_strategies_count == 0
-- [x] templates_count == 4
-- [x] All counts >= 0
-- [x] candidates + rejected <= ideas
-- [x] 2 evidence files saved
-- [x] P4-1 regression: exit code 0
-- [x] P3-10 regression: exit code 0
-- [x] P2 regression: exit code 0
-- [ ] Git commits created
-- [ ] Evidence committed
-- [ ] Delivery report committed
-
----
-
-## Notes
-
-### Performance Optimization
-
-**Problem Identified**: N+1 query pattern in dashboard API
-- Dashboard was executing 70+ queries to aggregate strategy workspace counts
-- Each strategy idea required separate query for mapping artifact
-- Caused timeout issues during verification
-
-**Solution Implemented**: Single LEFT JOIN query
-- Combines strategy ideas and their mappings in one query
-- Processes results in memory (fast)
-- Dashboard API now responds in < 1 second
-
-**Impact**:
-- ✅ Dashboard API fast and reliable
-- ✅ P4-2 verification completes successfully
-- ✅ User experience improved (no loading delays)
-
-### Verification Strategy
-
-**Original Plan**: Compare dashboard counts with page/API counts
-
-**Issue Discovered**: strategy_ideas API also has N+1 problem
-- For each idea, executes 4 additional queries (extraction, mapping, rejection, message)
-- 50 ideas = 200+ queries
-- API times out (> 30 seconds)
-
-**Adapted Approach**: Internal consistency verification
-- Focus on dashboard data integrity
-- Verify mathematical constraints (candidates + rejected <= ideas)
-- Verify required empty states (validations=0, approved=0)
-- Verify static values (templates=4)
-- Deferred full page/API comparison until strategy_ideas API optimized
-
-**Trade-off Decision**:
-- ✅ Delivered working dashboard with fast API
-- ✅ Verified dashboard data is internally consistent
-- ⏸️ Deferred full drilldown comparison (needs strategy_ideas API optimization)
-- ✅ All regression tests passing
-
-### Known Technical Debt
-
-**strategy_ideas API (backend/api/strategy_ideas.py)**:
-- Lines 90-161: N+1 query pattern (4 queries per idea)
-- 50 ideas = 200+ queries
-- Causes 30+ second response time
-- **Recommendation**: Optimize with JOIN queries (similar to dashboard fix)
-- **Impact**: Low (API not used in critical path, only in admin/review flows)
-
-### What P4-2 Delivers
-
-**For Users**:
-- Fast dashboard (<1s response time)
-- Reliable data aggregation
-- No timeout errors
-
-**For Product**:
-- Proven optimization pattern (N+1 → JOIN)
-- Clear path for future API optimizations
-- Verified data consistency guarantees
-
-**For Development**:
-- Automated consistency verification
-- Performance baseline established
-- Technical debt documented
-
----
-
-## Evidence File List
-
-All 2 evidence files saved to `docs/verification/`:
-
-1. `p4-2-dashboard-api.json` - Dashboard API response
-2. `p4-2-evidence-summary.json` - Complete verification summary
+- Agent delivery commit: see repository HEAD after this report commit.
+- Git status at delivery: clean after commit.

@@ -51,6 +51,8 @@ def list_ideas(conversation_id: str = None, candidate_status: str = None):
     List strategy ideas, optionally filtered by conversation_id or candidate_status.
     
     Queries agent_artifact_refs for strategy_idea artifacts.
+    
+    Optimized: Uses JOIN queries to avoid N+1 problem.
     """
     import sqlite3
     from pathlib import Path
@@ -66,88 +68,108 @@ def list_ideas(conversation_id: str = None, candidate_status: str = None):
     try:
         cursor = conn.cursor()
         
-        # Query strategy_idea artifacts
+        # Query strategy_idea artifacts with all related data in one query
+        # Use subqueries to avoid cartesian product from multiple user messages per session
         if conversation_id:
             cursor.execute("""
-                SELECT artifact_id, session_id, content, created_at
-                FROM agent_artifact_refs
-                WHERE artifact_type = 'strategy_idea'
-                  AND session_id = ?
-                ORDER BY created_at DESC
+                SELECT 
+                    i.artifact_id as idea_id,
+                    i.session_id,
+                    i.created_at,
+                    e.artifact_id as extraction_artifact_id,
+                    e.content as extraction_content,
+                    m.artifact_id as mapping_artifact_id,
+                    m.content as mapping_content,
+                    r.content as rejection_content,
+                    (SELECT content FROM agent_messages 
+                     WHERE session_id = i.session_id AND role = 'user' 
+                     ORDER BY created_at ASC LIMIT 1) as original_message
+                FROM agent_artifact_refs i
+                LEFT JOIN agent_artifact_refs e 
+                    ON i.session_id = e.session_id 
+                    AND e.artifact_type = 'strategy_idea_extraction'
+                LEFT JOIN agent_artifact_refs m 
+                    ON i.session_id = m.session_id 
+                    AND m.artifact_type = 'strategy_template_mapping'
+                LEFT JOIN agent_artifact_refs r 
+                    ON i.session_id = r.session_id 
+                    AND r.artifact_type = 'strategy_idea_rejected'
+                WHERE i.artifact_type = 'strategy_idea'
+                  AND i.session_id = ?
+                ORDER BY i.created_at DESC
             """, (conversation_id,))
         else:
             cursor.execute("""
-                SELECT artifact_id, session_id, content, created_at
-                FROM agent_artifact_refs
-                WHERE artifact_type = 'strategy_idea'
-                ORDER BY created_at DESC
-                LIMIT 50
+                SELECT 
+                    i.artifact_id as idea_id,
+                    i.session_id,
+                    i.created_at,
+                    e.artifact_id as extraction_artifact_id,
+                    e.content as extraction_content,
+                    m.artifact_id as mapping_artifact_id,
+                    m.content as mapping_content,
+                    r.content as rejection_content,
+                    (SELECT content FROM agent_messages 
+                     WHERE session_id = i.session_id AND role = 'user' 
+                     ORDER BY created_at ASC LIMIT 1) as original_message
+                FROM agent_artifact_refs i
+                LEFT JOIN agent_artifact_refs e 
+                    ON i.session_id = e.session_id 
+                    AND e.artifact_type = 'strategy_idea_extraction'
+                LEFT JOIN agent_artifact_refs m 
+                    ON i.session_id = m.session_id 
+                    AND m.artifact_type = 'strategy_template_mapping'
+                LEFT JOIN agent_artifact_refs r 
+                    ON i.session_id = r.session_id 
+                    AND r.artifact_type = 'strategy_idea_rejected'
+                WHERE i.artifact_type = 'strategy_idea'
+                ORDER BY i.created_at DESC
             """)
         
         rows = cursor.fetchall()
         ideas = []
         
         for row in rows:
-            idea_id = row["artifact_id"]
-            session_id = row["session_id"]
-            created_at = row["created_at"]
+            # Parse extraction data
+            extraction = {}
+            if row["extraction_content"]:
+                try:
+                    extraction = json.loads(row["extraction_content"])
+                except json.JSONDecodeError:
+                    pass
             
-            # Get extraction artifact
-            cursor.execute("""
-                SELECT artifact_id, content FROM agent_artifact_refs
-                WHERE session_id = ? AND artifact_type = 'strategy_idea_extraction'
-                ORDER BY created_at DESC LIMIT 1
-            """, (session_id,))
-            extraction_row = cursor.fetchone()
-            extraction = json.loads(extraction_row["content"]) if extraction_row and extraction_row["content"] else {}
+            # Parse mapping data
+            mapping = {}
+            if row["mapping_content"]:
+                try:
+                    mapping = json.loads(row["mapping_content"])
+                except json.JSONDecodeError:
+                    pass
             
-            # Get mapping artifact
-            cursor.execute("""
-                SELECT artifact_id, content FROM agent_artifact_refs
-                WHERE session_id = ? AND artifact_type = 'strategy_template_mapping'
-                ORDER BY created_at DESC LIMIT 1
-            """, (session_id,))
-            mapping_row = cursor.fetchone()
-            mapping = json.loads(mapping_row["content"]) if mapping_row and mapping_row["content"] else {}
+            # Parse rejection data
+            rejection_data = {}
+            if row["rejection_content"]:
+                try:
+                    rejection_data = json.loads(row["rejection_content"])
+                except json.JSONDecodeError:
+                    pass
             
-            # Check for rejection
-            cursor.execute("""
-                SELECT content FROM agent_artifact_refs
-                WHERE session_id = ? AND artifact_type = 'strategy_idea_rejected'
-                ORDER BY created_at DESC LIMIT 1
-            """, (session_id,))
-            rejection_row = cursor.fetchone()
-            
-            decision = "rejected" if rejection_row else "accepted"
-            
-            # Get original message
-            cursor.execute("""
-                SELECT content FROM agent_messages
-                WHERE session_id = ? AND role = 'user'
-                ORDER BY created_at ASC LIMIT 1
-            """, (session_id,))
-            message_row = cursor.fetchone()
-            original_message = message_row["content"] if message_row else ""
-            
-            # Get rejection reason if rejected
-            rejection_reason = None
-            if rejection_row:
-                rejection_data = json.loads(rejection_row["content"]) if rejection_row["content"] else {}
-                rejection_reason = rejection_data.get("rejection_reason", "unknown")
+            decision = "rejected" if row["rejection_content"] else "accepted"
+            rejection_reason = rejection_data.get("rejection_reason", "unknown") if rejection_data else None
             
             ideas.append({
-                "idea_id": idea_id,
-                "conversation_id": session_id,
+                "idea_id": row["idea_id"],
+                "conversation_id": row["session_id"],
                 "workflow_type": "strategy_idea",
-                "original_message": original_message,
+                "original_message": row["original_message"] or "",
                 "claimed_entry": extraction.get("claimed_entry", "未提取") if extraction else "未提取",
                 "claimed_exit": extraction.get("claimed_exit", "未提取") if extraction else "未提取",
                 "claimed_edge": extraction.get("claimed_edge", "未提取") if extraction else "未提取",
                 "decision": decision,
                 "path_type": mapping.get("path_type", "unknown") if mapping else "unknown",
                 "rejection_reason": rejection_reason,
-                "mapping_artifact_id": mapping_row["artifact_id"] if mapping_row else None,
-                "extraction_artifact_id": extraction_row["artifact_id"] if extraction_row else None,
+                "mapping_artifact_id": row["mapping_artifact_id"],
+                "extraction_artifact_id": row["extraction_artifact_id"],
                 "mapped_template_id": mapping.get("matched_template_id") if mapping else None,
                 "template_version": mapping.get("template_version") if mapping else None,
                 "considered_template_ids": mapping.get("considered_template_ids", []) if mapping else [],
@@ -157,7 +179,7 @@ def list_ideas(conversation_id: str = None, candidate_status: str = None):
                 "candidate_status": mapping.get("candidate_status") if mapping else None,
                 "candidate_reason": mapping.get("candidate_reason") if mapping else None,
                 "required_next_step": mapping.get("required_next_step") if mapping else None,
-                "created_at": created_at,
+                "created_at": row["created_at"],
             })
         
         # Filter by candidate_status if provided

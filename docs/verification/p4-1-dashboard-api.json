@@ -4,25 +4,25 @@
     "count": 30,
     "items": [
       {
-        "position_id": "pos_a0d632729fc5",
+        "position_id": "pos_690b35782850",
         "symbol": "603002.SH",
         "name": "宏昌电子",
         "entry_price": 12.34,
-        "opened_at": "2026-07-08T11:34:09.314927"
+        "opened_at": "2026-07-08T13:50:16.097260"
       },
       {
-        "position_id": "pos_ab393d9caf2c",
+        "position_id": "pos_b6d3ea4c3810",
         "symbol": "603002.SH",
         "name": "宏昌电子",
         "entry_price": 12.34,
-        "opened_at": "2026-07-08T11:33:30.014959"
+        "opened_at": "2026-07-08T13:49:36.336801"
       },
       {
-        "position_id": "pos_2db0dd99e2f4",
+        "position_id": "pos_733ba0ec4f89",
         "symbol": "603002.SH",
         "name": "宏昌电子",
         "entry_price": 12.34,
-        "opened_at": "2026-07-08T11:32:46.445756"
+        "opened_at": "2026-07-08T13:48:52.771789"
       },
       {
         "position_id": "pos_27d4518ca1ec",
@@ -45,9 +45,9 @@
     "items": []
   },
   "strategy_workspace": {
-    "ideas_count": 70,
-    "candidates_count": 0,
-    "rejected_count": 0,
+    "ideas_count": 72,
+    "candidates_count": 15,
+    "rejected_count": 71,
     "validations_count": 0,
     "approved_strategies_count": 0,
     "templates_count": 4

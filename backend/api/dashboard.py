@@ -100,11 +100,15 @@ def get_dashboard_today() -> Dict[str, Any]:
             SELECT 
                 i.artifact_id,
                 i.session_id,
-                m.content as mapping_content
+                m.content as mapping_content,
+                r.artifact_id as rejection_artifact_id
             FROM agent_artifact_refs i
             LEFT JOIN agent_artifact_refs m 
                 ON i.session_id = m.session_id 
-                AND m.artifact_type = 'strategy_idea_mapping'
+                AND m.artifact_type = 'strategy_template_mapping'
+            LEFT JOIN agent_artifact_refs r
+                ON i.session_id = r.session_id
+                AND r.artifact_type = 'strategy_idea_rejected'
             WHERE i.artifact_type = 'strategy_idea'
         """)
         
@@ -125,11 +129,11 @@ def get_dashboard_today() -> Dict[str, Any]:
                     if mapping_data.get("candidate_status") == "candidate_unapproved":
                         candidates_count += 1
                     
-                    # Check decision
-                    if mapping_data.get("decision") == "rejected":
-                        rejected_count += 1
                 except json.JSONDecodeError:
                     pass
+
+            if row["rejection_artifact_id"]:
+                rejected_count += 1
         
         conn.close()
         

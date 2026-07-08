@@ -1,10 +1,18 @@
 {
-  "run_id": "P4_2_RUN_20260708_125135",
-  "timestamp": "2026-07-08T12:51:35.045758",
+  "run_id": "P4_2_RUN_20260708_135120",
+  "timestamp": "2026-07-08T13:51:20.078285",
   "checks": {
-    "consistency": true
+    "drilldown_consistency": true
   },
   "evidence_files": [
-    "p4-2-dashboard-api.json"
-  ]
+    "p4-2-dashboard-api.json",
+    "p4-2-observations-api.json",
+    "p4-2-signals-api.json",
+    "p4-2-strategy-ideas-api.json",
+    "p4-2-candidates-api.json",
+    "p4-2-validations-api.json",
+    "p4-2-strategies-api.json",
+    "p4-2-templates-api.json"
+  ],
+  "inconsistencies": []
 }
