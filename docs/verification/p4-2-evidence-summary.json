@@ -1,0 +1,10 @@
+{
+  "run_id": "P4_2_RUN_20260708_125135",
+  "timestamp": "2026-07-08T12:51:35.045758",
+  "checks": {
+    "consistency": true
+  },
+  "evidence_files": [
+    "p4-2-dashboard-api.json"
+  ]
+}
