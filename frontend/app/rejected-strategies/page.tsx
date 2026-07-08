@@ -108,11 +108,8 @@ export default function RejectedStrategiesPage() {
           </p>
         </div>
         <div style={styles.headerActions}>
-          <Link href="/strategy-ideas" style={styles.headerLink}>
-            所有策略
-          </Link>
-          <Link href="/" style={styles.headerLink}>
-            返回首页
+          <Link href="/strategies" style={styles.headerLink}>
+            ← 返回策略工作区
           </Link>
         </div>
       </header>

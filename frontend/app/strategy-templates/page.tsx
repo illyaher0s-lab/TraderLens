@@ -69,10 +69,10 @@ export default function StrategyTemplatesPage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">策略模板库</h1>
           <Link
-            href="/strategy-ideas"
+            href="/strategies"
             className="text-blue-600 hover:text-blue-700"
           >
-            ← 返回策略想法
+            ← 返回策略工作区
           </Link>
         </div>
 

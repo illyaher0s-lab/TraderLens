@@ -114,11 +114,8 @@ function StrategyIdeasContent() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <Link href="/strategy-templates" style={styles.backLink}>
-            模板库 →
-          </Link>
-          <Link href="/" style={styles.backLink}>
-            ← 返回首页
+          <Link href="/strategies" style={styles.backLink}>
+            ← 返回策略工作区
           </Link>
         </div>
       </header>

@@ -101,11 +101,8 @@ export default function CandidateStrategiesPage() {
           </p>
         </div>
         <div style={styles.headerActions}>
-          <Link href="/strategy-ideas" style={styles.headerLink}>
-            所有策略 →
-          </Link>
-          <Link href="/rejected-strategies" style={styles.headerLink}>
-            拒绝注册表 →
+          <Link href="/strategies" style={styles.headerLink}>
+            ← 返回策略工作区
           </Link>
         </div>
       </header>
