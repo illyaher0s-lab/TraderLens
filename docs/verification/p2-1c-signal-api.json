@@ -2,214 +2,214 @@
   "status": "success",
   "signals": [
     {
-      "signal_id": "sig_6021b7c0a1a0",
-      "position_id": "pos_5da6bf2f465b",
+      "signal_id": "sig_5fbadb19461e",
+      "position_id": "pos_86026566ff78",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_ace533c38534",
-      "position_id": "pos_95b4fe24b9da",
+      "signal_id": "sig_e3957097b1e1",
+      "position_id": "pos_e81ec98c5cba",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_cda5aaaba359",
-      "position_id": "pos_46350733b410",
+      "signal_id": "sig_55b885d17063",
+      "position_id": "pos_babbe3f12f8c",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_e974505c715f",
+      "signal_id": "sig_060c06af2dc1",
       "position_id": "pos_27d4518ca1ec",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_80234aeadc0d",
+      "signal_id": "sig_76052fad18a8",
       "position_id": "pos_2f13d842c8b3",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_98e7425a4fb5",
+      "signal_id": "sig_5b30a2ab5cef",
       "position_id": "pos_1087fb2aa9b2",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_43833c639f3b",
+      "signal_id": "sig_57ab91e32450",
       "position_id": "pos_b76534e2de44",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_647e92334d6e",
+      "signal_id": "sig_31ee93cc8095",
       "position_id": "pos_29fa650eb0d2",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_425117ddd51a",
+      "signal_id": "sig_c75464486bef",
       "position_id": "pos_284cdb24fef6",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_06097110aaea",
+      "signal_id": "sig_82a0331dfe96",
       "position_id": "pos_d361713309f7",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_1c8c18f71438",
+      "signal_id": "sig_e2d39418504f",
       "position_id": "pos_7aa33348f7b8",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_8dfeb0df0bb4",
+      "signal_id": "sig_b8b412fcf672",
       "position_id": "pos_22081718324d",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_ead939bc502c",
+      "signal_id": "sig_a222c9f880c5",
       "position_id": "pos_175d3fea385c",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_1abd9ce2b5f4",
+      "signal_id": "sig_73ad3f3416cc",
       "position_id": "pos_99c915317e01",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_41206aa89806",
+      "signal_id": "sig_2e17dc31b861",
       "position_id": "pos_b078ac409333",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_bfe90a4340db",
+      "signal_id": "sig_4e3c0cd8612a",
       "position_id": "pos_36bc7d64900c",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_76aa322e1dca",
+      "signal_id": "sig_547f72a86e8e",
       "position_id": "pos_ecffe86e5286",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_cab72fb96eac",
+      "signal_id": "sig_c4d990089090",
       "position_id": "pos_005be2f2e06a",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_e9a9de1e7911",
+      "signal_id": "sig_e8cc15ebaa78",
       "position_id": "pos_e80b31dd4259",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_b351e1efde4d",
+      "signal_id": "sig_af94c6b05232",
       "position_id": "pos_971ccaeabac7",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_cef1845abafb",
+      "signal_id": "sig_116281d08ebd",
       "position_id": "pos_70e74b65ced9",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_41f32848cc8e",
+      "signal_id": "sig_78a40c1088f8",
       "position_id": "pos_48c9fccca206",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_ce852e0fa88d",
+      "signal_id": "sig_f43f8c591481",
       "position_id": "pos_2fd02cc1110a",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_74427fa05a76",
+      "signal_id": "sig_ee992d3daf80",
       "position_id": "pos_819bcc2158f2",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_5e2c007a7561",
+      "signal_id": "sig_b973f1921f11",
       "position_id": "pos_a81f07ad8d9f",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_fec881600932",
+      "signal_id": "sig_6e55ee7a2acd",
       "position_id": "pos_4e8a3b24ca81",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_b7cf76ea5cdf",
+      "signal_id": "sig_370453f78f20",
       "position_id": "pos_0b415a91ef88",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_46a9aba3892d",
+      "signal_id": "sig_e30c50eea334",
       "position_id": "pos_1aea6861e673",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_e71bfdeadfec",
+      "signal_id": "sig_d899037316d7",
       "position_id": "pos_f33121c3b492",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     },
     {
-      "signal_id": "sig_efed18971c73",
+      "signal_id": "sig_7a24ab68a183",
       "position_id": "pos_e25023f1b339",
       "symbol": "603002.SH",
       "signal_type": "hold",
-      "generated_at": "2026-07-07T00:00:00"
+      "generated_at": "2026-07-08T00:00:00"
     }
   ]
 }
