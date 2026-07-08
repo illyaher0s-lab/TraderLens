@@ -14,6 +14,7 @@ from backend.api.strategy_ideas import router as strategy_ideas_router
 from backend.api.strategy_templates import router as strategy_templates_router
 from backend.api.strategies import router as strategies_router
 from backend.api.strategy_validations import router as strategy_validations_router
+from backend.api.dashboard import router as dashboard_router
 from backend.db.research import ResearchDB
 
 
@@ -35,6 +36,7 @@ app.include_router(strategy_ideas_router)
 app.include_router(strategy_templates_router)
 app.include_router(strategies_router)
 app.include_router(strategy_validations_router)
+app.include_router(dashboard_router)
 
 # Runtime health
 from backend.api.runtime_health import router as runtime_health_router
