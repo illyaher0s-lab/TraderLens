@@ -209,9 +209,15 @@ No changes needed to hub page.
 
 **Branch**: `feat/p2-1-observation-pool-page`
 
-**Final Commit**: TBD (will be added after commit)
+**Final Commit**: `2ce40a8`
 
-**Status**: Clean (pending commit)
+**Commit History**:
+- `e10ee5f`: feat(P3-8): complete strategy product navigation closure
+- `ab34f94`: chore(P3-8): add verification evidence and delivery report
+- `45b1ea0`: chore(P3-8): add P2 regression evidence
+- `2ce40a8`: chore(P3-8): add remaining P3-6 and P3-7 regression evidence
+
+**Status**: Clean
 
 **Files Modified**:
 - `frontend/app/strategy-ideas/page.tsx`
