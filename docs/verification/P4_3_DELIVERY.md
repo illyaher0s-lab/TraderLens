@@ -127,7 +127,7 @@ All prior phases remain passing:
 
 ## Commit Information
 
-- **Commit hash**: b78350b
+- **Commit hash**: cad4417
 - **Branch**: feat/p2-1-observation-pool-page
 - **Git status**: clean ✅
 

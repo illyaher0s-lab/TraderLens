@@ -103,7 +103,9 @@
   "evidence_files": [
     "p4-3-dashboard-dom.md",
     "p4-3-action-pages-dom.md",
-    "p4-3-network-log.json"
+    "p4-3-network-log.json",
+    "p4-3-verification-summary.json",
+    "p4-3-frontend-log.txt"
   ],
   "network_requests": [
     {
