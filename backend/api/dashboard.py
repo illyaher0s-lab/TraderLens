@@ -206,10 +206,20 @@ def get_dashboard_today() -> Dict[str, Any]:
         "updated_at": datetime.now().isoformat(),
     }
     
+    # ponytail: risk guard shell, no real validation
+    risk_guard = {
+        "data_state": "not_configured",
+        "message": "风险守卫尚未启用",
+        "blocks_count": 0,
+        "downgrades_count": 0,
+        "updated_at": datetime.now().isoformat(),
+    }
+    
     return {
         "as_of_date": today.isoformat(),
         "open_observations": open_observations,
         "today_signals": today_signals,
         "strategy_workspace": strategy_workspace,
         "recent_reviews": recent_reviews,
+        "risk_guard": risk_guard,
     }

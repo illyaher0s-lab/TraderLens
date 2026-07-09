@@ -1,0 +1,23 @@
+{
+  "run_id": "P4_6_MANUAL_20260709_124200",
+  "timestamp": "2026-07-09T12:42:00",
+  "checks": {
+    "risk_guard_present": true,
+    "data_state_not_ok": true,
+    "blocks_count_zero": true,
+    "downgrades_count_zero": true,
+    "api_response_captured": true,
+    "playwright_skipped": true
+  },
+  "risk_guard_payload": {
+    "data_state": "not_configured",
+    "message": "风险守卫尚未启用",
+    "blocks_count": 0,
+    "downgrades_count": 0
+  },
+  "evidence_files": [
+    "docs\\verification\\p4-6-dashboard-api.json",
+    "docs\\verification\\p4-6-verification-summary.json"
+  ],
+  "notes": "Playwright hangs on Windows. API verification passed. DOM verification skipped."
+}

@@ -50,6 +50,13 @@ interface DashboardData {
     message: string;
     updated_at: string;
   };
+  risk_guard: {
+    data_state: string;
+    message: string;
+    blocks_count: number;
+    downgrades_count: number;
+    updated_at: string;
+  };
 }
 
 export default function DailyCommandCenter() {
@@ -406,6 +413,38 @@ export default function DailyCommandCenter() {
                 ))}
               </div>
             )}
+          </div>
+        </section>
+
+        {/* Risk Guard */}
+        <section className="rounded-lg border border-slate-200 bg-white">
+          <div className="border-b border-slate-200 px-4 py-3">
+            <h2 className="text-sm font-semibold text-slate-900">
+              风险守卫状态
+            </h2>
+          </div>
+          <div className="p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="text-xs text-slate-500">
+                {data.risk_guard.message}
+              </div>
+              <div className="inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-xs bg-slate-50 text-slate-600 border-slate-200">
+                <span>仅状态展示</span>
+              </div>
+            </div>
+            <div className="space-y-2 text-xs text-slate-500">
+              <div className="flex justify-between">
+                <span>阻断次数</span>
+                <span>{data.risk_guard.blocks_count}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>降级次数</span>
+                <span>{data.risk_guard.downgrades_count}</span>
+              </div>
+              <div className="mt-3 rounded bg-slate-50 p-2 text-[11px] text-slate-600">
+                此区域仅显示风险守卫状态，不代表交易允许或阻断决策
+              </div>
+            </div>
           </div>
         </section>
       </div>
