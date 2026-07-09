@@ -1,7 +1,7 @@
 {
-  "run_id": "P7_3_RUN_20260709_192733",
-  "conversation_id": "sess_32f1e9403bda",
-  "idea_id": "idea_3a980db86a0b",
+  "run_id": "P7_3_RUN_20260709_214202",
+  "conversation_id": "sess_ad3479a86fc5",
+  "idea_id": "idea_6aed18558877",
   "workflow_type": "strategy_idea",
   "decision": "rejected",
   "candidate_status": "candidate_unapproved",
@@ -10,6 +10,6 @@
   "mismatch_reasons_count": 4,
   "final_reason": "no_template_fit",
   "approved_strategies_count": 0,
-  "network_requests_total": 61,
+  "network_requests_total": 58,
   "network_requests_external": 0
 }

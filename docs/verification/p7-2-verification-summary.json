@@ -1,11 +1,11 @@
 {
-  "run_id": "P7_2_RUN_20260709_192934",
-  "position_id": "pos_e638a0ae468e",
+  "run_id": "P7_2_RUN_20260709_214018",
+  "position_id": "pos_4b8add68a2f0",
   "stock_code": "600519.SH",
   "stock_name": "贵州茅台",
   "signal_id": null,
   "pnl": 10000.0,
-  "review_id": "review_7cc58c4f1428",
+  "review_id": "review_9258f9245ee2",
   "network_requests_total": 46,
   "network_requests_external": 0
 }
