@@ -60,7 +60,14 @@ def main():
     try:
         # Start services
         print("\n[1/8] Starting backend...")
-        backend_proc = start_backend(port=8010, project_root=project_root)
+        backend_proc = start_backend(
+            port=8010,
+            project_root=project_root,
+            extra_env={
+                "RESEARCH_CONVERSATION_MODE": "deterministic",
+                "SERENITY_EXECUTION_MODE": "stub",
+            }
+        )
         
         print("\n[2/8] Starting frontend...")
         frontend_proc = start_frontend(port=3010, project_root=project_root)
