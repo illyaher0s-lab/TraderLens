@@ -23,7 +23,10 @@ app = FastAPI(title="TraderLens API", version="0.1.0")
 # CORS middleware for frontend development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Next.js dev server
+    allow_origins=[
+        "http://localhost:3000",  # Next.js dev server (historical)
+        "http://localhost:3010",  # Next.js dev server (current)
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
