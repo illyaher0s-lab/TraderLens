@@ -1,23 +1,27 @@
 {
-  "run_id": "P4_6_MANUAL_20260709_124200",
-  "timestamp": "2026-07-09T12:42:00",
+  "run_id": "P4_6_RUN_20260709_142649",
+  "timestamp": "2026-07-09T14:27:34.326473",
   "checks": {
     "risk_guard_present": true,
     "data_state_not_ok": true,
     "blocks_count_zero": true,
     "downgrades_count_zero": true,
-    "api_response_captured": true,
-    "playwright_skipped": true
+    "dom_texts_present": true,
+    "localhost_only": true
   },
   "risk_guard_payload": {
     "data_state": "not_configured",
     "message": "风险守卫尚未启用",
     "blocks_count": 0,
-    "downgrades_count": 0
+    "downgrades_count": 0,
+    "updated_at": "2026-07-09T14:27:04.625765"
   },
   "evidence_files": [
-    "docs\\verification\\p4-6-dashboard-api.json",
-    "docs\\verification\\p4-6-verification-summary.json"
-  ],
-  "notes": "Playwright hangs on Windows. API verification passed. DOM verification skipped."
+    "docs\\\\verification\\\\p4-6-dashboard-api.json",
+    "docs\\\\verification\\\\p4-6-dashboard-dom.md",
+    "docs\\\\verification\\\\p4-6-network-log.json",
+    "docs\\\\verification\\\\p4-6-verification-summary.json",
+    "docs\\\\verification\\\\p4-6-backend-log.txt",
+    "docs\\\\verification\\\\p4-6-frontend-log.txt"
+  ]
 }

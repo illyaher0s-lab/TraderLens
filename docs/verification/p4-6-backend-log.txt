@@ -1,0 +1,10 @@
+backend PID: 35016
+INFO:     Started server process [20320]
+INFO:     Waiting for application startup.
+Research API starting in DETERMINISTIC mode (fake agents for testing, Serenity=stub)
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8010 (Press CTRL+C to quit)
+INFO:     127.0.0.1:59504 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59351 - "GET /api/dashboard/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57662 - "GET /api/dashboard/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57662 - "GET /api/dashboard/today HTTP/1.1" 200 OK

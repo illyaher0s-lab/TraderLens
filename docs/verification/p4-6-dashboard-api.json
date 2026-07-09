@@ -1,1 +1,78 @@
-{"as_of_date":"2026-07-09","open_observations":{"count":30,"items":[{"position_id":"pos_840726937bad","symbol":"603002.SH","name":"宏昌电子","entry_price":12.34,"opened_at":"2026-07-09T10:56:16.351425"},{"position_id":"pos_81354577260f","symbol":"603002.SH","name":"宏昌电子","entry_price":12.34,"opened_at":"2026-07-09T10:55:37.341243"},{"position_id":"pos_1abaf310de16","symbol":"603002.SH","name":"宏昌电子","entry_price":12.34,"opened_at":"2026-07-09T10:54:56.346792"},{"position_id":"pos_27d4518ca1ec","symbol":"603002.SH","name":"宏昌电子","entry_price":1.0,"opened_at":"2026-07-06T17:10:49.418468"},{"position_id":"pos_2f13d842c8b3","symbol":"603002.SH","name":"宏昌电子","entry_price":12.5,"opened_at":"2026-07-06T10:51:23.116342"}],"data_state":"ok","message":"数据正常","updated_at":"2026-07-09T12:40:30.807410"},"today_signals":{"count":0,"items":[],"data_state":"empty","message":"暂无数据","as_of_date":"2026-07-09"},"strategy_workspace":{"ideas_count":76,"candidates_count":19,"rejected_count":75,"validations_count":0,"approved_strategies_count":0,"templates_count":4,"data_state":"ok","message":"数据正常","updated_at":"2026-07-09T12:40:30.902273"},"recent_reviews":{"count":0,"items":[],"data_state":"empty","message":"暂无数据","updated_at":"2026-07-09T12:40:30.903275"},"risk_guard":{"data_state":"not_configured","message":"风险守卫尚未启用","blocks_count":0,"downgrades_count":0,"updated_at":"2026-07-09T12:40:30.903275"}}
+{
+  "as_of_date": "2026-07-09",
+  "open_observations": {
+    "count": 30,
+    "items": [
+      {
+        "position_id": "pos_0f30427e5ea2",
+        "symbol": "603002.SH",
+        "name": "宏昌电子",
+        "entry_price": 12.34,
+        "opened_at": "2026-07-09T12:47:23.282210"
+      },
+      {
+        "position_id": "pos_bec6bdad1bab",
+        "symbol": "603002.SH",
+        "name": "宏昌电子",
+        "entry_price": 12.34,
+        "opened_at": "2026-07-09T12:46:46.774291"
+      },
+      {
+        "position_id": "pos_5024c72e16a5",
+        "symbol": "603002.SH",
+        "name": "宏昌电子",
+        "entry_price": 12.34,
+        "opened_at": "2026-07-09T12:46:05.270556"
+      },
+      {
+        "position_id": "pos_27d4518ca1ec",
+        "symbol": "603002.SH",
+        "name": "宏昌电子",
+        "entry_price": 1.0,
+        "opened_at": "2026-07-06T17:10:49.418468"
+      },
+      {
+        "position_id": "pos_2f13d842c8b3",
+        "symbol": "603002.SH",
+        "name": "宏昌电子",
+        "entry_price": 12.5,
+        "opened_at": "2026-07-06T10:51:23.116342"
+      }
+    ],
+    "data_state": "ok",
+    "message": "数据正常",
+    "updated_at": "2026-07-09T14:27:04.594867"
+  },
+  "today_signals": {
+    "count": 0,
+    "items": [],
+    "data_state": "empty",
+    "message": "暂无数据",
+    "as_of_date": "2026-07-09"
+  },
+  "strategy_workspace": {
+    "ideas_count": 77,
+    "candidates_count": 20,
+    "rejected_count": 76,
+    "validations_count": 0,
+    "approved_strategies_count": 0,
+    "templates_count": 4,
+    "data_state": "ok",
+    "message": "数据正常",
+    "updated_at": "2026-07-09T14:27:04.625765"
+  },
+  "recent_reviews": {
+    "count": 0,
+    "items": [],
+    "data_state": "empty",
+    "message": "暂无数据",
+    "updated_at": "2026-07-09T14:27:04.625765"
+  },
+  "risk_guard": {
+    "data_state": "not_configured",
+    "message": "风险守卫尚未启用",
+    "blocks_count": 0,
+    "downgrades_count": 0,
+    "updated_at": "2026-07-09T14:27:04.625765"
+  }
+}

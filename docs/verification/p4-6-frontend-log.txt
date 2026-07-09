@@ -1,0 +1,16 @@
+frontend PID: 26960
+
+> traderlens@0.1.0 dev
+> next dev frontend --port 3000
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 12.6s
+ ○ Compiling / ...
+ ✓ Compiled / in 1546ms (489 modules)
+ GET / 200 in 1853ms
+ GET / 200 in 107ms
+ GET / 200 in 66ms
