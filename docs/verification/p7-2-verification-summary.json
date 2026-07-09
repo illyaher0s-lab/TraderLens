@@ -1,6 +1,9 @@
 {
   "run_id": "P7_2_RUN_20260709_184333",
   "position_id": "pos_fbf2e4ecf025",
+  "observation_position_id": "pos_fbf2e4ecf025",
+  "closed_position_id": "pos_9f5b1c5417b4",
+  "position_relationship": "same run_id and same stock; observation_position_id is the friend-stock observation record, closed_position_id is the separate manual-buy position closed by the sell message",
   "stock_code": "600519.SH",
   "stock_name": "贵州茅台",
   "signal_id": null,

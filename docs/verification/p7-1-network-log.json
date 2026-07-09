@@ -5,17 +5,17 @@
     "resource_type": "document"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591689254",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594015655",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591689254",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594015655",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591689254",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594015655",
     "method": "GET",
     "resource_type": "script"
   },
@@ -55,17 +55,17 @@
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591694451",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594020942",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591694451",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594020942",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591694451",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594020942",
     "method": "GET",
     "resource_type": "script"
   },
@@ -85,7 +85,7 @@
     "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:8010/api/agent/workbench/sess_07b9d46c3fd7",
+    "url": "http://localhost:8010/api/agent/workbench/sess_089f2493d584",
     "method": "GET",
     "resource_type": "fetch"
   },
@@ -95,7 +95,7 @@
     "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:8010/api/agent/workbench/sess_07b9d46c3fd7",
+    "url": "http://localhost:8010/api/agent/workbench/sess_089f2493d584",
     "method": "GET",
     "resource_type": "fetch"
   },
@@ -115,17 +115,17 @@
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591714863",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594041643",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591714863",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594041643",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591714863",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594041643",
     "method": "GET",
     "resource_type": "script"
   },
@@ -155,17 +155,17 @@
     "resource_type": "document"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591717127",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594044031",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591717127",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594044031",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591717127",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594044031",
     "method": "GET",
     "resource_type": "script"
   },
@@ -185,7 +185,7 @@
     "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:8010/api/agent/workbench/sess_f05caee8e52d",
+    "url": "http://localhost:8010/api/agent/workbench/sess_bc520fbb86c3",
     "method": "GET",
     "resource_type": "fetch"
   },
@@ -205,17 +205,17 @@
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591737696",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594065389",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591737696",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594065389",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591737696",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594065389",
     "method": "GET",
     "resource_type": "script"
   },
@@ -255,17 +255,17 @@
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591740119",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594068277",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591740119",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594068277",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591740119",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594068277",
     "method": "GET",
     "resource_type": "script"
   },
@@ -305,17 +305,17 @@
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591742445",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594071070",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591742445",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594071070",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591742445",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594071070",
     "method": "GET",
     "resource_type": "script"
   },
@@ -355,17 +355,17 @@
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591745115",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594073757",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591745115",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594073757",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591745115",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594073757",
     "method": "GET",
     "resource_type": "script"
   },
