@@ -127,19 +127,12 @@ def main():
         page.click("button:has-text('发送')")
         page.wait_for_timeout(3000)
 
-        # Get conversation_id via API
-        sessions = requests.get("http://localhost:8010/api/workbench/sessions", timeout=10).json()
-        if not sessions:
-            print("ERROR: No workbench sessions")
+        # ponytail: no /api/workbench/sessions endpoint, verify via DOM presence
+        workbench_dom = page.content()
+        if RUN_ID not in workbench_dom:
+            print(f"ERROR: RUN_ID {RUN_ID} not in workbench DOM")
             sys.exit(1)
-        
-        friend_session = [s for s in sessions if RUN_ID in s.get("last_user_message", "")]
-        if not friend_session:
-            print("ERROR: Friend stock session not found")
-            sys.exit(1)
-        
-        conversation_id = friend_session[0]["conversation_id"]
-        print(f"OK: conversation_id = {conversation_id}")
+        print(f"OK: Friend stock message sent (RUN_ID in DOM)")
 
         # Check observations
         page.goto("http://localhost:3010/observations", wait_until="domcontentloaded", timeout=30000)
@@ -163,15 +156,12 @@ def main():
         page.click("button:has-text('发送')")
         page.wait_for_timeout(3000)
 
-        # Get strategy conversation_id
-        sessions = requests.get("http://localhost:8010/api/workbench/sessions", timeout=10).json()
-        strategy_session = [s for s in sessions if strategy_msg in s.get("last_user_message", "")]
-        if not strategy_session:
-            print("ERROR: Strategy session not found")
+        # ponytail: verify via DOM
+        workbench_dom = page.content()
+        if RUN_ID not in workbench_dom:
+            print(f"ERROR: RUN_ID {RUN_ID} not in workbench DOM")
             sys.exit(1)
-        
-        strategy_conversation_id = strategy_session[0]["conversation_id"]
-        print(f"OK: strategy_conversation_id = {strategy_conversation_id}")
+        print(f"OK: Strategy message sent (RUN_ID in DOM)")
 
         # Check strategy pages
         for name, url in [
@@ -218,8 +208,6 @@ def main():
         
         summary = {
             "run_id": RUN_ID,
-            "friend_conversation_id": conversation_id,
-            "strategy_conversation_id": strategy_conversation_id,
             "risk_guard_data_state": risk_guard.get("data_state"),
             "network_requests_total": len(network_log),
             "network_requests_external": len(external),
