@@ -1,22 +1,154 @@
 {
-  "run_id": "P4_4_RUN_20260709_MANUAL",
-  "timestamp": "2026-07-09T09:51:14.919760",
-  "api_checks": {
-    "all_sections_have_data_state": true,
-    "all_sections_have_message": true,
-    "signals_empty_rule": true,
-    "reviews_empty_rule": true,
-    "strategy_ok_rule": true,
-    "observations_valid": true
+  "run_id": "P4_4_RUN_20260709_101023",
+  "timestamp": "2026-07-09T10:10:23.060810",
+  "api_response": {
+    "as_of_date": "2026-07-09",
+    "open_observations": {
+      "count": 30,
+      "items": [
+        {
+          "position_id": "pos_acaefe5ca5e2",
+          "symbol": "603002.SH",
+          "name": "宏昌电子",
+          "entry_price": 12.34,
+          "opened_at": "2026-07-09T09:59:29.094816"
+        },
+        {
+          "position_id": "pos_35e316fd1f8d",
+          "symbol": "603002.SH",
+          "name": "宏昌电子",
+          "entry_price": 12.34,
+          "opened_at": "2026-07-09T09:58:52.456005"
+        },
+        {
+          "position_id": "pos_65f249d4c3bf",
+          "symbol": "603002.SH",
+          "name": "宏昌电子",
+          "entry_price": 12.34,
+          "opened_at": "2026-07-09T09:58:11.772705"
+        },
+        {
+          "position_id": "pos_27d4518ca1ec",
+          "symbol": "603002.SH",
+          "name": "宏昌电子",
+          "entry_price": 1.0,
+          "opened_at": "2026-07-06T17:10:49.418468"
+        },
+        {
+          "position_id": "pos_2f13d842c8b3",
+          "symbol": "603002.SH",
+          "name": "宏昌电子",
+          "entry_price": 12.5,
+          "opened_at": "2026-07-06T10:51:23.116342"
+        }
+      ],
+      "data_state": "ok",
+      "message": "数据正常",
+      "updated_at": "2026-07-09T10:10:49.730987"
+    },
+    "today_signals": {
+      "count": 0,
+      "items": [],
+      "data_state": "empty",
+      "message": "暂无数据",
+      "as_of_date": "2026-07-09"
+    },
+    "strategy_workspace": {
+      "ideas_count": 75,
+      "candidates_count": 18,
+      "rejected_count": 74,
+      "validations_count": 0,
+      "approved_strategies_count": 0,
+      "templates_count": 4,
+      "data_state": "ok",
+      "message": "数据正常",
+      "updated_at": "2026-07-09T10:10:49.786721"
+    },
+    "recent_reviews": {
+      "count": 0,
+      "items": [],
+      "data_state": "empty",
+      "message": "暂无数据",
+      "updated_at": "2026-07-09T10:10:49.786721"
+    }
   },
-  "dom_checks": {
-    "state_messages_visible": true,
-    "all_api_localhost": true
+  "sections": {
+    "open_observations": {
+      "count": 30,
+      "data_state": "ok",
+      "message": "数据正常",
+      "timestamp": "2026-07-09T10:10:49.730987"
+    },
+    "today_signals": {
+      "count": 0,
+      "data_state": "empty",
+      "message": "暂无数据",
+      "timestamp": "2026-07-09"
+    },
+    "strategy_workspace": {
+      "count": 75,
+      "data_state": "ok",
+      "message": "数据正常",
+      "timestamp": "2026-07-09T10:10:49.786721"
+    },
+    "recent_reviews": {
+      "count": 0,
+      "data_state": "empty",
+      "message": "暂无数据",
+      "timestamp": "2026-07-09T10:10:49.786721"
+    }
+  },
+  "checks": {
+    "business_rules_passed": 4,
+    "business_rules_total": 4
   },
   "evidence_files": [
-    "docs/verification/p4-4-dashboard-api.json",
-    "docs/verification/p4-4-dashboard-dom.md",
-    "docs/verification/p4-4-network-log.json",
-    "docs/verification/p4-4-verification-summary.json"
+    "docs\\verification\\p4-4-dashboard-api.json",
+    "docs\\verification\\p4-4-dashboard-dom.md",
+    "docs\\verification\\p4-4-network-log.json",
+    "docs\\verification\\p4-4-verification-summary.json",
+    "docs\\verification\\p4-4-frontend-log.txt"
+  ],
+  "network_requests": [
+    {
+      "url": "http://localhost:3000/",
+      "method": "GET",
+      "resource_type": "document"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783563066570",
+      "method": "GET",
+      "resource_type": "stylesheet"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783563066570",
+      "method": "GET",
+      "resource_type": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783563066570",
+      "method": "GET",
+      "resource_type": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+      "method": "GET",
+      "resource_type": "script"
+    },
+    {
+      "url": "http://localhost:3000/_next/static/chunks/app/page.js",
+      "method": "GET",
+      "resource_type": "script"
+    },
+    {
+      "url": "http://localhost:8010/api/dashboard/today",
+      "method": "GET",
+      "resource_type": "fetch"
+    },
+    {
+      "url": "http://localhost:8010/api/dashboard/today",
+      "method": "GET",
+      "resource_type": "fetch"
+    }
   ]
 }

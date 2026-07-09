@@ -137,14 +137,14 @@ All evidence saved to `docs/verification/`:
 
 ## Git Status
 
-**Final Commit:** `feat(P4-4): expose dashboard data freshness states`
+**Final Commit:** `docs(P4-4): fix closeout evidence and metadata`
 
 ```
 On branch feat/p2-1-observation-pool-page
-nothing to commit, working tree clean (untracked artifacts only)
+nothing to commit, working tree clean
 ```
 
-**Commit Hash:** acfe578
+**Commit Hash:** a81148a
 
 ---
 
