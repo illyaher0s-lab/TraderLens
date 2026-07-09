@@ -200,9 +200,9 @@ def main():
                 if isinstance(data, dict):
                     data = data.get("ideas") or data.get("data") or []
                 for idea in data:
-                    if isinstance(idea, dict) and RUN_ID in idea.get("original_description", ""):
+                    if isinstance(idea, dict) and RUN_ID in idea.get("original_message", ""):
                         idea_id = idea.get("idea_id")
-                        strategy_conversation_id = idea.get("conversation_id")  # ponytail: may not exist in API
+                        strategy_conversation_id = idea.get("conversation_id")
                         print(f"OK: Strategy idea created: {idea_id}")
                         break
                 if idea_id:
