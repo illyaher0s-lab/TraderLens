@@ -1,9 +1,9 @@
 {
-  "run_id": "P7_1_RUN_20260709_184628",
-  "friend_conversation_id": "sess_089f2493d584",
-  "position_id": "pos_eb57cd82eab9",
-  "strategy_conversation_id": "sess_bc520fbb86c3",
-  "idea_id": "idea_b6382b15886c",
+  "run_id": "P7_1_RUN_20260709_193136",
+  "friend_conversation_id": "sess_02893e7962aa",
+  "position_id": "pos_0a33b39397df",
+  "strategy_conversation_id": "sess_ea2c4cabdcc4",
+  "idea_id": "idea_c4809072f9a1",
   "response_workflow_type": "strategy_idea",
   "route_decision_workflow_kind": "strategy_idea",
   "strategy_decision": "rejected",
@@ -14,7 +14,7 @@
     "message": "风险守卫尚未启用",
     "blocks_count": 0,
     "downgrades_count": 0,
-    "updated_at": "2026-07-09T18:46:59.953971"
+    "updated_at": "2026-07-09T19:32:01.389974"
   },
   "network_requests_total": 78,
   "network_requests_external": 0,

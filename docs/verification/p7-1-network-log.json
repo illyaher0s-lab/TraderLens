@@ -5,17 +5,17 @@
     "resource_type": "document"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594015655",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783596717110",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594015655",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783596717110",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594015655",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783596717110",
     "method": "GET",
     "resource_type": "script"
   },
@@ -45,27 +45,27 @@
     "resource_type": "document"
   },
   {
-    "url": "http://localhost:3010/_next/static/webpack/27b538c1a644428c.webpack.hot-update.json",
+    "url": "http://localhost:3010/_next/static/webpack/7bcfdaff6718a650.webpack.hot-update.json",
     "method": "GET",
     "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:3010/_next/static/webpack/webpack.27b538c1a644428c.hot-update.js",
+    "url": "http://localhost:3010/_next/static/webpack/webpack.7bcfdaff6718a650.hot-update.js",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594020942",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783596722151",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594020942",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783596722151",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594020942",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783596722151",
     "method": "GET",
     "resource_type": "script"
   },
@@ -85,7 +85,7 @@
     "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:8010/api/agent/workbench/sess_089f2493d584",
+    "url": "http://localhost:8010/api/agent/workbench/sess_02893e7962aa",
     "method": "GET",
     "resource_type": "fetch"
   },
@@ -95,7 +95,7 @@
     "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:8010/api/agent/workbench/sess_089f2493d584",
+    "url": "http://localhost:8010/api/agent/workbench/sess_02893e7962aa",
     "method": "GET",
     "resource_type": "fetch"
   },
@@ -105,27 +105,27 @@
     "resource_type": "document"
   },
   {
-    "url": "http://localhost:3010/_next/static/webpack/cb4095c4756cfdce.webpack.hot-update.json",
+    "url": "http://localhost:3010/_next/static/webpack/32125e6062598647.webpack.hot-update.json",
     "method": "GET",
     "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:3010/_next/static/webpack/webpack.cb4095c4756cfdce.hot-update.js",
+    "url": "http://localhost:3010/_next/static/webpack/webpack.32125e6062598647.hot-update.js",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594041643",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783596743555",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594041643",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783596743555",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594041643",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783596743555",
     "method": "GET",
     "resource_type": "script"
   },
@@ -155,17 +155,17 @@
     "resource_type": "document"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594044031",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783596745910",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594044031",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783596745910",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594044031",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783596745910",
     "method": "GET",
     "resource_type": "script"
   },
@@ -185,7 +185,7 @@
     "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:8010/api/agent/workbench/sess_bc520fbb86c3",
+    "url": "http://localhost:8010/api/agent/workbench/sess_ea2c4cabdcc4",
     "method": "GET",
     "resource_type": "fetch"
   },
@@ -195,27 +195,27 @@
     "resource_type": "document"
   },
   {
-    "url": "http://localhost:3010/_next/static/webpack/bb0e2d3b1e491281.webpack.hot-update.json",
+    "url": "http://localhost:3010/_next/static/webpack/84355fdd402d33d0.webpack.hot-update.json",
     "method": "GET",
     "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:3010/_next/static/webpack/webpack.bb0e2d3b1e491281.hot-update.js",
+    "url": "http://localhost:3010/_next/static/webpack/webpack.84355fdd402d33d0.hot-update.js",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594065389",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783596767053",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594065389",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783596767053",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594065389",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783596767053",
     "method": "GET",
     "resource_type": "script"
   },
@@ -245,27 +245,27 @@
     "resource_type": "document"
   },
   {
-    "url": "http://localhost:3010/_next/static/webpack/0db559e038be1a10.webpack.hot-update.json",
+    "url": "http://localhost:3010/_next/static/webpack/8af3dde945e7781c.webpack.hot-update.json",
     "method": "GET",
     "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:3010/_next/static/webpack/webpack.0db559e038be1a10.hot-update.js",
+    "url": "http://localhost:3010/_next/static/webpack/webpack.8af3dde945e7781c.hot-update.js",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594068277",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783596769974",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594068277",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783596769974",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594068277",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783596769974",
     "method": "GET",
     "resource_type": "script"
   },
@@ -295,27 +295,27 @@
     "resource_type": "document"
   },
   {
-    "url": "http://localhost:3010/_next/static/webpack/f4a706b06ec217e6.webpack.hot-update.json",
+    "url": "http://localhost:3010/_next/static/webpack/b7cd2cc26344575f.webpack.hot-update.json",
     "method": "GET",
     "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:3010/_next/static/webpack/webpack.f4a706b06ec217e6.hot-update.js",
+    "url": "http://localhost:3010/_next/static/webpack/webpack.b7cd2cc26344575f.hot-update.js",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594071070",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783596772626",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594071070",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783596772626",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594071070",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783596772626",
     "method": "GET",
     "resource_type": "script"
   },
@@ -345,27 +345,27 @@
     "resource_type": "document"
   },
   {
-    "url": "http://localhost:3010/_next/static/webpack/0f5a624802399810.webpack.hot-update.json",
+    "url": "http://localhost:3010/_next/static/webpack/6b7098d6e2a44636.webpack.hot-update.json",
     "method": "GET",
     "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:3010/_next/static/webpack/webpack.0f5a624802399810.hot-update.js",
+    "url": "http://localhost:3010/_next/static/webpack/webpack.6b7098d6e2a44636.hot-update.js",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783594073757",
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783596775368",
     "method": "GET",
     "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783594073757",
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783596775368",
     "method": "GET",
     "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783594073757",
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783596775368",
     "method": "GET",
     "resource_type": "script"
   },

@@ -1,10 +1,24 @@
 {
-  "run_id": "P7_1_RUN_20260709_184628",
+  "run_id": "P7_1_RUN_20260709_193136",
   "dashboard": {
     "as_of_date": "2026-07-09",
     "open_observations": {
-      "count": 38,
+      "count": 40,
       "items": [
+        {
+          "position_id": "pos_e638a0ae468e",
+          "symbol": "600519.SH",
+          "name": "贵州茅台",
+          "entry_price": 0.01,
+          "opened_at": "2026-07-09T19:30:22.647136"
+        },
+        {
+          "position_id": "pos_eb57cd82eab9",
+          "symbol": "600519.SH",
+          "name": "贵州茅台",
+          "entry_price": 0.01,
+          "opened_at": "2026-07-09T18:47:08.075170"
+        },
         {
           "position_id": "pos_fbf2e4ecf025",
           "symbol": "600519.SH",
@@ -25,25 +39,11 @@
           "name": "贵州茅台",
           "entry_price": 0.01,
           "opened_at": "2026-07-09T18:29:12.963145"
-        },
-        {
-          "position_id": "pos_4a0d6bce87ec",
-          "symbol": "600519.SH",
-          "name": "贵州茅台",
-          "entry_price": 0.01,
-          "opened_at": "2026-07-09T18:26:31.202586"
-        },
-        {
-          "position_id": "pos_02efe754e82f",
-          "symbol": "600519.SH",
-          "name": "贵州茅台",
-          "entry_price": 0.01,
-          "opened_at": "2026-07-09T18:24:38.985703"
         }
       ],
       "data_state": "ok",
       "message": "数据正常",
-      "updated_at": "2026-07-09T18:46:59.907986"
+      "updated_at": "2026-07-09T19:32:01.359749"
     },
     "today_signals": {
       "count": 0,
@@ -53,70 +53,70 @@
       "as_of_date": "2026-07-09"
     },
     "strategy_workspace": {
-      "ideas_count": 81,
-      "candidates_count": 24,
-      "rejected_count": 80,
+      "ideas_count": 83,
+      "candidates_count": 26,
+      "rejected_count": 82,
       "validations_count": 0,
       "approved_strategies_count": 0,
       "templates_count": 4,
       "data_state": "ok",
       "message": "数据正常",
-      "updated_at": "2026-07-09T18:46:59.953971"
+      "updated_at": "2026-07-09T19:32:01.389974"
     },
     "recent_reviews": {
       "count": 0,
       "items": [],
       "data_state": "empty",
       "message": "暂无数据",
-      "updated_at": "2026-07-09T18:46:59.953971"
+      "updated_at": "2026-07-09T19:32:01.389974"
     },
     "risk_guard": {
       "data_state": "not_configured",
       "message": "风险守卫尚未启用",
       "blocks_count": 0,
       "downgrades_count": 0,
-      "updated_at": "2026-07-09T18:46:59.953971"
+      "updated_at": "2026-07-09T19:32:01.389974"
     }
   },
   "friend_stock": {
     "first_response": {
-      "conversation_id": "sess_089f2493d584",
+      "conversation_id": "sess_02893e7962aa",
       "workflow_type": "friend_stock",
       "stage": "created",
-      "agent_reply": "已识别 贵州茅台 (600519.SH)。当前为测试模式，已记录为待研究。 研究ID: flow_0518538bb85c",
+      "agent_reply": "已识别 贵州茅台 (600519.SH)。当前为测试模式，已记录为待研究。 研究ID: flow_9bc7aa8f3f8b",
       "approval_card": null,
       "artifact_ids": [
-        "flow_0518538bb85c",
-        "msg_61c514ed927d",
-        "msg_1d8c667c02af",
-        "intent_sess_089f2493d584"
+        "flow_9bc7aa8f3f8b",
+        "msg_19d80356461b",
+        "msg_612b76ce113f",
+        "intent_sess_02893e7962aa"
       ],
       "next_required_user_action": "wait_for_research"
     },
     "second_response": {
-      "conversation_id": "sess_089f2493d584",
+      "conversation_id": "sess_02893e7962aa",
       "workflow_type": "add_to_observation",
       "stage": "created",
-      "agent_reply": "已将 贵州茅台（600519.SH）加入观察池。观察位置ID：pos_eb57cd82eab9",
+      "agent_reply": "已将 贵州茅台（600519.SH）加入观察池。观察位置ID：pos_0a33b39397df",
       "approval_card": null,
       "artifact_ids": [
-        "pos_eb57cd82eab9",
-        "msg_38b5acbb2a23",
-        "msg_36d735aadd37",
-        "intent_sess_089f2493d584"
+        "pos_0a33b39397df",
+        "msg_f4a481e8df79",
+        "msg_c3e255fc0c7f",
+        "intent_sess_02893e7962aa"
       ],
       "next_required_user_action": "confirm_stock_from_context"
     },
-    "conversation_id": "sess_089f2493d584",
+    "conversation_id": "sess_02893e7962aa",
     "position": {
-      "position_id": "pos_eb57cd82eab9",
+      "position_id": "pos_0a33b39397df",
       "symbol": "600519.SH",
       "name": "贵州茅台",
       "entry_price": 0.01,
       "quantity": 1,
-      "entry_thesis": "用户请求加入观察池：贵州茅台（600519.SH）。原始上下文：workbench: 帮我看看贵州茅台（600519），备注 P7_1_RUN_20260709_184628。当前输入：加入观察",
+      "entry_thesis": "用户请求加入观察池：贵州茅台（600519.SH）。原始上下文：workbench: 帮我看看贵州茅台（600519），备注 P7_1_RUN_20260709_193136。当前输入：加入观察",
       "lifecycle_state": "open",
-      "opened_at": "2026-07-09T18:47:08.075170",
+      "opened_at": "2026-07-09T19:32:09.676231",
       "closed_at": null,
       "template_id": "",
       "latest_signal": null
@@ -124,19 +124,19 @@
   },
   "strategy": {
     "workbench_response": {
-      "conversation_id": "sess_bc520fbb86c3",
+      "conversation_id": "sess_ea2c4cabdcc4",
       "workflow_type": "strategy_idea",
       "stage": "created",
       "agent_reply": "已提取策略想法：\n入场条件：下午两点半后买入\n出场条件：次日早盘卖出\n当前系统暂无已批准模板库。策略想法已记录，但不可用于实盘交易。\n该策略想法已记录到拒绝注册表，不会生成交易信号。",
       "approval_card": null,
       "artifact_ids": [
-        "idea_b6382b15886c",
-        "extract_3b178d96a492",
-        "mapping_051da3643988",
-        "idea_b6382b15886c_rejected",
-        "msg_b887a937fe0a",
-        "msg_f889015a3859",
-        "intent_sess_bc520fbb86c3"
+        "idea_c4809072f9a1",
+        "extract_2796851d3811",
+        "mapping_6ccc117c0cf7",
+        "idea_c4809072f9a1_rejected",
+        "msg_5c4efcf91750",
+        "msg_71dd2aab47c2",
+        "intent_sess_ea2c4cabdcc4"
       ],
       "next_required_user_action": "wait_for_extraction"
     },
@@ -148,18 +148,18 @@
       "allowed_to_start_workflow": true
     },
     "idea": {
-      "idea_id": "idea_b6382b15886c",
-      "conversation_id": "sess_bc520fbb86c3",
+      "idea_id": "idea_c4809072f9a1",
+      "conversation_id": "sess_ea2c4cabdcc4",
       "workflow_type": "strategy_idea",
-      "original_message": "[P7_1_RUN_20260709_184628] 下午两点半买入，第二天早上卖出",
+      "original_message": "[P7_1_RUN_20260709_193136] 下午两点半买入，第二天早上卖出",
       "claimed_entry": "下午两点半后买入",
       "claimed_exit": "次日早盘卖出",
       "claimed_edge": null,
       "decision": "rejected",
       "path_type": "no_template_fit",
       "rejection_reason": "no_approved_template",
-      "mapping_artifact_id": "mapping_051da3643988",
-      "extraction_artifact_id": "extract_3b178d96a492",
+      "mapping_artifact_id": "mapping_6ccc117c0cf7",
+      "extraction_artifact_id": "extract_2796851d3811",
       "mapped_template_id": null,
       "template_version": null,
       "considered_template_ids": [
@@ -179,25 +179,25 @@
       "candidate_status": "candidate_unapproved",
       "candidate_reason": "no_approved_template_fit",
       "required_next_step": "template_approval_required",
-      "created_at": "2026-07-09T18:47:25.469261"
+      "created_at": "2026-07-09T19:32:27.221468"
     },
     "detail": {
-      "idea_id": "idea_b6382b15886c",
-      "conversation_id": "sess_bc520fbb86c3",
+      "idea_id": "idea_c4809072f9a1",
+      "conversation_id": "sess_ea2c4cabdcc4",
       "workflow_type": "strategy_idea",
-      "original_message": "[P7_1_RUN_20260709_184628] 下午两点半买入，第二天早上卖出",
+      "original_message": "[P7_1_RUN_20260709_193136] 下午两点半买入，第二天早上卖出",
       "agent_reply": "",
       "extraction": {
-        "extraction_id": "extract_3b178d96a492",
-        "idea_id": "idea_b6382b15886c",
+        "extraction_id": "extract_2796851d3811",
+        "idea_id": "idea_c4809072f9a1",
         "claimed_entry": "下午两点半后买入",
         "claimed_exit": "次日早盘卖出",
         "claimed_edge": null,
         "extraction_source": "llm_assisted"
       },
       "mapping": {
-        "mapping_id": "mapping_051da3643988",
-        "idea_id": "idea_b6382b15886c",
+        "mapping_id": "mapping_6ccc117c0cf7",
+        "idea_id": "idea_c4809072f9a1",
         "path_type": "no_template_fit",
         "matched_template_id": null,
         "template_version": null,
@@ -221,9 +221,9 @@
         "required_next_step": "template_approval_required"
       },
       "rejection": {
-        "idea_id": "idea_b6382b15886c",
+        "idea_id": "idea_c4809072f9a1",
         "rejection_reason": "no_approved_template",
-        "rejected_at": "2026-07-09T18:47:25.583136"
+        "rejected_at": "2026-07-09T19:32:27.319704"
       },
       "decision": "rejected",
       "rejection_reason": "no_approved_template",
@@ -248,10 +248,10 @@
       "candidate_status": "candidate_unapproved",
       "candidate_reason": "no_approved_template_fit",
       "required_next_step": "template_approval_required",
-      "extraction_artifact_id": "extract_3b178d96a492",
-      "mapping_artifact_id": "mapping_051da3643988",
-      "rejection_artifact_id": "idea_b6382b15886c_rejected",
-      "created_at": "2026-07-09T18:47:25.469261"
+      "extraction_artifact_id": "extract_2796851d3811",
+      "mapping_artifact_id": "mapping_6ccc117c0cf7",
+      "rejection_artifact_id": "idea_c4809072f9a1_rejected",
+      "created_at": "2026-07-09T19:32:27.221468"
     },
     "candidate_api_contains_idea": true,
     "strategies_api": {
