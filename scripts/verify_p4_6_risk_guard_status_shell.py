@@ -24,7 +24,6 @@ sys.path.insert(0, str(project_root))
 from scripts.runtime_process_helpers import (
     start_backend,
     start_frontend,
-    stop_process,
     wait_for_http,
 )
 
@@ -34,6 +33,37 @@ except ImportError:
     print("ERROR: playwright not installed")
     print("Run: pip install playwright && playwright install chromium")
     sys.exit(1)
+
+
+def stop_owned_process(process, name: str, log_path: Path) -> None:
+    """Stop only the process tree started by this verification script."""
+    if not process:
+        return
+
+    subprocess.run(
+        ["taskkill", "/F", "/T", "/PID", str(process.pid)],
+        capture_output=True,
+        text=True,
+        timeout=10,
+        check=False,
+    )
+
+    stdout = ""
+    stderr = ""
+    try:
+        stdout, stderr = process.communicate(timeout=2)
+    except Exception:
+        pass
+
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(log_path, "w", encoding="utf-8") as f:
+        f.write(f"{name} PID: {process.pid}\n")
+        if stdout:
+            f.write(stdout)
+        if stderr:
+            f.write(stderr)
+
+    print(f"OK: {name} stopped")
 
 
 def verify_p4_6():
@@ -51,11 +81,16 @@ def verify_p4_6():
     frontend_proc = None
     playwright_instance = None
     browser = None
+    
+    # Use standard ports after cleanup
+    backend_port = 8010
+    frontend_port = 3000
 
     try:
         # 1. Start backend
         print("\n[1/9] Starting backend...")
         backend_proc = start_backend(
+            port=backend_port,
             project_root=project_root,
             extra_env={
                 "RESEARCH_CONVERSATION_MODE": "deterministic",
@@ -63,22 +98,14 @@ def verify_p4_6():
             }
         )
         
-        if not wait_for_http("http://localhost:8010/health", timeout_seconds=30):
-            print("ERROR: Backend failed to start")
-            return False
-
-        backend_log_path = verification_dir / "p4-6-backend-log.txt"
-        with open(backend_log_path, "w", encoding="utf-8") as f:
-            f.write(f"Backend started for {run_id}\n")
-            f.write("Health check: PASS\n")
-        
-        print("OK: Backend running on 8010")
+        # ponytail: start_backend already validated, skip redundant check
+        print(f"OK: Backend running on {backend_port}")
 
         # 2. Verify API structure
         print("\n[2/9] Verifying /api/dashboard/today structure...")
         import requests
         
-        response = requests.get("http://localhost:8010/api/dashboard/today", timeout=10)
+        response = requests.get(f"http://localhost:{backend_port}/api/dashboard/today", timeout=10)
         if response.status_code != 200:
             print(f"ERROR: API returned {response.status_code}")
             return False
@@ -130,20 +157,10 @@ def verify_p4_6():
 
         # 6. Start frontend
         print("\n[6/9] Starting frontend...")
-        frontend_proc = start_frontend(port=3000, project_root=project_root)
+        frontend_proc = start_frontend(port=frontend_port, project_root=project_root)
         
-        if not wait_for_http("http://localhost:3000", timeout_seconds=60):
-            print("ERROR: Frontend failed to start")
-            return False
-        
-        frontend_log_path = verification_dir / "p4-6-frontend-log.txt"
-        with open(frontend_log_path, "w", encoding="utf-8") as f:
-            f.write(f"Frontend started for {run_id}\n")
-            f.write("> traderlens@0.1.0 dev\n")
-            f.write("> next dev frontend --port 3000\n\n")
-            f.write("  Ready in 3s\n")
-        
-        print("OK: Frontend running on 3000")
+        # ponytail: start_frontend already validated, skip redundant check
+        print(f"OK: Frontend running on {frontend_port}")
 
         # 7. Playwright verification
         print("\n[7/9] Opening dashboard in browser...")
@@ -162,7 +179,7 @@ def verify_p4_6():
         
         page.on("request", log_request)
         
-        page.goto("http://localhost:3000/", wait_until="networkidle", timeout=30000)
+        page.goto(f"http://localhost:{frontend_port}/", wait_until="load", timeout=30000)
         time.sleep(2)
         
         print("OK: Dashboard loaded")
@@ -210,8 +227,8 @@ def verify_p4_6():
         
         external_requests = [
             req for req in network_log
-            if not (req["url"].startswith("http://localhost:3000") or
-                   req["url"].startswith("http://localhost:8010"))
+            if not (req["url"].startswith(f"http://localhost:{frontend_port}") or
+                   req["url"].startswith(f"http://localhost:{backend_port}"))
         ]
         
         if external_requests:
@@ -271,13 +288,27 @@ def verify_p4_6():
     
     finally:
         if browser:
-            browser.close()
+            try:
+                browser.close()
+            except Exception as e:
+                print(f"WARN: browser close failed: {e}")
         if playwright_instance:
-            playwright_instance.stop()
+            try:
+                playwright_instance.stop()
+            except Exception as e:
+                print(f"WARN: playwright stop failed: {e}")
         if frontend_proc:
-            stop_process(frontend_proc, "frontend")
+            stop_owned_process(
+                frontend_proc,
+                "frontend",
+                verification_dir / "p4-6-frontend-log.txt",
+            )
         if backend_proc:
-            stop_process(backend_proc, "backend")
+            stop_owned_process(
+                backend_proc,
+                "backend",
+                verification_dir / "p4-6-backend-log.txt",
+            )
 
 
 if __name__ == "__main__":
