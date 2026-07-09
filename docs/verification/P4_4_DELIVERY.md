@@ -140,11 +140,11 @@ All evidence saved to `docs/verification/`:
 **Final Commit:** `feat(P4-4): expose dashboard data freshness states`
 
 ```
-On branch main
-nothing to commit, working tree clean
+On branch feat/p2-1-observation-pool-page
+nothing to commit, working tree clean (untracked artifacts only)
 ```
 
-**Commit Hash:** (to be added after commit)
+**Commit Hash:** acfe578
 
 ---
 
