@@ -1,274 +1,392 @@
 [
   {
     "url": "http://localhost:3010/",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "document"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783590144700",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591689254",
+    "method": "GET",
+    "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783590144700",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591689254",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783590144700",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591689254",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app-pages-internals.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app/page.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:8010/api/dashboard/today",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:8010/api/dashboard/today",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:3010/workbench",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "document"
   },
   {
     "url": "http://localhost:3010/_next/static/webpack/27b538c1a644428c.webpack.hot-update.json",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:3010/_next/static/webpack/webpack.27b538c1a644428c.hot-update.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783590147693",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591694451",
+    "method": "GET",
+    "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783590147693",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591694451",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783590147693",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591694451",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app-pages-internals.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app/workbench/page.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:8010/api/agent/workbench/message",
-    "method": "POST"
+    "method": "POST",
+    "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:8010/api/agent/workbench/sess_b9d90c31c098",
-    "method": "GET"
+    "url": "http://localhost:8010/api/agent/workbench/sess_07b9d46c3fd7",
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:8010/api/agent/workbench/message",
-    "method": "POST"
+    "method": "POST",
+    "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:8010/api/agent/workbench/sess_b9d90c31c098",
-    "method": "GET"
+    "url": "http://localhost:8010/api/agent/workbench/sess_07b9d46c3fd7",
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:3010/observations",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "document"
   },
   {
     "url": "http://localhost:3010/_next/static/webpack/cb4095c4756cfdce.webpack.hot-update.json",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:3010/_next/static/webpack/webpack.cb4095c4756cfdce.hot-update.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783590167074",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591714863",
+    "method": "GET",
+    "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783590167074",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591714863",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783590167074",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591714863",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app-pages-internals.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app/observations/page.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:8010/api/observations?status=open",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:8010/api/observations?status=open",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:3010/workbench",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "document"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783590169511",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591717127",
+    "method": "GET",
+    "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783590169511",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591717127",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783590169511",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591717127",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app-pages-internals.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app/workbench/page.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:8010/api/agent/workbench/message",
-    "method": "POST"
+    "method": "POST",
+    "resource_type": "fetch"
   },
   {
-    "url": "http://localhost:8010/api/agent/workbench/sess_6a0fc0058989",
-    "method": "GET"
+    "url": "http://localhost:8010/api/agent/workbench/sess_f05caee8e52d",
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:3010/strategy-ideas",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "document"
   },
   {
     "url": "http://localhost:3010/_next/static/webpack/bb0e2d3b1e491281.webpack.hot-update.json",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:3010/_next/static/webpack/webpack.bb0e2d3b1e491281.hot-update.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783590183640",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591737696",
+    "method": "GET",
+    "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783590183640",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591737696",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783590183640",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591737696",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app-pages-internals.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app/strategy-ideas/page.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:8010/api/strategy-ideas?",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:8010/api/strategy-ideas?",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:3010/candidate-strategies",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "document"
   },
   {
     "url": "http://localhost:3010/_next/static/webpack/0db559e038be1a10.webpack.hot-update.json",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:3010/_next/static/webpack/webpack.0db559e038be1a10.hot-update.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783590185925",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591740119",
+    "method": "GET",
+    "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783590185925",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591740119",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783590185925",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591740119",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app-pages-internals.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app/candidate-strategies/page.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:8010/api/strategy-ideas?candidate_status=candidate_unapproved",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:8010/api/strategy-ideas?candidate_status=candidate_unapproved",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:3010/rejected-strategies",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "document"
   },
   {
     "url": "http://localhost:3010/_next/static/webpack/f4a706b06ec217e6.webpack.hot-update.json",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:3010/_next/static/webpack/webpack.f4a706b06ec217e6.hot-update.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783590187881",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591742445",
+    "method": "GET",
+    "resource_type": "stylesheet"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783590187881",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591742445",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
-    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783590187881",
-    "method": "GET"
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591742445",
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app-pages-internals.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:3010/_next/static/chunks/app/rejected-strategies/page.js",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "script"
   },
   {
     "url": "http://localhost:8010/api/strategy-ideas",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
   },
   {
     "url": "http://localhost:8010/api/strategy-ideas",
-    "method": "GET"
+    "method": "GET",
+    "resource_type": "fetch"
+  },
+  {
+    "url": "http://localhost:3010/strategies",
+    "method": "GET",
+    "resource_type": "document"
+  },
+  {
+    "url": "http://localhost:3010/_next/static/webpack/0f5a624802399810.webpack.hot-update.json",
+    "method": "GET",
+    "resource_type": "fetch"
+  },
+  {
+    "url": "http://localhost:3010/_next/static/webpack/webpack.0f5a624802399810.hot-update.js",
+    "method": "GET",
+    "resource_type": "script"
+  },
+  {
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783591745115",
+    "method": "GET",
+    "resource_type": "stylesheet"
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783591745115",
+    "method": "GET",
+    "resource_type": "script"
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783591745115",
+    "method": "GET",
+    "resource_type": "script"
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/app-pages-internals.js",
+    "method": "GET",
+    "resource_type": "script"
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/app/strategies/page.js",
+    "method": "GET",
+    "resource_type": "script"
+  },
+  {
+    "url": "http://localhost:8010/api/strategies",
+    "method": "GET",
+    "resource_type": "fetch"
+  },
+  {
+    "url": "http://localhost:8010/api/strategies",
+    "method": "GET",
+    "resource_type": "fetch"
   }
 ]
