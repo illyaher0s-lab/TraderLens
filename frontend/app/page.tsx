@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+type DataState = "ok" | "empty" | "stale" | "unavailable";
+
 interface DashboardData {
   as_of_date: string;
   open_observations: {
@@ -14,6 +16,9 @@ interface DashboardData {
       entry_price: number;
       opened_at: string;
     }>;
+    data_state: DataState;
+    message: string;
+    updated_at: string;
   };
   today_signals: {
     count: number;
@@ -23,6 +28,9 @@ interface DashboardData {
       signal_type: string | null;
       signal_date: string;
     }>;
+    data_state: DataState;
+    message: string;
+    as_of_date: string;
   };
   strategy_workspace: {
     ideas_count: number;
@@ -31,12 +39,17 @@ interface DashboardData {
     validations_count: number;
     approved_strategies_count: number;
     templates_count: number;
+    data_state: DataState;
+    message: string;
+    updated_at: string;
   };
   recent_reviews: {
     count: number;
     items: any[];
+    data_state: DataState;
+    message: string;
+    updated_at: string;
   };
-  data_state: string;
 }
 
 export default function DailyCommandCenter() {
@@ -59,6 +72,21 @@ export default function DailyCommandCenter() {
         setLoading(false);
       });
   }, []);
+
+  // ponytail: inline state badge
+  const StateBadge = ({ state, message }: { state: DataState; message: string }) => {
+    const colors = {
+      ok: "bg-green-50 text-green-700 border-green-200",
+      empty: "bg-slate-50 text-slate-600 border-slate-200",
+      stale: "bg-yellow-50 text-yellow-700 border-yellow-200",
+      unavailable: "bg-red-50 text-red-700 border-red-200",
+    };
+    return (
+      <div className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-xs ${colors[state]}`}>
+        <span>{message}</span>
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -155,15 +183,21 @@ export default function DailyCommandCenter() {
             </div>
           </div>
           <div className="p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="text-xs text-slate-500">
+                {data.open_observations.count} 个持仓
+              </div>
+              <StateBadge 
+                state={data.open_observations.data_state} 
+                message={data.open_observations.message}
+              />
+            </div>
             {data.open_observations.count === 0 ? (
               <div className="py-6 text-center text-sm text-slate-500">
-                暂无持仓观察
+                {data.open_observations.message}
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="mb-3 text-xs text-slate-500">
-                  {data.open_observations.count} 个持仓
-                </div>
                 {data.open_observations.items.map((obs) => (
                   <Link
                     key={obs.position_id}
@@ -211,15 +245,21 @@ export default function DailyCommandCenter() {
             </div>
           </div>
           <div className="p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="text-xs text-slate-500">
+                {data.today_signals.count} 条信号
+              </div>
+              <StateBadge 
+                state={data.today_signals.data_state} 
+                message={data.today_signals.message}
+              />
+            </div>
             {data.today_signals.count === 0 ? (
               <div className="py-6 text-center text-sm text-slate-500">
-                今日暂无信号
+                {data.today_signals.message}
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="mb-3 text-xs text-slate-500">
-                  {data.today_signals.count} 条信号
-                </div>
                 {data.today_signals.items.map((sig, idx) => (
                   <div
                     key={idx}
@@ -261,6 +301,12 @@ export default function DailyCommandCenter() {
             </div>
           </div>
           <div className="p-4">
+            <div className="mb-3 flex items-center justify-end">
+              <StateBadge 
+                state={data.strategy_workspace.data_state} 
+                message={data.strategy_workspace.message}
+              />
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <Link
                 href="/strategy-ideas"
@@ -333,9 +379,18 @@ export default function DailyCommandCenter() {
             </h2>
           </div>
           <div className="p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="text-xs text-slate-500">
+                {data.recent_reviews.count} 条复盘
+              </div>
+              <StateBadge 
+                state={data.recent_reviews.data_state} 
+                message={data.recent_reviews.message}
+              />
+            </div>
             {data.recent_reviews.count === 0 ? (
               <div className="py-6 text-center text-sm text-slate-500">
-                暂无复盘记录
+                {data.recent_reviews.message}
               </div>
             ) : (
               <div className="space-y-2">

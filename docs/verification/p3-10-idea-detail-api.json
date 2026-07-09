@@ -1,20 +1,20 @@
 {
-  "idea_id": "idea_3e08e317748d",
-  "conversation_id": "sess_a97185af48d5",
+  "idea_id": "idea_cc178c3511e0",
+  "conversation_id": "sess_10dc27a9f9dd",
   "workflow_type": "strategy_idea",
-  "original_message": "[P3_10_E2E_20260708_164458] 我刷到一个策略，下午两点半买入，第二天早上卖出，请帮我验证。",
+  "original_message": "[P3_10_E2E_20260709_095556] 我刷到一个策略，下午两点半买入，第二天早上卖出，请帮我验证。",
   "agent_reply": "",
   "extraction": {
-    "extraction_id": "extract_9f029414e23b",
-    "idea_id": "idea_3e08e317748d",
+    "extraction_id": "extract_40911b732e09",
+    "idea_id": "idea_cc178c3511e0",
     "claimed_entry": "下午两点半后买入",
     "claimed_exit": "次日早盘卖出",
     "claimed_edge": null,
     "extraction_source": "llm_assisted"
   },
   "mapping": {
-    "mapping_id": "mapping_b6540f28ff4e",
-    "idea_id": "idea_3e08e317748d",
+    "mapping_id": "mapping_5cfc5dac410b",
+    "idea_id": "idea_cc178c3511e0",
     "path_type": "no_template_fit",
     "matched_template_id": null,
     "template_version": null,
@@ -38,9 +38,9 @@
     "required_next_step": "template_approval_required"
   },
   "rejection": {
-    "idea_id": "idea_3e08e317748d",
+    "idea_id": "idea_cc178c3511e0",
     "rejection_reason": "no_approved_template",
-    "rejected_at": "2026-07-08T16:45:50.270109"
+    "rejected_at": "2026-07-09T09:56:48.028968"
   },
   "decision": "rejected",
   "rejection_reason": "no_approved_template",
@@ -65,8 +65,8 @@
   "candidate_status": "candidate_unapproved",
   "candidate_reason": "no_approved_template_fit",
   "required_next_step": "template_approval_required",
-  "extraction_artifact_id": "extract_9f029414e23b",
-  "mapping_artifact_id": "mapping_b6540f28ff4e",
-  "rejection_artifact_id": "idea_3e08e317748d_rejected",
-  "created_at": "2026-07-08T16:45:50.126966"
+  "extraction_artifact_id": "extract_40911b732e09",
+  "mapping_artifact_id": "mapping_5cfc5dac410b",
+  "rejection_artifact_id": "idea_cc178c3511e0_rejected",
+  "created_at": "2026-07-09T09:56:47.841077"
 }

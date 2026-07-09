@@ -7,38 +7,40 @@
   - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 3.2s
+ ✓ Ready in 2.9s
  ○ Compiling / ...
- ✓ Compiled / in 1631ms (489 modules)
- GET / 200 in 1974ms
- GET / 200 in 91ms
- GET / 200 in 80ms
- GET / 200 in 83ms
+ ✓ Compiled / in 1775ms (489 modules)
+ GET / 200 in 2238ms
+ GET / 200 in 206ms
+ GET / 200 in 75ms
+ GET / 200 in 64ms
  ○ Compiling /workbench ...
- ✓ Compiled /workbench in 852ms (507 modules)
- GET /workbench 200 in 1092ms
+ ✓ Compiled /workbench in 4.8s (521 modules)
+ GET /workbench 200 in 5424ms
+ ✓ Compiled in 685ms (267 modules)
  ○ Compiling /observations ...
- ✓ Compiled /observations in 625ms (515 modules)
- GET /observations 200 in 842ms
+ ✓ Compiled /observations in 756ms (515 modules)
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+ GET /observations 200 in 1026ms
  ○ Compiling /signals ...
- ✓ Compiled /signals in 717ms (521 modules)
- GET /signals 200 in 955ms
+ ✓ Compiled /signals in 675ms (521 modules)
+ GET /signals 200 in 908ms
  ○ Compiling /strategy-ideas ...
- ✓ Compiled /strategy-ideas in 718ms (527 modules)
- GET /strategy-ideas 200 in 893ms
+ ✓ Compiled /strategy-ideas in 724ms (527 modules)
+ GET /strategy-ideas 200 in 883ms
  ○ Compiling /candidate-strategies ...
- ✓ Compiled /candidate-strategies in 923ms (533 modules)
- GET /candidate-strategies 200 in 1190ms
+ ✓ Compiled /candidate-strategies in 696ms (533 modules)
+ GET /candidate-strategies 200 in 862ms
  ○ Compiling /rejected-strategies ...
- ✓ Compiled /rejected-strategies in 879ms (539 modules)
- GET /rejected-strategies 200 in 1053ms
+ ✓ Compiled /rejected-strategies in 966ms (539 modules)
+ GET /rejected-strategies 200 in 1147ms
  ○ Compiling /strategy-validations ...
- ✓ Compiled /strategy-validations in 890ms (545 modules)
- GET /strategy-validations 200 in 1020ms
+ ✓ Compiled /strategy-validations in 970ms (545 modules)
+ GET /strategy-validations 200 in 1136ms
  ○ Compiling /strategies ...
- ✓ Compiled /strategies in 928ms (551 modules)
- GET /strategies 200 in 1080ms
+ ✓ Compiled /strategies in 878ms (551 modules)
+ GET /strategies 200 in 1032ms
  ○ Compiling /strategy-templates ...
- ✓ Compiled /strategy-templates in 1006ms (557 modules)
- GET /strategy-templates 200 in 1155ms
+ ✓ Compiled /strategy-templates in 853ms (557 modules)
+ GET /strategy-templates 200 in 988ms
 [?25h

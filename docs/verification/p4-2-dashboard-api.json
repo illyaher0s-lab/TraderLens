@@ -1,28 +1,28 @@
 {
-  "as_of_date": "2026-07-08",
+  "as_of_date": "2026-07-09",
   "open_observations": {
     "count": 30,
     "items": [
       {
-        "position_id": "pos_37d2554b59c6",
+        "position_id": "pos_6eb81c8bb077",
         "symbol": "603002.SH",
         "name": "宏昌电子",
         "entry_price": 12.34,
-        "opened_at": "2026-07-08T16:05:51.649263"
+        "opened_at": "2026-07-08T16:48:26.103256"
       },
       {
-        "position_id": "pos_1c45d05489b3",
+        "position_id": "pos_c3380c5b6567",
         "symbol": "603002.SH",
         "name": "宏昌电子",
         "entry_price": 12.34,
-        "opened_at": "2026-07-08T16:05:09.988056"
+        "opened_at": "2026-07-08T16:47:46.053231"
       },
       {
-        "position_id": "pos_90a5ba981d5a",
+        "position_id": "pos_8839b2bd5c5e",
         "symbol": "603002.SH",
         "name": "宏昌电子",
         "entry_price": 12.34,
-        "opened_at": "2026-07-08T16:04:29.072525"
+        "opened_at": "2026-07-08T16:47:02.189153"
       },
       {
         "position_id": "pos_27d4518ca1ec",
@@ -38,23 +38,34 @@
         "entry_price": 12.5,
         "opened_at": "2026-07-06T10:51:23.116342"
       }
-    ]
+    ],
+    "data_state": "ok",
+    "message": "数据正常",
+    "updated_at": "2026-07-09T09:54:34.863353"
   },
   "today_signals": {
     "count": 0,
-    "items": []
+    "items": [],
+    "data_state": "empty",
+    "message": "暂无数据",
+    "as_of_date": "2026-07-09"
   },
   "strategy_workspace": {
-    "ideas_count": 73,
-    "candidates_count": 16,
-    "rejected_count": 72,
+    "ideas_count": 74,
+    "candidates_count": 17,
+    "rejected_count": 73,
     "validations_count": 0,
     "approved_strategies_count": 0,
-    "templates_count": 4
+    "templates_count": 4,
+    "data_state": "ok",
+    "message": "数据正常",
+    "updated_at": "2026-07-09T09:54:34.899493"
   },
   "recent_reviews": {
     "count": 0,
-    "items": []
-  },
-  "data_state": "ok"
+    "items": [],
+    "data_state": "empty",
+    "message": "暂无数据",
+    "updated_at": "2026-07-09T09:54:34.900552"
+  }
 }

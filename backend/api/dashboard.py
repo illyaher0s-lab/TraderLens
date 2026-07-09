@@ -13,8 +13,8 @@ Red lines:
 3. count=0 is allowed when truly empty
 """
 
-from datetime import date
-from typing import Dict, Any
+from datetime import date, datetime
+from typing import Dict, Any, Literal
 import sqlite3
 import json
 from pathlib import Path
@@ -26,6 +26,15 @@ from backend.db.signal_board import SignalBoardDB
 from backend.config.runtime_paths import get_live_trade_db_path, get_signal_board_db_path
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
+
+# ponytail: count-based state determination
+def get_data_state(count: int, has_error: bool = False) -> tuple[Literal["ok", "empty", "stale", "unavailable"], str]:
+    """Determine data state from count and error flag."""
+    if has_error:
+        return ("unavailable", "数据暂不可用")
+    if count == 0:
+        return ("empty", "暂无数据")
+    return ("ok", "数据正常")
 
 
 @router.get("/today")
@@ -44,47 +53,66 @@ def get_dashboard_today() -> Dict[str, Any]:
     today = date.today()
     
     # Get open observations from live_trade DB
+    obs_error = False
     try:
         live_trade_db = LiveTradeDB(get_live_trade_db_path())
         open_positions = live_trade_db.list_open_positions()
-        open_observations = {
-            "count": len(open_positions),
-            "items": [
-                {
-                    "position_id": pos.position_id,
-                    "symbol": pos.symbol,
-                    "name": pos.name,
-                    "entry_price": pos.entry_price,
-                    "opened_at": pos.opened_at.isoformat(),
-                }
-                for pos in open_positions[:5]  # Limit to 5 for dashboard
-            ]
-        }
+        obs_count = len(open_positions)
+        obs_items = [
+            {
+                "position_id": pos.position_id,
+                "symbol": pos.symbol,
+                "name": pos.name,
+                "entry_price": pos.entry_price,
+                "opened_at": pos.opened_at.isoformat(),
+            }
+            for pos in open_positions[:5]  # Limit to 5 for dashboard
+        ]
     except Exception as e:
-        # If observation DB not initialized, return empty
-        open_observations = {"count": 0, "items": []}
+        obs_error = True
+        obs_count = 0
+        obs_items = []
+    
+    obs_state, obs_message = get_data_state(obs_count, obs_error)
+    open_observations = {
+        "count": obs_count,
+        "items": obs_items,
+        "data_state": obs_state,
+        "message": obs_message,
+        "updated_at": datetime.now().isoformat(),
+    }
     
     # Get today's signals from signal board
+    sig_error = False
     try:
         signal_db = SignalBoardDB(get_signal_board_db_path())
         today_signals_list = signal_db.list_signals(signal_date=today, limit=5)
-        today_signals = {
-            "count": len(today_signals_list),
-            "items": [
-                {
-                    "stock_code": sig.stock_code,
-                    "stock_name": sig.stock_name,
-                    "signal_type": sig.signal_type.value if sig.signal_type else None,
-                    "signal_date": sig.signal_date.isoformat(),
-                }
-                for sig in today_signals_list.items[:5]  # Limit to 5 for dashboard
-            ]
-        }
+        sig_count = len(today_signals_list)
+        sig_items = [
+            {
+                "stock_code": sig.stock_code,
+                "stock_name": sig.stock_name,
+                "signal_type": sig.signal_type.value if sig.signal_type else None,
+                "signal_date": sig.signal_date.isoformat(),
+            }
+            for sig in today_signals_list.items[:5]  # Limit to 5 for dashboard
+        ]
     except Exception as e:
-        # If signal DB not initialized, return empty
-        today_signals = {"count": 0, "items": []}
+        sig_error = True
+        sig_count = 0
+        sig_items = []
+    
+    sig_state, sig_message = get_data_state(sig_count, sig_error)
+    today_signals = {
+        "count": sig_count,
+        "items": sig_items,
+        "data_state": sig_state,
+        "message": sig_message,
+        "as_of_date": today.isoformat(),
+    }
     
     # Get strategy workspace counts from research.db
+    strat_error = False
     try:
         db_path = Path(__file__).parent.parent.parent / "data" / "research.db"
         
@@ -144,30 +172,38 @@ def get_dashboard_today() -> Dict[str, Any]:
         # Templates count from approved template library (B2)
         templates_count = 4  # Real count from backend/library/b2_approved_templates.json
         
-        strategy_workspace = {
-            "ideas_count": ideas_count,
-            "candidates_count": candidates_count,
-            "rejected_count": rejected_count,
-            "validations_count": validations_count,
-            "approved_strategies_count": approved_strategies_count,
-            "templates_count": templates_count,
-        }
     except Exception as e:
-        # If strategy DB not initialized, return empty
-        strategy_workspace = {
-            "ideas_count": 0,
-            "candidates_count": 0,
-            "rejected_count": 0,
-            "validations_count": 0,
-            "approved_strategies_count": 0,
-            "templates_count": 4,  # Templates are static, always 4
-        }
+        strat_error = True
+        ideas_count = 0
+        candidates_count = 0
+        rejected_count = 0
+        validations_count = 0
+        approved_strategies_count = 0
+        templates_count = 4  # Templates are static, always 4
+    
+    # ponytail: ideas_count drives state
+    strat_state, strat_message = get_data_state(ideas_count, strat_error)
+    strategy_workspace = {
+        "ideas_count": ideas_count,
+        "candidates_count": candidates_count,
+        "rejected_count": rejected_count,
+        "validations_count": validations_count,
+        "approved_strategies_count": approved_strategies_count,
+        "templates_count": templates_count,
+        "data_state": strat_state,
+        "message": strat_message,
+        "updated_at": datetime.now().isoformat(),
+    }
     
     # Get recent reviews
     # Currently no review data, return empty (real empty state)
+    review_state, review_message = get_data_state(0, False)
     recent_reviews = {
         "count": 0,
-        "items": []
+        "items": [],
+        "data_state": review_state,
+        "message": review_message,
+        "updated_at": datetime.now().isoformat(),
     }
     
     return {
@@ -176,5 +212,4 @@ def get_dashboard_today() -> Dict[str, Any]:
         "today_signals": today_signals,
         "strategy_workspace": strategy_workspace,
         "recent_reviews": recent_reviews,
-        "data_state": "ok",
     }

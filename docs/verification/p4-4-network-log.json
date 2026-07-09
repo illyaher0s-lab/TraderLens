@@ -1,0 +1,42 @@
+[
+  {
+    "url": "http://localhost:3000/",
+    "method": "GET",
+    "resource_type": "document"
+  },
+  {
+    "url": "http://localhost:3000/_next/static/css/app/layout.css?v=1783561833338",
+    "method": "GET",
+    "resource_type": "stylesheet"
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/webpack.js?v=1783561833338",
+    "method": "GET",
+    "resource_type": "script"
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/main-app.js?v=1783561833338",
+    "method": "GET",
+    "resource_type": "script"
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/app-pages-internals.js",
+    "method": "GET",
+    "resource_type": "script"
+  },
+  {
+    "url": "http://localhost:3000/_next/static/chunks/app/page.js",
+    "method": "GET",
+    "resource_type": "script"
+  },
+  {
+    "url": "http://localhost:8010/api/dashboard/today",
+    "method": "GET",
+    "resource_type": "fetch"
+  },
+  {
+    "url": "http://localhost:8010/api/dashboard/today",
+    "method": "GET",
+    "resource_type": "fetch"
+  }
+]

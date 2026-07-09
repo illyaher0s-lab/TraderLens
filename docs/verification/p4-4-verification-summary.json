@@ -1,0 +1,22 @@
+{
+  "run_id": "P4_4_RUN_20260709_MANUAL",
+  "timestamp": "2026-07-09T09:51:14.919760",
+  "api_checks": {
+    "all_sections_have_data_state": true,
+    "all_sections_have_message": true,
+    "signals_empty_rule": true,
+    "reviews_empty_rule": true,
+    "strategy_ok_rule": true,
+    "observations_valid": true
+  },
+  "dom_checks": {
+    "state_messages_visible": true,
+    "all_api_localhost": true
+  },
+  "evidence_files": [
+    "docs/verification/p4-4-dashboard-api.json",
+    "docs/verification/p4-4-dashboard-dom.md",
+    "docs/verification/p4-4-network-log.json",
+    "docs/verification/p4-4-verification-summary.json"
+  ]
+}
