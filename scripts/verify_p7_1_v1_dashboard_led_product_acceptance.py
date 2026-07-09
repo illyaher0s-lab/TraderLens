@@ -119,6 +119,7 @@ def main():
         page.goto("http://localhost:3010/workbench", wait_until="domcontentloaded", timeout=30000)
         page.wait_for_selector("h1:has-text('TraderLens 工作台')", timeout=10000)
         page.wait_for_selector("input[placeholder='输入消息...']", state="visible", timeout=10000)
+        page.wait_for_timeout(500)  # ponytail: let React mount finish
 
         friend_msg = f"[{RUN_ID}] 朋友推荐买入贵州茅台600519"
         page.fill("input[placeholder='输入消息...']", friend_msg)
@@ -154,6 +155,7 @@ def main():
         print("\n[6/8] Flow B: Workbench → Strategy → Strategy Workspace...")
         page.goto("http://localhost:3010/workbench", wait_until="domcontentloaded", timeout=30000)
         page.wait_for_selector("input[placeholder='输入消息...']", state="visible", timeout=10000)
+        page.wait_for_timeout(500)
 
         strategy_msg = f"[{RUN_ID}] 下午两点半买入，第二天早上卖出"
         page.fill("input[placeholder='输入消息...']", strategy_msg)
