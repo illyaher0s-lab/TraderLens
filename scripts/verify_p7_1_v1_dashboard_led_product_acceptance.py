@@ -115,6 +115,7 @@ def main():
 
         friend_msg = f"[{RUN_ID}] 朋友推荐买入贵州茅台600519"
         page.fill("input[placeholder='输入消息...']", friend_msg)
+        page.wait_for_selector("button:has-text('发送'):not([disabled])", timeout=5000)
         page.click("button:has-text('发送')")
         page.wait_for_timeout(3000)
 
@@ -149,6 +150,7 @@ def main():
 
         strategy_msg = f"[{RUN_ID}] 下午两点半买入，第二天早上卖出"
         page.fill("input[placeholder='输入消息...']", strategy_msg)
+        page.wait_for_selector("button:has-text('发送'):not([disabled])", timeout=5000)
         page.click("button:has-text('发送')")
         page.wait_for_timeout(3000)
 
