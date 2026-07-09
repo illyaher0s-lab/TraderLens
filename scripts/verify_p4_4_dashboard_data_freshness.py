@@ -75,8 +75,8 @@ def verify_p4_4_dashboard_data_freshness():
         # Step 1: Clean up ports
         print("Step 1: Checking and releasing ports...")
         print("-" * 80)
-        check_and_release_ports([8010, 3000])
-        print("PASS Ports 8010, 3000 ready")
+        check_and_release_ports([8010, 3010])
+        print("PASS Ports 8010, 3010 ready")
         print()
         
         # Step 2: Start backend
@@ -223,7 +223,7 @@ def verify_p4_4_dashboard_data_freshness():
         # Step 6: Start frontend
         print("Step 6: Starting frontend...")
         print("-" * 80)
-        frontend_process = start_frontend(port=3000, timeout_seconds=90)
+        frontend_process = start_frontend(port=3010, timeout_seconds=90)
         print("PASS Frontend started")
         print()
         
@@ -249,7 +249,7 @@ def verify_p4_4_dashboard_data_freshness():
         page.on("request", handle_request)
         
         # Navigate to dashboard
-        page.goto("http://localhost:3000/", wait_until="networkidle", timeout=30000)
+        page.goto("http://localhost:3010/", wait_until="networkidle", timeout=30000)
         time.sleep(2)  # Let React hydrate
         
         # Get page content

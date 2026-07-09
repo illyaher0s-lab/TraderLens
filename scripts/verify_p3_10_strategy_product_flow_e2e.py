@@ -43,7 +43,7 @@ def run_verification():
     try:
         # Step 1: Clean up ports
         print("[STEP 1] Checking and releasing ports...")
-        check_and_release_ports([8010, 3000])
+        check_and_release_ports([8010, 3010])
         print("[OK] Ports ready\n")
         
         # Step 2: Start backend
@@ -65,7 +65,7 @@ def run_verification():
                 shell=True,
             )
         
-        wait_for_http("http://localhost:3000")
+        wait_for_http("http://localhost:3010")
         print("[OK] Frontend started\n")
         
         # Step 4: Submit strategy idea via Workbench
@@ -104,7 +104,7 @@ def run_verification():
             context.on("response", log_response)
             
             page = context.new_page()
-            page.goto("http://localhost:3000/workbench", wait_until="networkidle")
+            page.goto("http://localhost:3010/workbench", wait_until="networkidle")
             
             # Wait for input to be visible
             page.wait_for_selector("input[type='text'], input:not([type])", state="visible", timeout=10000)
@@ -278,7 +278,7 @@ def run_verification():
             
             # Verify /strategies hub
             print("  Checking /strategies hub...")
-            page.goto("http://localhost:3000/strategies", wait_until="networkidle")
+            page.goto("http://localhost:3010/strategies", wait_until="networkidle")
             time.sleep(1)
             
             strategies_dom = page.content()
@@ -295,7 +295,7 @@ def run_verification():
             
             # Verify /strategy-ideas/{idea_id}
             print(f"  Checking /strategy-ideas/{idea_id}...")
-            page.goto(f"http://localhost:3000/strategy-ideas/{idea_id}", wait_until="networkidle")
+            page.goto(f"http://localhost:3010/strategy-ideas/{idea_id}", wait_until="networkidle")
             time.sleep(1)
             
             idea_detail_dom = page.content()
@@ -312,7 +312,7 @@ def run_verification():
             
             # Verify /candidate-strategies
             print("  Checking /candidate-strategies...")
-            page.goto("http://localhost:3000/candidate-strategies", wait_until="networkidle")
+            page.goto("http://localhost:3010/candidate-strategies", wait_until="networkidle")
             time.sleep(1)
             
             candidate_dom = page.content()
@@ -329,7 +329,7 @@ def run_verification():
             
             # Verify /rejected-strategies
             print("  Checking /rejected-strategies...")
-            page.goto("http://localhost:3000/rejected-strategies", wait_until="networkidle")
+            page.goto("http://localhost:3010/rejected-strategies", wait_until="networkidle")
             time.sleep(1)
             
             rejected_dom = page.content()
@@ -346,7 +346,7 @@ def run_verification():
             
             # Verify /strategy-validations
             print("  Checking /strategy-validations...")
-            page.goto("http://localhost:3000/strategy-validations", wait_until="networkidle")
+            page.goto("http://localhost:3010/strategy-validations", wait_until="networkidle")
             time.sleep(1)
             
             validations_dom = page.content()
@@ -367,7 +367,7 @@ def run_verification():
             
             # Verify /strategy-templates
             print("  Checking /strategy-templates...")
-            page.goto("http://localhost:3000/strategy-templates", wait_until="networkidle")
+            page.goto("http://localhost:3010/strategy-templates", wait_until="networkidle")
             time.sleep(1)
             
             templates_dom = page.content()

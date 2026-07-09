@@ -90,16 +90,16 @@ def main():
                 return 1
             print("Port 8010 available")
         
-        if is_port_available(3000):
-            print("Port 3000 available")
+        if is_port_available(3010):
+            print("Port 3010 available")
         else:
-            print("WARNING: Port 3000 already in use, attempting to kill...")
-            kill_process_on_port(3000)
+            print("WARNING: Port 3010 already in use, attempting to kill...")
+            kill_process_on_port(3010)
             time.sleep(2)
-            if not is_port_available(3000):
-                print("FAIL: Port 3000 still occupied")
+            if not is_port_available(3010):
+                print("FAIL: Port 3010 still occupied")
                 return 1
-            print("Port 3000 available")
+            print("Port 3010 available")
         print()
         
         # Step 2: Start backend
@@ -151,7 +151,7 @@ def main():
         print()
         
         # Step 4: Start frontend
-        print("[4/8] Starting frontend on port 3000...")
+        print("[4/8] Starting frontend on port 3010...")
         frontend_process = subprocess.Popen(
             ["cmd", "/c", "npm", "run", "dev"],
             cwd=str(PROJECT_ROOT / "frontend"),
@@ -168,7 +168,7 @@ def main():
         frontend_ready = False
         for attempt in range(60):
             try:
-                response = requests.get("http://localhost:3000", timeout=2)
+                response = requests.get("http://localhost:3010", timeout=2)
                 if response.status_code == 200:
                     frontend_ready = True
                     print(f"Frontend ready after {attempt + 1} seconds")
@@ -221,7 +221,7 @@ def main():
             page.on("response", handle_response)
             
             # Open Workbench
-            page.goto("http://localhost:3000/workbench", wait_until="networkidle")
+            page.goto("http://localhost:3010/workbench", wait_until="networkidle")
             time.sleep(2)
             
             # Find input

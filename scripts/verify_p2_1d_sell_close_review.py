@@ -5,7 +5,7 @@ P2-1D Sell Close P&L Review 端到端验收
 自动化流程：
 1. 检查端口占用
 2. 启动后端 (8010)
-3. 启动前端 (3000)
+3. 启动前端 (3010)
 4. 等待服务就绪
 5. 生成唯一 run_id 用于数据隔离
 6. Playwright 打开 /workbench，输入包含 run_id 的买入信息
@@ -114,13 +114,13 @@ def main():
                 return 1
         print("✅ Port 8010 available")
         
-        if check_port_in_use(3000):
-            print("⚠️ Port 3000 already in use, attempting to kill...")
-            if not kill_process_on_port(3000):
-                print("❌ FAIL: Could not free port 3000")
+        if check_port_in_use(3010):
+            print("⚠️ Port 3010 already in use, attempting to kill...")
+            if not kill_process_on_port(3010):
+                print("❌ FAIL: Could not free port 3010")
                 print("Please manually stop the service: taskkill /F /IM node.exe")
                 return 1
-        print("✅ Port 3000 available")
+        print("✅ Port 3010 available")
         print()
         
         # Step 2: 启动后端
@@ -205,7 +205,7 @@ def main():
         print()
         
         # Step 4: 启动前端
-        print("[4/12] Starting frontend on port 3000...")
+        print("[4/12] Starting frontend on port 3010...")
         frontend_env = os.environ.copy()
         frontend_env["NEXT_PUBLIC_API_BASE_URL"] = "http://localhost:8010"
         
@@ -223,7 +223,7 @@ def main():
         frontend_ready = False
         for i in range(30):
             try:
-                req = urllib.request.Request("http://localhost:3000")
+                req = urllib.request.Request("http://localhost:3010")
                 with urllib.request.urlopen(req, timeout=2) as response:
                     if response.status == 200:
                         print("✅ Frontend is ready")
@@ -276,7 +276,7 @@ def main():
             sell_response_data = None
             
             # Navigate to workbench
-            page.goto("http://localhost:3000/workbench", wait_until="networkidle")
+            page.goto("http://localhost:3010/workbench", wait_until="networkidle")
             time.sleep(2)
             
             # Input buy execution (with run_id for data isolation)
@@ -400,7 +400,7 @@ def main():
             # CRITICAL: Refresh page to reset UI state after buy
             # The send button remains disabled after first message, need to reset
             print("⏳ Refreshing page to reset UI state...")
-            page.goto("http://localhost:3000/workbench", wait_until="networkidle")
+            page.goto("http://localhost:3010/workbench", wait_until="networkidle")
             time.sleep(2)
             
             sell_message = f"已卖出宏昌电子（603002）100 股，成交价 13.00，备注 {run_id}"
@@ -587,7 +587,7 @@ def main():
             # Step 11: Navigate to /observations and verify DOM
             print("\n[11/12] Navigating to /observations and verifying DOM...")
             
-            page.goto("http://localhost:3000/observations", wait_until="networkidle")
+            page.goto("http://localhost:3010/observations", wait_until="networkidle")
             time.sleep(2)
             
             # Try to switch to closed tab if it exists
@@ -632,7 +632,7 @@ def main():
             with open(dom_path, "w", encoding="utf-8") as f:
                 f.write("# P2-1D Observations DOM Evidence\n\n")
                 f.write(f"**Timestamp**: {datetime.now().isoformat()}\n\n")
-                f.write(f"**URL**: http://localhost:3000/observations?status=closed\n\n")
+                f.write(f"**URL**: http://localhost:3010/observations?status=closed\n\n")
                 f.write(f"**Position ID**: {position_id}\n\n")
                 f.write(f"**Position found in DOM**: Yes\n\n")
                 f.write("## Sample DOM Content\n\n")

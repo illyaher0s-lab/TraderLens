@@ -310,7 +310,7 @@ def start_backend(
 
 
 def start_frontend(
-    port: int = 3000,
+    port: int = 3010,
     project_root: Optional[Path] = None,
     timeout_seconds: int = 90,
 ) -> subprocess.Popen:

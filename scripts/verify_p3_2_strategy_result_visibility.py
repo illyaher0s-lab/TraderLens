@@ -86,9 +86,9 @@ async def main():
     browser = None
 
     try:
-        # Step 0: Check and kill existing processes on ports 8010 and 3000
-        print("Step 0: Checking for existing processes on ports 8010 and 3000...")
-        check_and_release_ports([8010, 3000])
+        # Step 0: Check and kill existing processes on ports 8010 and 3010
+        print("Step 0: Checking for existing processes on ports 8010 and 3010...")
+        check_and_release_ports([8010, 3010])
         
         # Step 1: Start backend
         print("Step 1: Starting backend on port 8010...")
@@ -104,10 +104,10 @@ async def main():
         )
 
         # Step 2: Start frontend
-        print("\nStep 2: Starting frontend on port 3000...")
+        print("\nStep 2: Starting frontend on port 3010...")
         frontend_log_path = evidence_dir / "p3-2-frontend-log.txt"
         frontend_process = start_frontend(
-            port=3000,
+            port=3010,
             project_root=PROJECT_ROOT,
             timeout_seconds=90,
         )
@@ -138,7 +138,7 @@ async def main():
             page.on("response", capture_response)
 
             # Navigate to workbench
-            await page.goto("http://localhost:3000/workbench", wait_until="domcontentloaded", timeout=30000)
+            await page.goto("http://localhost:3010/workbench", wait_until="domcontentloaded", timeout=30000)
             print("[OK] Workbench page loaded")
 
             # Wait for input to be ready
@@ -314,7 +314,7 @@ async def main():
             
             page.on("response", capture_result_page_response)
             
-            await page.goto(f"http://localhost:3000/strategy-ideas?conversation_id={conversation_id}", 
+            await page.goto(f"http://localhost:3010/strategy-ideas?conversation_id={conversation_id}", 
                           wait_until="domcontentloaded", timeout=30000)
             print("[OK] Strategy ideas page loaded")
 
@@ -339,7 +339,7 @@ async def main():
             with open(page_dom_path, "w", encoding="utf-8") as f:
                 f.write(f"# P3-2 Strategy Ideas Page DOM\n\n")
                 f.write(f"**Captured at:** {datetime.now().isoformat()}\n\n")
-                f.write(f"**URL:** http://localhost:3000/strategy-ideas?conversation_id={conversation_id}\n\n")
+                f.write(f"**URL:** http://localhost:3010/strategy-ideas?conversation_id={conversation_id}\n\n")
                 f.write(f"## Page Text\n\n```\n{page_dom}\n```\n")
             print(f"[OK] Saved page DOM to {page_dom_path}")
 
@@ -426,7 +426,7 @@ async def main():
             stop_process(backend_process, "Backend", backend_log_path, release_ports=[8010])
         
         if frontend_process:
-            stop_process(frontend_process, "Frontend", frontend_log_path, release_ports=[3000])
+            stop_process(frontend_process, "Frontend", frontend_log_path, release_ports=[3010])
 
 
 if __name__ == "__main__":

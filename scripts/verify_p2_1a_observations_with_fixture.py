@@ -336,7 +336,7 @@ const getUserAction = (pos: ObservationPosition): string => {
 
 1. **数据来源：** 使用 fixture 脚本直接创建，非 Workbench 真实流程
 2. **signal 顺序：** 创建了两条信号（insufficient 和 ok），API 返回最新的（insufficient）
-3. **前端渲染：** 需启动 `npm run dev` 访问 `http://localhost:3000/observations` 验证
+3. **前端渲染：** 需启动 `npm run dev` 访问 `http://localhost:3010/observations` 验证
 """
     
     with open("docs/verification/p2-1a-observations-dom-output.md", "w", encoding="utf-8") as f:

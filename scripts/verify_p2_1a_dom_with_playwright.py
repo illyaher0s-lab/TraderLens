@@ -27,8 +27,8 @@ async def capture_observations_dom():
         
         try:
             # 访问页面
-            print("访问 http://localhost:3000/observations")
-            await page.goto("http://localhost:3000/observations", wait_until="networkidle", timeout=30000)
+            print("访问 http://localhost:3010/observations")
+            await page.goto("http://localhost:3010/observations", wait_until="networkidle", timeout=30000)
             
             # 等待页面加载
             await page.wait_for_timeout(2000)
@@ -93,7 +93,7 @@ async def capture_observations_dom():
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write("# P2-1A Observations 页面 - 真实 DOM 文本证据\n\n")
                 f.write("**数据来源:** 真实浏览器 Playwright 读取\n\n")
-                f.write("**URL:** http://localhost:3000/observations\n\n")
+                f.write("**URL:** http://localhost:3010/observations\n\n")
                 f.write("---\n\n")
                 f.write(output_text)
             

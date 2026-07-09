@@ -130,7 +130,7 @@ def main():
         print()
         
         print("[1/10] Checking port availability...")
-        for port in [8010, 3000]:
+        for port in [8010, 3010]:
             if not check_port_available(port):
                 print(f"WARNING: Port {port} already in use, attempting to kill...")
                 if not kill_process_on_port(port):
@@ -192,7 +192,7 @@ def main():
         print()
         
         # Step 4: 启动前端
-        print("[4/10] Starting frontend on port 3000...")
+        print("[4/10] Starting frontend on port 3010...")
         frontend_proc = subprocess.Popen(
             ["cmd", "/c", "npm", "run", "dev"],
             cwd=str(PROJECT_ROOT / "frontend"),
@@ -206,7 +206,7 @@ def main():
         print("⏳ Waiting for frontend to be ready...")
         frontend_ready = False
         for i in range(60):
-            if wait_for_url("http://localhost:3000", timeout=1):
+            if wait_for_url("http://localhost:3010", timeout=1):
                 frontend_ready = True
                 print(f"✅ Frontend ready after {i+1} seconds")
                 break
@@ -241,7 +241,7 @@ def main():
             print(f"📍 Before submit timestamp: {before_submit.isoformat()}")
             
             # 打开 Workbench
-            page.goto("http://localhost:3000/workbench", wait_until="networkidle")
+            page.goto("http://localhost:3010/workbench", wait_until="networkidle")
             time.sleep(2)
             
             # 输入买入信息（含 run_id）
@@ -450,7 +450,7 @@ def main():
             page.on("response", handle_response)
             
             # 打开 /observations
-            page.goto("http://localhost:3000/observations", wait_until="networkidle")
+            page.goto("http://localhost:3010/observations", wait_until="networkidle")
             time.sleep(3)
             
             # 保存 DOM

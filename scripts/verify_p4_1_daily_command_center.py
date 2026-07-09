@@ -69,7 +69,7 @@ def verify_p4_1_daily_command_center():
         # Step 1: Clean up ports
         print("Step 1: Checking and releasing ports...")
         print("-" * 80)
-        check_and_release_ports([8010, 3000])
+        check_and_release_ports([8010, 3010])
         print("✓ Ports ready")
         print()
         
@@ -95,7 +95,7 @@ def verify_p4_1_daily_command_center():
                 shell=True,
             )
         
-        wait_for_http("http://localhost:3000")
+        wait_for_http("http://localhost:3010")
         evidence["evidence_files"].append(str(frontend_log_path.name))
         print("✓ Frontend started")
         print()
@@ -145,7 +145,7 @@ def verify_p4_1_daily_command_center():
             # Setup network listener
             api_calls = []
             def handle_response(response):
-                if "localhost:8010" in response.url or "localhost:3000" in response.url:
+                if "localhost:8010" in response.url or "localhost:3010" in response.url:
                     api_calls.append({
                         "url": response.url,
                         "status": response.status,
@@ -155,7 +155,7 @@ def verify_p4_1_daily_command_center():
             page.on("response", handle_response)
             
             # Navigate to dashboard
-            page.goto("http://localhost:3000/", wait_until="networkidle", timeout=60000)
+            page.goto("http://localhost:3010/", wait_until="networkidle", timeout=60000)
             time.sleep(3)  # Wait for API calls
             
             # Capture DOM
@@ -254,7 +254,7 @@ def verify_p4_1_daily_command_center():
         print("-" * 80)
         
         api_8010_calls = [call for call in api_calls if "localhost:8010" in call["url"]]
-        non_local_calls = [call for call in api_calls if "localhost:8010" not in call["url"] and "localhost:3000" not in call["url"]]
+        non_local_calls = [call for call in api_calls if "localhost:8010" not in call["url"] and "localhost:3010" not in call["url"]]
         
         if non_local_calls:
             print(f"✗ Found {len(non_local_calls)} non-local API calls:")
@@ -263,7 +263,7 @@ def verify_p4_1_daily_command_center():
             evidence["checks"]["api_local"] = False
             return 1
         
-        print(f"✓ All API calls to localhost (8010: {len(api_8010_calls)}, 3000: {len(api_calls) - len(api_8010_calls)})")
+        print(f"✓ All API calls to localhost (8010: {len(api_8010_calls)}, 3010: {len(api_calls) - len(api_8010_calls)})")
         evidence["checks"]["api_local"] = True
         
         print()

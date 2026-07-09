@@ -7,7 +7,7 @@ P2-2 Friend Stock to Observation Runtime Loop Verification
 自动化流程：
 1. 检查端口占用并自动清理
 2. 启动后端 (8010) deterministic mode
-3. 启动前端 (3000)
+3. 启动前端 (3010)
 4. 生成唯一 run_id 用于数据隔离
 5. Playwright 打开 /workbench
    - 第一句："帮我看看宏昌电子（603002），备注 {run_id}"
@@ -126,7 +126,7 @@ def main():
     try:
         # Step 1: 检查端口占用
         print("[1/10] Checking port availability...")
-        for port in [8010, 3000]:
+        for port in [8010, 3010]:
             if check_port_in_use(port):
                 print(f"WARNING: Port {port} already in use, attempting to kill...")
                 if not kill_process_on_port(port):
@@ -212,7 +212,7 @@ def main():
         print()
         
         # Step 4: 启动前端
-        print("[4/10] Starting frontend on port 3000...")
+        print("[4/10] Starting frontend on port 3010...")
         frontend_proc = subprocess.Popen(
             ["cmd", "/c", "npm", "run", "dev"],
             cwd=str(PROJECT_ROOT / "frontend"),
@@ -227,7 +227,7 @@ def main():
         frontend_ready = False
         for i in range(60):
             try:
-                with urllib.request.urlopen("http://localhost:3000", timeout=2) as response:
+                with urllib.request.urlopen("http://localhost:3010", timeout=2) as response:
                     if response.status == 200:
                         frontend_ready = True
                         print(f"Frontend ready after {i+1} seconds")
@@ -262,7 +262,7 @@ def main():
             page.on("response", handle_response)
             
             # 访问 Workbench
-            page.goto("http://localhost:3000/workbench", wait_until="networkidle")
+            page.goto("http://localhost:3010/workbench", wait_until="networkidle")
             time.sleep(2)
             
             # 第一句：帮我看看宏昌电子
@@ -443,7 +443,7 @@ def main():
             
             page.on("response", handle_response)
             
-            page.goto("http://localhost:3000/observations", wait_until="networkidle")
+            page.goto("http://localhost:3010/observations", wait_until="networkidle")
             time.sleep(2)
             
             # 保存 DOM

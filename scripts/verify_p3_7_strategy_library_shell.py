@@ -43,7 +43,7 @@ def run_verification():
     try:
         # Step 1: Clean up ports
         print("[STEP 1] Checking and releasing ports...")
-        check_and_release_ports([8010, 3000])
+        check_and_release_ports([8010, 3010])
         print("[OK] Ports ready\n")
         
         # Step 2: Start backend
@@ -65,7 +65,7 @@ def run_verification():
                 shell=True,
             )
         
-        wait_for_http("http://localhost:3000")
+        wait_for_http("http://localhost:3010")
         print("[OK] Frontend started\n")
         
         # Step 4: Verify API endpoint
@@ -139,7 +139,7 @@ def run_verification():
             context.on("response", log_response)
             
             page = context.new_page()
-            page.goto("http://localhost:3000/strategies", wait_until="networkidle")
+            page.goto("http://localhost:3010/strategies", wait_until="networkidle")
             
             # Wait for page to render
             time.sleep(2)

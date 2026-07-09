@@ -5,7 +5,7 @@ P2-1A-RETRY Workbench → Observation Pool 端到端验证
 自动化流程：
 1. 检查端口占用
 2. 启动后端 (8010)
-3. 启动前端 (3000)
+3. 启动前端 (3010)
 4. 等待服务就绪
 5. 生成唯一 run_id 用于数据隔离
 6. Playwright 打开 /workbench，输入包含 run_id 的买入信息
@@ -109,13 +109,13 @@ def main():
                 return 1
         print("Port 8010 available")
         
-        if check_port_in_use(3000):
-            print("WARNING: Port 3000 already in use, attempting to kill...")
-            if not kill_process_on_port(3000):
-                print("FAIL: Could not free port 3000")
+        if check_port_in_use(3010):
+            print("WARNING: Port 3010 already in use, attempting to kill...")
+            if not kill_process_on_port(3010):
+                print("FAIL: Could not free port 3010")
                 print("Please manually stop the service: taskkill /F /IM node.exe")
                 return 1
-        print("Port 3000 available")
+        print("Port 3010 available")
         print()
         
         # Step 2: 启动后端
@@ -182,14 +182,14 @@ def main():
         print()
         
         # Step 4: 启动前端
-        print("[4/10] Starting frontend on port 3000...")
+        print("[4/10] Starting frontend on port 3010...")
         frontend_env = os.environ.copy()
         frontend_env["NEXT_PUBLIC_API_BASE_URL"] = "http://localhost:8010"
         
         npm_cmd = "C:/Program Files/nodejs/npm.cmd" if os.path.exists("C:/Program Files/nodejs/npm.cmd") else "npm"
         
         frontend_proc = subprocess.Popen(
-            [npm_cmd, "run", "dev", "--", "--port", "3000"],
+            [npm_cmd, "run", "dev", "--", "--port", "3010"],
             cwd=str(PROJECT_ROOT / "frontend"),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -204,7 +204,7 @@ def main():
         frontend_ready = False
         for i in range(60):
             try:
-                req = urllib.request.Request("http://localhost:3000")
+                req = urllib.request.Request("http://localhost:3010")
                 with urllib.request.urlopen(req, timeout=2) as response:
                     if response.status == 200:
                         frontend_ready = True
@@ -222,7 +222,7 @@ def main():
         # Step 5: 检查 /workbench 可访问性
         print("[5/10] Checking /workbench accessibility...")
         try:
-            req = urllib.request.Request("http://localhost:3000/workbench")
+            req = urllib.request.Request("http://localhost:3010/workbench")
             with urllib.request.urlopen(req, timeout=10) as response:
                 if response.status == 200:
                     print("✅ /workbench is accessible")
@@ -263,7 +263,7 @@ def main():
             page.on("response", on_response)
             
             # 打开 Workbench
-            page.goto("http://localhost:3000/workbench", wait_until="networkidle")
+            page.goto("http://localhost:3010/workbench", wait_until="networkidle")
             time.sleep(2)
             
             # 记录提交前时间用于强关联（本地无时区时间）
@@ -502,7 +502,7 @@ def main():
                 })
             
             observations_page.on("response", on_obs_response)
-            observations_page.goto("http://localhost:3000/observations", wait_until="networkidle")
+            observations_page.goto("http://localhost:3010/observations", wait_until="networkidle")
             time.sleep(3)
             
             # 保存 observations DOM

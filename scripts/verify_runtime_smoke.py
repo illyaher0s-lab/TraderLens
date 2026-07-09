@@ -108,16 +108,16 @@ def is_port_in_use(port):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         return s.connect_ex(('localhost', port)) == 0
 
-if is_port_in_use(3000):
-    print("[FAIL] Port 3000 already in use (frontend_port_already_in_use)")
+if is_port_in_use(3010):
+    print("[FAIL] Port 3010 already in use (frontend_port_already_in_use)")
     print("Please stop existing Next.js dev server before running smoke test")
     backend_proc.kill()
     sys.exit(1)
 
-print("[OK] Port 3000 available")
+print("[OK] Port 3010 available")
 
 # Step 5: 启动前端
-print("\nStep 5: Starting frontend on port 3000")
+print("\nStep 5: Starting frontend on port 3010")
 frontend_env = os.environ.copy()
 frontend_env["NEXT_PUBLIC_API_BASE_URL"] = "http://localhost:8010"
 
@@ -125,7 +125,7 @@ frontend_env["NEXT_PUBLIC_API_BASE_URL"] = "http://localhost:8010"
 npm_cmd = "C:/Program Files/nodejs/npm.cmd" if os.path.exists("C:/Program Files/nodejs/npm.cmd") else "npm"
 
 frontend_proc = subprocess.Popen(
-    [npm_cmd, "run", "dev", "--", "--port", "3000"],
+    [npm_cmd, "run", "dev", "--", "--port", "3010"],
     cwd=str(PROJECT_ROOT / "frontend"),
     stdout=subprocess.PIPE,
     stderr=subprocess.PIPE,
@@ -169,7 +169,7 @@ async def capture_page():
         
         try:
             # 访问页面
-            await page.goto("http://localhost:3000/observations", wait_until="networkidle", timeout=30000)
+            await page.goto("http://localhost:3010/observations", wait_until="networkidle", timeout=30000)
             
             # 等待加载
             await page.wait_for_timeout(3000)
@@ -197,7 +197,7 @@ async def capture_page():
             with open(docs_dir / "runtime-startup-log.txt", "w") as f:
                 f.write("=== P0-RUNTIME-1B Startup Log ===\n\n")
                 f.write(f"Backend: http://localhost:8010\n")
-                f.write(f"Frontend: http://localhost:3000\n")
+                f.write(f"Frontend: http://localhost:3010\n")
                 f.write(f"Health: {health_data['status']}\n")
                 f.write(f"Console logs: {len(console_logs)}\n")
                 f.write(f"Network requests: {len(network_log)}\n\n")

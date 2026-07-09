@@ -58,9 +58,9 @@ async def main():
     
     try:
         # Step 0: Check ports
-        print("Step 0: Checking for existing processes on ports 8010 and 3000...")
-        check_and_release_ports([8010, 3000])
-        print("[OK] Ports 8010 and 3000 are available")
+        print("Step 0: Checking for existing processes on ports 8010 and 3010...")
+        check_and_release_ports([8010, 3010])
+        print("[OK] Ports 8010 and 3010 are available")
         print()
         
         # Step 1: Start backend
@@ -70,8 +70,8 @@ async def main():
         print()
         
         # Step 2: Start frontend
-        print("Step 2: Starting frontend on port 3000...")
-        frontend_process = start_frontend(port=3000, project_root=PROJECT_ROOT)
+        print("Step 2: Starting frontend on port 3010...")
+        frontend_process = start_frontend(port=3010, project_root=PROJECT_ROOT)
         frontend_log_path = None  # start_frontend doesn't return log path
         print()
         
@@ -140,7 +140,7 @@ async def main():
         page = await context.new_page()
         page.on("request", log_request)
         
-        await page.goto("http://localhost:3000/strategy-templates", wait_until="networkidle", timeout=30000)
+        await page.goto("http://localhost:3010/strategy-templates", wait_until="networkidle", timeout=30000)
         await asyncio.sleep(2)
         
         # Save DOM
@@ -181,7 +181,7 @@ async def main():
             print(f"Step 6: Verifying /strategy-templates/{template_id} page...")
             network_log.clear()
             
-            await page.goto(f"http://localhost:3000/strategy-templates/{template_id}", wait_until="networkidle", timeout=30000)
+            await page.goto(f"http://localhost:3010/strategy-templates/{template_id}", wait_until="networkidle", timeout=30000)
             await asyncio.sleep(2)
             
             # Save DOM
@@ -212,7 +212,7 @@ async def main():
         print("Step 7: Submitting strategy idea via Workbench...")
         network_log.clear()
         
-        await page.goto("http://localhost:3000/workbench", wait_until="networkidle", timeout=30000)
+        await page.goto("http://localhost:3010/workbench", wait_until="networkidle", timeout=30000)
         await asyncio.sleep(2)
         
         strategy_message = f"我想做一个A股放量突破策略：股票突破20日高点且成交量超过20日均量2倍时买入，跌破10日均线卖出，备注 {RUN_ID}"
@@ -263,7 +263,7 @@ async def main():
         print("Step 8: Verifying idea detail page mapping display...")
         network_log.clear()
         
-        await page.goto(f"http://localhost:3000/strategy-ideas/{idea_id}", wait_until="networkidle", timeout=30000)
+        await page.goto(f"http://localhost:3010/strategy-ideas/{idea_id}", wait_until="networkidle", timeout=30000)
         await asyncio.sleep(2)
         
         # Save DOM
@@ -357,7 +357,7 @@ async def main():
             stop_process(backend_process, "Backend", DOCS_DIR / "p3-4-backend-log.txt", release_ports=[8010])
         
         if frontend_process:
-            stop_process(frontend_process, "Frontend", DOCS_DIR / "p3-4-frontend-log.txt", release_ports=[3000])
+            stop_process(frontend_process, "Frontend", DOCS_DIR / "p3-4-frontend-log.txt", release_ports=[3010])
 
 
 if __name__ == "__main__":

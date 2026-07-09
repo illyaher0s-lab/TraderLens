@@ -109,7 +109,7 @@ def main():
     print("\n\n" + "=" * 80)
     print("测试完成！")
     print("=" * 80)
-    print("\n请访问 http://localhost:3000/workbench 查看前端界面")
+    print("\n请访问 http://localhost:3010/workbench 查看前端界面")
     print("对照上述 artifact 列表验证活动流显示")
 
 if __name__ == "__main__":

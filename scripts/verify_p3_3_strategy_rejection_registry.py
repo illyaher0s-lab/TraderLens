@@ -55,10 +55,10 @@ print()
 
 
 def check_ports():
-    """Check and free ports 8010 and 3000."""
-    print("Step 0: Checking for existing processes on ports 8010 and 3000...")
-    check_and_release_ports([8010, 3000])
-    print("[OK] Ports 8010 and 3000 are available")
+    """Check and free ports 8010 and 3010."""
+    print("Step 0: Checking for existing processes on ports 8010 and 3010...")
+    check_and_release_ports([8010, 3010])
+    print("[OK] Ports 8010 and 3010 are available")
     print()
 
 
@@ -76,8 +76,8 @@ async def main():
     )
     print()
 
-    print("Step 2: Starting frontend on port 3000...")
-    frontend_process = start_frontend(port=3000, project_root=PROJECT_ROOT, timeout_seconds=90)
+    print("Step 2: Starting frontend on port 3010...")
+    frontend_process = start_frontend(port=3010, project_root=PROJECT_ROOT, timeout_seconds=90)
     print()
     
     try:
@@ -110,7 +110,7 @@ async def main():
             
             # Step 3: Submit strategy idea via Workbench
             print("Step 3: Submitting strategy idea via Workbench...")
-            await page.goto("http://localhost:3000/workbench", wait_until="networkidle")
+            await page.goto("http://localhost:3010/workbench", wait_until="networkidle")
             
             strategy_message = f"我想做一个均线交叉策略：5日均线上穿20日均线买入，死叉卖出，备注 {RUN_ID}"
             
@@ -212,7 +212,7 @@ async def main():
             print(f"Step 6: Verifying detail page /strategy-ideas/{idea_id}...")
             
             network_requests.clear()
-            await page.goto(f"http://localhost:3000/strategy-ideas/{idea_id}", wait_until="networkidle")
+            await page.goto(f"http://localhost:3010/strategy-ideas/{idea_id}", wait_until="networkidle")
             await page.wait_for_timeout(2000)
             
             detail_dom = await page.content()
@@ -247,7 +247,7 @@ async def main():
             print("Step 7: Verifying rejected strategies registry page...")
             
             network_requests.clear()
-            await page.goto("http://localhost:3000/rejected-strategies", wait_until="networkidle")
+            await page.goto("http://localhost:3010/rejected-strategies", wait_until="networkidle")
             await page.wait_for_timeout(2000)
             
             registry_dom = await page.content()
@@ -303,7 +303,7 @@ async def main():
     
     finally:
         stop_process(backend_process, "Backend", DOCS_DIR / "p3-3-backend-log.txt", release_ports=[8010])
-        stop_process(frontend_process, "Frontend", DOCS_DIR / "p3-3-frontend-log.txt", release_ports=[3000])
+        stop_process(frontend_process, "Frontend", DOCS_DIR / "p3-3-frontend-log.txt", release_ports=[3010])
     
     print("=" * 100)
     print("[OK] P3-3 Verification PASSED")

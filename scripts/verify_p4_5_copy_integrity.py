@@ -61,7 +61,7 @@ def verify_p4_5_copy_integrity():
         # Step 1: Clean ports
         print("Step 1: Checking ports...")
         print("-" * 80)
-        check_and_release_ports([8010, 3000])
+        check_and_release_ports([8010, 3010])
         print("✓ Ports ready")
         print()
         
@@ -82,7 +82,7 @@ def verify_p4_5_copy_integrity():
         # Step 3: Start frontend
         print("Step 3: Starting frontend...")
         print("-" * 80)
-        frontend_process = start_frontend(port=3000, timeout_seconds=60)
+        frontend_process = start_frontend(port=3010, timeout_seconds=60)
         print("✓ Frontend started")
         print()
         
@@ -108,7 +108,7 @@ def verify_p4_5_copy_integrity():
         page.on('request', handle_request)
         
         # Dashboard
-        page.goto('http://localhost:3000/', wait_until='networkidle', timeout=30000)
+        page.goto('http://localhost:3010/', wait_until='networkidle', timeout=30000)
         time.sleep(2)
         dashboard_html = page.content()
         
@@ -119,7 +119,7 @@ def verify_p4_5_copy_integrity():
         print(f"✓ Saved dashboard DOM")
         
         # Workbench
-        page.goto('http://localhost:3000/workbench', wait_until='networkidle', timeout=30000)
+        page.goto('http://localhost:3010/workbench', wait_until='networkidle', timeout=30000)
         time.sleep(2)
         workbench_html = page.content()
         

@@ -71,8 +71,8 @@ def verify_p4_2_dashboard_drilldown_consistency():
         # Step 1: Clean up ports
         print("Step 1: Checking and releasing ports...")
         print("-" * 80)
-        check_and_release_ports([8010, 3000])
-        print("✓ Ports 8010, 3000 ready")
+        check_and_release_ports([8010, 3010])
+        print("✓ Ports 8010, 3010 ready")
         print()
         
         # Step 2: Start backend
@@ -93,8 +93,8 @@ def verify_p4_2_dashboard_drilldown_consistency():
         # Step 2.5: Start frontend
         print("Step 2.5: Starting frontend...")
         print("-" * 80)
-        frontend_process = start_frontend(port=3000, timeout_seconds=90)
-        wait_for_http("http://localhost:3000")
+        frontend_process = start_frontend(port=3010, timeout_seconds=90)
+        wait_for_http("http://localhost:3010")
         print("✓ Frontend started")
         print()
         
@@ -396,7 +396,7 @@ def verify_p4_2_dashboard_drilldown_consistency():
         
         # 5.1: Dashboard page
         print("\n[5.1] Verifying dashboard page DOM")
-        page.goto("http://localhost:3000/", wait_until="networkidle", timeout=30000)
+        page.goto("http://localhost:3010/", wait_until="networkidle", timeout=30000)
         time.sleep(2)  # Let React render
         
         dashboard_dom = page.content()
@@ -424,7 +424,7 @@ def verify_p4_2_dashboard_drilldown_consistency():
         
         # 5.2: Observations page
         print("\n[5.2] Verifying /observations page DOM")
-        page.goto("http://localhost:3000/observations", wait_until="networkidle", timeout=30000)
+        page.goto("http://localhost:3010/observations", wait_until="networkidle", timeout=30000)
         time.sleep(2)
         
         obs_dom = page.content()
@@ -462,7 +462,7 @@ def verify_p4_2_dashboard_drilldown_consistency():
         
         # 5.3: Signals page
         print("\n[5.3] Verifying /signals page DOM")
-        page.goto("http://localhost:3000/signals", wait_until="networkidle", timeout=30000)
+        page.goto("http://localhost:3010/signals", wait_until="networkidle", timeout=30000)
         time.sleep(2)
         
         signals_dom = page.content()
@@ -487,7 +487,7 @@ def verify_p4_2_dashboard_drilldown_consistency():
         
         # 5.4: Strategy ideas page
         print("\n[5.4] Verifying /strategy-ideas page DOM")
-        page.goto("http://localhost:3000/strategy-ideas", wait_until="networkidle", timeout=30000)
+        page.goto("http://localhost:3010/strategy-ideas", wait_until="networkidle", timeout=30000)
         time.sleep(2)
         
         ideas_dom = page.content()
@@ -520,7 +520,7 @@ def verify_p4_2_dashboard_drilldown_consistency():
         
         # 5.5: Candidates page
         print("\n[5.5] Verifying /candidate-strategies page DOM")
-        page.goto("http://localhost:3000/candidate-strategies", wait_until="networkidle", timeout=30000)
+        page.goto("http://localhost:3010/candidate-strategies", wait_until="networkidle", timeout=30000)
         time.sleep(2)
         
         candidates_dom = page.content()
@@ -553,7 +553,7 @@ def verify_p4_2_dashboard_drilldown_consistency():
         
         # 5.6: Rejected page
         print("\n[5.6] Verifying /rejected-strategies page DOM")
-        page.goto("http://localhost:3000/rejected-strategies", wait_until="networkidle", timeout=30000)
+        page.goto("http://localhost:3010/rejected-strategies", wait_until="networkidle", timeout=30000)
         time.sleep(2)
         
         rejected_dom = page.content()
@@ -586,7 +586,7 @@ def verify_p4_2_dashboard_drilldown_consistency():
         
         # 5.7: Validations page
         print("\n[5.7] Verifying /strategy-validations page DOM")
-        page.goto("http://localhost:3000/strategy-validations", wait_until="networkidle", timeout=30000)
+        page.goto("http://localhost:3010/strategy-validations", wait_until="networkidle", timeout=30000)
         time.sleep(2)
         
         validations_dom = page.content()
@@ -611,7 +611,7 @@ def verify_p4_2_dashboard_drilldown_consistency():
         
         # 5.8: Strategies page
         print("\n[5.8] Verifying /strategies page DOM")
-        page.goto("http://localhost:3000/strategies", wait_until="networkidle", timeout=30000)
+        page.goto("http://localhost:3010/strategies", wait_until="networkidle", timeout=30000)
         time.sleep(2)
         
         strategies_dom = page.content()
@@ -636,7 +636,7 @@ def verify_p4_2_dashboard_drilldown_consistency():
         
         # 5.9: Templates page
         print("\n[5.9] Verifying /strategy-templates page DOM")
-        page.goto("http://localhost:3000/strategy-templates", wait_until="networkidle", timeout=30000)
+        page.goto("http://localhost:3010/strategy-templates", wait_until="networkidle", timeout=30000)
         time.sleep(2)
         
         templates_dom = page.content()
@@ -682,7 +682,7 @@ def verify_p4_2_dashboard_drilldown_consistency():
         api_requests = [req for req in network_log if req["resource_type"] == "fetch" or req["resource_type"] == "xhr"]
         external_apis = [req for req in api_requests 
                         if not req["url"].startswith("http://localhost:8010") 
-                        and not req["url"].startswith("http://localhost:3000")]
+                        and not req["url"].startswith("http://localhost:3010")]
         
         if external_apis:
             print(f"  ✗ Found {len(external_apis)} external API requests:")
@@ -693,7 +693,7 @@ def verify_p4_2_dashboard_drilldown_consistency():
             print(f"  ✓ All {len(api_requests)} API requests point to localhost")
             backend_api_count = len([req for req in api_requests if req["url"].startswith("http://localhost:8010")])
             print(f"    - {backend_api_count} requests to backend (localhost:8010)")
-            print(f"    - {len(api_requests) - backend_api_count} requests to frontend (localhost:3000)")
+            print(f"    - {len(api_requests) - backend_api_count} requests to frontend (localhost:3010)")
         
         # Step 7: Summary
         print()
@@ -777,7 +777,7 @@ def verify_p4_2_dashboard_drilldown_consistency():
                 frontend_process,
                 name="Frontend",
                 save_log=verification_dir / "p4-2-frontend-log.txt",
-                release_ports=[3000]
+                release_ports=[3010]
             )
         
         if backend_process:

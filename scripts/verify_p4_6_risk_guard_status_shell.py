@@ -84,7 +84,7 @@ def verify_p4_6():
     
     # Use standard ports after cleanup
     backend_port = 8010
-    frontend_port = 3000
+    frontend_port = 3010
 
     try:
         # 1. Start backend

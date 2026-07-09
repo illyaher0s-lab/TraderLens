@@ -84,8 +84,8 @@ def verify_p4_3_dashboard_actionability():
         # Step 1: Clean up ports
         print("Step 1: Checking and releasing ports...")
         print("-" * 80)
-        check_and_release_ports([8010, 3000])
-        print("✓ Ports 8010, 3000 ready")
+        check_and_release_ports([8010, 3010])
+        print("✓ Ports 8010, 3010 ready")
         print()
         
         # Step 2: Start backend
@@ -106,8 +106,8 @@ def verify_p4_3_dashboard_actionability():
         # Step 3: Start frontend
         print("Step 3: Starting frontend...")
         print("-" * 80)
-        frontend_process = start_frontend(port=3000, timeout_seconds=90)
-        wait_for_http("http://localhost:3000")
+        frontend_process = start_frontend(port=3010, timeout_seconds=90)
+        wait_for_http("http://localhost:3010")
         print("✓ Frontend started")
         print()
         
@@ -145,7 +145,7 @@ def verify_p4_3_dashboard_actionability():
         # Step 5: Navigate to dashboard and verify action links
         print("Step 5: Verifying dashboard action links...")
         print("-" * 80)
-        page.goto("http://localhost:3000/", wait_until="networkidle", timeout=30000)
+        page.goto("http://localhost:3010/", wait_until="networkidle", timeout=30000)
         time.sleep(2)  # Let React render
         
         dashboard_dom = page.content()
@@ -179,7 +179,7 @@ def verify_p4_3_dashboard_actionability():
         for path, (name, page_titles) in expected_links.items():
             print(f"\n[6.{list(expected_links.keys()).index(path) + 1}] Checking {path}...")
             try:
-                page.goto(f"http://localhost:3000{path}", wait_until="networkidle", timeout=30000)
+                page.goto(f"http://localhost:3010{path}", wait_until="networkidle", timeout=30000)
                 time.sleep(1)
                 
                 page_dom = page.content()
@@ -242,7 +242,7 @@ def verify_p4_3_dashboard_actionability():
         api_requests = [req for req in network_log if req["resource_type"] == "fetch" or req["resource_type"] == "xhr"]
         external_apis = [req for req in api_requests 
                         if not req["url"].startswith("http://localhost:8010") 
-                        and not req["url"].startswith("http://localhost:3000")]
+                        and not req["url"].startswith("http://localhost:3010")]
         
         if external_apis:
             print(f"  ✗ Found {len(external_apis)} external API requests:")
@@ -253,7 +253,7 @@ def verify_p4_3_dashboard_actionability():
             print(f"  ✓ All {len(api_requests)} API requests point to localhost")
             backend_api_count = len([req for req in api_requests if req["url"].startswith("http://localhost:8010")])
             print(f"    - {backend_api_count} requests to backend (localhost:8010)")
-            print(f"    - {len(api_requests) - backend_api_count} requests to frontend (localhost:3000)")
+            print(f"    - {len(api_requests) - backend_api_count} requests to frontend (localhost:3010)")
             evidence["checks"]["network_validation"] = True
         
         # Step 8: Summary
@@ -334,7 +334,7 @@ def verify_p4_3_dashboard_actionability():
                 frontend_process,
                 name="Frontend",
                 save_log=verification_dir / "p4-3-frontend-log.txt",
-                release_ports=[3000]
+                release_ports=[3010]
             )
         
         if backend_process:
