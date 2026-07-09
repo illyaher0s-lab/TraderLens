@@ -1,1 +1,0 @@
-[INFO] Backend process stopped, log capture skipped to avoid blocking

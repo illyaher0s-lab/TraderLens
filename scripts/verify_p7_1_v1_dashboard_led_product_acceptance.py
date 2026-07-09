@@ -114,37 +114,67 @@ def main():
             sys.exit(1)
         print("OK: No mojibake")
 
-        # Workbench → Friend stock
+        # Flow A: Workbench → Friend stock → add to observation (P2-2 pattern)
         print("\n[5/8] Flow A: Workbench → Friend Stock → Observation...")
         page.goto("http://localhost:3010/workbench", wait_until="domcontentloaded", timeout=30000)
         page.wait_for_selector("h1:has-text('TraderLens 工作台')", timeout=10000)
         page.wait_for_selector("input[placeholder='输入消息...']", state="visible", timeout=10000)
-        page.wait_for_timeout(500)  # ponytail: let React mount finish
+        page.wait_for_timeout(500)
 
-        friend_msg = f"[{RUN_ID}] 朋友推荐买入贵州茅台600519"
+        # First message: friend stock
+        friend_msg = f"帮我看看贵州茅台（600519），备注 {RUN_ID}"
         page.fill("input[placeholder='输入消息...']", friend_msg)
         page.wait_for_selector("button:has-text('发送'):not([disabled])", timeout=5000)
         page.click("button:has-text('发送')")
-        page.wait_for_timeout(3000)
+        page.wait_for_timeout(5000)  # ponytail: P2-2 uses 5s for backend processing
+        print(f"OK: First message sent")
 
-        # ponytail: no /api/workbench/sessions endpoint, verify via DOM presence
-        workbench_dom = page.content()
-        if RUN_ID not in workbench_dom:
-            print(f"ERROR: RUN_ID {RUN_ID} not in workbench DOM")
+        # Second message: add to observation
+        page.wait_for_selector("input[placeholder='输入消息...']", state="visible", timeout=10000)
+        page.fill("input[placeholder='输入消息...']", "加入观察")
+        page.wait_for_selector("button:has-text('发送'):not([disabled])", timeout=5000)
+        page.click("button:has-text('发送')")
+        page.wait_for_timeout(5000)
+        print(f"OK: Second message sent")
+
+        # Poll /api/observations for position (max 60s)
+        position_id = None
+        friend_conversation_id = None
+        for attempt in range(12):  # 12 * 5s = 60s
+            time.sleep(5)
+            resp = requests.get("http://localhost:8010/api/observations?status=open", timeout=10)
+            if resp.status_code != 200:
+                continue
+            data = resp.json()
+            if isinstance(data, dict):
+                data = data.get("positions") or data.get("data") or []
+            for pos in data:
+                if isinstance(pos, dict) and RUN_ID in pos.get("entry_thesis", ""):
+                    position_id = pos.get("position_id")
+                    # ponytail: conversation_id not in position API, extract from workbench DOM if needed
+                    print(f"OK: Position created: {position_id}")
+                    break
+            if position_id:
+                break
+        
+        if not position_id:
+            print(f"ERROR: No position found with RUN_ID {RUN_ID} after 60s")
             sys.exit(1)
-        print(f"OK: Friend stock message sent (RUN_ID in DOM)")
 
-        # Check observations
+        # Verify /observations DOM
         page.goto("http://localhost:3010/observations", wait_until="domcontentloaded", timeout=30000)
-        page.wait_for_timeout(1000)
+        page.wait_for_timeout(2000)
         obs_dom = page.content()
+        if RUN_ID not in obs_dom and position_id not in obs_dom:
+            print(f"ERROR: Neither RUN_ID nor position_id in /observations DOM")
+            sys.exit(1)
         (DOCS_DIR / "p7-1-observations-dom.md").write_text(
-            f"# P7-1 Observations DOM\n\n**Run ID:** {RUN_ID}\n\n```html\n{obs_dom}\n```\n",
+            f"# P7-1 Observations DOM\n\n**Run ID:** {RUN_ID}\n**Position ID:** {position_id}\n\n```html\n{obs_dom}\n```\n",
             encoding="utf-8",
         )
-        print("OK: Observations page saved")
+        print("OK: Observation verified in DOM")
 
-        # Workbench → Strategy
+        # Flow B: Workbench → Strategy
         print("\n[6/8] Flow B: Workbench → Strategy → Strategy Workspace...")
         page.goto("http://localhost:3010/workbench", wait_until="domcontentloaded", timeout=30000)
         page.wait_for_selector("input[placeholder='输入消息...']", state="visible", timeout=10000)
@@ -154,16 +184,37 @@ def main():
         page.fill("input[placeholder='输入消息...']", strategy_msg)
         page.wait_for_selector("button:has-text('发送'):not([disabled])", timeout=5000)
         page.click("button:has-text('发送')")
-        page.wait_for_timeout(3000)
+        page.wait_for_timeout(5000)
+        print(f"OK: Strategy message sent")
 
-        # ponytail: verify via DOM
-        workbench_dom = page.content()
-        if RUN_ID not in workbench_dom:
-            print(f"ERROR: RUN_ID {RUN_ID} not in workbench DOM")
+        # Poll /api/strategy-ideas for idea_id
+        idea_id = None
+        strategy_conversation_id = None
+        for attempt in range(12):
+            time.sleep(5)
+            try:
+                resp = requests.get("http://localhost:8010/api/strategy-ideas", timeout=10)
+                if resp.status_code != 200:
+                    continue
+                data = resp.json()
+                if isinstance(data, dict):
+                    data = data.get("ideas") or data.get("data") or []
+                for idea in data:
+                    if isinstance(idea, dict) and RUN_ID in idea.get("original_description", ""):
+                        idea_id = idea.get("idea_id")
+                        strategy_conversation_id = idea.get("conversation_id")  # ponytail: may not exist in API
+                        print(f"OK: Strategy idea created: {idea_id}")
+                        break
+                if idea_id:
+                    break
+            except:
+                continue
+        
+        if not idea_id:
+            print(f"ERROR: No idea found with RUN_ID {RUN_ID} after 60s")
             sys.exit(1)
-        print(f"OK: Strategy message sent (RUN_ID in DOM)")
 
-        # Check strategy pages
+        # Verify strategy pages DOM
         for name, url in [
             ("strategy-ideas", "/strategy-ideas"),
             ("candidate", "/candidate-strategies"),
@@ -173,7 +224,7 @@ def main():
             page.wait_for_timeout(1000)
             dom = page.content()
             (DOCS_DIR / f"p7-1-{name}-dom.md").write_text(
-                f"# P7-1 {name} DOM\n\n**Run ID:** {RUN_ID}\n\n```html\n{dom}\n```\n",
+                f"# P7-1 {name.title()} DOM\n\n**Run ID:** {RUN_ID}\n**Idea ID:** {idea_id}\n\n```html\n{dom}\n```\n",
                 encoding="utf-8",
             )
         print("OK: Strategy workspace pages saved")
@@ -208,6 +259,8 @@ def main():
         
         summary = {
             "run_id": RUN_ID,
+            "friend_position_id": position_id,
+            "strategy_idea_id": idea_id,
             "risk_guard_data_state": risk_guard.get("data_state"),
             "network_requests_total": len(network_log),
             "network_requests_external": len(external),
