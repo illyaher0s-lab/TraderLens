@@ -1,0 +1,18 @@
+{
+  "run_id": "P4_5_RUN_20260709_104517",
+  "timestamp": "2026-07-09T10:45:17.243416",
+  "checks": {
+    "no_mojibake": true,
+    "dashboard_text": true,
+    "workbench_text": true,
+    "workbench_input": true,
+    "localhost_only": true
+  },
+  "evidence_files": [
+      "docs\\\\verification\\\\p4-5-dashboard-dom.md",
+      "docs\\\\verification\\\\p4-5-workbench-dom.md",
+      "docs\\\\verification\\\\p4-5-network-log.json",
+      "docs\\\\verification\\\\p4-5-verification-summary.json",
+      "docs\\\\verification\\\\p4-5-frontend-log.txt"
+  ]
+}
