@@ -152,7 +152,7 @@ Browser Demo A (friend stock full E2E) and Browser Demo B (strategy full E2E) ve
 
 ## Known Limitations (Acceptable V1 Boundaries)
 
-1. **Approved strategy library:** Empty (no approved templates exist yet)
+1. **Approved strategy library:** Empty (4 approved templates exist, but no approved strategies)
 2. **Risk guard:** Display-only, `not_configured` state
 3. **Daily signal generation:** May return `null` when `data_state != ok`
 4. **Position records:** Observation and manual-buy create separate position records (not merged)
@@ -205,7 +205,7 @@ cce3bc6 fix(P7-1): complete product acceptance evidence
 ...
 ```
 
-**Final commit (this report):** `[pending]`
+**Final commit (this report):** `2a895b5`
 
 ---
 

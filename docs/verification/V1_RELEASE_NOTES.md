@@ -44,7 +44,7 @@ Dashboard → Workbench → Strategy Idea → Extraction → Template Mapping �
 
 ## Known Limitations (Acceptable V1)
 
-1. **Approved strategy library empty:** No approved templates exist yet
+1. **Approved strategy library empty:** 4 approved templates exist, but no approved strategies
 2. **Risk guard display-only:** `not_configured` state
 3. **Daily signal may be null:** When `data_state != ok`
 4. **Observation ≠ position:** Friend stock and manual buy create separate records
