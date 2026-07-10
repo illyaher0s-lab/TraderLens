@@ -1,7 +1,8 @@
 # TraderLens V1 Release Manifest
 
 **Release tag:** `v1.0.0`  
-**Release commit:** `24aa8c4`  
+**Tag target commit:** `b395c31`  
+**Release closeout commit:** `24aa8c4`  
 **Acceptance commit:** `2a895b5`
 
 **Runtime:**
