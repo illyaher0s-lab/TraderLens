@@ -33,7 +33,7 @@
 
 ## 2. Gate 0 — inputs that must be proved before formal validation
 
-Gate 0 is a two-level data gate, not a documentation exercise. `feasibility_probe_passed` proves only provider access, fields, and landing format for 2019–2025. `formal_qualified` proves complete 2010-to-last-closed-trading-day coverage and is the only status accepted by B6/OOS/Gate, Promotion, and Market Guard freeze. A failing probe stops at `validation_unavailable` or `research_unavailable` with its stored reason.
+Gate 0 is a two-level, scope-bound data gate, not a documentation exercise. `feasibility_probe_passed` proves only provider access, fields, and landing format for 2019–2025. `formal_qualified` proves complete 2010-to-last-closed-trading-day PIT coverage for one immutable validation-data scope; it is the only status accepted by B6/OOS/Gate, Promotion, and Market Guard freeze. It is never a claim that all system data is qualified. A failing probe stops at `validation_unavailable` or `research_unavailable` with its stored reason.
 
 ### 2.1 V2 industry-chain hypothesis verification boundary
 
@@ -50,15 +50,17 @@ A later version may add official company-disclosure corpus or an authorised chai
 
 **Candidate formal-validation provider:** Tushare Pro, using the account token configured for the local owner. It becomes the formal-validation source only after Gate 0 has made successful, non-empty probes and recorded the account’s observed permission result. Tushare exposes a permission error as HTTP/API code `2002`; this must be recorded as a failed gate, not retried as a different source. [Tushare HTTP API documentation](https://www.tushare.pro/document/2?doc_id=130)
 
-**Required interface bundle and purpose:**
+**First formal-data package: required data classes and scope:**
 
 | Purpose | Required Tushare Pro interfaces | Minimum history to prove |
 |---|---|---|
-| Trading calendar and listed/de-listed identity | `trade_cal`, `stock_basic` for `L`, `D`, and `P`, `namechange` | 2010-01-01 through the last fully closed trading day |
-| Raw executable market data | `daily`, `stk_limit`, `suspend_d`, `adj_factor` | same range; all listed A-share symbols sampled across every calendar year |
-| Liquidity and market guard inputs | `daily_basic`, `index_daily`, `index_member_all` | same range; HS300 and all required members/dates |
-| PIT financial facts | `income`, `balancesheet`, `cashflow`, `fina_indicator`, using `ann_date` as availability date | reports announced from 2010-01-01 through the last fully closed trading day |
-| Industry classification / themed membership support | `index_classify`, `index_member_all`, plus the documented THS/SW endpoints actually granted to the account | effective membership dates for every used index; current-only classifications fail PIT qualification |
+| Trading eligibility | `trade_cal`, `stock_basic` for `L`, `D`, and `P`, ST-status history, `namechange`, `suspend_d` | 2010-01-01 through the last fully closed trading day |
+| Raw executable market data | `daily`, `daily_basic`, `stk_limit`, `adj_factor` | same range for the scope's eligible symbols and dates |
+| Benchmark, controls, and Market Guard | `index_daily`, required benchmark/control membership, `index_member_all`, and all-A-share daily aggregates | same range for every configured benchmark, control group, and guard input |
+| Template-required membership | `index_classify`, `index_member_all`, plus the documented THS/SW endpoints actually granted to the account | each used membership's effective period; current-only classification fails PIT qualification |
+| Research-only financial facts | `income`, `balancesheet`, `cashflow`, `fina_indicator`, using `ann_date` | on-demand ResearchCase query only; excluded from the first formal-data package unless a future template declares them |
+
+Each template version declares immutable `data_requirements` and `data_requirements_hash`. The formal-data package is exactly the union of that template's requirements, its benchmark and control-group requirements, `strategy_core`/fill-model requirements, and the selected Market Guard requirements. Its `formal_qualification_key` is `(template_hash, guard_config_hash, data_requirements_hash, snapshot_hash)`. A `formal_qualified` result is valid only for that key. Any template, benchmark, control group, fill-model, Guard configuration, or field-requirement change creates a new data package and requires new qualification.
 
 `adj_factor` is captured as raw vendor output but V1 validation uses raw OHLC execution prices. No present-day forward-adjusted series may be treated as a past observable value; any future adjusted-price feature needs an explicit future-data proof before use. Tushare’s own documentation notes that its adjusted data depend on the selected end date. [Tushare adjustment documentation](https://www.tushare.pro/document/2?doc_id=146)
 
@@ -67,7 +69,7 @@ A later version may add official company-disclosure corpus or an authorised chai
 **Gate 0 PIT acceptance has two explicit outcomes:**
 
 - `feasibility_probe_passed`: one command downloads/probes every required interface for 2019-01-01 through 2025-12-31, writes a manifest, samples at least one main-board, ChiNext, STAR, suspended, ST/name-changed, and delisted symbol, and proves the manifest hash replays unchanged. It authorizes no formal validation.
-- `formal_qualified`: a separate full acquisition covers 2010-01-01 through the last fully closed trading day under interface-specific expected-row rules. `daily`, `stk_limit`, and `daily_basic` require rows only for stocks that are listed and normally trading on that date; a missing market row for a suspended stock is valid only when `suspend_d` explicitly explains it, and no market row is required before listing or after delisting. `income`, `balancesheet`, `cashflow`, and `fina_indicator` require report-period records with their `ann_date` availability, not daily records. `namechange` and `suspend_d` are sparse event tables, so a legal empty result is not a gap. Index-membership data must cover each member’s effective period. Only a missing value that these rules cannot explain is a blocking gap. The replayed full manifest must have the same hash and no blocking gaps. Only this outcome may enter formal B6/OOS/Gate, Promotion, or the Market Guard candidate-to-frozen replay.
+- `formal_qualified`: a separate full acquisition covers 2010-01-01 through the last fully closed trading day for one `formal_qualification_key`, under interface-specific expected-row rules. `daily`, `stk_limit`, and `daily_basic` require rows only for stocks that are listed, not ST-excluded by the template, and normally trading on that date; a missing market row for a suspended stock is valid only when `suspend_d` explicitly explains it, and no market row is required before listing or after delisting. ST status and name-change history must cover each applicable effective period. `namechange` and `suspend_d` are sparse event tables, so a legal empty result is not a gap. Benchmark, control-group, and index-membership data must cover their configured effective periods. Financial facts are excluded unless the immutable `data_requirements` declares them; a future financial template then requires report-period records with `ann_date` availability, not daily records. Only a missing value that these rules cannot explain is a blocking gap. The replayed full manifest must have the same hash and no blocking gaps. Only this outcome may enter formal B6/OOS/Gate, Promotion, or the Market Guard candidate-to-frozen replay for its exact key.
 
 ### 2.3 First alpha sources and lifecycle
 
@@ -80,7 +82,7 @@ The first source dossiers are fixed before any template can be `approved`:
 | `volume_breakout_followthrough_v1` | Lee & Swaminathan (2000), *Price Momentum and Trading Volume*, DOI `10.1111/0022-1082.00280` | candidate |
 | `trend_pullback_watch_v1` | no source dossier | retired for V2; it cannot be mapped or validated |
 
-Each candidate becomes `approved` only when the extended `StrategyTemplateDefinition` records: source citation and retrieval date; a one-to-one source-claim-to-frozen-rule mapping; market-scope differences from the source; required PIT fields; a deterministic implementation hash; independent reviewer identity/date; and review due date. The reviewer approves provenance and fidelity, never an expected return. A source mismatch, failed PIT qualification, failed Gate, or expired review retires the version for new mapping but preserves historic reports. New template/version proposals repeat this process; paraphrases and rule changes create a new candidate and consume the existing family’s OOS budget through `oos_budget_ledger.py`.
+Each candidate becomes `approved` only when the extended `StrategyTemplateDefinition` records: source citation and retrieval date; a one-to-one source-claim-to-frozen-rule mapping; market-scope differences from the source; immutable `data_requirements` and `data_requirements_hash`; a deterministic implementation hash; independent reviewer identity/date; and review due date. The reviewer approves provenance and fidelity, never an expected return. A source mismatch, failed PIT qualification, failed Gate, or expired review retires the version for new mapping but preserves historic reports. New template/version proposals repeat this process; paraphrases and rule changes create a new candidate and consume the existing family’s OOS budget through `oos_budget_ledger.py`.
 
 ### 2.4 Market Guard candidate-to-frozen path
 
@@ -92,7 +94,7 @@ Reuse the candidate rules frozen in `docs/superpowers/specs/2026-07-02-risk-attr
 | `structural_breakdown` | `000300.SH` return from qualified `index_daily` | one day `<= -0.05` or compounded five trading days `<= -0.10` |
 | `liquidity_exhaustion` | qualified all-A-share `daily.amount` divided by its preceding 30 completed trading-day mean | less than `0.30` |
 
-`trade_cal`, `daily`, `index_daily`, listing/delisting and suspension data from the same qualified PIT manifest are mandatory. Missing any required daily aggregation input after applying the `formal_qualified` expected-row rules produces `data_insufficient`/`data_fault`, never `ok`; the zero-gap rule does not require every stock to have a market row on every date. The configuration contains its semantic SHA-256, version, candidate values, source manifest hash, validation-report hash, `validation_status`, `validated_at`, `frozen_at`, and `approved_by`.
+`trade_cal`, `daily`, `index_daily`, listing/delisting, ST status, and suspension data from the same matching `formal_qualification_key` are mandatory. Missing any required daily aggregation input after applying the `formal_qualified` expected-row rules produces `data_insufficient`/`data_fault`, never `ok`; the zero-gap rule does not require every stock to have a market row on every date. The configuration contains its semantic SHA-256, version, candidate values, source manifest hash, validation-report hash, `validation_status`, `validated_at`, `frozen_at`, and `approved_by`.
 
 The following windows and product-usability rule are pre-registered before reading replay results: stress window A is 2015-06-15 through 2015-08-31; stress window B is 2020-03-09 through 2020-03-23; normal window is 2017-09-01 through 2017-11-30. An acceptable data gap is **zero** missing required daily aggregation inputs after applying the `formal_qualified` expected-row rules on any `trade_cal` trading day; dates declared non-trading by `trade_cal` are not gaps. In the normal window, `block_new_entry` caused by an extreme market state may occur on at most `floor(0.05 * normal_window_trading_day_count)` days. `data_insufficient` and `data_fault` are reported separately and cannot be hidden in that ratio.
 
@@ -155,12 +157,12 @@ Each call has an 8-second timeout and no retry loop. For 30 production-equivalen
 **Files:** modify `backend/services/data_tools.py`, `backend/services/b3_protocol_types.py`, `backend/services/strategy_template_library.py`, `contracts/strategy.py`; create `scripts/verify_gate0_data_feasibility.py`; test `tests/test_gate0_data_feasibility.py`.
 
 - [ ] Implement the `user_industry_chain_hypothesis` schema in the existing ResearchCase payload, label it pending verification, and disable peer/symbol inference as chain evidence.
-- [ ] Implement the exact Tushare interface probe, Parquet landing manifest, content hashes, and qualification outcome in the existing B3 types.
-- [ ] Persist and expose `feasibility_probe_passed` and `formal_qualified`, with the latter superseding the former for the same provider/data policy; record observed permissions, missing coverage, and all queries without the token. Reject formal validation unless the full-range manifest is `formal_qualified`.
+- [ ] Implement the exact Tushare interface probe, Parquet landing manifest, content hashes, immutable `data_requirements` / `data_requirements_hash`, and scope-bound qualification outcome in the existing B3 types.
+- [ ] Persist and expose `feasibility_probe_passed` and `formal_qualified`, with the latter superseding the former for the same `formal_qualification_key`; record observed permissions, missing coverage, and all queries without the token. Reject formal validation unless the full-range manifest is `formal_qualified` for the exact template, Guard, requirements, and snapshot hashes.
 - [ ] Extend the existing template definition/library with the source dossier and lifecycle fields from section 2.3. Migrate the four templates to the stated candidate/retired states.
 - [ ] Re-run the browser chain. Repair only its first now-failing step; do not begin OOS wiring when Gate 0 is red.
 
-**Acceptance:** the chain can create an honest ResearchCase under the declared V2 hypothesis boundary. Formal validation is mechanically impossible without a replayable `formal_qualified` PIT manifest and an approved source-backed template; `feasibility_probe_passed` alone is rejected.
+**Acceptance:** the chain can create an honest ResearchCase under the declared V2 hypothesis boundary. Formal validation is mechanically impossible without a replayable, scope-matching `formal_qualified` PIT manifest and an approved source-backed template; `feasibility_probe_passed` alone is rejected. ResearchCase financial queries cannot enter formal validation, Gate, or Promotion.
 
 ### Task 2: Connect Workbench to ResearchCase and persistent context
 
@@ -179,7 +181,7 @@ Each call has an 8-second timeout and no retry loop. For 30 production-equivalen
 **Files:** modify `strategy_core/universe_builder.py`, `strategy_core/data_source_protocol.py`, `backend/services/b6_validation_flow.py`, `backend/services/b3_protocol_types.py`; test `tests/test_universe_builder.py`, `tests/test_b3_pit_manifest.py`, `tests/test_fill_simulator.py`.
 
 - [ ] Extend the existing B3 manifest types with effective membership, listing/delisting, ST/name-change, suspension, price-limit, liquidity, raw-price, and announcement-availability references.
-- [ ] Make `build_universe()` accept only a `formal_qualified` point-in-time universe for formal OOS. `static_list`, `confirmed_candidate_pool`, and `feasibility_probe_passed` remain rejected for historical validation.
+- [ ] Make `build_universe()` accept only a `formal_qualified` point-in-time universe whose `formal_qualification_key` matches the frozen template, controls, Guard, requirements, and snapshot for formal OOS. `static_list`, `confirmed_candidate_pool`, and `feasibility_probe_passed` remain rejected for historical validation.
 - [ ] Replay T+1, T+1 sellability, price limits, suspension, liquidity, board lots, costs, delisting, and overnight next-open fills from the qualified local snapshot.
 - [ ] Re-run the one browser chain and repair only its first remaining failure.
 
@@ -191,7 +193,7 @@ Each call has an 8-second timeout and no retry loop. For 30 production-equivalen
 
 - [ ] Make matching deterministic against the approved frozen rule schema; LLM extraction cannot choose parameters, version, family, or status.
 - [ ] Use the existing append-only OOS ledger for `(hypothesis_family_id, frozen_template_hash, strategy_config_hash, data_snapshot_hash, protocol_hash)`. Identical replay returns its immutable report; any rule/version change consumes the family budget.
-- [ ] Keep the pre-frozen three-draw OOS limit and enforce source status, `formal_qualified` PIT status, Canary, controls, base/stress costs, Gate, and explicit human confirmation before `StrategyPromotionReducer` alone writes `prototype_passed`.
+- [ ] Keep the pre-frozen three-draw OOS limit and enforce source status, scope-matching `formal_qualified` PIT status, Canary, controls, base/stress costs, Gate, and explicit human confirmation before `StrategyPromotionReducer` alone writes `prototype_passed`.
 - [ ] Admit only the promoted revision to the existing Signal Board. Rejected/candidate/retired strategies remain discoverable in history and cannot create signals.
 - [ ] Re-run the one browser chain and repair only its first remaining failure.
 
@@ -202,8 +204,8 @@ Each call has an 8-second timeout and no retry loop. For 30 production-equivalen
 **Files:** create `backend/services/market_regime_guard.py`, `backend/config/market_regime_thresholds.yaml`; modify `backend/services/capital_context.py`, `backend/services/action_plan_builder.py`, `backend/api/workbench_execution_feedback.py`, `backend/services/observation_pool.py`, `backend/services/discipline_review.py`, `contracts/live_trade.py`; test `tests/test_market_regime_guard.py`, `tests/test_v1_capital_context.py`, `tests/test_c3_action_plan_boundary.py`, `tests/test_v1_observation_pool.py`, `tests/test_v1_discipline_review.py`.
 
 - [ ] Create `market_regime_thresholds.yaml` from the exact candidate rules in section 2.4; calculate and persist its semantic hash, candidate status, PIT manifest reference, and validation-report reference.
-- [ ] Implement the section 2.4 guard replay and freeze checks using only a `formal_qualified` manifest. Only an unchanged, human-approved `frozen` configuration may report `ok` for a new-entry decision; candidate, missing, failed, or mismatched configuration exposes `block_new_entry`.
-- [ ] Require `formal_qualified` market data, frozen guard, capital check, and frozen invalidation/stop data before an existing Action Plan can be `eligible_for_manual_entry`; otherwise expose `block_new_entry` or `observe_only` with reason.
+- [ ] Implement the section 2.4 guard replay and freeze checks using only a `formal_qualified` manifest with matching `guard_config_hash`. Only an unchanged, human-approved `frozen` configuration may report `ok` for a new-entry decision; candidate, missing, failed, or mismatched configuration exposes `block_new_entry`.
+- [ ] Require scope-matching `formal_qualified` market data, frozen guard, capital check, and frozen invalidation/stop data before an existing Action Plan can be `eligible_for_manual_entry`; otherwise expose `block_new_entry` or `observe_only` with reason.
 - [ ] Render the Action Plan as the only execution decision state. User buy/sell/skip/partial confirmation writes the existing execution log with `evidence_level=self_reported`; no separate Execution Card record is introduced.
 - [ ] Preserve deterministic Daily Signal priority: data fault/insufficient → invalidation → fixed-stop sell → risk → hold. Market risk cannot fabricate a sell fill.
 - [ ] Compute P&L only from confirmed log facts and generate factual discipline attribution. Neither live P&L nor a review changes Gate, template approval, or promotion.
@@ -240,6 +242,7 @@ Each call has an 8-second timeout and no retry loop. For 30 production-equivalen
 - Do not add a contract/service/page when an existing owned object can carry the state.
 - Do not call an LLM for deterministic routing retries, status changes, price/quantity/P&L, template parameters, budgets, Gate, promotion, market state, or signal decisions.
 - Do not use a static symbol list, current classification, `confirmed_candidate_pool`, or invented fixture as a formal historical universe.
+- Do not use ResearchCase on-demand financial data in a backtest, Gate, or Promotion. A future financial template without a complete PIT financial package returns `validation_unavailable`.
 - Do not call a Tushare financial value PIT-valid unless its `ann_date` is on or before the decision date.
 - Do not show an LLM “researching”/“validating” state without a real recorded job.
 - Do not claim industry-chain completeness, alpha validity, data coverage, or profitable behavior beyond the captured evidence.
@@ -248,7 +251,7 @@ Each call has an 8-second timeout and no retry loop. For 30 production-equivalen
 
 | Review | Result |
 |---|---|
-| Adversarial blocking items 1–3 | V2 limits industry-chain handling to user-hypothesis verification; Gate 0 names Tushare interfaces/permission probe/history/format, and source-backed alpha lifecycle. |
+| Adversarial blocking items 1–3 | V2 limits industry-chain handling to user-hypothesis verification; Gate 0 binds each formal PIT package to template, Guard, requirements, and snapshot hashes, and records the source-backed alpha lifecycle. |
 | Items 4–6 | Existing fill semantics are requalified from PIT data; no-trade weekly value is an aggregate view. |
 | Items 7, 10 | The first and final artifact is one browser script spanning friend input through Discipline Review. |
 | Items 8–9 | Deterministic durable context plus open cognition/read-only tool whitelist and hard decision blacklist. |
