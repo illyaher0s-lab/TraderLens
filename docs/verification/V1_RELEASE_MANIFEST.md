@@ -1,7 +1,7 @@
 # TraderLens V1 Release Manifest
 
 **Release tag:** `v1.0.0`  
-**Tag target commit:** `b395c31`  
+**Tag target:** Resolve with `git rev-parse v1.0.0^{commit}`; it must equal the release checkout HEAD.
 **Release closeout commit:** `24aa8c4`  
 **Acceptance commit:** `2a895b5`
 
