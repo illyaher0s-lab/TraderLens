@@ -16,7 +16,8 @@ import pyarrow.parquet as pq
 
 SNAPSHOT_ID_001_RETIRED = "pims_traderlens_v2_shsz_sw2021_pit_001"  # Permanently retired/unaccepted
 SNAPSHOT_ID_002_INVALID = "pims_traderlens_v2_shsz_sw2021_pit_002"  # Invalid publication
-SNAPSHOT_ID = "pims_traderlens_v2_shsz_sw2021_pit_003"  # Current prospective ID
+SNAPSHOT_ID_003_INVALID = "pims_traderlens_v2_shsz_sw2021_pit_003"  # Invalid: missing source_partition_audit
+SNAPSHOT_ID = "pims_traderlens_v2_shsz_sw2021_pit_004"  # Current prospective ID
 EXPECTED_FORMAL_DATA_SNAPSHOT_ID = "ds_traderlens_v2_shsz_pit_001"
 EXPECTED_FORMAL_DATA_SEMANTIC_HASH = "da057716d4b4162b89fb89b7fd15864b4385d65cdee4e760a0743108cf1b135e"
 EXPECTED_UNIVERSE_REFERENCE_ID = "uref_traderlens_v2_shsz_sw2021_pit_001"
@@ -48,7 +49,7 @@ def verify_snapshot(repo_root: Path, snapshot_id: str = SNAPSHOT_ID) -> dict:
         verification result dict
     """
     
-    # Check if verifying retired _001 or invalid _002
+    # Check if verifying retired _001 or invalid _002/_003
     if snapshot_id == SNAPSHOT_ID_001_RETIRED:
         snapshot_dir = repo_root / "data/pit/pit_membership_snapshots" / snapshot_id
         if snapshot_dir.exists():
@@ -72,6 +73,19 @@ def verify_snapshot(repo_root: Path, snapshot_id: str = SNAPSHOT_ID) -> dict:
             }
         else:
             return {"status": "missing", "errors": [f"Invalid snapshot directory not found: {snapshot_dir}"]}
+    
+    if snapshot_id == SNAPSHOT_ID_003_INVALID:
+        snapshot_dir = repo_root / "data/pit/pit_membership_snapshots" / snapshot_id
+        if snapshot_dir.exists():
+            return {
+                "status": "unaccepted_invalid_publication",
+                "snapshot_id": snapshot_id,
+                "message": f"{snapshot_id} is unaccepted (missing source_partition_audit and source_to_record_mapping_hash)",
+                "reason": "Lacks source-to-record provenance binding and partition audit trail",
+            }
+        else:
+            return {"status": "missing", "errors": [f"Invalid snapshot directory not found: {snapshot_dir}"]}
+    
     
     
     snapshot_dir = repo_root / "data/pit/pit_membership_snapshots" / snapshot_id
@@ -113,7 +127,8 @@ def verify_snapshot(repo_root: Path, snapshot_id: str = SNAPSHOT_ID) -> dict:
         "include_delisted", "frozen", "quality_status", "gaps", "record_count",
         "formal_data_snapshot_id", "formal_data_semantic_hash", "universe_reference_id",
         "records_parquet_sha256", "canonical_content_hash", "schema_version",
-        "interval_semantics", "not_authorized_for_b6_oos_gate_promotion_signal"
+        "interval_semantics", "not_authorized_for_b6_oos_gate_promotion_signal",
+        "source_partition_audit",  # Required for _004+
     ]
     
     for field in required_manifest_fields:

@@ -1,0 +1,833 @@
+{
+  "snapshot_id": "pims_traderlens_v2_shsz_sw2021_pit_004",
+  "snapshot_date": "2026-07-16",
+  "universe_rule_type": "point_in_time_membership",
+  "membership_source": "sw2021_tushare_l1_partitions",
+  "vendor_scope_disclosure": {
+    "historical_membership_scope": "vendor_provided_unverified",
+    "disclosure_text": "This snapshot preserves all membership records from bound source partitions (Tushare index_member_all SW2021). TraderLens does not independently verify that the vendor's historical membership data constitutes a complete registry of all market-wide delisted securities. Vendor coverage boundaries, if any, are not contractually documented."
+  },
+  "include_delisted": true,
+  "frozen": true,
+  "quality_status": "ok",
+  "gaps": [
+    "availability_limited"
+  ],
+  "record_count": 7804,
+  "unique_symbols": 5864,
+  "date_range_min": "1984-05-09",
+  "date_range_max": "2026-06-05",
+  "formal_data_snapshot_id": "ds_traderlens_v2_shsz_pit_001",
+  "formal_data_semantic_hash": "da057716d4b4162b89fb89b7fd15864b4385d65cdee4e760a0743108cf1b135e",
+  "universe_reference_id": "uref_traderlens_v2_shsz_sw2021_pit_001",
+  "sw2021_membership_manifest_sha256": "a38b3cc6be947b290078fe637466991ee8d13dee2794d398fb709d5c4c3826f3",
+  "sw2021_candidate_sha256": "8374602c2b4fda9ca5f9ae2d27daa2ceceee1fe31fb7894dc10d1d8d789fb994",
+  "universe_definition_hash": "55d2ceb6e20641b69a1dc07e17d9d8707abc4488132acf0734c6946f1dbf94dc",
+  "records_parquet_sha256": "65fe6c9bfd5a4b107da2a2537fc2e4fb49d735b57120d0bad3a07e5a99074602",
+  "schema_version": "v1",
+  "interval_semantics": "closed_inclusive",
+  "manifest_published_at": "2026-07-16T10:52:26.714314",
+  "not_authorized_for_b6_oos_gate_promotion_signal": true,
+  "taxonomy_out_of_scope_count": 53,
+  "source_partition_audit": [
+    {
+      "partition_name": "SW2014_801030.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 458,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801030.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 310,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801040.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 50,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801040.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 14,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801050.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 160,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801050.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 75,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801710.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 80,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801710.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 56,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801720.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 176,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801720.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 52,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801730.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 423,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801730.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 56,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801890.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 619,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801890.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 222,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801740.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 149,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801740.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 42,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801880.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 327,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801880.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 31,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801110.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 108,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801110.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 32,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801130.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 120,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801130.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 55,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801140.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 173,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801140.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 12,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801200.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 115,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801200.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 68,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801010.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 126,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801010.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 56,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801120.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 129,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801120.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 58,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801210.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 93,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801210.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 49,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801150.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 527,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801150.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 109,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801160.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 136,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801160.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 46,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801170.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 144,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801170.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 36,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801180.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 119,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801180.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 124,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801080.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 517,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801080.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 173,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801750.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 379,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801750.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 45,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801760.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 153,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801760.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 24,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801770.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 143,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801770.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 12,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801780.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 42,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801790.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 95,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801790.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 4,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801230.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 35,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2014_801230.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 149,
+      "published_record_count": 0,
+      "taxonomy_status": "out_of_scope_sw2014"
+    },
+    {
+      "partition_name": "SW2021_801010.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 126,
+      "published_record_count": 126,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801010.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 56,
+      "published_record_count": 56,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801030.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 458,
+      "published_record_count": 458,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801030.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 310,
+      "published_record_count": 310,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801040.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 50,
+      "published_record_count": 50,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801040.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 14,
+      "published_record_count": 14,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801050.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 160,
+      "published_record_count": 160,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801050.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 75,
+      "published_record_count": 75,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801080.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 517,
+      "published_record_count": 517,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801080.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 173,
+      "published_record_count": 173,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801880.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 327,
+      "published_record_count": 327,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801880.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 31,
+      "published_record_count": 31,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801110.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 108,
+      "published_record_count": 108,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801110.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 32,
+      "published_record_count": 32,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801120.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 129,
+      "published_record_count": 129,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801120.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 58,
+      "published_record_count": 58,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801130.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 120,
+      "published_record_count": 120,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801130.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 55,
+      "published_record_count": 55,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801140.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 173,
+      "published_record_count": 173,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801140.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 12,
+      "published_record_count": 12,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801150.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 527,
+      "published_record_count": 527,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801150.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 109,
+      "published_record_count": 109,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801160.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 136,
+      "published_record_count": 136,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801160.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 46,
+      "published_record_count": 46,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801170.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 144,
+      "published_record_count": 144,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801170.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 36,
+      "published_record_count": 36,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801180.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 119,
+      "published_record_count": 119,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801180.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 124,
+      "published_record_count": 124,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801200.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 115,
+      "published_record_count": 115,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801200.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 68,
+      "published_record_count": 68,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801210.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 93,
+      "published_record_count": 93,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801210.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 49,
+      "published_record_count": 49,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801780.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 42,
+      "published_record_count": 42,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801790.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 95,
+      "published_record_count": 95,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801790.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 4,
+      "published_record_count": 4,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801230.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 35,
+      "published_record_count": 35,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801230.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 149,
+      "published_record_count": 149,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801710.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 80,
+      "published_record_count": 80,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801710.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 56,
+      "published_record_count": 56,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801720.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 176,
+      "published_record_count": 176,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801720.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 52,
+      "published_record_count": 52,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801730.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 423,
+      "published_record_count": 423,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801730.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 56,
+      "published_record_count": 56,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801890.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 619,
+      "published_record_count": 619,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801890.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 222,
+      "published_record_count": 222,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801740.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 149,
+      "published_record_count": 149,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801740.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 42,
+      "published_record_count": 42,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801750.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 379,
+      "published_record_count": 379,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801750.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 45,
+      "published_record_count": 45,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801760.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 153,
+      "published_record_count": 153,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801760.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 24,
+      "published_record_count": 24,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801770.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 143,
+      "published_record_count": 143,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801770.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 12,
+      "published_record_count": 12,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801950.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 40,
+      "published_record_count": 40,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801950.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 3,
+      "published_record_count": 3,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801960.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 54,
+      "published_record_count": 54,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801960.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 4,
+      "published_record_count": 4,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801970.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 143,
+      "published_record_count": 143,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801970.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 19,
+      "published_record_count": 19,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801980.SI_is_new_Y.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 31,
+      "published_record_count": 31,
+      "taxonomy_status": "sw2021_accepted"
+    },
+    {
+      "partition_name": "SW2021_801980.SI_is_new_N.parquet",
+      "source_manifest_sha256": null,
+      "source_record_count": 4,
+      "published_record_count": 4,
+      "taxonomy_status": "sw2021_accepted"
+    }
+  ],
+  "canonical_content_hash": "be5407c8ef35306c89f311062d234688f7307e5eff52b4d4c04b7905ffaf8e81"
+}

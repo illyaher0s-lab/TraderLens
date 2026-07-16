@@ -24,7 +24,8 @@ import pyarrow.parquet as pq
 # Fixed constants from design
 SNAPSHOT_ID_001_RETIRED = "pims_traderlens_v2_shsz_sw2021_pit_001"  # Permanently retired
 SNAPSHOT_ID_002_INVALID = "pims_traderlens_v2_shsz_sw2021_pit_002"  # Invalid: applied date filtering
-SNAPSHOT_ID = "pims_traderlens_v2_shsz_sw2021_pit_003"  # Current prospective ID
+SNAPSHOT_ID_003_INVALID = "pims_traderlens_v2_shsz_sw2021_pit_003"  # Invalid: missing source_partition_audit
+SNAPSHOT_ID = "pims_traderlens_v2_shsz_sw2021_pit_004"  # Current prospective ID
 FORMAL_DATA_SNAPSHOT_ID = "ds_traderlens_v2_shsz_pit_001"
 FORMAL_DATA_SEMANTIC_HASH = "da057716d4b4162b89fb89b7fd15864b4385d65cdee4e760a0743108cf1b135e"
 UNIVERSE_REFERENCE_ID = "uref_traderlens_v2_shsz_sw2021_pit_001"
@@ -148,12 +149,15 @@ def load_and_validate_records(
     seen_identities = {}  # (symbol, effective_from, effective_to, l1_code) -> [source_provenance_list]
     errors = []
     taxonomy_out_of_scope = []  # SW2014 partitions explicitly enumerated but not read
+    source_partition_audit = []  # Track source partition -> published record mapping
     
     source_dir = sw2021_manifest_path.parent
     
     for partition_meta in partitions:
         parquet_filename = partition_meta["name"]
         src_version = partition_meta["src"]
+        source_hash = partition_meta.get("hash")
+        source_row_count = partition_meta.get("row_count", 0)
         
         # Task 3: SW2014 taxonomy out of scope (enumerated, zero reads)
         if src_version == "SW2014":
@@ -162,6 +166,13 @@ def load_and_validate_records(
                 "src": src_version,
                 "hash": partition_meta.get("hash"),
                 "row_count": partition_meta.get("row_count"),
+            })
+            source_partition_audit.append({
+                "partition_name": parquet_filename,
+                "source_manifest_sha256": source_hash,
+                "source_record_count": source_row_count,
+                "published_record_count": 0,
+                "taxonomy_status": "out_of_scope_sw2014",
             })
             continue
         
@@ -179,6 +190,8 @@ def load_and_validate_records(
         # Read parquet
         table = pq.read_table(parquet_path)
         df = table.to_pandas()
+        
+        records_before = len(all_records)
         
         for _, row in df.iterrows():
             symbol = row["ts_code"]
@@ -234,6 +247,17 @@ def load_and_validate_records(
                 "snapshot_id": SNAPSHOT_ID,
             }
             all_records.append(record)
+        
+        # Record audit trail for this partition
+        records_after = len(all_records)
+        published_count = records_after - records_before
+        source_partition_audit.append({
+            "partition_name": parquet_filename,
+            "source_manifest_sha256": source_hash,
+            "source_record_count": source_row_count,
+            "published_record_count": published_count,
+            "taxonomy_status": "sw2021_accepted",
+        })
     
     # Update source field with merged provenance
     for rec in all_records:
@@ -273,6 +297,7 @@ def load_and_validate_records(
         "errors": errors,
         "has_delisted": any(r["effective_to"] is not None for r in all_records),
         "taxonomy_out_of_scope": taxonomy_out_of_scope,
+        "source_partition_audit": source_partition_audit,
     }
     
     return all_records, validation
@@ -344,7 +369,7 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
                 "snapshot_id": SNAPSHOT_ID_001_RETIRED,
                 "message": f"{SNAPSHOT_ID_001_RETIRED} is permanently retired audit evidence and must not be republished",
             }
-    
+    # Check for invalid _002/_003 publication attempt
     if SNAPSHOT_ID == SNAPSHOT_ID_002_INVALID:
         invalid_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_002_INVALID
         if invalid_dir.exists():
@@ -353,8 +378,19 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
                 "status": "unaccepted_invalid_publication",
                 "snapshot_id": SNAPSHOT_ID_002_INVALID,
                 "message": f"{SNAPSHOT_ID_002_INVALID} is unaccepted (applied date filtering to source records)",
+                "reason": "Applied DATE_POLICY_MIN filter during publication",
             }
     
+    if SNAPSHOT_ID == SNAPSHOT_ID_003_INVALID:
+        invalid_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_003_INVALID
+        if invalid_dir.exists():
+            print(f"✗ Cannot republish invalid snapshot {SNAPSHOT_ID_003_INVALID}")
+            return {
+                "status": "unaccepted_invalid_publication",
+                "snapshot_id": SNAPSHOT_ID_003_INVALID,
+                "message": f"{SNAPSHOT_ID_003_INVALID} is unaccepted (missing source_partition_audit)",
+                "reason": "Lacks source-to-record provenance binding and partition audit trail",
+            }
     # Step 3: Check if _003 already published
     output_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID
     if output_dir.exists():
@@ -446,6 +482,7 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
             "manifest_published_at": datetime.now().isoformat(),
             "not_authorized_for_b6_oos_gate_promotion_signal": True,
             "taxonomy_out_of_scope_count": len(validation["taxonomy_out_of_scope"]),
+            "source_partition_audit": validation["source_partition_audit"],
         }
         
         # Step 9: Compute canonical content hash

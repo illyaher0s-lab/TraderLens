@@ -22,15 +22,17 @@ import pytest
 REPO_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
-from scripts.publish_pit_membership_snapshot import publish_snapshot, SNAPSHOT_ID_001_RETIRED, SNAPSHOT_ID_002_INVALID, SNAPSHOT_ID
+from scripts.publish_pit_membership_snapshot import publish_snapshot, SNAPSHOT_ID_001_RETIRED, SNAPSHOT_ID_002_INVALID, SNAPSHOT_ID_003_INVALID, SNAPSHOT_ID
 from scripts.verify_pit_membership_snapshot import verify_snapshot
 
 SNAPSHOT_ID_001 = SNAPSHOT_ID_001_RETIRED
 SNAPSHOT_ID_002 = SNAPSHOT_ID_002_INVALID
-SNAPSHOT_ID_003 = SNAPSHOT_ID
+SNAPSHOT_ID_003 = SNAPSHOT_ID_003_INVALID
+SNAPSHOT_ID_004 = SNAPSHOT_ID
 OUTPUT_DIR_001 = REPO_ROOT / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_001
 OUTPUT_DIR_002 = REPO_ROOT / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_002
 OUTPUT_DIR_003 = REPO_ROOT / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_003
+OUTPUT_DIR_004 = REPO_ROOT / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_004
 
 
 def test_001_rejected_by_publisher():
@@ -69,6 +71,22 @@ def test_002_rejected_by_publisher():
         "Publisher must return unaccepted_invalid_publication status"
 
 
+def test_003_rejected_by_publisher():
+    """RED: Publisher must reject _003 as invalid publication (missing source_partition_audit)."""
+    assert OUTPUT_DIR_003.exists(), "_003 must exist as audit evidence"
+    
+    from scripts.publish_pit_membership_snapshot import SNAPSHOT_ID, SNAPSHOT_ID_003_INVALID
+    
+    assert SNAPSHOT_ID != SNAPSHOT_ID_003_INVALID, \
+        f"SNAPSHOT_ID must not be _003 (invalid), got: {SNAPSHOT_ID}"
+    
+    publisher_code = (REPO_ROOT / "scripts/publish_pit_membership_snapshot.py").read_text(encoding="utf-8")
+    assert "SNAPSHOT_ID == SNAPSHOT_ID_003_INVALID" in publisher_code, \
+        "Publisher must have _003 invalidity check"
+    assert "unaccepted_invalid_publication" in publisher_code, \
+        "Publisher must return unaccepted_invalid_publication status for _003"
+
+
 def test_001_unaccepted_by_verifier():
     """RED: Verifier must mark _001 as retired_unaccepted, not verified."""
     assert OUTPUT_DIR_001.exists(), "_001 must exist"
@@ -83,15 +101,27 @@ def test_001_unaccepted_by_verifier():
 
 
 def test_002_unaccepted_by_verifier():
-    """RED: Verifier must mark _002 as unaccepted_invalid_publication."""
+    """RED: Verifier must mark _002 as unaccepted_invalid_publication (applied date filtering)."""
     assert OUTPUT_DIR_002.exists(), "_002 must exist"
     
     result = verify_snapshot(REPO_ROOT, SNAPSHOT_ID_002)
     
     assert result["status"] == "unaccepted_invalid_publication", \
         f"Verifier must mark _002 as unaccepted_invalid_publication, got: {result['status']}"
-    assert "DATE_POLICY_MIN" in result.get("reason", "") or "date filtering" in result.get("reason", "").lower(), \
-        f"Reason must mention date filtering, got: {result.get('reason', '')}"
+    assert "DATE_POLICY_MIN" in result.get("reason", ""), \
+        f"Verifier must reference DATE_POLICY_MIN in reason, got: {result.get('reason')}"
+
+
+def test_003_unaccepted_by_verifier():
+    """RED: Verifier must mark _003 as unaccepted_invalid_publication (missing source_partition_audit)."""
+    assert OUTPUT_DIR_003.exists(), "_003 must exist"
+    
+    result = verify_snapshot(REPO_ROOT, SNAPSHOT_ID_003)
+    
+    assert result["status"] == "unaccepted_invalid_publication", \
+        f"Verifier must mark _003 as unaccepted_invalid_publication, got: {result['status']}"
+    assert "source" in result.get("reason", "").lower() and ("audit" in result.get("reason", "").lower() or "provenance" in result.get("reason", "").lower()), \
+        f"Verifier must reference missing source audit/provenance in reason, got: {result.get('reason')}"
 
 
 def test_sw2021_only_accepted():
@@ -285,26 +315,26 @@ def test_structural_validation_overlapping_interval_rejection():
     pytest.skip("Covered by publisher validation errors")
 
 
-def test_003_published_successfully():
-    """GREEN: _003 must exist after authorized publication."""
-    # After running corrective repair with proper authorization, _003 must exist
-    assert OUTPUT_DIR_003.exists(), \
-        "_003 must exist after authorized publication"
+def test_004_published_successfully():
+    """GREEN: _004 must exist after authorized publication."""
+    # After running corrective repair with proper authorization, _004 must exist
+    assert OUTPUT_DIR_004.exists(), \
+        "_004 must exist after authorized publication"
     
     # Must have all required files
-    assert (OUTPUT_DIR_003 / "manifest.json").exists(), "manifest.json must exist"
-    assert (OUTPUT_DIR_003 / "records.parquet").exists(), "records.parquet must exist"
-    assert (OUTPUT_DIR_003 / "manifest.json.sha256").exists(), "manifest sidecar must exist"
-    assert (OUTPUT_DIR_003 / "records.parquet.sha256").exists(), "records sidecar must exist"
+    assert (OUTPUT_DIR_004 / "manifest.json").exists(), "manifest.json must exist"
+    assert (OUTPUT_DIR_004 / "records.parquet").exists(), "records.parquet must exist"
+    assert (OUTPUT_DIR_004 / "manifest.json.sha256").exists(), "manifest sidecar must exist"
+    assert (OUTPUT_DIR_004 / "records.parquet.sha256").exists(), "records sidecar must exist"
 
 
 def test_write_once_protection():
-    """GREEN: After _003 is published, re-running publisher must return already_published."""
-    # Write-once: once _003 is published with specific input hashes, cannot modify.
+    """GREEN: After _004 is published, re-running publisher must return already_published."""
+    # Write-once: once _004 is published with specific input hashes, cannot modify.
     # Re-running with same inputs must return already_published, not overwrite.
     
-    if not OUTPUT_DIR_003.exists():
-        pytest.skip("Requires _003 publication first")
+    if not OUTPUT_DIR_004.exists():
+        pytest.skip("Requires _004 publication first")
     
     # Re-run publisher
     result = publish_snapshot(REPO_ROOT, date.today())
@@ -329,10 +359,10 @@ def test_verifier_recomputes_all_bindings():
     # - Universe reference
     # And recompute canonical_content_hash from manifest.
     
-    if not OUTPUT_DIR_003.exists():
-        pytest.skip("Requires _003 publication")
+    if not OUTPUT_DIR_004.exists():
+        pytest.skip("Requires _004 publication")
     
-    result = verify_snapshot(REPO_ROOT, SNAPSHOT_ID_003)
+    result = verify_snapshot(REPO_ROOT, SNAPSHOT_ID_004)
     
     # Verifier must succeed and report verified
     assert result["status"] in ["verified", "failed"], \
