@@ -156,8 +156,8 @@ def load_and_validate_records(
     for partition_meta in partitions:
         parquet_filename = partition_meta["name"]
         src_version = partition_meta["src"]
-        source_hash = partition_meta.get("hash")
-        source_row_count = partition_meta.get("row_count", 0)
+        source_hash = partition_meta["sha256"]  # Required canonical field
+        source_row_count = partition_meta["row_count"]  # Required canonical field
         
         # Task 3: SW2014 taxonomy out of scope (enumerated, zero reads)
         if src_version == "SW2014":
@@ -483,6 +483,9 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
             "not_authorized_for_b6_oos_gate_promotion_signal": True,
             "taxonomy_out_of_scope_count": len(validation["taxonomy_out_of_scope"]),
             "source_partition_audit": validation["source_partition_audit"],
+            "source_to_record_mapping_hash": hashlib.sha256(
+                json.dumps(validation["source_partition_audit"], sort_keys=True, separators=(",", ":")).encode("utf-8")
+            ).hexdigest(),
         }
         
         # Step 9: Compute canonical content hash
