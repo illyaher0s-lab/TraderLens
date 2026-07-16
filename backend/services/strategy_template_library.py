@@ -594,11 +594,6 @@ def list_approved_templates() -> tuple[StrategyTemplate, ...]:
 def _governance_map() -> dict:
     """Return the sole template-governance and owner-authorization source."""
     return {
-        "relative_strength_rotation_v1": {
-            "status": "candidate",
-            "citation": "10.1111/j.1540-6261.1993.tb04702.x",
-            "retrieval": date(2026, 7, 10),
-        },
         "theme_momentum_breakout_v1": {
             "status": "candidate",
             "citation": "10.1111/0022-1082.00146",
@@ -626,7 +621,7 @@ def _governance_map() -> dict:
             ),
         },
         "relative_strength_rotation_shsz_sw2021_v2": {
-            "status": "candidate",
+            "status": "approved",
             "citation": "10.1111/j.1540-6261.1993.tb04702.x",
             "retrieval": date(2026, 7, 10),
             "source_rule_mappings": (
@@ -660,17 +655,15 @@ def _governance_map() -> dict:
                 "version": "v2_shsz_sw2021_pit_12m",
                 "template_hash": "867a47eeece1c0d208c591f35b5ca31d663ccda183c8721eef803483921238b6",
                 "data_requirements_hash": "1910d7a598b1008fb5ba6ee69833e174b5a9949f31a998e2fced436950d8df04",
-                "pit_membership_snapshot_id": "pims_traderlens_v2_shsz_sw2021_pit_004",
-                "pit_membership_snapshot_hash": "be5407c8ef35306c89f311062d234688f7307e5eff52b4d4c04b7905ffaf8e81",
                 "review_evidence_path": "docs/verification/TASK1_V2_AI_TECHNICAL_REVIEW.md",
                 "review_evidence_sha256": "ab4391a42ade48c2319dc15bec6799a0280fbbe4ae75dc49bd1a51f403935194",
                 "reviewer_id": "ai_reviewer_openai_codex_gpt5",
                 "reviewer_kind": "ai_technical_reviewer",
                 "review_decision": "approved",
                 "reviewed_at": date(2026, 7, 15),
+                "review_due_date": date(2027, 7, 15),
                 "authorized_by": "illya",
                 "authorized_at": datetime(2026, 7, 16, 10, 30, 0),
-                "review_due_date": date(2027, 7, 15),
             },
         },
     }
@@ -691,18 +684,18 @@ def convert_to_frozen_contract(
         data_requirements_hash = get_template_data_requirements_hash(template)
     else:
         data_requirements_hash = None  # old templates keep original behavior
-
-    # ponytail: governance_map is the only owner authorization source.
+    # B1: governance_status always starts from governance_map
     governance_status = gov["status"]
     reviewer_id = None
     reviewed_at = None
     review_due_date = None
     review_evidence_path = None
     review_evidence_sha256 = None
-    owner_authorization_hash = None
     authorized_by = None
     authorized_at = None
+    owner_authorization_hash = None
 
+    # B6: owner_authorization exact-match path
     owner_auth = gov.get("owner_authorization")
     if owner_auth:
         actual_review_sha256 = _review_evidence_sha256(
@@ -734,6 +727,9 @@ def convert_to_frozen_contract(
             review_evidence_sha256 = owner_auth["review_evidence_sha256"]
             authorized_by = owner_auth["authorized_by"]
             authorized_at = owner_auth["authorized_at"]
+        else:
+            # exact_match failed: downgrade to candidate regardless of gov["status"]
+            governance_status = "candidate"
 
     return StrategyTemplateDefinition(
         template_id=template.template_id,
