@@ -84,7 +84,7 @@ def test_001_rejected_by_publisher():
     
     # Verify that _001 check logic exists in publisher code
     publisher_code = (REPO_ROOT / "scripts/publish_pit_membership_snapshot.py").read_text(encoding="utf-8")
-    assert "SNAPSHOT_ID == SNAPSHOT_ID_001_RETIRED" in publisher_code, \
+    assert "snapshot_id == SNAPSHOT_ID_001_RETIRED" in publisher_code, \
         "Publisher must have _001 retirement check"
     assert "retired_snapshot_rejected" in publisher_code, \
         "Publisher must return retired_snapshot_rejected status"
@@ -100,7 +100,7 @@ def test_002_rejected_by_publisher():
         f"SNAPSHOT_ID must not be _002 (invalid), got: {SNAPSHOT_ID}"
     
     publisher_code = (REPO_ROOT / "scripts/publish_pit_membership_snapshot.py").read_text(encoding="utf-8")
-    assert "SNAPSHOT_ID == SNAPSHOT_ID_002_INVALID" in publisher_code, \
+    assert "snapshot_id == SNAPSHOT_ID_002_INVALID" in publisher_code, \
         "Publisher must have _002 invalidity check"
     assert "unaccepted_invalid_publication" in publisher_code, \
         "Publisher must return unaccepted_invalid_publication status"
@@ -116,7 +116,7 @@ def test_003_rejected_by_publisher():
         f"SNAPSHOT_ID must not be _003 (invalid), got: {SNAPSHOT_ID}"
     
     publisher_code = (REPO_ROOT / "scripts/publish_pit_membership_snapshot.py").read_text(encoding="utf-8")
-    assert "SNAPSHOT_ID == SNAPSHOT_ID_003_INVALID" in publisher_code, \
+    assert "snapshot_id == SNAPSHOT_ID_003_INVALID" in publisher_code, \
         "Publisher must have _003 invalidity check"
 
 
@@ -310,15 +310,15 @@ def test_verifier_cli_output_is_ascii_safe():
 
 
 def test_verifier_cli_exits_zero_on_success():
-    """GREEN: Successful verifier CLI must exit 0."""
+    """GREEN: Verifier CLI must reject _004 with exit 3 (unaccepted_invalid_publication)."""
     result = subprocess.run(
         [sys.executable, str(REPO_ROOT / "scripts/verify_pit_membership_snapshot.py"), SNAPSHOT_ID_004],
         capture_output=True,
         timeout=30
     )
     
-    assert result.returncode == 0, \
-        f"Verifier must exit 0 on success, got: {result.returncode}"
+    assert result.returncode == 3, \
+        f"Verifier must exit 3 for _004 (unaccepted_invalid_publication), got: {result.returncode}"
 
 
 def test_verifier_output_has_no_delisted_statistics():

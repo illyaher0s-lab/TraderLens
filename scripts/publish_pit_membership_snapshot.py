@@ -347,20 +347,33 @@ def write_records_parquet(records: list[dict], output_path: Path):
     pq.write_table(table, output_path)
 
 
-def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
+def publish_snapshot(
+    repo_root: Path,
+    snapshot_date: date,
+    _test_source_manifest: Path | None = None,  # ponytail: test override
+    _test_output_root: Path | None = None,
+    _test_snapshot_id: str | None = None,
+) -> dict:
     """Publish formal PIT membership snapshot.
     
     Returns:
         result dict with status, paths, hashes
     """
+    # ponytail: test overrides skip production bindings
+    snapshot_id = _test_snapshot_id or SNAPSHOT_ID
+    output_base = _test_output_root or (repo_root / "data/pit/pit_membership_snapshots")
     
-    # Step 1: Verify bindings
-    print("Step 1: Verifying source bindings...")
-    bindings = verify_source_bindings(repo_root)
-    print("✓ Source bindings verified")
+    # Step 1: Verify bindings (skip if test manifest provided)
+    if _test_source_manifest:
+        sw2021_membership_manifest_path = _test_source_manifest
+    else:
+        print("Step 1: Verifying source bindings...")
+        bindings = verify_source_bindings(repo_root)
+        print("✓ Source bindings verified")
+        sw2021_membership_manifest_path = repo_root / f"data/pit/sw_industry/{FORMAL_DATA_SNAPSHOT_ID}/membership/manifest.json"
     
     # Step 2: Check if trying to republish retired _001 or invalid _002
-    if SNAPSHOT_ID == SNAPSHOT_ID_001_RETIRED:
+    if snapshot_id == SNAPSHOT_ID_001_RETIRED:
         retired_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_001_RETIRED
         if retired_dir.exists():
             print(f"✗ Cannot republish retired snapshot {SNAPSHOT_ID_001_RETIRED}")
@@ -370,7 +383,7 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
                 "message": f"{SNAPSHOT_ID_001_RETIRED} is permanently retired audit evidence and must not be republished",
             }
     # Check for invalid _002/_003 publication attempt
-    if SNAPSHOT_ID == SNAPSHOT_ID_002_INVALID:
+    if snapshot_id == SNAPSHOT_ID_002_INVALID:
         invalid_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_002_INVALID
         if invalid_dir.exists():
             print(f"✗ Cannot republish invalid snapshot {SNAPSHOT_ID_002_INVALID}")
@@ -381,7 +394,7 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
                 "reason": "Applied DATE_POLICY_MIN filter during publication",
             }
     
-    if SNAPSHOT_ID == SNAPSHOT_ID_003_INVALID:
+    if snapshot_id == SNAPSHOT_ID_003_INVALID:
         invalid_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_003_INVALID
         if invalid_dir.exists():
             print(f"✗ Cannot republish invalid snapshot {SNAPSHOT_ID_003_INVALID}")
@@ -391,23 +404,24 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
                 "message": f"{SNAPSHOT_ID_003_INVALID} is unaccepted (missing source_partition_audit)",
                 "reason": "Lacks source-to-record provenance binding and partition audit trail",
             }
-    # Step 3: Check if _003 already published
-    output_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID
+    # Step 3: Check if already published
+    output_dir = output_base / snapshot_id
     if output_dir.exists():
-        print(f"⚠ Snapshot {SNAPSHOT_ID} already exists, checking if already_published...")
+        print(f"⚠ Snapshot {snapshot_id} already exists, checking if already_published...")
         # TODO: Recompute all input hashes and verify unchanged
         # For now, return already_published
         return {
             "status": "already_published",
-            "snapshot_id": SNAPSHOT_ID,
-            "message": f"{SNAPSHOT_ID} already published (recomputation not yet implemented)",
+            "snapshot_id": snapshot_id,
+            "message": f"{snapshot_id} already published (recomputation not yet implemented)",
         }
     
     # Step 4: Load and validate records
     print("Step 2: Loading and validating records...")
+    membership_manifest = json.loads(sw2021_membership_manifest_path.read_text(encoding="utf-8"))
     records, validation = load_and_validate_records(
-        bindings["sw2021_manifest_path"],
-        bindings["membership_manifest"],
+        sw2021_membership_manifest_path,
+        membership_manifest,
         snapshot_date,
     )
     
@@ -440,7 +454,7 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
     
     # Step 6: Create temporary staging directory
     print("Step 4: Creating temporary staging directory...")
-    staging_dir = repo_root / "data/pit/pit_membership_snapshots" / f".tmp_{SNAPSHOT_ID}"
+    staging_dir = output_base / f".tmp_{snapshot_id}"
     if staging_dir.exists():
         import shutil
         shutil.rmtree(staging_dir)
@@ -457,7 +471,7 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
         # Step 8: Build manifest
         print("Step 6: Building manifest...")
         manifest = {
-            "snapshot_id": SNAPSHOT_ID,
+            "snapshot_id": snapshot_id,
             "snapshot_date": snapshot_date.isoformat(),
             "universe_rule_type": UNIVERSE_RULE_TYPE,
             "membership_source": MEMBERSHIP_SOURCE,
@@ -504,26 +518,25 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
         (staging_dir / "records.parquet.sha256").write_text(f"{records_hash}  records.parquet\n", encoding="utf-8")
         print("✓ Sidecars written")
         
-        # Step 12: Atomic rename from staging to final
-        print("Step 7: Atomic rename to final location...")
-        final_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID
+        # Step 11: Atomic move to final location
+        print("Step 8: Atomic move to final location...")
+        final_dir = output_base / snapshot_id
         if final_dir.exists():
-            # Race condition: another process published while we were building
+            # Race condition: another process published while we were staging
             import shutil
             shutil.rmtree(staging_dir)
             return {
                 "status": "already_published",
-                "snapshot_id": SNAPSHOT_ID,
-                "message": f"{SNAPSHOT_ID} was published by another process during staging",
+                "snapshot_id": snapshot_id,
+                "message": f"{snapshot_id} was published by another process during staging",
             }
-        
         staging_dir.rename(final_dir)
-        print(f"✓ Atomic rename complete: {final_dir}")
         
+        print(f"✓ Published {snapshot_id}")
         return {
             "status": "published",
+            "snapshot_id": snapshot_id,
             "output_dir": str(final_dir),
-            "snapshot_id": SNAPSHOT_ID,
             "snapshot_date": snapshot_date.isoformat(),
             "record_count": validation["total_records"],
             "unique_symbols": validation["unique_symbols"],
