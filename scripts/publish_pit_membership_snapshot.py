@@ -23,16 +23,25 @@ import pyarrow.parquet as pq
 
 # Fixed constants from design
 SNAPSHOT_ID_001_RETIRED = "pims_traderlens_v2_shsz_sw2021_pit_001"  # Permanently retired
-SNAPSHOT_ID = "pims_traderlens_v2_shsz_sw2021_pit_002"  # Only prospective ID
+SNAPSHOT_ID_002_INVALID = "pims_traderlens_v2_shsz_sw2021_pit_002"  # Invalid: applied date filtering
+SNAPSHOT_ID = "pims_traderlens_v2_shsz_sw2021_pit_003"  # Current prospective ID
 FORMAL_DATA_SNAPSHOT_ID = "ds_traderlens_v2_shsz_pit_001"
 FORMAL_DATA_SEMANTIC_HASH = "da057716d4b4162b89fb89b7fd15864b4385d65cdee4e760a0743108cf1b135e"
 UNIVERSE_REFERENCE_ID = "uref_traderlens_v2_shsz_sw2021_pit_001"
 UNIVERSE_RULE_TYPE = "point_in_time_membership"
 MEMBERSHIP_SOURCE = "sw2021_tushare_l1_partitions"
-VENDOR_SCOPE_DISCLOSURE = "sw2021_l1_only"  # Only SW2021 L1 membership partitions consumed
 
-# Owner-approved date policy: formal validation window is 2016-01-04 onwards
-DATE_POLICY_MIN = date(2016, 1, 4)
+# Owner-approved structured disclosure (Task 3)
+VENDOR_SCOPE_DISCLOSURE = {
+    "historical_membership_scope": "vendor_provided_unverified",
+    "disclosure_text": (
+        "This snapshot preserves all membership records from bound source partitions "
+        "(Tushare index_member_all SW2021). TraderLens does not independently verify "
+        "that the vendor's historical membership data constitutes a complete registry "
+        "of all market-wide delisted securities. Vendor coverage boundaries, if any, "
+        "are not contractually documented."
+    ),
+}
 
 # Expected source hashes from coverage binding
 EXPECTED_SW2021_MEMBERSHIP_MANIFEST_SHA256 = "a38b3cc6be947b290078fe637466991ee8d13dee2794d398fb709d5c4c3826f3"
@@ -138,6 +147,7 @@ def load_and_validate_records(
     all_records = []
     seen_identities = {}  # (symbol, effective_from, effective_to, l1_code) -> [source_provenance_list]
     errors = []
+    taxonomy_out_of_scope = []  # SW2014 partitions explicitly enumerated but not read
     
     source_dir = sw2021_manifest_path.parent
     
@@ -145,9 +155,19 @@ def load_and_validate_records(
         parquet_filename = partition_meta["name"]
         src_version = partition_meta["src"]
         
-        # CORRECTIVE: Reject SW2014, only accept SW2021
+        # Task 3: SW2014 taxonomy out of scope (enumerated, zero reads)
+        if src_version == "SW2014":
+            taxonomy_out_of_scope.append({
+                "name": parquet_filename,
+                "src": src_version,
+                "hash": partition_meta.get("hash"),
+                "row_count": partition_meta.get("row_count"),
+            })
+            continue
+        
+        # Only SW2021 accepted
         if src_version != "SW2021":
-            # This is expected filtering, not an error - skip silently
+            errors.append(f"Unknown taxonomy: {src_version} in {parquet_filename}")
             continue
         
         parquet_path = source_dir / parquet_filename
@@ -183,10 +203,8 @@ def load_and_validate_records(
                 errors.append(f"{symbol}: effective_to < effective_from ({effective_to} < {effective_from})")
                 continue
             
-            # Apply date policy: only consume records from DATE_POLICY_MIN onwards
-            if effective_from < DATE_POLICY_MIN:
-                # Skip records before 2016-01-04 (outside formal validation window)
-                continue
+            # Task 3: No date filtering - preserve all source records
+            # Validation window is consumption boundary, not publication filter
             
             # Validate horizon
             if effective_from > snapshot_date:
@@ -254,6 +272,7 @@ def load_and_validate_records(
         "unique_symbols": len(symbol_intervals),
         "errors": errors,
         "has_delisted": any(r["effective_to"] is not None for r in all_records),
+        "taxonomy_out_of_scope": taxonomy_out_of_scope,
     }
     
     return all_records, validation
@@ -315,7 +334,7 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
     bindings = verify_source_bindings(repo_root)
     print("✓ Source bindings verified")
     
-    # Step 2: Check if trying to republish retired _001
+    # Step 2: Check if trying to republish retired _001 or invalid _002
     if SNAPSHOT_ID == SNAPSHOT_ID_001_RETIRED:
         retired_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_001_RETIRED
         if retired_dir.exists():
@@ -326,7 +345,17 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
                 "message": f"{SNAPSHOT_ID_001_RETIRED} is permanently retired audit evidence and must not be republished",
             }
     
-    # Step 3: Check if _002 already published
+    if SNAPSHOT_ID == SNAPSHOT_ID_002_INVALID:
+        invalid_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_002_INVALID
+        if invalid_dir.exists():
+            print(f"✗ Cannot republish invalid snapshot {SNAPSHOT_ID_002_INVALID}")
+            return {
+                "status": "unaccepted_invalid_publication",
+                "snapshot_id": SNAPSHOT_ID_002_INVALID,
+                "message": f"{SNAPSHOT_ID_002_INVALID} is unaccepted (applied date filtering to source records)",
+            }
+    
+    # Step 3: Check if _003 already published
     output_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID
     if output_dir.exists():
         print(f"⚠ Snapshot {SNAPSHOT_ID} already exists, checking if already_published...")
@@ -397,7 +426,6 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
             "universe_rule_type": UNIVERSE_RULE_TYPE,
             "membership_source": MEMBERSHIP_SOURCE,
             "vendor_scope_disclosure": VENDOR_SCOPE_DISCLOSURE,
-            "date_policy_min": DATE_POLICY_MIN.isoformat(),
             "include_delisted": True,
             "frozen": True,
             "quality_status": "ok",
@@ -417,6 +445,7 @@ def publish_snapshot(repo_root: Path, snapshot_date: date) -> dict:
             "interval_semantics": "closed_inclusive",
             "manifest_published_at": datetime.now().isoformat(),
             "not_authorized_for_b6_oos_gate_promotion_signal": True,
+            "taxonomy_out_of_scope_count": len(validation["taxonomy_out_of_scope"]),
         }
         
         # Step 9: Compute canonical content hash

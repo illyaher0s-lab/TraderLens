@@ -15,7 +15,8 @@ import pyarrow.parquet as pq
 
 
 SNAPSHOT_ID_001_RETIRED = "pims_traderlens_v2_shsz_sw2021_pit_001"  # Permanently retired/unaccepted
-SNAPSHOT_ID = "pims_traderlens_v2_shsz_sw2021_pit_002"  # Only prospective ID
+SNAPSHOT_ID_002_INVALID = "pims_traderlens_v2_shsz_sw2021_pit_002"  # Invalid publication
+SNAPSHOT_ID = "pims_traderlens_v2_shsz_sw2021_pit_003"  # Current prospective ID
 EXPECTED_FORMAL_DATA_SNAPSHOT_ID = "ds_traderlens_v2_shsz_pit_001"
 EXPECTED_FORMAL_DATA_SEMANTIC_HASH = "da057716d4b4162b89fb89b7fd15864b4385d65cdee4e760a0743108cf1b135e"
 EXPECTED_UNIVERSE_REFERENCE_ID = "uref_traderlens_v2_shsz_sw2021_pit_001"
@@ -47,7 +48,7 @@ def verify_snapshot(repo_root: Path, snapshot_id: str = SNAPSHOT_ID) -> dict:
         verification result dict
     """
     
-    # Check if verifying retired _001
+    # Check if verifying retired _001 or invalid _002
     if snapshot_id == SNAPSHOT_ID_001_RETIRED:
         snapshot_dir = repo_root / "data/pit/pit_membership_snapshots" / snapshot_id
         if snapshot_dir.exists():
@@ -59,6 +60,19 @@ def verify_snapshot(repo_root: Path, snapshot_id: str = SNAPSHOT_ID) -> dict:
             }
         else:
             return {"status": "missing", "errors": [f"Retired snapshot directory not found: {snapshot_dir}"]}
+    
+    if snapshot_id == SNAPSHOT_ID_002_INVALID:
+        snapshot_dir = repo_root / "data/pit/pit_membership_snapshots" / snapshot_id
+        if snapshot_dir.exists():
+            return {
+                "status": "unaccepted_invalid_publication",
+                "snapshot_id": snapshot_id,
+                "message": f"{snapshot_id} is unaccepted (applied date filtering to source records, violating source retention principle)",
+                "reason": "Applied DATE_POLICY_MIN filter during publication, discarding valid source records",
+            }
+        else:
+            return {"status": "missing", "errors": [f"Invalid snapshot directory not found: {snapshot_dir}"]}
+    
     
     snapshot_dir = repo_root / "data/pit/pit_membership_snapshots" / snapshot_id
     
@@ -95,7 +109,7 @@ def verify_snapshot(repo_root: Path, snapshot_id: str = SNAPSHOT_ID) -> dict:
     # 5. Verify manifest structure
     required_manifest_fields = [
         "snapshot_id", "snapshot_date", "universe_rule_type", "membership_source",
-        "vendor_scope_disclosure", "date_policy_min",
+        "vendor_scope_disclosure",
         "include_delisted", "frozen", "quality_status", "gaps", "record_count",
         "formal_data_snapshot_id", "formal_data_semantic_hash", "universe_reference_id",
         "records_parquet_sha256", "canonical_content_hash", "schema_version",
@@ -136,9 +150,15 @@ def verify_snapshot(repo_root: Path, snapshot_id: str = SNAPSHOT_ID) -> dict:
     if manifest["not_authorized_for_b6_oos_gate_promotion_signal"] is not True:
         errors.append("not_authorized_for_b6_oos_gate_promotion_signal must be True")
     
-    # 8b. Verify vendor_scope_disclosure
-    if manifest.get("vendor_scope_disclosure") != "sw2021_l1_only":
-        errors.append(f"vendor_scope_disclosure must be 'sw2021_l1_only', got: {manifest.get('vendor_scope_disclosure')}")
+    # 8b. Verify vendor_scope_disclosure structure (Task 3)
+    vendor_disclosure = manifest.get("vendor_scope_disclosure")
+    if not isinstance(vendor_disclosure, dict):
+        errors.append(f"vendor_scope_disclosure must be dict, got: {type(vendor_disclosure)}")
+    elif vendor_disclosure.get("historical_membership_scope") != "vendor_provided_unverified":
+        errors.append(f"vendor_scope_disclosure.historical_membership_scope must be 'vendor_provided_unverified', got: {vendor_disclosure.get('historical_membership_scope')}")
+    elif "disclosure_text" not in vendor_disclosure:
+        errors.append("vendor_scope_disclosure must contain 'disclosure_text' field")
+    
     
     # 9. Verify records parquet sidecar
     records_path = snapshot_dir / "records.parquet"
@@ -252,6 +272,12 @@ def main():
         print(f"Reason: {result['reason']}")
         print("\nThis snapshot must NOT be used. It is preserved only as audit evidence.")
         return 2  # Distinct exit code for retired
+    
+    if result["status"] == "unaccepted_invalid_publication":
+        print(f"\n✗ {result['message']}")
+        print(f"Reason: {result['reason']}")
+        print("\nThis snapshot must NOT be used. It is preserved only as audit evidence.")
+        return 3  # Distinct exit code for invalid publication
     
     if result["status"] == "verified":
         print(f"Snapshot ID: {result['snapshot_id']}")
