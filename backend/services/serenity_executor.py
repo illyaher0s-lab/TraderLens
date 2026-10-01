@@ -44,17 +44,13 @@ class DeterministicExecutor:
         audit: SerenityAgentAudit,
         theme_name: str = "",
         theme_background: str = "",
+        target_symbol: str = "",  # Backward-compatible single target
+        target_symbols: list[str] | None = None,
     ) -> None:
         """Execute research plan and populate context.
         
-        Steps:
-        1. 提取主题关键词（确定性）
-        2. 并发数据检索（max_concurrency=2）
-        3. 计算主题匹配（确定性）
-        4. 发现玩家
-        5. 批量 verify_ticker（max_concurrency=2）
-        6. 来源审计
-        7. red-team
+        V2: only research target_symbol (already verified from Workbench).
+        No automatic player discovery, peer inference, or multi-candidate exploration.
         """
         
         try:
@@ -65,8 +61,14 @@ class DeterministicExecutor:
             from backend.services.theme_matcher import extract_keywords
             self.theme_keywords = extract_keywords(theme_name, theme_background)
             
-            # Step 1: 并发数据检索
-            self._retrieve_data(plan, context, audit)
+            symbols = list(target_symbols or ([target_symbol] if target_symbol else []))
+            if not symbols:
+                audit.errors.append("executor: V2 requires target_symbol")
+                return
+            
+            # Step 1: retrieve the explicit batch serially; one Serenity run.
+            for symbol in symbols:
+                self._retrieve_data_single(symbol, plan, context, audit)
             
             # Step 1.5: 计算主题匹配
             self._compute_theme_relevance(context)
@@ -74,10 +76,9 @@ class DeterministicExecutor:
             # 传递 theme_keywords 到 context
             context.theme_keywords = self.theme_keywords
             
-            # Step 2: 发现玩家（从已检索的 sources 提取 symbols）
-            self._discover_players(context, audit)
+            # Step 2: V2 不做 player discovery（symbols 从 sources 提取）
             
-            # Step 3: 批量 verify_ticker
+            # Step 3: 验证目标标的
             self._verify_tickers(context, audit)
             
             # Step 4: 来源审计
@@ -90,6 +91,40 @@ class DeterministicExecutor:
             if self._executor:
                 self._executor.shutdown(wait=True)
                 self._executor = None
+    
+    def _retrieve_data_single(self, symbol: str, plan: ResearchPlan, context: SerenityRunContext, audit: SerenityAgentAudit):
+        """V2: 仅检索单个目标标的."""
+        try:
+            result = self.serenity_tools.retrieve_supply_chain(
+                theme_name="",
+                theme_background="",
+                keywords=plan.keywords[:5],
+                symbols=[symbol],
+                start_date=plan.start_date,
+                end_date=plan.end_date,
+                max_records=20,
+            )
+            
+            audit.tool_calls.append({
+                "tool": "retrieve_supply_chain",
+                "params": {"symbol": symbol, "keywords": plan.keywords[:5]},
+                "result_summary": {
+                    "records_count": len(result.records),
+                    "gaps_count": len(result.gaps),
+                    "errors_count": len(result.errors),
+                }
+            })
+            
+            for record in result.records:
+                context.sources_by_id[record.source_record_id] = record
+            
+            if result.gaps:
+                audit.errors.extend([f"retrieve({symbol}): {g}" for g in result.gaps])
+            if result.errors:
+                audit.errors.extend([f"retrieve({symbol}): {e}" for e in result.errors])
+                
+        except Exception as exc:
+            audit.errors.append(f"retrieve_supply_chain({symbol}) failed: {exc}")
     
     def _retrieve_data(self, plan: ResearchPlan, context: SerenityRunContext, audit: SerenityAgentAudit):
         """并发检索数据，最大并发 2."""

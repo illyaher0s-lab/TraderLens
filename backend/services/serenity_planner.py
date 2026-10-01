@@ -54,8 +54,8 @@ class ResearchPlanner:
 OUTPUT SCHEMA:
 {
   "keywords": ["关键词1", "关键词2"],
-  "seed_symbols": ["300750.SZ", "600519.SH"],
-  "sectors_to_check": ["电气设备", "食品饮料"],
+  "seed_symbols": [],
+  "sectors_to_check": ["电气设备"],
   "start_date": "20230101",
   "end_date": "20260624",
   "falsification_questions": ["问题1", "问题2"]
@@ -63,7 +63,7 @@ OUTPUT SCHEMA:
 
 RULES:
 - keywords: 最多 20 个
-- seed_symbols: 最多 10 个（这些是检索起点，不是已验证玩家）
+- seed_symbols: V2 不使用，必须为空数组
 - sectors_to_check: 最多 5 个
 - falsification_questions: 最多 10 个
 - 日期格式必须是 YYYYMMDD
@@ -75,7 +75,7 @@ RULES:
         self.llm_client = llm_client
         self.last_response_metadata = None  # 保存响应元数据（不包含敏感 prompt）
     
-    def plan(self, theme, manual_candidates: list) -> ResearchPlan:
+    def plan(self, theme, manual_candidates: list, audit=None) -> ResearchPlan:
         """Generate research plan from theme.
         
         Args:
@@ -95,11 +95,23 @@ RULES:
 
 请生成研究计划（仅输出 JSON，不要 markdown 代码块）。"""
         
-        response = self.llm_client.create_message(
-            messages=[{"role": "user", "content": prompt}],
-            system=self.SYSTEM_PROMPT,
-            max_tokens=1024,
-        )
+        self.last_call_diagnostic = None
+        try:
+            response = self.llm_client.create_message(
+                messages=[{"role": "user", "content": prompt}],
+                system=self.SYSTEM_PROMPT,
+                max_tokens=1024,
+                stage="planner",
+                source_count=0,
+            )
+        except Exception as exc:
+            diagnostic = getattr(getattr(exc, "__cause__", None), "call_diagnostic", None)
+            self.last_call_diagnostic = dict(diagnostic) if isinstance(diagnostic, dict) else None
+            if audit is not None and self.last_call_diagnostic is not None:
+                audit.call_diagnostics.append(dict(self.last_call_diagnostic))
+            raise
+        diagnostic = getattr(response, "call_diagnostic", None)
+        self.last_call_diagnostic = dict(diagnostic) if isinstance(diagnostic, dict) else None
         
         # 保存响应元数据用于审计（不包含完整 prompt）
         self.last_response_metadata = {
@@ -108,6 +120,10 @@ RULES:
         }
         
         # Extract text from response
+        if self.last_call_diagnostic is not None:
+            self.last_call_diagnostic["output_parse_reached"] = True
+            if audit is not None:
+                audit.call_diagnostics.append(dict(self.last_call_diagnostic))
         text = self._extract_text(response)
         
         # Parse JSON

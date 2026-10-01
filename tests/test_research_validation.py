@@ -254,7 +254,7 @@ class FakeTushareClient:
             else:
                 return pd.DataFrame()
         
-        if api_name == "anns":
+        if api_name == "anns_d":
             ts_code = kwargs.get("ts_code")
             import pandas as pd
             if ts_code == "300750.SZ":
@@ -264,6 +264,7 @@ class FakeTushareClient:
                         "20260620", "20260615", "20260610",
                         "20260605", "20260601",
                     ],
+                    "name": ["宁德时代"] * 5,
                     "title": [
                         "关于收到政府补助的公告",
                         "2025年年度报告",
@@ -271,56 +272,66 @@ class FakeTushareClient:
                         "关于对外投资设立子公司的公告",
                         "关于签署战略合作协议的公告",
                     ],
-                    "ann_type": [
-                        "800001", "01010101", "800005",
-                        "150001", "800030",
+                    "url": [
+                        "https://example.test/300750/20260620.pdf",
+                        "https://example.test/300750/20260615.pdf",
+                        "https://example.test/300750/20260610.pdf",
+                        "https://example.test/300750/20260605.pdf",
+                        "https://example.test/300750/20260601.pdf",
                     ],
-                    "pub_date": [
+                    "rec_time": [
                         "20260620", "20260615", "20260610",
                         "20260605", "20260601",
-                    ],
-                    "content_type": [
-                        "PDF", "PDF", "PDF", "PDF", "PDF",
                     ],
                 })
             elif ts_code == "600519.SH":
                 return pd.DataFrame({
                     "ts_code": ["600519.SH"] * 3,
                     "ann_date": ["20260622", "20260618", "20260612"],
+                    "name": ["贵州茅台"] * 3,
                     "title": [
                         "关于产品价格调整的公告",
                         "2025年度利润分配预案",
                         "关于董事会换届选举的公告",
                     ],
-                    "ann_type": ["01030101", "01030301", "800201"],
-                    "pub_date": ["20260622", "20260618", "20260612"],
-                    "content_type": ["PDF", "PDF", "PDF"],
+                    "url": [
+                        "https://example.test/600519/20260622.pdf",
+                        "https://example.test/600519/20260618.pdf",
+                        "https://example.test/600519/20260612.pdf",
+                    ],
+                    "rec_time": ["20260622", "20260618", "20260612"],
                 })
             elif ts_code == "002594.SZ":
                 # Partial data — some rows missing title
-                import numpy as np
                 return pd.DataFrame({
                     "ts_code": ["002594.SZ"] * 4,
                     "ann_date": [
                         "20260624", "20260620", "20260615", "20260610",
                     ],
+                    "name": ["比亚迪"] * 4,
                     "title": [
                         "关于回购股份进展的公告", None,
                         "关于变更部分募集资金用途的公告", None,
                     ],
-                    "ann_type": [
-                        "800007", "01010101", "150002", "800005",
+                    "url": [
+                        "https://example.test/002594/20260624.pdf",
+                        "https://example.test/002594/20260620.pdf",
+                        "https://example.test/002594/20260615.pdf",
+                        "https://example.test/002594/20260610.pdf",
                     ],
-                    "pub_date": [
+                    "rec_time": [
                         "20260624", "20260620", "20260615", "20260610",
                     ],
-                    "content_type": ["PDF", "PDF", "PDF", "PDF"],
                 })
             elif ts_code == "000001.SZ":
                 # Empty result
                 return pd.DataFrame()
             else:
                 return pd.DataFrame()
+
+        if api_name == "stock_company":
+            import pandas as pd
+            return pd.DataFrame()
         
         raise ValueError(f"Unsupported API: {api_name}")
 

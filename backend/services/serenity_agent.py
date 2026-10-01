@@ -26,9 +26,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from contracts.research import (
     ThemeInput,
     CandidateStock,
@@ -156,6 +157,32 @@ class SerenityAgentAudit:
         self.errors: list[str] = []
         self.extraction_time_ms: float = 0.0
         self.candidates_proposed: int = 0
+        self.stage_calls: list[dict] = []
+        self.call_diagnostics: list[dict] = []
+
+    @staticmethod
+    def _safe_trace_value(value, fallback="unknown"):
+        if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9._:/-]{1,128}", value):
+            return fallback
+        return value
+
+    def begin_stage_call(self, stage: str, sequence: int) -> dict:
+        call = {
+            "stage": stage,
+            "sequence": sequence,
+            "called_at": datetime.now(timezone.utc).isoformat(),
+            "provider": self._safe_trace_value(self.provider),
+            "model": self._safe_trace_value(self.model),
+            "status": "in_progress",
+        }
+        self.stage_calls.append(call)
+        return call
+
+    def finish_stage_call(self, call: dict, status: str, metadata: dict | None = None) -> None:
+        call["status"] = status
+        metadata = metadata or {}
+        model = self._safe_trace_value(metadata.get("model"), call["model"])
+        call["model"] = model
 
     def compute_tool_hash(self) -> str:
         raw = str(self.tool_calls).encode("utf-8")
@@ -174,6 +201,15 @@ class SerenityAgentAudit:
             "candidates_proposed": self.candidates_proposed,
             "extraction_time_ms": self.extraction_time_ms,
         }
+
+
+class SerenityExecutionError(ValueError):
+    """Safe runner failure carrying only the non-sensitive stage-call trace."""
+
+    def __init__(self, stage_trace: list[dict], call_diagnostics: list[dict] | None = None):
+        super().__init__("serenity_execution_failed")
+        self.stage_trace = [dict(call) for call in stage_trace]
+        self.call_diagnostics = [dict(call) for call in (call_diagnostics or [])]
 
 
 class SerenityAgentRunner(SerenityRunner):
@@ -262,12 +298,13 @@ class SerenityAgentRunner(SerenityRunner):
             else:
                 # single_phase (legacy)
                 output, audit = self._run_agent(theme, manual_candidates, audit)
-        except Exception as exc:
-            audit.errors.append(f"Serenity Agent failed: {exc}")
-            raise ValueError(
-                f"Serenity Agent (real) failed: {exc}. "
-                f"Audit: {audit.to_dict()}"
-            ) from exc
+        except Exception:
+            # Provider/tool exceptions and audit details may contain credentials.
+            # Keep only a stable, non-sensitive failure code at this boundary.
+            audit.errors[:] = ["serenity_execution_failed"]
+            if self.execution_mode == "two_phase":
+                raise SerenityExecutionError(audit.stage_calls, audit.call_diagnostics) from None
+            raise ValueError("Serenity Agent (real) failed: serenity_execution_failed") from None
 
         audit.extraction_time_ms = (time.time() - t0) * 1000
         return output
@@ -896,8 +933,10 @@ class SerenityAgentRunner(SerenityRunner):
         
         # Phase 1: Research Planner (LLM 1/2)
         planner = ResearchPlanner(self.llm_client)
+        planner_call = audit.begin_stage_call("planner", 1)
         try:
             plan = planner.plan(theme, manual_candidates)
+            audit.finish_stage_call(planner_call, "success", planner.last_response_metadata)
             
             # 汇总 Planner token usage
             if planner.last_response_metadata and planner.last_response_metadata.get("usage"):
@@ -919,18 +958,22 @@ class SerenityAgentRunner(SerenityRunner):
                 }
             })
         except Exception as exc:
+            audit.finish_stage_call(planner_call, "failure", planner.last_response_metadata)
             audit.errors.append(f"Planner failed: {exc}")
             raise ValueError(f"Research Planner failed: {exc}") from exc
         
         # Phase 2: Deterministic Executor
         executor = DeterministicExecutor(self.serenity_tools, self.validator, self.db)
         try:
+            target_symbols = [candidate.symbol for candidate in manual_candidates]
+            
             executor.execute(
                 plan=plan,
                 context=context,
                 audit=audit,
                 theme_name=theme.theme_name,
                 theme_background=theme.background,
+                target_symbols=target_symbols,
             )
             
             # 记录 Executor 结果
@@ -951,8 +994,10 @@ class SerenityAgentRunner(SerenityRunner):
         
         # Phase 3: Research Synthesizer (LLM 2/2)
         synthesizer = ResearchSynthesizer(self.llm_client)
+        synthesizer_call = audit.begin_stage_call("synthesizer", 2)
         try:
             synthesis = synthesizer.synthesize(theme, context, audit)
+            audit.finish_stage_call(synthesizer_call, "success", synthesizer.last_response_metadata)
             
             # 汇总 Synthesizer token usage
             if synthesizer.last_response_metadata and synthesizer.last_response_metadata.get("usage"):
@@ -973,12 +1018,18 @@ class SerenityAgentRunner(SerenityRunner):
                 }
             })
         except Exception as exc:
+            audit.finish_stage_call(synthesizer_call, "failure", synthesizer.last_response_metadata)
             audit.errors.append(f"Synthesizer failed: {exc}")
             raise ValueError(f"Research Synthesizer failed: {exc}") from exc
         
         # Phase 4: Deterministic Shortlist Gate
         try:
-            candidate_shortlist = apply_shortlist_gate(context, synthesis, theme.theme_id)
+            candidate_shortlist = apply_shortlist_gate(
+                context,
+                synthesis,
+                theme.theme_id,
+                source_type=theme.source_type,
+            )
         except Exception as exc:
             audit.errors.append(f"Shortlist gate failed: {exc}")
             raise ValueError(f"Shortlist gate failed: {exc}") from exc
@@ -1047,6 +1098,13 @@ class SerenityAgentRunner(SerenityRunner):
             suspected_bottleneck_layers=synthesis.suspected_bottleneck_layers,  # 保留完整结构
             hypothesis_draft=synthesis.hypothesis_draft,  # 保留完整结构
             evidence_gaps=synthesis.evidence_gaps,
+            research_sources=[
+                source.model_dump(mode="json")
+                for source in context.sources_by_id.values()
+            ],
+            candidate_verdicts=synthesis.candidate_verdicts,
+            serenity_stage_trace=audit.stage_calls,
+            serenity_call_diagnostics=audit.call_diagnostics,
             harness=AgentHarnessConfig(
                 execution_engine="two_phase",
                 llm_provider=audit.provider,
@@ -1065,4 +1123,3 @@ class SerenityAgentRunner(SerenityRunner):
         audit.tool_calls_hash = audit.compute_tool_hash()
         
         return output, audit
-

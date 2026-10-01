@@ -12,7 +12,9 @@ Covers:
 
 import unittest
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 from contracts.research import (
+    DataToolResult,
     ResearchSource,
     SerenityToolResult,
     ThemeInput,
@@ -38,6 +40,220 @@ class TestRetrieveSupplyChain(unittest.TestCase):
 
     def setUp(self):
         self.tools = make_tools()
+
+    def test_sse_announcement_metadata_and_research_window_survive_conversion(self):
+        from datetime import timedelta
+
+        symbol = "603002.SH"
+        retrieved_at = datetime.now(ZoneInfo("Asia/Shanghai"))
+        planner_end_date = retrieved_at.date().strftime("%Y%m%d")
+        old_income_end_date = (
+            retrieved_at.date() - timedelta(days=90)
+        ).strftime("%Y%m%d")
+        announcement_date = retrieved_at.date().isoformat()
+        announcement_title = "宏昌电子董事会决议公告"
+        announcement_date_compact = announcement_date.replace("-", "")
+        official_url = (
+            "https://static.sse.com.cn/disclosure/listedinfo/announcement/"
+            f"c/new/{announcement_date}/{symbol[:6]}_"
+            f"{announcement_date_compact}_FWCK.pdf"
+        )
+
+        class FixtureDataTools:
+            def __init__(self):
+                self.announcement_call = None
+
+            def get_financials(self, requested_symbol):
+                return DataToolResult(
+                    tool_name="get_financials",
+                    raw_data=[{
+                        "ts_code": requested_symbol,
+                        "end_date": old_income_end_date,
+                        "ann_date": old_income_end_date,
+                        "total_revenue": 123.0,
+                    }],
+                    source="tushare_income",
+                    retrieved_at=retrieved_at,
+                )
+
+            def get_company_profile(self, requested_symbol):
+                return DataToolResult(
+                    tool_name="get_company_profile",
+                    raw_data=[],
+                    source="tushare_stock_company",
+                    retrieved_at=retrieved_at,
+                )
+
+            def get_announcements(
+                self, requested_symbol, *, start_date=None, end_date=None, keywords=None
+            ):
+                self.announcement_call = {
+                    "symbol": requested_symbol,
+                    "start_date": start_date,
+                    "end_date": end_date,
+                    "keywords": keywords,
+                }
+                return DataToolResult(
+                    tool_name="get_announcements",
+                    raw_data=[{
+                        "source": "sse",
+                        "code": symbol,
+                        "date": announcement_date,
+                        "title": announcement_title,
+                        "url": official_url,
+                        "retrieved_at": retrieved_at,
+                        "gaps": ["full_text_unavailable"],
+                    }],
+                    source="sse_company_announcements",
+                    retrieved_at=retrieved_at,
+                )
+
+            def get_sector_and_peers(self, requested_symbol, snapshot_date=None):
+                return DataToolResult(
+                    tool_name="get_sector_and_peers",
+                    raw_data=[],
+                    source="tushare_stock_basic",
+                    retrieved_at=retrieved_at,
+                )
+
+        data_tools = FixtureDataTools()
+        tools = SerenityTools(data_tools=data_tools)
+        result = tools.retrieve_supply_chain(
+            theme_name="",
+            symbols=[symbol],
+            start_date="20260901",
+            end_date=planner_end_date,
+        )
+
+        self.assertEqual(data_tools.announcement_call["end_date"], planner_end_date)
+        announcement = next(
+            record for record in result.records
+            if record.source_type == "announcement"
+        )
+        self.assertEqual(announcement.source_record_id, "announcements:603002.SH:0")
+        self.assertEqual(announcement.announcement_code, symbol)
+        self.assertEqual(announcement.published_at, retrieved_at.date())
+        self.assertEqual(announcement.title, announcement_title)
+        self.assertEqual(announcement.source_url, official_url)
+        self.assertEqual(announcement.retrieved_at, retrieved_at)
+        self.assertEqual(
+            announcement.summary,
+            f"{announcement_date} 披露《{announcement_title}》",
+        )
+        self.assertEqual(announcement.gaps, ["full_text_unavailable"])
+
+    def test_anns_d_results_become_traceable_research_sources(self):
+        import pandas as pd
+
+        official_fields = "ann_date,ts_code,name,title,url,rec_time"
+
+        class RecordingProvider:
+            def __init__(self):
+                self.calls = []
+
+            def query(self, api_name, **kwargs):
+                self.calls.append((api_name, kwargs))
+                if api_name == "anns_d":
+                    return pd.DataFrame([{
+                        "ann_date": "20260918",
+                        "ts_code": "603002.SH",
+                        "name": "宏昌电子",
+                        "title": "603002.SH公告标题",
+                        "url": "https://example.test/603002/notice.pdf",
+                        "rec_time": datetime(2026, 9, 19, 8, 30),
+                    }])
+                return pd.DataFrame()
+
+        provider = RecordingProvider()
+        tools = SerenityTools(data_tools=DataToolsService(tushare_client=provider))
+
+        result = tools.retrieve_supply_chain(
+            theme_name="",
+            symbols=["603002.SH"],
+        )
+
+        announcement_calls = [
+            (api_name, params)
+            for api_name, params in provider.calls
+            if api_name in {"anns", "anns_d"}
+        ]
+        self.assertEqual(len(announcement_calls), 1)
+        api_name, params = announcement_calls[0]
+        self.assertEqual(api_name, "anns_d")
+        self.assertEqual(params["ts_code"], "603002.SH")
+        self.assertEqual(params["fields"], official_fields)
+
+        announcement = next(
+            record for record in result.records
+            if record.source_record_id.startswith("announcements:603002.SH:")
+        )
+        self.assertEqual(announcement.title, "603002.SH公告标题")
+        self.assertEqual(announcement.source_url, "https://example.test/603002/notice.pdf")
+        self.assertEqual(announcement.published_at, date(2026, 9, 19))
+
+    def test_mismatched_announcement_symbols_are_filtered_before_source_creation(self):
+        import pandas as pd
+
+        matching = {
+            "ann_date": "20260918",
+            "ts_code": "603002.SH",
+            "name": "宏昌电子",
+            "title": "目标公司公告",
+            "url": "https://example.test/603002/notice.pdf",
+            "rec_time": "20260919",
+        }
+        other_symbol = {
+            "ann_date": "20260918",
+            "ts_code": "600519.SH",
+            "name": "贵州茅台",
+            "title": "其他公司的公告",
+            "url": "https://example.test/600519/notice.pdf",
+            "rec_time": "20260919",
+        }
+
+        class RecordingProvider:
+            def __init__(self):
+                self.announcement_rows = [matching, other_symbol]
+
+            def query(self, api_name, **kwargs):
+                if api_name == "anns_d":
+                    return pd.DataFrame(self.announcement_rows)
+                return pd.DataFrame()
+
+        provider = RecordingProvider()
+        tools = SerenityTools(data_tools=DataToolsService(tushare_client=provider))
+        mixed_result = tools.retrieve_supply_chain(
+            theme_name="",
+            symbols=["603002.SH"],
+        )
+        mixed_announcements = [
+            record for record in mixed_result.records
+            if record.source_type == "announcement"
+        ]
+
+        self.assertEqual(len(mixed_announcements), 1)
+        self.assertEqual(mixed_announcements[0].title, "目标公司公告")
+        self.assertEqual(
+            mixed_announcements[0].source_url,
+            "https://example.test/603002/notice.pdf",
+        )
+        self.assertTrue(any(
+            "anns_d.ts_code_mismatch" in gap for gap in mixed_result.gaps
+        ))
+
+        provider.announcement_rows = [other_symbol]
+        all_mismatched_result = tools.retrieve_supply_chain(
+            theme_name="",
+            symbols=["603002.SH"],
+        )
+        self.assertFalse(any(
+            record.source_type == "announcement"
+            for record in all_mismatched_result.records
+        ))
+        self.assertTrue(any(
+            "anns_d.ts_code_mismatch" in gap
+            for gap in all_mismatched_result.gaps
+        ))
 
     def test_returns_serenity_tool_result(self):
         result = self.tools.retrieve_supply_chain(
@@ -251,7 +467,7 @@ class TestRedTeamFalsify(unittest.TestCase):
                 source_record_id="ann:1", source_type="announcement",
                 source_quality="first_hand", title="公告",
                 retrieved_at=datetime.now(),
-                gaps=["anns.title_missing"],
+                gaps=["anns_d.title_missing"],
             ),
         ]
         result = self.tools.red_team_falsify(sources, [])

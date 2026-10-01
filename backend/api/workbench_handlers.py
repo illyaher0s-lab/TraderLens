@@ -7,10 +7,26 @@ Handlers do NOT read session.workflow_kind for business logic - only route_decis
 
 import json
 import uuid
+from contextlib import contextmanager
 from datetime import datetime
 from typing import Tuple
 
-from backend.db.agent_workbench import ArtifactRef, attach_artifact_ref
+from backend.db.agent_workbench import ArtifactRef, attach_artifact_ref, attach_approval_card
+from backend.services.approval_card_reducer import create_approval_card
+
+
+@contextmanager
+def _sqlite_transaction(conn):
+    """Keep one handler's ResearchCase writes atomic on its caller-owned DB."""
+    conn.execute("BEGIN")
+    try:
+        yield
+    except Exception:
+        conn.rollback()
+        raise
+    else:
+        conn.commit()
+
 
 
 class HandlerResult:
@@ -20,10 +36,14 @@ class HandlerResult:
         agent_reply: str,
         artifact_ids: list[str],
         next_required_user_action: str | None = None,
+        workflow_state: str | None = None,
+        approval_card=None,
     ):
         self.agent_reply = agent_reply
         self.artifact_ids = artifact_ids
         self.next_required_user_action = next_required_user_action
+        self.workflow_state = workflow_state
+        self.approval_card = approval_card
 
 
 def handle_friend_stock(
@@ -36,16 +56,15 @@ def handle_friend_stock(
     validator,
     serenity_runner,
     market_data_provider,
+    research_db=None,  # V2 Task 2: accept ResearchDB instance
 ) -> HandlerResult:
     """
     Handle friend_stock workflow.
 
     MUST NOT handle execution_feedback or position_followup - those have dedicated handlers.
     """
-    from backend.services.friend_stock_flow import FriendStockFlowService
-    
     artifact_ids = []
-    
+
     if stock_identity.status != "verified":
         # Stock not verified - cannot create flow
         agent_reply = f"无法识别股票信息。{route_decision.route_reason}"
@@ -54,7 +73,7 @@ def handle_friend_stock(
             artifact_ids=artifact_ids,
             next_required_user_action="provide_stock_code_or_name",
         )
-    
+
     # Record workflow action started
     action_started_artifact = ArtifactRef(
         artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
@@ -63,86 +82,197 @@ def handle_friend_stock(
         artifact_type="workflow_action_started",
         created_at=now,
     )
-    attach_artifact_ref(db_conn, action_started_artifact)
-    
-    # Check if serenity_runner is configured
-    # If not configured, status = waiting (not fake researching)
+
+    # V2 Task 2: Create ResearchCase (research_theme) instead of friend_stock_flow
+    # Use provided ResearchDB or create from connection
+    if research_db is None:
+        from backend.db.research import ResearchDB
+        research_db = ResearchDB(db_conn)
+    if research_db.conn is not db_conn:
+        raise RuntimeError("research_db_connection_mismatch")
+
+    research_id = f"case_{uuid.uuid4().hex[:12]}"
+
+    # Create research theme (ResearchCase) in memory; durable writes start below.
+    from contracts.research import ThemeInput
+    theme = ThemeInput(
+        theme_id=research_id,
+        theme_name=f"{stock_identity.company_name} ({stock_identity.ticker})",
+        background=f"朋友荐股：{user_message}",
+        source_type="manual_stock",
+        research_mode="standard",
+        urgency="normal",
+        notes=f"run_id: {user_message if 'RUN' in user_message else ''}",
+        status="draft",  # ponytail: start as draft, not in_progress
+        board_version=0,
+        created_at=now,
+        updated_at=now,
+    )
+
+    from backend.services.serenity_stub import SerenityStubRunner
+
+    research_output = None
+    failure_diagnostics = []
+    workflow_state = "stopped"
+    unavailable_reason = None
+    decision = None
+    approval_card = None
     if serenity_runner is None:
-        flow_status = "waiting"
-        agent_reply_suffix = "研究服务未配置，已记录为待研究。"
+        unavailable_reason = "real Serenity runner not configured"
+    elif isinstance(serenity_runner, SerenityStubRunner):
+        unavailable_reason = "stub Serenity runner is not eligible for research"
     else:
-        # Check if it's a stub runner
-        from backend.services.serenity_stub import SerenityStubRunner
-        if isinstance(serenity_runner, SerenityStubRunner):
-            flow_status = "waiting"
-            agent_reply_suffix = "当前为测试模式，已记录为待研究。"
+        from backend.services.friend_stock_flow import (
+            FriendStockFlowService,
+            validate_serenity_research_output,
+        )
+
+        flow_service = FriendStockFlowService(
+            validator=validator,
+            serenity_runner=serenity_runner,
+            market_data_provider=market_data_provider,
+        )
+        try:
+            research_output = flow_service.run_industry_research(
+                ticker=stock_identity.ticker,
+                company_name=stock_identity.company_name,
+            )
+            decision = validate_serenity_research_output(
+                serenity_runner,
+                stock_identity.ticker,
+                research_output,
+                require_real_runner=True,
+                require_candidate_verdict=True,
+            )
+        except ValueError as exc:
+            failure_diagnostics = getattr(exc, "call_diagnostics", None)
+            if not failure_diagnostics and isinstance(research_output, dict):
+                failure_diagnostics = research_output.get("serenity_call_diagnostics", [])
+            failure_diagnostics = failure_diagnostics or []
+            unavailable_reason = "serenity_execution_failed"
+            failure_trace = getattr(exc, "stage_trace", None)
+            if failure_trace is None and isinstance(research_output, dict):
+                failure_trace = research_output.get("serenity_stage_trace", [])
+                failure_trace = [dict(call) for call in failure_trace]
+                if failure_trace and failure_trace[-1].get("stage") == "synthesizer":
+                    failure_trace[-1]["status"] = "failure"
+            failure_trace = failure_trace or []
         else:
-            # Real runner available - can start research
-            # For now, still mark as waiting until we implement job dispatch
-            flow_status = "waiting"
-            agent_reply_suffix = "已创建研究记录，等待研究服务启动。"
-    
-    # Create friend_stock_flow record directly in DB
-    # Service is used for complex orchestration (verify_ticker, run_industry_research, etc.)
-    # For workbench, we only need to record the flow entry
-    from backend.db.research import ResearchDB
-    
-    flow_id = f"flow_{uuid.uuid4().hex[:12]}"
-    
-    # Get ResearchDB instance from connection
-    # The connection is db.conn, we need the ResearchDB instance
-    # We'll directly insert via SQL for now (workbench creates simple flow records)
-    import sqlite3
-    from datetime import datetime as dt
-    now_iso = dt.now().isoformat()
-    
-    cursor = db_conn.cursor()
-    cursor.execute("""
-        INSERT INTO friend_stock_flows
-        (flow_id, raw_company_input, raw_code_input, source_note,
-         ticker_verification_result, research_output, status, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        flow_id,
-        stock_identity.company_name,
-        stock_identity.ticker,
-        f"workbench: {user_message}",
-        None,  # No ticker verification needed (already verified by stock_identity)
-        None,  # No research output yet
-        flow_status,  # waiting (not fake researching)
-        now_iso,
-        now_iso,
-    ))
-    db_conn.commit()
-    
-    # Create flow artifact
-    flow_artifact = ArtifactRef(
-        artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-        session_id=conversation_id,
-        artifact_id=flow_id,
-        artifact_type="friend_stock_flow",
-        created_at=now,
-    )
-    attach_artifact_ref(db_conn, flow_artifact)
-    artifact_ids.append(flow_id)
-    
-    # Record workflow action completed
-    action_completed_artifact = ArtifactRef(
-        artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
-        session_id=conversation_id,
-        artifact_id=f"action_completed_{uuid.uuid4().hex[:8]}",
-        artifact_type="workflow_action_completed",
-        created_at=now,
-    )
-    attach_artifact_ref(db_conn, action_completed_artifact)
-    
-    agent_reply = f"已识别 {stock_identity.company_name} ({stock_identity.ticker})。{agent_reply_suffix} 研究ID: {flow_id}"
-    
-    return HandlerResult(
-        agent_reply=agent_reply,
-        artifact_ids=artifact_ids,
-        next_required_user_action=None,
-    )
+            failure_trace = []
+            verdict = decision["verdict"]
+            decision_gaps = decision.get("evidence_gaps", [])
+            merged_gaps = list(research_output.get("evidence_gaps", []))
+            for gap in decision_gaps:
+                if gap not in merged_gaps:
+                    merged_gaps.append(gap)
+            research_output.update({
+                "research_status": verdict,
+                "research_verdict": verdict,
+                "ticker": stock_identity.ticker,
+                "company_name": stock_identity.company_name,
+                "identity_source": stock_identity.data_source,
+                "research_reason": decision["reason"],
+                "supporting_evidence": decision.get("supporting_source_ids", []),
+                "counter_evidence": decision.get("counter_evidence", []),
+                "invalidation_conditions": decision.get("invalidation_conditions", []),
+                "falsification_conditions": decision.get("invalidation_conditions", []),
+                "evidence_gaps": merged_gaps,
+            })
+            if verdict == "research_positive":
+                status_msg = "research_positive: 已形成研究依据，等待人工审阅"
+                workflow_state = "waiting_for_approval"
+            elif verdict == "research_watch":
+                status_msg = "research_watch: 证据不足以继续，进入观察"
+                workflow_state = "observing"
+            elif verdict == "research_reject":
+                status_msg = "research_reject: 研究依据不支持继续，流程结束"
+                workflow_state = "completed"
+            else:
+                status_msg = "research_unavailable: Synthesizer 标记了关键数据缺口，本次禁止形成交易决策"
+                workflow_state = "stopped"
+
+    if unavailable_reason is not None:
+        if research_output is None or not isinstance(research_output, dict):
+            research_output = {}
+        trace = failure_trace if "failure_trace" in locals() else []
+        research_output = {
+            "research_status": "research_unavailable",
+            "research_verdict": "research_unavailable",
+            "ticker": stock_identity.ticker,
+            "company_name": stock_identity.company_name,
+            "identity_source": stock_identity.data_source,
+            "research_reason": unavailable_reason,
+            "supporting_evidence": [],
+            "counter_evidence": [],
+            "invalidation_conditions": [],
+            "falsification_conditions": [],
+            "evidence_gaps": [f"research_unavailable: {unavailable_reason}"],
+            "serenity_stage_trace": trace,
+            "serenity_call_diagnostics": failure_diagnostics,
+        }
+        status_msg = "research_unavailable: 数据或研究服务不足，本次禁止形成交易决策"
+        workflow_state = "stopped"
+
+    # Keep the transaction short: only durable ResearchCase/output/artifact writes.
+    with _sqlite_transaction(db_conn):
+        attach_artifact_ref(db_conn, action_started_artifact, commit=False)
+        research_db.create_theme(theme, commit=False)
+        research_db.store_research_output(research_id, research_output, commit=False)
+
+        # Create flow artifact
+        flow_artifact = ArtifactRef(
+            artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+            session_id=conversation_id,
+            artifact_id=research_id,
+            artifact_type="research_case",
+            created_at=now,
+        )
+        attach_artifact_ref(db_conn, flow_artifact, commit=False)
+        artifact_ids.append(research_id)
+
+        if research_output is not None:
+            result_artifact = ArtifactRef(
+                artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+                session_id=conversation_id,
+                artifact_id=f"research_result_{research_id}",
+                artifact_type="research_result",
+                created_at=now,
+            )
+            result_content = dict(research_output)
+            result_content["research_case_id"] = research_id
+            attach_artifact_ref(
+                db_conn,
+                result_artifact,
+                content=json.dumps(result_content, ensure_ascii=False),
+                commit=False,
+            )
+            artifact_ids.append(result_artifact.artifact_id)
+
+            if research_output.get("research_verdict") == "research_positive":
+                approval_card = create_approval_card(
+                    workflow_id=conversation_id,
+                    stage="research_confirmation",
+                    title="审阅研究结论",
+                    plain_language_summary=research_output["research_reason"],
+                    allowed_decisions=["continue", "stop", "downgrade_to_observation"],
+                    artifact_ids=[result_artifact.artifact_id],
+                    created_at=now,
+                )
+                attach_approval_card(db_conn, conversation_id, approval_card)
+
+        agent_reply = f"已识别 {stock_identity.company_name} ({stock_identity.ticker})。已创建研究案例。研究ID: {research_id}\n状态: {status_msg}"
+
+        return HandlerResult(
+            agent_reply=agent_reply,
+            artifact_ids=artifact_ids,
+            next_required_user_action=(
+                "review_research_approval"
+                if research_output.get("research_verdict") == "research_positive"
+                else None
+            ),
+            workflow_state=workflow_state,
+            approval_card=approval_card,
+        )
 
 
 def handle_strategy_idea(

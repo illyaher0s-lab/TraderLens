@@ -14,6 +14,7 @@ No external text can modify system prompt, tool whitelist, or execution path.
 from __future__ import annotations
 
 from datetime import date, datetime
+from math import isfinite
 from contracts.research import (
     ResearchSource,
     SerenityToolResult,
@@ -29,6 +30,15 @@ class SerenityTools:
     All methods are deterministic — no LLM involvement.
     Gaps are always recorded; never filled with defaults.
     """
+
+    _FINANCIAL_FACT_FIELDS = (
+        ("total_revenue", "营业总收入"),
+        ("revenue", "营业收入"),
+        ("n_income_attr_p", "归母净利润"),
+        ("n_income", "净利润"),
+        ("basic_eps", "基本每股收益"),
+        ("diluted_eps", "稀释每股收益"),
+    )
 
     def __init__(
         self,
@@ -111,12 +121,31 @@ class SerenityTools:
                 for i, row in enumerate(fin.raw_data):
                     if record_idx >= max_records:
                         break
+                    financial_facts = []
+                    for field, label in self._FINANCIAL_FACT_FIELDS:
+                        value = row.get(field)
+                        if self._is_usable_financial_number(value):
+                            financial_facts.append(f"{label}: {value}")
+                    if not financial_facts:
+                        gaps.append(
+                            f"financials:{sym}:no_usable_numeric_values"
+                        )
+                        continue
+
+                    period_end_date = row.get("end_date") or "?"
+                    ann_date = row.get("ann_date") or "?"
+                    summary = "; ".join([
+                        f"报告期: {period_end_date}",
+                        f"披露日: {ann_date}",
+                        *financial_facts,
+                    ])[:500]
                     records.append(ResearchSource(
                         source_record_id=f"financials:{sym}:{i}",
                         source_type="financial_report",
                         source_quality="first_hand",
                         title=f"财务数据 {sym} 第{i + 1}期",
-                        summary=f"期间: {row.get('end_date', '?')}",
+                        published_at=self._parse_date(row.get("ann_date")),
+                        summary=summary,
                         retrieved_at=now,
                         gaps=fin.gaps,
                     ))
@@ -126,6 +155,37 @@ class SerenityTools:
             except Exception as exc:
                 errors.append(f"get_financials({sym}) failed: {exc}")
 
+            # Company profile facts are separate from industry classification.
+            try:
+                profile = self.data_tools.get_company_profile(sym)
+                for i, row in enumerate(profile.raw_data):
+                    if record_idx >= max_records:
+                        break
+                    main_business = row.get("main_business")
+                    if not isinstance(main_business, str) or not main_business.strip():
+                        gaps.append("stock_company.main_business_missing")
+                        continue
+
+                    company_name = row.get("com_name")
+                    title_name = (
+                        company_name.strip()
+                        if isinstance(company_name, str) and company_name.strip()
+                        else sym
+                    )
+                    records.append(ResearchSource(
+                        source_record_id=f"stock_company:{sym}:{i}",
+                        source_type="unknown",
+                        source_quality="weak",
+                        title=f"公司主营业务: {title_name}",
+                        summary=f"主营业务: {main_business.strip()}",
+                        retrieved_at=profile.retrieved_at,
+                    ))
+                    record_idx += 1
+                gaps.extend(profile.gaps)
+                errors.extend(profile.errors)
+            except Exception as exc:
+                errors.append(f"get_company_profile({sym}) failed: {exc}")
+
             # Announcements
             try:
                 ann = self.data_tools.get_announcements(
@@ -134,15 +194,44 @@ class SerenityTools:
                 for i, row in enumerate(ann.raw_data):
                     if record_idx >= max_records:
                         break
+                    title = row.get("title", "公告")
+                    is_sse_metadata = (
+                        ann.source == "sse_company_announcements"
+                        or row.get("source") == "sse"
+                    )
+                    row_gaps = row.get("gaps", [])
+                    if not isinstance(row_gaps, list):
+                        row_gaps = []
+                    if is_sse_metadata:
+                        published_date = row.get("date")
+                        source_summary = (
+                            f"{published_date} 披露《{title}》"
+                            if published_date
+                            else ""
+                        )
+                        published_at = self._parse_date(published_date)
+                        announcement_code = row.get("code", "") or ""
+                    else:
+                        published_at = (
+                            self._parse_date(row.get("rec_time"))
+                            or self._parse_date(row.get("ann_date"))
+                        )
+                        source_summary = (
+                            f"公告日期: {row.get('ann_date', '?')}; "
+                            f"发布时间: {row.get('rec_time', '?')}"
+                        )
+                        announcement_code = row.get("ann_type", "") or ""
                     records.append(ResearchSource(
                         source_record_id=f"announcements:{sym}:{i}",
                         source_type="announcement",
                         source_quality="first_hand",
-                        title=row.get("title", "公告"),
-                        published_at=self._parse_date(row.get("ann_date")),
-                        summary=f"公告类型: {row.get('ann_type', '?')}",
-                        announcement_code=row.get("ann_type", ""),
-                        retrieved_at=now,
+                        title=title,
+                        published_at=published_at,
+                        summary=source_summary,
+                        source_url=row.get("url", row.get("URL", "")) or "",
+                        announcement_code=announcement_code,
+                        gaps=row_gaps,
+                        retrieved_at=row.get("retrieved_at") or ann.retrieved_at or now,
                     ))
                     record_idx += 1
                 gaps.extend(ann.gaps)
@@ -463,14 +552,26 @@ class SerenityTools:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def _parse_date(date_str: str | None) -> date | None:
-        """Parse YYYYMMDD string to date."""
-        if not date_str:
+    def _parse_date(date_value: str | datetime | None) -> date | None:
+        """Parse Tushare YYYYMMDD or datetime-like date values."""
+        if isinstance(date_value, datetime):
+            return date_value.date()
+        if not date_value:
             return None
         try:
-            return date(int(date_str[:4]), int(date_str[4:6]), int(date_str[6:8]))
+            digits = "".join(char for char in str(date_value) if char.isdigit())
+            return date(int(digits[:4]), int(digits[4:6]), int(digits[6:8]))
         except (ValueError, IndexError):
             return None
+
+    @staticmethod
+    def _is_usable_financial_number(value: object) -> bool:
+        if value is None or isinstance(value, bool):
+            return False
+        try:
+            return isfinite(float(value))
+        except (TypeError, ValueError, OverflowError):
+            return False
 
     @staticmethod
     def _infer_symbols_from_theme(theme_name: str) -> list[str]:

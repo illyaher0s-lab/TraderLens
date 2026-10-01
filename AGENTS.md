@@ -1,110 +1,232 @@
-# Agent Working Rules
+# TraderLens Project Execution Rules
 
-**Last Updated**: 2026-06-12  
-**Purpose**: 强制执行的代码修改和调试规范，防止低质量修复和隐性 bug。
+These rules specialize the global Codex engineering rules for TraderLens.
+They do not weaken correctness requirements for trading decisions.
 
----
+## 1. Product mainline is the top-level priority
 
-## Rule 1 — Think Before Coding
-No silent assumptions. State what you're assuming. Surface tradeoffs. Ask before guessing. Push back when a simpler approach exists.
+TraderLens exists to help a novice A-share user make and review real trading decisions.
 
+Primary user journey:
 
----
+1. Market regime:
+   Can I open a new position today?
+   -> allow / caution / block
 
-## Rule 2 — Simplicity First
-Minimum code that solves the problem. No speculative features. No abstractions for single-use code. If a senior engineer would call it overcomplicated — simplify.
+2. Sector focus:
+   If entry is allowed, which few sectors deserve attention?
 
+3. Stock decision:
+   For a discovered or user-supplied stock:
+   -> candidate / wait / watch / reject
 
----
+4. Trade plan:
+   Using a previously validated strategy:
+   -> entry condition
+   -> position size
+   -> invalidation / stop
+   -> exit condition
 
-## Rule 3 — Surgical Changes
-Touch only what you must. Don't "improve" adjacent code, comments, or formatting. Don't refactor what isn't broken. Match existing style.
+5. Manual simulated execution:
+   User records actual simulated buy.
 
----
+6. Position monitoring:
+   -> hold / risk rising / exit
 
-## Rule 4 — Goal-Driven Execution
-Define success criteria. Loop until verified. Don't tell the user what steps to follow, tell them what success looks like and let them decide.
+7. Post-trade review:
+   -> P&L
+   -> strategy attribution
+   -> market/sector contribution
+   -> execution/discipline deviation
 
+Every implementation task MUST state which numbered step it advances.
 
----
+If a task cannot explain what new user-visible ability it unlocks on this journey,
+do not implement it unless it protects a mandatory correctness boundary.
 
-## Rule 5 — Use the model only for judgment calls
-Use LLM for: classification, drafting, summarization, extraction from unstructured text.  
-Do NOT use LLM for: routing, retries, status-code handling, deterministic transforms.  
-If logic can be written in Python, don't ask LLM.
+## 2. Reuse before rebuild
 
+Existing research, Serenity, strategy validation, B6/OOS/Gate, Signal Board,
+Action Plan, CapitalContext, Observation, P&L and Discipline Review components
+must be reused when they are fundamentally sound.
 
----
+Do not replace an existing module because its architecture or naming is imperfect.
 
-## Rule 6 — Token budgets are not advisory
+Prefer:
+existing capability -> minimal connection -> end-to-end use
 
+over:
+new abstraction -> new infrastructure -> migration.
 
----
+## 3. Classify failures before stopping
 
-## Rule 7 — Surface conflicts, don't average them
-If two existing patterns in the codebase contradict, don't blend them.  
-Pick one (the more recent / more tested), explain why, and flag the other for cleanup.  
-"Average" code that satisfies both rules is the worst code.
+When any failure appears, classify it first.
 
----
+### A. Mainline blocker — must stop and fix
 
-## Rule 8 — Read before you write
-Before adding code in a file, read the file's exports, the immediate caller, and any obvious shared utilities.  
-If you don't understand why existing code is structured the way it is, ask before adding to it.  
-"Looks orthogonal to me" is the most dangerous phrase in this codebase.
+Examples:
 
+- fabricated or unverifiable market/company data
+- broken current user workflow
+- incorrect routing/state transition on the current journey
+- look-ahead or data leakage
+- invalid backtest assumptions
+- T+1 / suspension / price-limit / transaction-cost errors
+- incorrect position sizing
+- incorrect entry/exit logic
+- incorrect P&L
+- trade not bound to its actual Action Plan
+- syntax/import/runtime failure in code touched by the current task
+- secrets exposed by the current runtime path
 
----
+These require focused root-cause repair before proceeding.
 
-## Rule 9 — Tests verify intent, not just behavior
-Every test must encode WHY the behavior matters, not just WHAT it does.  
-A test like `assert persona.id == "test"` is worthless if you hardcoded the ID.  
-If you can't write a test that would fail when business logic changes, the function is wrong.
+### B. Relevant technical debt — record, do not block
 
----
+Examples:
 
-## Rule 10 — Checkpoint after every significant step
-After completing each step in a multi-step task: summarize what was done, what's verified, what's left.  
-Don't continue from a state you can't describe back to me.  
-If you lose track, stop and restate.
+- unrelated historical test fixture failure
+- obsolete compatibility path
+- unrelated dirty data in an old database
+- architecture inconsistency outside the current journey
+- missing UI polish
+- old module tests not exercised by the authorized path
 
----
+Record the issue and continue the authorized mainline.
 
-## Rule 11 — Match the codebase's conventions, even if you disagree
-If the codebase uses snake_case and you'd prefer camelCase: snake_case.  
-Disagreement is a separate conversation. Inside the codebase, conformance > taste.  
-If you genuinely think the convention is harmful, surface it. Don't fork it silently.
+### C. Enhancement — defer
 
+Examples:
 
----
+- broader observability
+- generalized frameworks
+- additional providers
+- additional financial fields
+- broader market coverage
+- refactoring for elegance
 
-## Rule 12 — Fail loud
-If you can't be sure something worked, say so explicitly.  
-"Module implemented" is wrong if you didn't test it.  
-"Tests pass" is wrong if you skipped any.  
-Default to surfacing uncertainty, not hiding it.
+Do not implement during a mainline closure task.
 
+## 4. Trading correctness cannot be relaxed
 
+The MVP may be narrow, but it may not fake correctness.
 
-## 核心设计原则（最重要）
+Never relax:
 
+- real source attribution
+- no fabricated financial/market/news facts
+- no look-ahead
+- no data leakage
+- no survivorship bias where relevant
+- A-share T+1
+- suspension and price-limit behavior
+- transaction costs
+- deterministic P&L
+- deterministic position sizing
+- strategy provenance
+- evidence gaps
 
----
+Missing information must be explicit.
 
-## 违规处理
+The system may still form a decision when some non-critical information is missing,
+but must state the missing evidence and reduce evidence strength accordingly.
 
-如果发现自己违反了上述规则：
-1. 立刻停止当前操作
-2. 告诉用户"我刚才违反了 Rule X，需要重新来"
-3. 回到正确的流程
+Do not invent numeric confidence percentages.
 
-如果用户发现你违反了规则：
-1. 承认错误
-2. 解释为什么会违反（是理解错了还是忘记了）
-3. 重新按规则执行
+Use:
+- high evidence
+- medium evidence
+- low evidence
+- insufficient data
 
----
+## 5. LLM boundaries
 
-**这个文件是活的，不是死的。发现规则不够用，立刻补充。**
+LLMs may:
 
----
+- understand user intent
+- research and summarize evidence
+- identify supporting and counter evidence
+- form a research-layer verdict
+- explain deterministic trading outputs
+
+LLMs must not:
+
+- invent current facts
+- calculate authoritative numerical outputs
+- create strategy parameters ad hoc
+- decide whether a backtest passed
+- calculate P&L
+- override deterministic gates
+- override position/risk constraints
+
+Routing, parsing, retry policy, state transitions and numerical calculations belong in code.
+
+## 6. Narrow vertical slice first
+
+Before expanding breadth, complete one narrow journey:
+
+user supplies one stock
+-> real research
+-> research verdict
+-> one validated strategy
+-> executable Action Plan
+-> manual simulated buy
+-> position monitoring
+-> manual sell
+-> P&L and review
+
+Automatic market-wide sector discovery and broad stock screening may come later.
+
+## 7. Change discipline
+
+Before modifying code:
+
+1. establish a recoverable git checkpoint;
+2. inspect target code, direct callers, contracts and relevant tests;
+3. define focused acceptance criteria.
+
+After modifying code:
+
+1. run syntax / compile / import smoke first;
+2. run focused tests for touched behavior;
+3. run the relevant user-path verification.
+
+Do not begin expensive E2E verification while touched files do not compile.
+
+Do not modify unrelated dirty files.
+
+## 8. Task scope
+
+One task should fix one verified mainline blocker.
+
+If a new independent blocker appears:
+
+- if it blocks the current mainline or violates trading correctness -> stop and report it;
+- otherwise record it as technical debt and continue the authorized task.
+
+Do not bundle multiple root causes into one patch.
+
+## 9. Definition of progress
+
+Progress is not:
+
+- more tests
+- more abstractions
+- more reports
+- more services
+- cleaner architecture
+
+unless they directly protect correctness.
+
+Progress is:
+
+the user journey can move one verified step farther using real or explicitly
+identified test inputs.
+
+At the end of every task report:
+
+MAINLINE STEP: <1-7>
+BEFORE: <where the user journey stopped>
+AFTER: <where it now stops>
+NEW USER CAPABILITY: <what the user can now actually do>
+NEXT BLOCKER: <one blocker only>

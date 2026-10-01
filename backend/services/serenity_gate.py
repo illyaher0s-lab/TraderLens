@@ -19,6 +19,7 @@ def apply_shortlist_gate(
     context: SerenityRunContext,
     synthesis: ResearchSynthesis,
     theme_id: str,
+    source_type: str = "manual_theme",
 ) -> list[CandidateStock]:
     """Apply deterministic shortlist gate.
     
@@ -161,28 +162,27 @@ def apply_shortlist_gate(
         if not has_matching_source:
             continue
         
-        # Gate 14: rationale_source_ids 必须至少一个证明主题相关性
-        # 主题相关性要求：
-        # - theme_keywords_matched 非空
-        # - theme_relevance_basis 合法（title_match/summary_match/industry_match）
-        # - source_quality != weak（已在 Gate 12 检查）
-        # - symbol 匹配（已在 Gate 13 检查）
+            # Gate 14: rationale_source_ids 必须证明候选相关性。
+        # 默认仍要求显式主题关键词匹配；只有 source_type=market_scan
+        # 可由 runner 显式开启 symbol-bound 模式
         has_theme_evidence = False
         for sid in rationale_source_ids:
             source = context.sources_by_id.get(sid)
             if source is None:
                 continue
             
-            # 检查主题匹配
-            if (source.theme_keywords_matched and 
-                source.theme_relevance_basis in ("title_match", "summary_match", "industry_match") and
-                source.source_quality != "weak"):
-                
-                # 检查 symbol 匹配
-                parts = sid.split(":")
-                if len(parts) >= 2 and parts[1] == symbol:
-                    has_theme_evidence = True
-                    break
+            parts = sid.split(":")
+            if len(parts) < 2 or parts[1] != symbol:
+                continue
+            if source.source_quality == "weak":
+                continue
+            if source_type == "market_scan":
+                has_theme_evidence = True
+                break
+            if (source.theme_keywords_matched and
+                source.theme_relevance_basis in ("title_match", "summary_match", "industry_match")):
+                has_theme_evidence = True
+                break
         
         if not has_theme_evidence:
             continue

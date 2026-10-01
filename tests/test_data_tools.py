@@ -173,16 +173,178 @@ class TestGetAnnouncements(unittest.TestCase):
         result = self.service.get_announcements("300750.SZ")
         self.assertIsInstance(result, DataToolResult)
 
+    def test_sh_announcements_use_official_sse_metadata_transport(self):
+        import json
+        import pandas as pd
+        from unittest.mock import patch
+        from urllib.parse import parse_qs, urlparse
+        from zoneinfo import ZoneInfo
+
+        class FixedDateTime(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return cls(2026, 9, 26, 12, 0, tzinfo=tz)
+
+        class RecordingProvider:
+            def __init__(self):
+                self.calls = []
+
+            def query(self, api_name, **kwargs):
+                self.calls.append((api_name, kwargs))
+                return pd.DataFrame()
+
+        listed_row = {
+            "security_Code": "603002",
+            "SSEDate": "2026-09-12",
+            "title": "宏昌电子第七届董事会第四次会议决议公告",
+            "URL": (
+                "https://static.sse.com.cn/disclosure/listedinfo/announcement/"
+                "c/new/2026-09-12/603002_20260912_FWCK.pdf"
+            ),
+        }
+        payload = json.dumps(
+            {"result": [listed_row], "pageHelp": {"pageSize": 20}},
+            ensure_ascii=False,
+        )
+        transport_calls = []
+
+        def fixed_transport(url, *, headers, timeout):
+            transport_calls.append((url, headers, timeout))
+            return 200, "application/json; charset=UTF-8", payload
+
+        provider = RecordingProvider()
+        service = DataToolsService(tushare_client=provider)
+        # This is the deterministic transport seam added with the SSE route.
+        service._sse_transport = fixed_transport
+
+        with patch("backend.services.data_tools.datetime", FixedDateTime):
+            result = service.get_announcements(
+                "603002.SH", start_date="20240101", end_date="20260926",
+            )
+
+        self.assertEqual(result.source, "sse_company_announcements")
+        self.assertEqual(provider.calls, [])
+        self.assertEqual(len(transport_calls), 1)
+        query = parse_qs(urlparse(transport_calls[0][0]).query, keep_blank_values=True)
+        self.assertEqual(query["beginDate"], ["2026-03-31"])
+        self.assertEqual(query["endDate"], ["2026-09-26"])
+        self.assertEqual(query["pageHelp.pageSize"], ["20"])
+        self.assertEqual(
+            result.raw_data,
+            [{
+                "source": "sse",
+                "code": "603002.SH",
+                "date": "2026-09-12",
+                "title": listed_row["title"],
+                "url": listed_row["URL"],
+                "retrieved_at": datetime(
+                    2026, 9, 26, 12, 0, tzinfo=ZoneInfo("Asia/Shanghai")
+                ),
+                "gaps": ["full_text_unavailable"],
+            }],
+        )
+
+        def failed_transport(url, *, headers, timeout):
+            return 503, "application/json; charset=UTF-8", "{}"
+
+        failed_service = DataToolsService(tushare_client=provider)
+        failed_service._sse_transport = failed_transport
+        with patch("backend.services.data_tools.datetime", FixedDateTime):
+            failed = failed_service.get_announcements("603002.SH")
+        self.assertEqual(failed.raw_data, [])
+        self.assertTrue(failed.errors)
+        self.assertNotIn("announcements_data_empty", failed.gaps)
+
+    def test_sse_rejects_url_scheme_and_authority_confusion(self):
+        import json
+        from zoneinfo import ZoneInfo
+
+        today = datetime.now(ZoneInfo("Asia/Shanghai")).date().isoformat()
+        urls = ["http://evil.test/x", "//evil.test/x"]
+
+        for untrusted_url in urls:
+            with self.subTest(url=untrusted_url):
+                body = json.dumps({
+                    "result": [{
+                        "security_Code": "603002",
+                        "SSEDate": today,
+                        "title": "测试公告标题",
+                        "URL": untrusted_url,
+                    }],
+                    "pageHelp": {"pageSize": 20},
+                })
+
+                def fixed_transport(url, *, headers, timeout):
+                    return 200, "application/json; charset=UTF-8", body
+
+                service = DataToolsService(sse_transport=fixed_transport)
+                result = service.get_announcements("603002.SH")
+
+                self.assertEqual(result.raw_data, [])
+                self.assertTrue(result.errors)
+
+    def test_uses_official_anns_d_schema_and_preserves_provenance_fields(self):
+        import pandas as pd
+
+        official_fields = "ann_date,ts_code,name,title,url,rec_time"
+
+        class RecordingProvider:
+            def __init__(self):
+                self.calls = []
+
+            def query(self, api_name, **kwargs):
+                self.calls.append((api_name, kwargs))
+                return pd.DataFrame([{
+                    "ann_date": "20260918",
+                    "ts_code": "603002.SH",
+                    "name": "宏昌电子",
+                    "title": "603002.SH公告标题",
+                    "url": "https://example.test/603002/notice.pdf",
+                    "rec_time": datetime(2026, 9, 19, 8, 30),
+                }])
+
+        provider = RecordingProvider()
+        result = DataToolsService(tushare_client=provider).get_announcements("603002.SH")
+
+        self.assertEqual(len(provider.calls), 1)
+        api_name, params = provider.calls[0]
+        self.assertEqual(api_name, "anns_d")
+        self.assertEqual(params["ts_code"], "603002.SH")
+        self.assertEqual(params["fields"], official_fields)
+        self.assertEqual(result.raw_data, [{
+            "ann_date": "20260918",
+            "ts_code": "603002.SH",
+            "name": "宏昌电子",
+            "title": "603002.SH公告标题",
+            "url": "https://example.test/603002/notice.pdf",
+            "rec_time": datetime(2026, 9, 19, 8, 30),
+        }])
+        self.assertEqual(result.errors, [])
+
+    def test_provider_permission_error_does_not_create_announcement_facts(self):
+        class PermissionDeniedProvider:
+            def query(self, api_name, **kwargs):
+                raise RuntimeError("announcement permission denied")
+
+        result = DataToolsService(
+            tushare_client=PermissionDeniedProvider(),
+        ).get_announcements("603002.SH")
+
+        self.assertEqual(result.raw_data, [])
+        self.assertEqual(result.gaps, [])
+        self.assertTrue(any("permission denied" in error for error in result.errors))
+
     def test_normal_data_preserves_key_fields(self):
-        """Each announcement preserves ts_code, ann_date, title, ann_type, pub_date."""
+        """Each announcement preserves official anns_d identity and provenance fields."""
         result = self.service.get_announcements("300750.SZ")
         self.assertEqual(len(result.raw_data), 5)
         first = result.raw_data[0]
         self.assertIn("ts_code", first)
         self.assertIn("ann_date", first)
+        self.assertIn("name", first)
         self.assertIn("title", first)
-        self.assertIn("ann_type", first)
-        self.assertIn("pub_date", first)
+        self.assertIn("url", first)
+        self.assertIn("rec_time", first)
         self.assertEqual(first["ts_code"], "300750.SZ")
 
     def test_multiple_announcements_returned(self):
@@ -202,7 +364,7 @@ class TestGetAnnouncements(unittest.TestCase):
         """Rows with missing title are excluded and gaps recorded."""
         result = self.service.get_announcements("002594.SZ")
         gap_text = " ".join(result.gaps)
-        self.assertIn("anns.title_missing", gap_text)
+        self.assertIn("anns_d.title_missing", gap_text)
 
     def test_missing_title_rows_not_included(self):
         """Rows without title AND ann_date are excluded entirely."""

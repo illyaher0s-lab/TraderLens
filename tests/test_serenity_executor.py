@@ -99,12 +99,42 @@ class MockValidator:
 
 
 class TestDeterministicExecutor(unittest.TestCase):
-    
+
+    def test_executor_researches_explicit_batch(self):
+        tools = MockSerenityTools()
+        validator = MockValidator()
+        executor = DeterministicExecutor(tools, validator, None)
+        plan = ResearchPlan(
+            keywords=["锂电池"],
+            seed_symbols=[],
+            sectors_to_check=[],
+            start_date=None,
+            end_date=None,
+            falsification_questions=[],
+        )
+        context = SerenityRunContext()
+        audit = SerenityAgentAudit()
+        symbols = ["600298.SH", "000921.SZ", "600690.SH", "600872.SH", "603369.SH"]
+        executor.execute(plan, context, audit, target_symbols=symbols)
+        self.assertEqual(tools.retrieve_calls, symbols)
+        self.assertEqual(set(context.sources_by_id), {f"financials:{symbol}:0" for symbol in symbols})
+
+    def test_v2_requires_explicit_target(self):
+        tools = MockSerenityTools()
+        executor = DeterministicExecutor(tools, MockValidator(), None)
+        plan = ResearchPlan(
+            keywords=["锂电池"], seed_symbols=["300750.SZ"], sectors_to_check=[],
+            start_date=None, end_date=None, falsification_questions=[],
+        )
+        audit = SerenityAgentAudit()
+        executor.execute(plan, SerenityRunContext(), audit)
+        self.assertEqual(tools.retrieve_calls, [])
+        self.assertIn("executor: V2 requires target_symbol", audit.errors)
+
     def test_executor_max_concurrency_is_2(self):
         """Executor limits concurrency to 2."""
         from backend.services.serenity_executor import MAX_RESEARCH_CONCURRENCY
         self.assertEqual(MAX_RESEARCH_CONCURRENCY, 2)
-    
     def test_executor_saves_real_sources_to_context(self):
         """Executor saves real ResearchSource records to context."""
         tools = MockSerenityTools()
@@ -122,12 +152,9 @@ class TestDeterministicExecutor(unittest.TestCase):
         context = SerenityRunContext()
         audit = SerenityAgentAudit()
         
-        executor.execute(plan, context, audit)
+        executor.execute(plan, context, audit, target_symbols=plan.seed_symbols)
         
-        # 验证 sources 被保存
         self.assertGreater(len(context.sources_by_id), 0)
-        
-        # 验证 source_record_id 格式正确
         for sid in context.sources_by_id.keys():
             self.assertIn(":", sid)
     
@@ -156,7 +183,7 @@ class TestDeterministicExecutor(unittest.TestCase):
         context = SerenityRunContext()
         audit = SerenityAgentAudit()
         
-        executor.execute(plan, context, audit)
+        executor.execute(plan, context, audit, target_symbols=plan.seed_symbols)
         
         # 验证第二个 symbol 仍然被处理
         self.assertGreater(len(context.sources_by_id), 0)
@@ -196,33 +223,25 @@ class TestDeterministicExecutor(unittest.TestCase):
         context = SerenityRunContext()
         audit = SerenityAgentAudit()
         
-        executor.execute(plan, context, audit)
+        executor.execute(plan, context, audit, target_symbols=plan.seed_symbols)
         
         # 验证没有候选进入 context
         self.assertEqual(len(context.verified_candidates_by_symbol), 0)
     
-    def test_discover_players_uses_real_sources(self):
-        """discover_players receives real source records from context."""
+    def test_v2_does_not_call_discover_players(self):
+        """V2 researches explicit targets only; discovery is not part of the path."""
         tools = MockSerenityTools()
         validator = MockValidator()
         executor = DeterministicExecutor(tools, validator, None)
-        
         plan = ResearchPlan(
-            keywords=["锂电池"],
-            seed_symbols=["300750.SZ"],
-            sectors_to_check=[],
-            start_date=None,
-            end_date=None,
-            falsification_questions=[],
+            keywords=["锂电池"], seed_symbols=[], sectors_to_check=[],
+            start_date=None, end_date=None, falsification_questions=[],
         )
         context = SerenityRunContext()
         audit = SerenityAgentAudit()
-        
-        executor.execute(plan, context, audit)
-        
-        # 验证 discover_players 被调用且接收到 source records
-        self.assertEqual(len(tools.discover_calls), 1)
-        self.assertGreater(tools.discover_calls[0], 0)  # 接收到至少 1 个 source record
+        executor.execute(plan, context, audit, target_symbol="300750.SZ")
+        self.assertEqual(tools.discover_calls, [])
+
     
     def test_verify_ticker_batch_concurrency_limited(self):
         """verify_ticker batch calls are limited to max_concurrency."""
@@ -241,7 +260,7 @@ class TestDeterministicExecutor(unittest.TestCase):
         context = SerenityRunContext()
         audit = SerenityAgentAudit()
         
-        executor.execute(plan, context, audit)
+        executor.execute(plan, context, audit, target_symbols=plan.seed_symbols)
         
         # 验证 verify_ticker 被调用
         self.assertGreater(len(validator.verify_calls), 0)
@@ -300,7 +319,7 @@ class TestDeterministicExecutor(unittest.TestCase):
         context = SerenityRunContext()
         audit = SerenityAgentAudit()
         
-        executor.execute(plan, context, audit)
+        executor.execute(plan, context, audit, target_symbols=plan.seed_symbols)
         
         # 因为 discover_players 返回空，所以不会有候选被创建
         # 或者如果有候选，它们的 supporting_source_ids 应该指向 weak sources
@@ -326,7 +345,7 @@ class TestDeterministicExecutor(unittest.TestCase):
         context = SerenityRunContext()
         audit = SerenityAgentAudit()
         
-        executor.execute(plan, context, audit)
+        executor.execute(plan, context, audit, target_symbols=plan.seed_symbols)
         
         # 验证 red_team 完成
         self.assertIn("red_team", context.completed_checks)
@@ -358,7 +377,7 @@ class TestDeterministicExecutor(unittest.TestCase):
         context = SerenityRunContext()
         audit = SerenityAgentAudit()
         
-        executor.execute(plan, context, audit)
+        executor.execute(plan, context, audit, target_symbols=plan.seed_symbols)
         
         self.assertIn("source_audit", context.completed_checks)
         self.assertIn("red_team", context.completed_checks)

@@ -72,6 +72,7 @@ class ThemeInput(BaseModel):
     notes: str = ""
     status: ThemeStatus = "draft"
     board_version: int = 0
+    research_output: dict | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -187,6 +188,10 @@ class SerenityOutput(BaseModel):
     evidence_gaps: list[str]
     harness: AgentHarnessConfig
     created_at: datetime
+    research_sources: list[dict] = Field(default_factory=list)
+    candidate_verdicts: dict[str, dict] = Field(default_factory=dict)
+    serenity_stage_trace: list[dict] = Field(default_factory=list)
+    serenity_call_diagnostics: list[dict] = Field(default_factory=list)
 
 
 class EvidenceOutput(BaseModel):

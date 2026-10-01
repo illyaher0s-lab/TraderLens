@@ -26,6 +26,8 @@ Key rules:
 
 from datetime import date, datetime
 import json
+import uuid
+import hashlib
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -93,6 +95,11 @@ class ConfirmCandidateRequest(BaseModel):
     override_reason: str | None = None
     evidence_snapshot_ids: list[str] = []
     primary_evidence_snapshot_id: str | None = None
+
+
+class RunResearchRequest(BaseModel):
+    ticker: str
+    company_name: str
 
 
 def create_research_app(
@@ -236,6 +243,7 @@ def create_research_app(
             
             # Wire DataToolsService with Tushare client
             data_tools = DataToolsService(tushare_client=validator.tushare_client)
+            data_tools._sse_transport = data_tools._fetch_sse_response
             tools = SerenityTools(data_tools=data_tools, validator=validator)
             
             serenity_runner = SerenityAgentRunner(
@@ -882,6 +890,104 @@ def create_research_app(
         return response
 
     # ========================================================================
+    @app.post("/api/research/themes/{theme_id}/run-research")
+    def run_research_for_theme(theme_id: str, request: RunResearchRequest):
+        """Run REAL Serenity+Tushare synthesis; persist traceable facts/counter/gaps."""
+        from backend.services.friend_stock_flow import (
+            FriendStockFlowService,
+            validate_serenity_research_output,
+        )
+        from contracts.research import CandidateStock
+
+        theme = db.get_theme(theme_id)
+        if not theme:
+            raise HTTPException(status_code=404, detail="ResearchCase not found")
+
+        # Only a real runner may produce research; else research_unavailable.
+        if not (conversation_mode == "real" and hasattr(serenity_runner, "run")):
+            raise HTTPException(
+                status_code=503,
+                detail="research_unavailable: real Serenity runner not configured",
+            )
+
+        flow_service = FriendStockFlowService(
+            validator=validator,
+            serenity_runner=serenity_runner,
+            market_data_provider=None,
+        )
+        try:
+            research_output = flow_service.run_industry_research(
+                ticker=request.ticker,
+                company_name=request.company_name,
+            )
+            validate_serenity_research_output(
+                serenity_runner,
+                request.ticker,
+                research_output,
+                require_real_runner=not allow_test_serenity_runner,
+            )
+        except ValueError:
+            # Insufficient facts / service fault -> research_unavailable, no candidate.
+            raise HTTPException(
+                status_code=503,
+                detail="research_unavailable: serenity_execution_failed",
+            ) from None
+
+        # 零来源防御：无 traceable source → research_unavailable
+        rationale = research_output.get("candidate_rationales", {}).get(request.ticker, {})
+        tushare_ids = [
+            sid for sid in rationale.get("supporting_source_ids", [])
+            if isinstance(sid, str) and sid.startswith(("financials:", "announcements:"))
+        ]
+        if not tushare_ids:
+            raise HTTPException(
+                status_code=503,
+                detail="research_unavailable: traceable_sources_unavailable",
+            )
+
+        # Persist synthesis on the ResearchCase (read-only source for approval card).
+        db.store_research_output(theme_id, research_output)
+
+        # Create candidate (idempotent) so evidence snapshots can attach.
+        candidate_id = f"cand_{theme_id}"
+        candidate = db.get_candidate(candidate_id)
+        if not candidate:
+            candidate = CandidateStock(
+                candidate_id=candidate_id,
+                theme_id=theme_id,
+                symbol=request.ticker,
+                company_name=request.company_name,
+                verification_id=None,
+                source_type="manual_stock",
+                chain_layer="",
+                match_reason="朋友推荐",
+                match_confidence="high",
+                status="raw",
+                created_at=datetime.now(),
+            )
+            db.add_candidate(candidate)
+
+        # Persist the synthesis as an immutable evidence snapshot so the
+        # deterministic reducer can validate it at confirmation time.
+        snapshot_id = f"snap_{theme_id}_{uuid.uuid4().hex[:8]}"
+        evidence_output = dict(research_output)
+        evidence_output.setdefault("blocking_issues", [])
+        packet_data = json.dumps(evidence_output, sort_keys=True, ensure_ascii=False)
+        packet_hash = hashlib.sha256(packet_data.encode("utf-8")).hexdigest()
+        db.store_evidence_snapshot(
+            snapshot_id=snapshot_id,
+            candidate_id=candidate_id,
+            verification_id=None,
+            snapshot_date=date.today().isoformat(),
+            symbol=request.ticker,
+            evidence_output=evidence_output,
+            packet_input_hash=packet_hash,
+            tool_result_hash="",
+            packet_data=packet_data,
+            audit_id=None,
+        )
+        return research_output
+
     # Task 13: Unified Agent Workbench API
     # ========================================================================
 
@@ -1362,6 +1468,7 @@ def create_research_app(
                 validator,
                 serenity_runner,
                 market_data_provider,
+                research_db=db,  # V2 Task 2: pass ResearchDB instance
             )
         elif workflow_kind == "strategy_idea":
             handler_result = handle_strategy_idea(
@@ -1427,10 +1534,16 @@ def create_research_app(
             "created": WorkflowState.CREATED,
             "waiting_for_clarification": WorkflowState.CREATED,
             "stopped": WorkflowState.STOPPED,
+            "waiting_for_approval": WorkflowState.WAITING_FOR_APPROVAL,
+            "observing": WorkflowState.OBSERVING,
+            "completed": WorkflowState.COMPLETED,
         }
-        workflow_state = workflow_state_map.get(route_decision.workflow_state, WorkflowState.CREATED)
+        workflow_state = workflow_state_map.get(
+            handler_result.workflow_state or route_decision.workflow_state,
+            WorkflowState.CREATED,
+        )
         stage = session.workflow_state.value
-        approval_card = None
+        approval_card = handler_result.approval_card
         # Store agent message
         agent_message_id = f"msg_{uuid.uuid4().hex[:12]}"
         agent_message = AgentMessage(

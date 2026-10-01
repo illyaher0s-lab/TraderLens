@@ -334,11 +334,11 @@ class StockIdentityResolver:
                         fault_reason=f"Company name '{company_name}' not found in Tushare stock_basic",
                     )
         
-        except Exception as e:
+        except Exception:
             return StockIdentityResolution(
                 status="data_fault",
                 data_source="tushare_stock_basic",
-                fault_reason=f"Tushare API error: {str(e)}",
+                fault_reason="tushare_identity_lookup_failed",
             )
         
         return StockIdentityResolution(

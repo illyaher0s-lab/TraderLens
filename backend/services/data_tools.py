@@ -19,7 +19,13 @@ Tools:
 
 from __future__ import annotations
 
-from datetime import datetime
+import json
+import re
+from datetime import datetime, timedelta
+from urllib.parse import urlencode, urlparse
+from urllib.request import Request, urlopen
+from zoneinfo import ZoneInfo
+
 from contracts.research import DataToolResult
 
 
@@ -32,7 +38,7 @@ class DataToolsService:
     Missing fields are NOT filled with defaults.
     """
 
-    def __init__(self, tushare_client=None):
+    def __init__(self, tushare_client=None, sse_transport=None):
         """
         Initialize data tools service.
 
@@ -41,6 +47,7 @@ class DataToolsService:
                             If None, tools that require Tushare will report errors.
         """
         self._tushare = tushare_client
+        self._sse_transport = sse_transport
 
     # ------------------------------------------------------------------
     # get_financials
@@ -111,6 +118,11 @@ class DataToolsService:
 
         # Convert DataFrame to list of dicts, recording missing fields
         for _, row in df.iterrows():
+            row_symbol = row.get("ts_code") if "ts_code" in row.index else None
+            if not isinstance(row_symbol, str) or row_symbol != symbol:
+                gaps.append("income.ts_code_mismatch")
+                continue
+
             record: dict = {}
             row_gaps: list[str] = []
             for field in self._INCOME_FIELDS:
@@ -148,11 +160,9 @@ class DataToolsService:
     # get_announcements
     # ------------------------------------------------------------------
 
-    _ANNS_FIELDS = [
-        "ts_code", "ann_date", "title", "ann_type",
-        "pub_date", "content_type",
+    _ANNOUNCEMENT_FIELDS = [
+        "ann_date", "ts_code", "name", "title", "url", "rec_time",
     ]
-    _ANNS_OPTIONAL_FIELDS = ["file_url"]
 
     def get_announcements(
         self,
@@ -168,12 +178,8 @@ class DataToolsService:
         range filtering (start_date/end_date in YYYYMMDD format) and keyword
         filtering (case-insensitive substring matching on title).
 
-        Preserved fields per announcement:
-        - ts_code (symbol)
-        - ann_date (announcement date)
-        - title (announcement title)
-        - ann_type (announcement type code)
-        - pub_date (publish date)
+        Preserved fields per announcement follow Tushare's anns_d contract:
+        ann_date, ts_code, name, title, url, and rec_time.
 
         Keyword filtering is deterministic string matching — no LLM involved.
 
@@ -186,6 +192,12 @@ class DataToolsService:
         Returns:
             DataToolResult with raw_data, gaps, and errors
         """
+        # Shanghai-listed symbols use the SSE metadata list when that transport
+        # is configured. Keeping the existing provider path when it is absent
+        # preserves callers that have not yet opted into the SSE transport.
+        if self._is_sse_symbol(symbol) and self._sse_transport is not None:
+            return self._get_sse_announcements(symbol, keywords=keywords)
+
         now = datetime.now()
         gaps: list[str] = []
         errors: list[str] = []
@@ -203,10 +215,11 @@ class DataToolsService:
 
         try:
             df = self._tushare.query(
-                "anns",
+                "anns_d",
                 ts_code=symbol,
                 start_date=start_date,
                 end_date=end_date,
+                fields=",".join(self._ANNOUNCEMENT_FIELDS),
             )
         except Exception as exc:
             return DataToolResult(
@@ -215,7 +228,7 @@ class DataToolsService:
                 source="tushare_anns",
                 retrieved_at=now,
                 gaps=[],
-                errors=[f"Tushare anns API call failed: {exc}"],
+                errors=[f"Tushare anns_d API call failed: {exc}"],
             )
 
         if df is None or len(df) == 0:
@@ -228,25 +241,27 @@ class DataToolsService:
                 errors=[],
             )
 
-        # Convert DataFrame — preserved: symbol, ann_date, title, ann_type, pub_date
-        preserved_fields = [
-            "ts_code", "ann_date", "title", "ann_type", "pub_date",
-        ]
+        preserved_fields = self._ANNOUNCEMENT_FIELDS
 
         for _, row in df.iterrows():
+            row_symbol = row.get("ts_code") if "ts_code" in row.index else None
+            if not isinstance(row_symbol, str) or row_symbol != symbol:
+                gaps.append("anns_d.ts_code_mismatch")
+                continue
+
             record: dict = {}
             row_gaps: list[str] = []
             for field in preserved_fields:
                 val = row.get(field) if field in row.index else None
                 if val is None or (isinstance(val, float) and str(val) == "nan"):
-                    row_gaps.append(f"anns.{field}_missing")
+                    row_gaps.append(f"anns_d.{field}_missing")
                 else:
                     if hasattr(val, "item"):
                         val = val.item()
                     record[field] = val
             # Only include announcement if it has a title
             if not record.get("title"):
-                row_gaps.append("anns.title_missing")
+                row_gaps.append("anns_d.title_missing")
                 gaps.append(f"row_{len(raw_data) + 1}: {', '.join(row_gaps)}")
                 continue
             raw_data.append(record)
@@ -304,9 +319,9 @@ class DataToolsService:
         for field in preserved_fields:
             present = sum(1 for r in raw_data if field in r)
             if present == 0:
-                gaps.append(f"anns.{field}_missing_all_rows")
+                gaps.append(f"anns_d.{field}_missing_all_rows")
             elif present < len(raw_data):
-                gaps.append(f"anns.{field}_partial({present}/{len(raw_data)})")
+                gaps.append(f"anns_d.{field}_partial({present}/{len(raw_data)})")
 
         return DataToolResult(
             tool_name="get_announcements",
@@ -315,6 +330,309 @@ class DataToolsService:
             retrieved_at=now,
             gaps=gaps,
             errors=errors,
+        )
+
+    @staticmethod
+    def _is_sse_symbol(symbol: str) -> bool:
+        return isinstance(symbol, str) and re.fullmatch(r"\d{6}\.SH", symbol) is not None
+
+    @staticmethod
+    def _normalize_sse_url(value: str) -> str | None:
+        if not isinstance(value, str):
+            return None
+        url = value.strip()
+        if not url or url.startswith("//"):
+            return None
+
+        input_url = urlparse(url)
+        if input_url.scheme or input_url.netloc:
+            if input_url.scheme.lower() != "https" or not input_url.netloc:
+                return None
+        elif url.startswith("/disclosure/"):
+            url = "https://static.sse.com.cn" + url
+        elif url.startswith("disclosure/"):
+            url = "https://static.sse.com.cn/" + url
+        else:
+            return None
+
+        try:
+            parsed = urlparse(url)
+            host = (parsed.hostname or "").lower()
+            port = parsed.port
+        except ValueError:
+            return None
+        if (
+            parsed.scheme != "https"
+            or not (host == "sse.com.cn" or host.endswith(".sse.com.cn"))
+            or parsed.username is not None
+            or parsed.password is not None
+            or port not in (None, 443)
+        ):
+            return None
+        return url
+
+    @staticmethod
+    def _parse_sse_payload(body: bytes | str) -> dict:
+        if isinstance(body, bytes):
+            text = body.decode("utf-8-sig")
+        elif isinstance(body, str):
+            text = body.lstrip("\ufeff")
+        else:
+            raise ValueError("SSE response body must be text or bytes")
+        text = text.strip()
+
+        if text.startswith("{"):
+            payload = json.loads(text)
+        else:
+            match = re.fullmatch(
+                r"jsonpCallback72641\s*\((.*)\)\s*;?",
+                text,
+                flags=re.DOTALL,
+            )
+            if match is None:
+                raise ValueError("SSE response is neither JSON nor expected JSONP")
+            payload = json.loads(match.group(1))
+        if not isinstance(payload, dict):
+            raise ValueError("SSE response must be a JSON object")
+        if not isinstance(payload.get("result"), list):
+            raise ValueError("SSE response is missing result list")
+        if not isinstance(payload.get("pageHelp"), dict):
+            raise ValueError("SSE response is missing pageHelp object")
+        return payload
+
+    def _fetch_sse_response(self, url: str, *, headers: dict, timeout: int):
+        request = Request(url, headers=headers, method="GET")
+        with urlopen(request, timeout=timeout) as response:
+            return response.status, response.headers.get("Content-Type", ""), response.read()
+
+    def _get_sse_announcements(
+        self,
+        symbol: str,
+        *,
+        keywords: list[str] | None,
+    ) -> DataToolResult:
+        now = datetime.now(ZoneInfo("Asia/Shanghai"))
+        end_day = now.date()
+        begin_day = end_day - timedelta(days=179)
+        begin_date = begin_day.isoformat()
+        end_date = end_day.isoformat()
+        gaps: list[str] = []
+        errors: list[str] = []
+        raw_data: list[dict] = []
+
+        params = {
+            "isPagination": "true",
+            "productId": symbol[:6],
+            "keyWord": "",
+            "isNew": "1",
+            "reportType2": "",
+            "reportType": "ALL",
+            "beginDate": begin_date,
+            "endDate": end_date,
+            "pageHelp.pageSize": "20",
+            "pageHelp.pageCount": "50",
+            "pageHelp.pageNo": "1",
+            "pageHelp.beginPage": "1",
+            "pageHelp.cacheSize": "1",
+            "pageHelp.endPage": "5",
+            "jsonCallBack": "jsonpCallback72641",
+        }
+        url = (
+            "https://query.sse.com.cn/security/stock/queryCompanyStatementNew.do?"
+            + urlencode(params)
+        )
+        headers = {
+            "Accept": "application/json,*/*",
+            "Referer": (
+                "https://www.sse.com.cn/assortment/stock/list/info/announcement/"
+                f"index.shtml?productId={symbol[:6]}"
+            ),
+            "User-Agent": "Mozilla/5.0",
+        }
+
+        try:
+            status, _content_type, body = self._sse_transport(
+                url, headers=headers, timeout=15,
+            )
+            if status != 200:
+                raise ValueError(f"SSE announcement request returned HTTP {status}")
+            payload = self._parse_sse_payload(body)
+        except Exception as exc:
+            return DataToolResult(
+                tool_name="get_announcements",
+                raw_data=[],
+                source="sse_company_announcements",
+                retrieved_at=now,
+                gaps=[],
+                errors=[f"SSE announcement list failed: {exc}"],
+            )
+
+        if not payload["result"]:
+            return DataToolResult(
+                tool_name="get_announcements",
+                raw_data=[],
+                source="sse_company_announcements",
+                retrieved_at=now,
+                gaps=["announcements_data_empty"],
+                errors=[],
+            )
+
+        keyword_set = {item.casefold() for item in (keywords or []) if item}
+        for index, row in enumerate(payload["result"]):
+            if not isinstance(row, dict):
+                errors.append(f"SSE announcement row {index} is not an object")
+                continue
+
+            raw_code = row.get("security_Code") or row.get("SECURITY_CODE")
+            if isinstance(raw_code, str):
+                raw_code = raw_code.strip().upper()
+                row_code = f"{raw_code}.SH" if re.fullmatch(r"\d{6}", raw_code) else raw_code
+            else:
+                row_code = ""
+            title = row.get("title") or row.get("TITLE")
+            raw_date = row.get("SSEDate") or row.get("SSEDATE")
+            raw_url = row.get("URL") or row.get("url")
+
+            missing = []
+            if not row_code:
+                missing.append("security code")
+            if not isinstance(raw_date, str) or not raw_date.strip():
+                missing.append("SSEDate")
+            if not isinstance(title, str) or not title.strip():
+                missing.append("title")
+            if not isinstance(raw_url, str) or not raw_url.strip():
+                missing.append("URL")
+            if missing:
+                errors.append(
+                    f"SSE announcement row {index} missing required field(s): "
+                    + ", ".join(missing)
+                )
+                continue
+
+            try:
+                date_text = raw_date.strip()
+                published = datetime.strptime(
+                    date_text, "%Y-%m-%d" if "-" in date_text else "%Y%m%d",
+                ).date()
+            except ValueError:
+                errors.append(f"SSE announcement row {index} has invalid SSEDate")
+                continue
+            official_url = self._normalize_sse_url(raw_url)
+            if official_url is None:
+                errors.append(f"SSE announcement row {index} has a non-official URL")
+                continue
+            if row_code != symbol:
+                gaps.append(f"sse_announcement_code_mismatch({row_code})")
+                continue
+            if published < begin_day or published > end_day:
+                gaps.append("sse_announcement_outside_180_day_window")
+                continue
+
+            title = title.strip()
+            if keyword_set and not any(word in title.casefold() for word in keyword_set):
+                continue
+            raw_data.append({
+                "source": "sse",
+                "code": symbol,
+                "date": published.isoformat(),
+                "title": title,
+                "url": official_url,
+                "retrieved_at": now,
+                "gaps": ["full_text_unavailable"],
+            })
+            if len(raw_data) == 20:
+                break
+
+        if not raw_data and not errors and not gaps:
+            gaps.append("announcements_filtered_by_keywords")
+        return DataToolResult(
+            tool_name="get_announcements",
+            raw_data=raw_data,
+            source="sse_company_announcements",
+            retrieved_at=now,
+            gaps=gaps,
+            errors=errors,
+        )
+
+    # ------------------------------------------------------------------
+    # get_sector_and_peers
+    # ------------------------------------------------------------------
+
+    _COMPANY_PROFILE_FIELDS = "ts_code,com_name,main_business,business_scope"
+
+    def get_company_profile(self, symbol: str) -> DataToolResult:
+        """Fetch one symbol's reported company-main-business profile."""
+        now = datetime.now()
+        gaps: list[str] = []
+
+        if self._tushare is None:
+            return DataToolResult(
+                tool_name="get_company_profile",
+                raw_data=[],
+                source="tushare_stock_company",
+                retrieved_at=now,
+                gaps=["tushare_client_not_configured"],
+                errors=["No Tushare client available"],
+            )
+
+        try:
+            df = self._tushare.query(
+                "stock_company",
+                ts_code=symbol,
+                fields=self._COMPANY_PROFILE_FIELDS,
+            )
+        except Exception as exc:
+            return DataToolResult(
+                tool_name="get_company_profile",
+                raw_data=[],
+                source="tushare_stock_company",
+                retrieved_at=now,
+                gaps=[],
+                errors=[f"Tushare stock_company query failed: {exc}"],
+            )
+
+        if df is None or len(df) == 0:
+            return DataToolResult(
+                tool_name="get_company_profile",
+                raw_data=[],
+                source="tushare_stock_company",
+                retrieved_at=now,
+                gaps=["stock_company_data_empty"],
+                errors=[],
+            )
+
+        raw_data: list[dict] = []
+        for _, row in df.iterrows():
+            row_symbol = row.get("ts_code") if "ts_code" in row.index else None
+            if not isinstance(row_symbol, str) or row_symbol != symbol:
+                gaps.append("stock_company.ts_code_mismatch")
+                continue
+
+            main_business = row.get("main_business")
+            if not isinstance(main_business, str) or not main_business.strip():
+                gaps.append("stock_company.main_business_missing")
+                continue
+
+            record = {
+                "ts_code": row_symbol,
+                "main_business": main_business.strip(),
+            }
+            for field in ("com_name", "business_scope"):
+                value = row.get(field) if field in row.index else None
+                if isinstance(value, str) and value.strip():
+                    record[field] = value.strip()
+            raw_data.append(record)
+
+        if not raw_data and not gaps:
+            gaps.append("stock_company_no_valid_profile")
+
+        return DataToolResult(
+            tool_name="get_company_profile",
+            raw_data=raw_data,
+            source="tushare_stock_company",
+            retrieved_at=now,
+            gaps=gaps,
+            errors=[],
         )
 
     # ------------------------------------------------------------------

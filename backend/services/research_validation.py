@@ -19,7 +19,6 @@ CONSTRAINTS:
 
 from __future__ import annotations
 
-import os
 from datetime import datetime
 from typing import NamedTuple, Literal
 
@@ -85,9 +84,8 @@ class ResearchValidator:
             tushare_config: Tushare configuration (optional, loads from env if None)
         """
         self.liquidity_threshold = liquidity_threshold
-        self.tushare_config = tushare_config or TushareConfig(
-            token=os.getenv("TUSHARE_TOKEN"),
-            api_url="http://8.163.90.143:8686/",
+        self.tushare_config = (
+            tushare_config if tushare_config is not None else TushareConfig.from_env()
         )
         self._tushare_client: TushareClient | None = None
 

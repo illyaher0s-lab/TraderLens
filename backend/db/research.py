@@ -46,10 +46,25 @@ from contracts.research import (
 class ResearchDB:
     """SQLite database for research module."""
 
-    def __init__(self, db_path: str = "data/research.db"):
-        """Initialize database connection and create tables."""
-        self.conn = sqlite3.connect(db_path, check_same_thread=False)
-        self.conn.row_factory = sqlite3.Row
+    def __init__(self, db_path_or_conn="data/research.db", *, db_path=None):
+        """Initialize database connection and create tables.
+
+        Args:
+            db_path_or_conn: Either a path string (default: "data/research.db")
+                            or an existing sqlite3.Connection
+        """
+        if db_path is not None:
+            if db_path_or_conn != "data/research.db":
+                raise TypeError("Specify either db_path_or_conn or db_path, not both")
+            db_path_or_conn = db_path
+        if isinstance(db_path_or_conn, str):
+            self.conn = sqlite3.connect(db_path_or_conn, check_same_thread=False)
+            self.conn.row_factory = sqlite3.Row
+            self._owns_connection = True
+        else:
+            # Reuse existing connection
+            self.conn = db_path_or_conn
+            self._owns_connection = False
         self._create_tables()
 
     def _create_tables(self):
@@ -72,6 +87,8 @@ class ResearchDB:
                 updated_at TEXT NOT NULL
             )
         """)
+
+        self._ensure_column("research_themes", "research_output", "TEXT")
 
         # research_candidates
         cursor.execute("""
@@ -273,7 +290,7 @@ class ResearchDB:
         if column_name not in existing_columns:
             cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_definition}")
 
-    def create_theme(self, theme: ThemeInput):
+    def create_theme(self, theme: ThemeInput, *, commit: bool = True):
         """Create a new research theme."""
         cursor = self.conn.cursor()
         cursor.execute(
@@ -296,7 +313,8 @@ class ResearchDB:
                 theme.updated_at.isoformat(),
             ),
         )
-        self.conn.commit()
+        if commit:
+            self.conn.commit()
 
     def get_theme(self, theme_id: str) -> Optional[ThemeInput]:
         """Get a theme by ID."""
@@ -315,6 +333,9 @@ class ResearchDB:
             notes=row["notes"],
             status=row["status"],
             board_version=row["board_version"],
+            research_output=(
+                json.loads(row["research_output"]) if row["research_output"] else None
+            ),
             created_at=datetime.fromisoformat(row["created_at"]),
             updated_at=datetime.fromisoformat(row["updated_at"]),
         )
@@ -334,11 +355,26 @@ class ResearchDB:
                 notes=row["notes"],
                 status=row["status"],
                 board_version=row["board_version"],
+                research_output=(
+                    json.loads(row["research_output"]) if row["research_output"] else None
+                ),
                 created_at=datetime.fromisoformat(row["created_at"]),
                 updated_at=datetime.fromisoformat(row["updated_at"]),
             )
             for row in cursor.fetchall()
         ]
+
+    def store_research_output(
+        self, theme_id: str, research_output: dict, *, commit: bool = True
+    ) -> None:
+        """Persist Serenity synthesis output on the ResearchCase."""
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "UPDATE research_themes SET research_output = ?, updated_at = ? WHERE theme_id = ?",
+            (json.dumps(research_output), datetime.now().isoformat(), theme_id),
+        )
+        if commit:
+            self.conn.commit()
 
     def add_candidate(self, candidate: CandidateStock):
         """Add a candidate to a theme."""

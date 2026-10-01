@@ -29,6 +29,150 @@ from backend.services.live_market_data import (
 )
 
 
+def validate_serenity_research_output(
+    serenity_runner,
+    ticker: str,
+    research_output: dict,
+    *,
+    require_real_runner: bool = True,
+    require_candidate_verdict: bool = False,
+) -> dict:
+    """Validate the evidence boundary before a research result can advance."""
+    if require_real_runner:
+        if not isinstance(serenity_runner, SerenityAgentRunner):
+            raise ValueError("real SerenityAgentRunner is required")
+        if serenity_runner.mode != "real":
+            raise ValueError("Serenity runner must use mode=real")
+        if serenity_runner.execution_mode != "two_phase":
+            raise ValueError("Serenity runner must use execution_mode=two_phase")
+
+    if require_candidate_verdict:
+        decisions = research_output.get("candidate_verdicts")
+        decision = decisions.get(ticker) if isinstance(decisions, dict) else None
+        if not isinstance(decision, dict):
+            raise ValueError("missing candidate verdict")
+        if decision.get("verdict") not in {
+            "research_positive", "research_watch", "research_reject", "research_unavailable"
+        }:
+            raise ValueError("invalid candidate verdict")
+        if not isinstance(decision.get("reason"), str) or not decision["reason"].strip():
+            raise ValueError("candidate verdict requires a reason")
+
+        source_ids = set()
+        sources = research_output.get("research_sources")
+        if not isinstance(sources, list):
+            raise ValueError("missing research source inventory")
+        for source in sources:
+            if not isinstance(source, dict):
+                continue
+            source_id = source.get("source_record_id")
+            if isinstance(source_id, str):
+                parts = source_id.split(":")
+                if len(parts) == 3 and parts[1] == ticker and parts[2].isdigit():
+                    source_ids.add(source_id)
+
+        def validate_bound_ids(values, label):
+            if not isinstance(values, list):
+                raise ValueError(f"{label} must be a list")
+            for source_id in values:
+                if (
+                    not isinstance(source_id, str)
+                    or source_id not in source_ids
+                    or source_id.split(":")[1] != ticker
+                ):
+                    raise ValueError(f"{label} contains an invalid source reference")
+
+        supporting_ids = decision.get("supporting_source_ids")
+        validate_bound_ids(supporting_ids, "supporting_source_ids")
+        if decision["verdict"] == "research_unavailable":
+            if not isinstance(decision.get("evidence_gaps"), list) or not any(
+                isinstance(gap, str) and gap.strip()
+                for gap in decision["evidence_gaps"]
+            ):
+                raise ValueError("research_unavailable requires a missing-data reason")
+        else:
+            if not supporting_ids or not any(
+                source_id.startswith(("financials:", "announcements:"))
+                for source_id in supporting_ids
+            ):
+                raise ValueError("candidate verdict lacks traceable supporting evidence")
+
+        counters = decision.get("counter_evidence")
+        if not isinstance(counters, list):
+            raise ValueError("counter_evidence must be a list")
+        for counter in counters:
+            if not isinstance(counter, dict) or not isinstance(counter.get("description"), str) or not counter["description"].strip():
+                raise ValueError("counter_evidence requires a description")
+            validate_bound_ids([counter.get("source_record_id")], "counter_evidence")
+
+        for field_name in ("invalidation_conditions", "evidence_gaps"):
+            values = decision.get(field_name)
+            if not isinstance(values, list) or any(
+                not isinstance(value, str) or not value.strip() for value in values
+            ):
+                raise ValueError(f"{field_name} must contain strings")
+
+        trace = research_output.get("serenity_stage_trace")
+        expected_stages = [("planner", 1), ("synthesizer", 2)]
+        if not isinstance(trace, list) or len(trace) != 2:
+            raise ValueError("invalid Serenity stage trace")
+        for call, (stage, sequence) in zip(trace, expected_stages):
+            if not isinstance(call, dict) or set(call) - {
+                "stage", "sequence", "called_at", "provider", "model", "status"
+            }:
+                raise ValueError("invalid Serenity stage trace fields")
+            if (
+                call.get("stage") != stage
+                or call.get("sequence") != sequence
+                or call.get("status") != "success"
+                or not isinstance(call.get("provider"), str)
+                or not call["provider"].strip()
+                or not isinstance(call.get("model"), str)
+                or not call["model"].strip()
+            ):
+                raise ValueError("incomplete Serenity stage trace")
+            try:
+                datetime.fromisoformat(call["called_at"])
+            except (TypeError, ValueError, KeyError):
+                raise ValueError("invalid Serenity stage timestamp") from None
+        return decision
+
+    rationale = research_output.get("candidate_rationales", {}).get(ticker)
+    if not isinstance(rationale, dict) or not rationale.get("rationale", "").strip():
+        raise ValueError(f"No non-empty rationale for {ticker}")
+
+    source_inventory = research_output.get("source_inventory", {}).get(ticker)
+    if not isinstance(source_inventory, dict):
+        raise ValueError(f"No runner source inventory for {ticker}")
+    available_source_ids = set(source_inventory.get("supporting_source_ids", []))
+    available_source_ids.update(source_inventory.get("counter_source_ids", []))
+
+    def _validate_source_ids(source_ids, label):
+        if not isinstance(source_ids, list):
+            raise ValueError(f"{label} must be a list")
+        for source_id in source_ids:
+            if not isinstance(source_id, str):
+                raise ValueError(f"{label} contains a non-string source ID")
+            parts = source_id.split(":")
+            if len(parts) != 3 or parts[1] != ticker or not parts[2].isdigit():
+                raise ValueError(f"{label} source ID does not belong to {ticker}: {source_id}")
+            if source_id not in available_source_ids:
+                raise ValueError(f"{label} source ID is not present in runner output: {source_id}")
+
+    supporting_ids = rationale.get("supporting_source_ids", [])
+    _validate_source_ids(supporting_ids, "supporting_source_ids")
+    if not any(source_id.startswith(("financials:", "announcements:")) for source_id in supporting_ids):
+        raise ValueError(f"No traceable financials/announcements source for {ticker}")
+
+    for counter in rationale.get("counter_evidence", []) or []:
+        source_id = counter.get("source_record_id") if isinstance(counter, dict) else getattr(counter, "source_record_id", None)
+        if not source_id:
+            raise ValueError(f"counter_evidence missing source ID for {ticker}")
+        _validate_source_ids([source_id], "counter_evidence")
+
+    return rationale
+
+
 def extract_ticker_and_company_from_natural_language(user_input: str) -> Tuple[Optional[str], Optional[str]]:
     """
     Extract ticker code and company name from natural language input.
@@ -338,19 +482,32 @@ class FriendStockFlowService:
             updated_at=now,
         )
         
-        # Call real Serenity runner
-        output = self.serenity_runner.run(theme, manual_candidates=[])
+        # Call real Serenity runner with target ticker as manual candidate
+        from contracts.research import CandidateStock
+        manual_candidates = [CandidateStock(
+            candidate_id=f"manual_{ticker}",
+            theme_id=theme.theme_id,
+            symbol=ticker,
+            company_name=company_name,
+            source_type="manual_theme",
+            match_reason="friend_recommended",
+            created_at=now,
+        )]
+        
+        output = self.serenity_runner.run(theme, manual_candidates=manual_candidates)
         
         # Convert Serenity's contract objects to the friend-stock response shape.
         # Older fixtures used dicts, so keep that path for compatibility.
         if isinstance(output.candidate_pool_raw, list):
             candidate_rationales = {}
+            source_inventory = {}
             for candidate in output.candidate_pool_raw:
                 if isinstance(candidate, dict):
                     symbol = candidate["symbol"]
                     rationale = candidate.get("rationale") or candidate.get("match_reason", "")
                     supporting_source_ids = candidate.get("supporting_source_ids", [])
                     counter_evidence = candidate.get("counter_evidence", [])
+                    falsification_questions = candidate.get("falsification_questions", [])
                 else:
                     symbol = candidate.symbol
                     rationale = candidate.match_reason
@@ -359,15 +516,35 @@ class FriendStockFlowService:
                         item.model_dump(mode="json")
                         for item in candidate.counter_evidence
                     ]
+                    falsification_questions = candidate.falsification_questions
 
                 candidate_rationales[symbol] = {
                     "rationale": rationale,
                     "supporting_source_ids": supporting_source_ids,
                     "counter_evidence": counter_evidence,
+                    "falsification_questions": falsification_questions,
+                }
+                source_inventory[symbol] = {
+                    "supporting_source_ids": list(supporting_source_ids),
+                    "counter_source_ids": [
+                        item.get("source_record_id")
+                        for item in counter_evidence
+                        if isinstance(item, dict) and item.get("source_record_id")
+                    ],
                 }
         else:
             # Already dict format
             candidate_rationales = output.candidate_pool_raw
+            source_inventory = {}
+
+        research_sources = []
+        for source in getattr(output, "research_sources", []) or []:
+            if not isinstance(source, dict):
+                continue
+            source_id = source.get("source_record_id", "")
+            source_id_parts = source_id.split(":")
+            if len(source_id_parts) >= 3 and source_id_parts[1] == ticker:
+                research_sources.append(source)
         
         # Extract synthesis from output
         return {
@@ -376,7 +553,12 @@ class FriendStockFlowService:
             "suspected_bottleneck_layers": output.suspected_bottleneck_layers,
             "hypothesis_draft": output.hypothesis_draft,
             "candidate_rationales": candidate_rationales,
+            "source_inventory": source_inventory,
             "evidence_gaps": output.evidence_gaps,
+            "research_sources": research_sources,
+            "candidate_verdicts": getattr(output, "candidate_verdicts", {}) or {},
+            "serenity_stage_trace": getattr(output, "serenity_stage_trace", []) or [],
+            "serenity_call_diagnostics": getattr(output, "serenity_call_diagnostics", []) or [],
         }
 
     def process_decision(

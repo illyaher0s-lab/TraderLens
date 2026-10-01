@@ -138,19 +138,201 @@ class TestIdentityVerificationNotResearchEvidence(unittest.TestCase):
 class TestThemeRelevanceGate(unittest.TestCase):
     """测试：主题相关性门禁。"""
     
+    def test_market_scan_symbol_bound_source_passes_without_generic_theme_keyword(self):
+        """market_scan 用显式 symbol 绑定证明相关性，不依赖通用主题词。"""
+        context = SerenityRunContext()
+        context.sources_by_id["financials:300750.SZ:0"] = ResearchSource(
+            source_record_id="financials:300750.SZ:0",
+            source_type="financial_report",
+            source_quality="first_hand",
+            title="2025年年报",
+            summary="公司经营事实",
+            retrieved_at=datetime.now(),
+            published_at=date.today(),
+            theme_keywords_matched=[],
+            theme_relevance_basis="",
+        )
+        context.verified_candidates_by_symbol["300750.SZ"] = VerifiedResearchCandidate(
+            symbol="300750.SZ",
+            company_name="宁德时代",
+            verification_id="verify_abc123",
+            exchange="SZSE",
+            listing_status="listed",
+            confidence="high",
+            supporting_source_ids=["financials:300750.SZ:0"],
+            falsification_questions=["需要验证产能"],
+        )
+        context.completed_checks.update({"source_audit", "red_team"})
+        synthesis = ResearchSynthesis(
+            demand_driver="市场扫描候选",
+            value_chain_layers=[],
+            suspected_bottleneck_layers=[],
+            hypothesis_draft=[],
+            candidate_rationales={
+                "300750.SZ": {
+                    "rationale": "显式候选对应的真实财报来源",
+                    "supporting_source_ids": ["financials:300750.SZ:0"],
+                }
+            },
+            evidence_gaps=[],
+        )
+
+        shortlist = apply_shortlist_gate(
+            context,
+            synthesis,
+            "market_scan_batch",
+            source_type="market_scan",
+        )
+
+        self.assertEqual(len(shortlist), 1)
+
     def test_candidate_without_theme_relevance_source_rejected(self):
-        """候选没有证明"与主题相关"的来源时被拒绝。"""
-        # TODO: 需要定义如何表示"主题相关性"
-        # 可能的方案：
-        # 1. 要求至少一个 source 的 title/content 包含主题关键词
-        # 2. 要求 source metadata 包含 theme_relevance_score > 0
-        # 3. 要求 Synthesizer 在 candidate_rationales 中明确说明主题关联
-        pass
-    
+        """manual_theme 仍要求原主题关键词相关性。"""
+        context = SerenityRunContext()
+        context.sources_by_id["financials:300750.SZ:0"] = ResearchSource(
+            source_record_id="financials:300750.SZ:0",
+            source_type="financial_report",
+            source_quality="first_hand",
+            title="2025年年报",
+            retrieved_at=datetime.now(),
+            published_at=date.today(),
+            theme_keywords_matched=[],
+            theme_relevance_basis="",
+        )
+        context.verified_candidates_by_symbol["300750.SZ"] = VerifiedResearchCandidate(
+            symbol="300750.SZ",
+            company_name="宁德时代",
+            verification_id="verify_abc123",
+            exchange="SZSE",
+            listing_status="listed",
+            confidence="high",
+            supporting_source_ids=["financials:300750.SZ:0"],
+            falsification_questions=["需要验证产能"],
+        )
+        context.completed_checks.update({"source_audit", "red_team"})
+        synthesis = ResearchSynthesis(
+            demand_driver="锂电池产业链",
+            value_chain_layers=[],
+            suspected_bottleneck_layers=[],
+            hypothesis_draft=[],
+            candidate_rationales={"300750.SZ": {
+                "rationale": "真实来源",
+                "supporting_source_ids": ["financials:300750.SZ:0"],
+            }},
+            evidence_gaps=[],
+        )
+
+        shortlist = apply_shortlist_gate(context, synthesis, "manual_theme")
+
+        self.assertEqual(shortlist, [])
+
+    def test_symbol_bound_mode_rejects_wrong_symbol_source(self):
+        """显式 symbol 模式仍拒绝错误标的来源。"""
+        context = SerenityRunContext()
+        context.sources_by_id["financials:300751.SZ:0"] = ResearchSource(
+            source_record_id="financials:300751.SZ:0",
+            source_type="financial_report",
+            source_quality="first_hand",
+            title="错误标的年报",
+            retrieved_at=datetime.now(),
+            published_at=date.today(),
+        )
+        context.verified_candidates_by_symbol["300750.SZ"] = VerifiedResearchCandidate(
+            symbol="300750.SZ", company_name="宁德时代", verification_id="verify_abc123",
+            exchange="SZSE", listing_status="listed", confidence="high",
+            supporting_source_ids=["financials:300751.SZ:0"],
+            falsification_questions=["需要验证"],
+        )
+        context.completed_checks.update({"source_audit", "red_team"})
+        synthesis = ResearchSynthesis(
+            demand_driver="市场扫描", value_chain_layers=[], suspected_bottleneck_layers=[],
+            hypothesis_draft=[], candidate_rationales={"300750.SZ": {
+                "rationale": "错误标的", "supporting_source_ids": ["financials:300751.SZ:0"]
+            }}, evidence_gaps=[],
+        )
+        self.assertEqual(
+            apply_shortlist_gate(context, synthesis, "market_scan_batch", source_type="market_scan"),
+            [],
+        )
+
+    def test_symbol_bound_mode_rejects_weak_source(self):
+        """显式 symbol 模式不能放宽 weak source 门禁。"""
+        context = SerenityRunContext()
+        context.sources_by_id["financials:300750.SZ:0"] = ResearchSource(
+            source_record_id="financials:300750.SZ:0", source_type="financial_report",
+            source_quality="weak", title="弱来源", retrieved_at=datetime.now(),
+        )
+        context.verified_candidates_by_symbol["300750.SZ"] = VerifiedResearchCandidate(
+            symbol="300750.SZ", company_name="宁德时代", verification_id="verify_abc123",
+            exchange="SZSE", listing_status="listed", confidence="high",
+            supporting_source_ids=["financials:300750.SZ:0"],
+            falsification_questions=["需要验证"],
+        )
+        context.completed_checks.update({"source_audit", "red_team"})
+        synthesis = ResearchSynthesis(
+            demand_driver="市场扫描", value_chain_layers=[], suspected_bottleneck_layers=[],
+            hypothesis_draft=[], candidate_rationales={"300750.SZ": {
+                "rationale": "弱来源", "supporting_source_ids": ["financials:300750.SZ:0"]
+            }}, evidence_gaps=[],
+        )
+        self.assertEqual(
+            apply_shortlist_gate(context, synthesis, "market_scan_batch", source_type="market_scan"),
+            [],
+        )
+
+    def test_symbol_bound_mode_keeps_identity_and_red_team_gates(self):
+        """显式 symbol 模式不能放宽 hard flag、low confidence 或 red-team 门禁。"""
+        for candidate_kwargs in (
+            {"hard_filter_flags": ["is_st"]},
+            {"confidence": "low"},
+            {"falsification_questions": []},
+        ):
+            with self.subTest(candidate_kwargs=candidate_kwargs):
+                context = SerenityRunContext()
+                context.sources_by_id["financials:300750.SZ:0"] = ResearchSource(
+                    source_record_id="financials:300750.SZ:0", source_type="financial_report",
+                    source_quality="first_hand", title="年报", retrieved_at=datetime.now(),
+                )
+                base = {
+                    "symbol": "300750.SZ", "company_name": "宁德时代",
+                    "verification_id": "verify_abc123", "exchange": "SZSE",
+                    "listing_status": "listed", "confidence": "high",
+                    "supporting_source_ids": ["financials:300750.SZ:0"],
+                    "falsification_questions": ["需要验证"],
+                }
+                base.update(candidate_kwargs)
+                context.verified_candidates_by_symbol["300750.SZ"] = VerifiedResearchCandidate(**base)
+                context.completed_checks.update({"source_audit", "red_team"})
+                synthesis = ResearchSynthesis(
+                    demand_driver="市场扫描", value_chain_layers=[], suspected_bottleneck_layers=[],
+                    hypothesis_draft=[], candidate_rationales={"300750.SZ": {
+                        "rationale": "候选", "supporting_source_ids": ["financials:300750.SZ:0"]
+                    }}, evidence_gaps=[],
+                )
+                self.assertEqual(
+                    apply_shortlist_gate(context, synthesis, "market_scan_batch", source_type="market_scan"),
+                    [],
+                )
+
     def test_ticker_verification_alone_insufficient_for_theme_relevance(self):
         """只有 ticker 核验不能证明主题关联。"""
-        # 即使 verification_id 有效，也需要额外的来源证明该股票与主题相关
-        pass
+        context = SerenityRunContext()
+        context.verified_candidates_by_symbol["300750.SZ"] = VerifiedResearchCandidate(
+            symbol="300750.SZ", company_name="宁德时代", verification_id="verify_abc123",
+            exchange="SZSE", listing_status="listed", confidence="high",
+            supporting_source_ids=[], falsification_questions=["需要验证"],
+        )
+        context.completed_checks.update({"source_audit", "red_team"})
+        synthesis = ResearchSynthesis(
+            demand_driver="市场扫描", value_chain_layers=[], suspected_bottleneck_layers=[],
+            hypothesis_draft=[], candidate_rationales={"300750.SZ": {
+                "rationale": "仅身份", "supporting_source_ids": []
+            }}, evidence_gaps=[],
+        )
+        self.assertEqual(
+            apply_shortlist_gate(context, synthesis, "market_scan_batch", source_type="market_scan"),
+            [],
+        )
 
 
 class TestCandidateRationaleSourceBinding(unittest.TestCase):

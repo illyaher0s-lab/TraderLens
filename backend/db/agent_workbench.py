@@ -267,7 +267,13 @@ def list_messages(conn: sqlite3.Connection, session_id: str) -> list[AgentMessag
     ]
 
 
-def attach_artifact_ref(conn: sqlite3.Connection, artifact_ref: ArtifactRef, content: str | None = None):
+def attach_artifact_ref(
+    conn: sqlite3.Connection,
+    artifact_ref: ArtifactRef,
+    content: str | None = None,
+    *,
+    commit: bool = True,
+):
     """
     Attach artifact reference to session.
 
@@ -308,7 +314,8 @@ def attach_artifact_ref(conn: sqlite3.Connection, artifact_ref: ArtifactRef, con
         ),
     )
 
-    conn.commit()
+    if commit:
+        conn.commit()
 
 
 def list_artifact_refs(conn: sqlite3.Connection, session_id: str) -> list[ArtifactRef]:
