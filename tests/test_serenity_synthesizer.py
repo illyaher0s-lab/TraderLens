@@ -27,7 +27,9 @@ class MockLLMClient:
         self.response_text = response_text
         self.call_count = 0
     
-    def create_message(self, messages, system, max_tokens):
+    def create_message(
+        self, messages, system, max_tokens, timeout=None, stage=None, source_count=None,
+    ):
         self.call_count += 1
         return {
             "content": [{"type": "text", "text": self.response_text}]
@@ -77,7 +79,10 @@ class TestResearchSynthesizer(unittest.TestCase):
         ]
 
         class CapturingLLM:
-            def create_message(self, messages, system, max_tokens):
+            def create_message(
+                self, messages, system, max_tokens, timeout=None,
+                stage=None, source_count=None,
+            ):
                 self.messages = messages
                 self.system = system
                 return {

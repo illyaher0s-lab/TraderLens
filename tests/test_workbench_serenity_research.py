@@ -481,7 +481,19 @@ def test_workbench_persists_synthesizer_verdict_and_two_stage_trace(
         and item["content"]["artifact_type"] == "research_result"
     )
     diagnostics = result["serenity_call_diagnostics"]
-    assert diagnostics == []
+    assert len(diagnostics) == 1
+    synthesizer_diagnostic = diagnostics[0]
+    assert synthesizer_diagnostic["stage"] == "synthesizer"
+    assert synthesizer_diagnostic["provider"] == "fixture-provider"
+    assert synthesizer_diagnostic["model"] == "fixture-model"
+    assert synthesizer_diagnostic["status"] == "success"
+    assert synthesizer_diagnostic["input_bytes"] > 0
+    assert synthesizer_diagnostic["source_count"] == 1
+    assert synthesizer_diagnostic["company_source_count"] == 0
+    assert synthesizer_diagnostic["financial_source_count"] == 1
+    assert synthesizer_diagnostic["announcement_source_count"] == 0
+    assert synthesizer_diagnostic["response_received"] is True
+    assert synthesizer_diagnostic["parse_reached"] is True
     assert result["research_verdict"] == verdict
     assert result["research_status"] == expected_status
     expected_reason = (

@@ -130,6 +130,7 @@ class LLMClient:
         decision_loop_id: str | None = None,
         stage: str | None = None,
         source_count: int | None = None,
+        timeout: float | None = None,
     ) -> dict[str, Any]:
         """
         Create a message with the LLM.
@@ -142,6 +143,8 @@ class LLMClient:
             decision_loop_id: V2 whole-loop budget key; enforces a hard
                 cap of _CALL_LIMIT_PER_LOOP calls per loop (default 3).
             stage: V2 stage label for latency telemetry.
+            timeout: Optional per-request timeout override; None uses the
+                timeout configured when the client was created.
 
         Returns:
             Response dict with content, tool_use, and usage
@@ -181,13 +184,16 @@ class LLMClient:
                 "source_count": source_count if type(source_count) is int and source_count >= 0 else None,
                 "output_parse_reached": False,
             }
-            response = self.client.messages.create(
-                model=self.model,
-                messages=messages,
-                system=system,
-                tools=tools,
-                max_tokens=max_tokens,
-            )
+            request_kwargs = {
+                "model": self.model,
+                "messages": messages,
+                "system": system,
+                "tools": tools,
+                "max_tokens": max_tokens,
+            }
+            if timeout is not None:
+                request_kwargs["timeout"] = timeout
+            response = self.client.messages.create(**request_kwargs)
             diagnostic["duration_ms"] = max(0.0, (time.perf_counter() - request_started) * 1000)
             diagnostic["status"] = "success"
             # Convert response to dict

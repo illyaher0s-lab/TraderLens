@@ -14,9 +14,12 @@ Serenity Research Synthesizer (双阶段重构 - LLM 2/2).
 
 from dataclasses import dataclass, field
 import json
+import math
 import re
+import time
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from backend.services.llm_client import _SAFE_PROVIDER_CODES, _request_input_bytes
 from backend.services.serenity_agent import SerenityRunContext, SerenityAgentAudit
 from contracts.research import ThemeInput
 
@@ -142,8 +145,7 @@ RULES:
         self.last_response_metadata = None  # 保存响应元数据（不包含敏感 prompt）
 
     @staticmethod
-    def _failure_diagnostic(exc: Exception) -> dict:
-        """Return only the safe failure class and, for HTTP failures, status."""
+    def _exception_chain(exc: Exception) -> list[BaseException]:
         chain = []
         current = exc
         seen = set()
@@ -151,51 +153,144 @@ RULES:
             seen.add(id(current))
             chain.append(current)
             current = current.__cause__ or current.__context__
+        return chain
 
-        call_diagnostics = [
-            getattr(item, "call_diagnostic", None)
-            for item in chain
-        ]
-        call_diagnostics = [item for item in call_diagnostics if isinstance(item, dict)]
-
-        is_timeout = any(
-            diagnostic.get("timeout") is True
-            for diagnostic in call_diagnostics
-        ) or any(
-            "timeout" in base.__name__.lower()
-            for item in chain
-            for base in type(item).__mro__
-        )
-        if is_timeout:
-            return {"stage": "synthesizer", "failure_class": "timeout"}
-
-        http_status = next(
+    @classmethod
+    def _diagnostic_from_exception(cls, exc: Exception) -> dict | None:
+        return next(
             (
-                diagnostic.get("http_status")
-                for diagnostic in call_diagnostics
-                if type(diagnostic.get("http_status")) is int
-                and 100 <= diagnostic["http_status"] <= 599
+                diagnostic
+                for item in cls._exception_chain(exc)
+                if isinstance(diagnostic := getattr(item, "call_diagnostic", None), dict)
             ),
             None,
         )
-        if http_status is None:
+
+    @staticmethod
+    def _safe_exception_class(value) -> str | None:
+        if isinstance(value, str) and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{0,63}", value):
+            return value
+        return None
+
+    @classmethod
+    def _exception_class_from_chain(cls, chain: list[BaseException]) -> str | None:
+        return next(
+            (
+                safe_name
+                for item in reversed(chain)
+                if type(item).__name__ != "StopIteration"
+                and (safe_name := cls._safe_exception_class(type(item).__name__))
+            ),
+            None,
+        )
+
+    def _call_audit_diagnostic(
+        self,
+        source_diagnostic: dict | None,
+        pack_meta: dict,
+        fallback: dict,
+        *,
+        status: str,
+        response_received: bool,
+        parse_reached: bool,
+        exception: Exception | None = None,
+        failure_class: str | None = None,
+    ) -> dict:
+        """Project only safe request and stage metadata into the existing audit."""
+        source = source_diagnostic if isinstance(source_diagnostic, dict) else {}
+        provider = source.get("provider") or fallback.get("provider")
+        model = source.get("model") or fallback.get("model")
+        duration_ms = source.get("duration_ms")
+        if (
+            type(duration_ms) not in {int, float}
+            or not math.isfinite(duration_ms)
+            or duration_ms < 0
+        ):
+            duration_ms = fallback.get("duration_ms", 0.0)
+        input_bytes = source.get("input_bytes")
+        if type(input_bytes) is not int or input_bytes < 0:
+            input_bytes = fallback.get("input_bytes", 0)
+
+        exception_class = self._safe_exception_class(source.get("exception_class"))
+        chain = self._exception_chain(exception) if exception is not None else []
+        if exception_class is None and chain:
+            exception_class = self._exception_class_from_chain(chain)
+
+        http_status = source.get("http_status")
+        if type(http_status) is not int or not 100 <= http_status <= 599:
             http_status = next(
                 (
-                    status
+                    value
                     for item in chain
-                    if type(status := getattr(item, "status_code", None)) is int
-                    and 100 <= status <= 599
+                    if type(value := getattr(item, "status_code", None)) is int
+                    and 100 <= value <= 599
                 ),
                 None,
             )
 
-        if http_status is not None:
-            return {
-                "stage": "synthesizer",
-                "failure_class": "http",
-                "http_status": http_status,
-            }
-        return {"stage": "synthesizer", "failure_class": "client_exception"}
+        provider_error_code = source.get("provider_code")
+        if provider_error_code not in _SAFE_PROVIDER_CODES:
+            provider_error_code = None
+
+        timeout = source.get("timeout")
+        if type(timeout) is not bool:
+            if response_received:
+                timeout = False
+            elif chain:
+                timeout = any(
+                    "timeout" in base.__name__.lower()
+                    for item in chain
+                    for base in type(item).__mro__
+                )
+            else:
+                timeout = None
+
+        diagnostic = {
+            "stage": "synthesizer",
+            "provider": SerenityAgentAudit._safe_trace_value(provider),
+            "model": SerenityAgentAudit._safe_trace_value(model),
+            "duration_ms": float(duration_ms),
+            "status": status,
+            "exception_class": exception_class,
+            "http_status": http_status,
+            "provider_error_code": provider_error_code,
+            "timeout": timeout,
+            "input_bytes": input_bytes,
+            "source_count": pack_meta["source_count"],
+            "company_source_count": pack_meta["company_source_count"],
+            "financial_source_count": pack_meta["financial_source_count"],
+            "announcement_source_count": pack_meta["announcement_source_count"],
+            "response_received": response_received,
+            "parse_reached": parse_reached,
+        }
+        if failure_class is not None:
+            diagnostic["failure_class"] = failure_class
+        return diagnostic
+
+    @classmethod
+    def _failure_class(cls, exc: Exception, diagnostic: dict | None) -> str:
+        chain = cls._exception_chain(exc)
+        if (
+            isinstance(diagnostic, dict)
+            and diagnostic.get("timeout") is True
+        ) or any(
+            "timeout" in base.__name__.lower()
+            for item in chain
+            for base in type(item).__mro__
+        ):
+            return "timeout"
+
+        if (
+            isinstance(diagnostic, dict)
+            and type(diagnostic.get("http_status")) is int
+            and 100 <= diagnostic["http_status"] <= 599
+        ) or any(
+            type(status := getattr(item, "status_code", None)) is int
+            and 100 <= status <= 599
+            for item in chain
+        ):
+            return "http"
+        return "client_exception"
     
     def synthesize(
         self,
@@ -220,40 +315,87 @@ RULES:
         # 构建压缩后的研究包（带边界限制）
         research_pack, pack_meta = self._build_research_pack(theme, context)
         self.last_response_metadata = None
+        messages = [{"role": "user", "content": research_pack}]
+        fallback_diagnostic = {
+            "provider": getattr(self.llm_client, "get_provider_name", lambda: "unknown")(),
+            "model": getattr(self.llm_client, "get_model_name", lambda: "unknown")(),
+            "duration_ms": 0.0,
+            "input_bytes": _request_input_bytes(
+                messages, self.SYSTEM_PROMPT, None, 1024,
+            ),
+        }
 
+        request_started = time.perf_counter()
         try:
             response = self.llm_client.create_message(
-                messages=[{"role": "user", "content": research_pack}],
+                messages=messages,
                 system=self.SYSTEM_PROMPT,
                 max_tokens=1024,
+                stage="synthesizer",
+                source_count=pack_meta["source_count"],
+                timeout=60.0,
             )
         except Exception as exc:
-            audit.call_diagnostics.append(self._failure_diagnostic(exc))
+            fallback_diagnostic["duration_ms"] = max(
+                0.0, (time.perf_counter() - request_started) * 1000,
+            )
+            source_diagnostic = self._diagnostic_from_exception(exc)
+            audit.call_diagnostics.append(self._call_audit_diagnostic(
+                source_diagnostic,
+                pack_meta,
+                fallback_diagnostic,
+                status="failure",
+                response_received=False,
+                parse_reached=False,
+                exception=exc,
+                failure_class=self._failure_class(exc, source_diagnostic),
+            ))
             raise
+
+        fallback_diagnostic["duration_ms"] = max(
+            0.0, (time.perf_counter() - request_started) * 1000,
+        )
+        call_audit_diagnostic = self._call_audit_diagnostic(
+            getattr(response, "call_diagnostic", None),
+            pack_meta,
+            fallback_diagnostic,
+            status="success",
+            response_received=True,
+            parse_reached=False,
+        )
+        audit.call_diagnostics.append(call_audit_diagnostic)
 
         self.last_response_metadata = {
             "model": response.get("model"),
             "usage": response.get("usage"),
         }
 
-        # Extract text from response
-        text = self._extract_text(response)
-        
-        # Parse JSON
-        synthesis_dict = self._parse_json(text)
+        # Extract text and parse JSON without retaining either in the audit.
+        try:
+            text = self._extract_text(response)
+            call_audit_diagnostic["parse_reached"] = True
+            synthesis_dict = self._parse_json(text)
+        except Exception as exc:
+            self._mark_call_audit_failure(call_audit_diagnostic, exc)
+            raise
         
         # Validate schema
         try:
             schema = ResearchSynthesisSchema(**synthesis_dict)
         except Exception as exc:
+            self._mark_call_audit_failure(call_audit_diagnostic, exc)
             raise ValueError(f"ResearchSynthesis schema validation failed: {exc}") from exc
         
         # Validate all source IDs exist in context
-        self._validate_source_ids(synthesis_dict, context, audit)
-        self._validate_candidate_verdicts(schema.candidate_verdicts, context)
-        
-        # 绑定 red-team 结果到候选
-        self._bind_red_team_results(synthesis_dict, context, audit)
+        try:
+            self._validate_source_ids(synthesis_dict, context, audit)
+            self._validate_candidate_verdicts(schema.candidate_verdicts, context)
+
+            # 绑定 red-team 结果到候选
+            self._bind_red_team_results(synthesis_dict, context, audit)
+        except Exception as exc:
+            self._mark_call_audit_failure(call_audit_diagnostic, exc)
+            raise
         
         # 将截断信息添加到 evidence_gaps
         evidence_gaps = list(schema.evidence_gaps)
@@ -410,9 +552,40 @@ RULES:
         metadata = {
             "omitted_sources": omitted_sources,
             "omitted_source_ids": total_omitted_source_ids,
+            "source_count": len(sources_to_send),
+            "company_source_count": sum(
+                sid.startswith("stock_company:") for sid, _ in sources_to_send
+            ),
+            "financial_source_count": sum(
+                sid.startswith("financials:") for sid, _ in sources_to_send
+            ),
+            "announcement_source_count": sum(
+                source.source_type == "announcement"
+                for _, source in sources_to_send
+            ),
         }
         
         return prompt, metadata
+
+    @classmethod
+    def _mark_call_audit_failure(cls, diagnostic: dict, exc: Exception) -> None:
+        chain = cls._exception_chain(exc)
+        diagnostic["status"] = "failure"
+        diagnostic["exception_class"] = cls._exception_class_from_chain(chain)
+        diagnostic["timeout"] = any(
+            "timeout" in base.__name__.lower()
+            for item in chain
+            for base in type(item).__mro__
+        )
+        diagnostic["http_status"] = next(
+            (
+                status
+                for item in chain
+                if type(status := getattr(item, "status_code", None)) is int
+                and 100 <= status <= 599
+            ),
+            diagnostic.get("http_status"),
+        )
     
     def _validate_source_ids(
         self, 
