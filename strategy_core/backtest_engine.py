@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import date as Date
 
 from contracts.stable import BacktestResult, DailyPortfolioValue, Trade, StrategyConfig
@@ -257,6 +258,9 @@ def run_event_backtest(
     protocol_snapshot_id: str,
     data_snapshot_hash: str,
     initial_capital: float = 100000.0,
+    supplement_path=None,
+    verified_supplement=None,
+    observation_sink=None,
 ) -> EventBacktestResult:
     """
     Run event-driven backtest with T-day signal semantics and strict time cursor.
@@ -286,6 +290,54 @@ def run_event_backtest(
     Raises:
         ValueError: If protocol_snapshot_id or data_snapshot_hash missing
     """
+    from strategy_core.v3_relative_strength_executor import (
+        V3RelativeStrengthExecutionSpec,
+        run_v3_relative_strength_backtest,
+    )
+
+    if isinstance(strategy_config, V3RelativeStrengthExecutionSpec):
+        if (supplement_path is None) == (verified_supplement is None):
+            raise ValueError(
+                "v3 execution requires exactly one of supplement_path or verified_supplement"
+            )
+        if supplement_path is not None:
+            from scripts.verify_v3_execution_semantics import verify_v3_execution_semantics
+
+            supplement = verify_v3_execution_semantics(supplement_path)
+        else:
+            if not isinstance(verified_supplement, Mapping):
+                raise TypeError("v3 frozen verified supplement must be a mapping")
+            expected_fields = {
+                "status",
+                "supplement_id",
+                "manifest_sha256",
+                "strategy_revision_id",
+                "protocol_snapshot_id",
+                "data_snapshot_hash",
+            }
+            if set(verified_supplement) != expected_fields:
+                raise ValueError("v3 frozen verified supplement contract mismatch")
+            supplement = dict(verified_supplement)
+        if supplement.get("status") != "verified":
+            raise ValueError(f"v3 execution supplement invalid: {supplement.get('reason', 'unknown')}")
+        if supplement.get("supplement_id") != strategy_config.supplement_id:
+            raise ValueError("v3 execution supplement identity mismatch")
+        if supplement.get("strategy_revision_id") != strategy_config.strategy_revision_id:
+            raise ValueError("v3 strategy revision mismatch")
+        if supplement.get("protocol_snapshot_id") != strategy_config.protocol_snapshot_id:
+            raise ValueError("v3 supplement protocol binding mismatch")
+        if supplement.get("data_snapshot_hash") != strategy_config.data_snapshot_hash:
+            raise ValueError("v3 supplement data snapshot binding mismatch")
+        if protocol_snapshot_id != strategy_config.protocol_snapshot_id:
+            raise ValueError("v3 protocol snapshot mismatch")
+        if data_snapshot_hash != strategy_config.data_snapshot_hash:
+            raise ValueError("v3 data snapshot hash mismatch")
+        if initial_capital != strategy_config.initial_capital:
+            raise ValueError("v3 initial capital mismatch")
+        return run_v3_relative_strength_backtest(
+            strategy_config, data_source, observation_sink=observation_sink
+        )
+
     # Validate B3 protocol snapshot and data snapshot hash
     if not protocol_snapshot_id or protocol_snapshot_id.strip() == "":
         raise ValueError("protocol_snapshot_id is required for event backtest")

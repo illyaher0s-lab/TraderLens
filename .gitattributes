@@ -1,0 +1,10 @@
+strategy_core/backtest_engine.py -text
+strategy_core/fill_simulator.py -text
+backend/services/formal_pit_partition_adapter.py -text
+strategy_core/orders.py -text
+strategy_core/portfolio.py -text
+strategy_core/transaction_costs.py -text
+strategy_core/v3_relative_strength_executor.py -text
+backend/services/v3_b5_bundle.py -text
+scripts/publish_v3_b5_bundle.py -text
+scripts/verify_v3_b5_bundle.py -text

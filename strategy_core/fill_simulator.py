@@ -58,7 +58,6 @@ def simulate_fill(
     """
     try:
         status = data_source.get_daily_status(order.symbol, execution_date)
-        bar = data_source.get_daily_bar(order.symbol, execution_date)
     except KeyError:
         return order.model_copy(update={
             "status": "rejected",
@@ -70,6 +69,13 @@ def simulate_fill(
         return order.model_copy(update={
             "status": "rejected",
             "rejection_reason": "suspended",
+        })
+    try:
+        bar = data_source.get_daily_bar(order.symbol, execution_date)
+    except KeyError:
+        return order.model_copy(update={
+            "status": "rejected",
+            "rejection_reason": f"no data available for {order.symbol} on {execution_date}",
         })
     # Delegate to direction-specific fill logic
     if order.direction == "buy":
