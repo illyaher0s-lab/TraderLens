@@ -158,6 +158,18 @@
       "source_status": "M contracts/strategy.py"
     },
     {
+      "path": "scripts/market_regime_bounded_replay.py",
+      "sha256": "4d2aea302f46f7f7b604851ffbb09423616678fcd0ad5bb862b156ddf26f3067",
+      "size_bytes": 31973,
+      "source_status": "?? scripts/market_regime_bounded_replay.py"
+    },
+    {
+      "path": "scripts/publish_market_regime_v12_owner_approval.py",
+      "sha256": "a2ac8d83e03ceab9889b267c8e4733d0c76801308b1db938aafcc2d2823b207c",
+      "size_bytes": 7636,
+      "source_status": "?? scripts/publish_market_regime_v12_owner_approval.py"
+    },
+    {
       "path": "scripts/publish_v3_b5_bundle.py",
       "sha256": "0516a495e39a14658e5525e1fbc443bb06fdc2bcc2546668e37e8b1fc5a92b66",
       "size_bytes": 9735,
@@ -188,6 +200,12 @@
       "source_status": "?? scripts/run_v3_task4_once.py"
     },
     {
+      "path": "scripts/verify_market_regime_v12_owner_approval.py",
+      "sha256": "6d839ef92a4e2def1c4a9c51106e1b3e01bde795945ef172c7b2745a6e36739e",
+      "size_bytes": 5570,
+      "source_status": "?? scripts/verify_market_regime_v12_owner_approval.py"
+    },
+    {
       "path": "scripts/verify_shsz_common_trade_calendar.py",
       "sha256": "d74f6873ac3d827c9d87b07aba7d027937999337a9673d7dc0ea3df43abac03b",
       "size_bytes": 14994,
@@ -210,6 +228,12 @@
       "sha256": "542fc46695b833573c1c9c44d78b31bb7db46bbab48559e6566af17479625822",
       "size_bytes": 4175,
       "source_status": "?? scripts/verify_v3_execution_semantics.py"
+    },
+    {
+      "path": "scripts/verify_v3_gate_criteria.py",
+      "sha256": "ecd370b5ea9d2a43292df22c09d08879d1fc7abb80e0ba6f1d47b253d79fe902",
+      "size_bytes": 22169,
+      "source_status": "?? scripts/verify_v3_gate_criteria.py"
     }
   ],
   "isolated_base_head": "099952d221c4b5b152c7ea14f9f221d980f9a8ef",
