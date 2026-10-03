@@ -80,6 +80,12 @@
       "source_status": "?? backend/services/daily_market_scout.py"
     },
     {
+      "path": "backend/services/formal_pit_loader.py",
+      "sha256": "1b3b588660ec31586a836c6cffbfb47486c8fb4a91a4beb126fbae109106c206",
+      "size_bytes": 14296,
+      "source_status": "?? backend/services/formal_pit_loader.py"
+    },
+    {
       "path": "backend/services/formal_pit_partition_adapter.py",
       "sha256": "b472e0c725d9da0b26d7fb34490791681bc507239676e8167c8f01d3538a429b",
       "size_bytes": 32634,
