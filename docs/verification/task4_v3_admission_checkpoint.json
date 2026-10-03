@@ -234,6 +234,18 @@
       "sha256": "ecd370b5ea9d2a43292df22c09d08879d1fc7abb80e0ba6f1d47b253d79fe902",
       "size_bytes": 22169,
       "source_status": "?? scripts/verify_v3_gate_criteria.py"
+    },
+    {
+      "path": "tests/test_task3b_formal_partition_adapter.py",
+      "sha256": "69d5fbe9ecbb4b74a9cdb25c809cef61d7510743ea160d67946452c711420595",
+      "size_bytes": 33710,
+      "source_status": "?? tests/test_task3b_formal_partition_adapter.py"
+    },
+    {
+      "path": "tests/test_v3_formal_pit_execution_adapter.py",
+      "sha256": "e5360f8173fd3fffb554f0f346616617087e8f0aa0c8afc6f19fa1241560a056",
+      "size_bytes": 22538,
+      "source_status": "?? tests/test_v3_formal_pit_execution_adapter.py"
     }
   ],
   "isolated_base_head": "099952d221c4b5b152c7ea14f9f221d980f9a8ef",
