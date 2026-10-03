@@ -1,0 +1,219 @@
+{
+  "checkpoint_id": "task4-v3-admission-source-baseline-v1",
+  "files": [
+    {
+      "path": "backend/db/migrations/migration_001_add_hypothesis_to_audit.py",
+      "sha256": "c06d1a0dbb3bca260b7406d794fbe2debfa122d231eeb69fcae8e5ca9a8dc2c7",
+      "size_bytes": 7890,
+      "source_status": "?? backend/db/migrations/migration_001_add_hypothesis_to_audit.py"
+    },
+    {
+      "path": "backend/db/migrations/migration_002_add_b6_runtime_schema.py",
+      "sha256": "d87a1aaf0b37562179ee77ae2114d76594f612872f461e59d25dd07d83b36198",
+      "size_bytes": 5631,
+      "source_status": "?? backend/db/migrations/migration_002_add_b6_runtime_schema.py"
+    },
+    {
+      "path": "backend/db/migrations/migration_003_add_b5_binding_to_b6_tasks.py",
+      "sha256": "a88a2f58f052cf2befef1387eeca38168b77745c0ecd4717c75ef3f9c6ffcc5f",
+      "size_bytes": 890,
+      "source_status": "?? backend/db/migrations/migration_003_add_b5_binding_to_b6_tasks.py"
+    },
+    {
+      "path": "backend/db/migrations/migration_004_allow_protocol_multiplicity.py",
+      "sha256": "8679652c1dbb8818cb38f376141948bd3be8fa4c67a79ea99b9c45433428283d",
+      "size_bytes": 718,
+      "source_status": "?? backend/db/migrations/migration_004_allow_protocol_multiplicity.py"
+    },
+    {
+      "path": "backend/db/migrations/migration_005_add_b6_successor_attempt.py",
+      "sha256": "ad24ecc9fea17dae395b4227549926422b15ad84e87119fe77fa53fa1f0f7d69",
+      "size_bytes": 1375,
+      "source_status": "?? backend/db/migrations/migration_005_add_b6_successor_attempt.py"
+    },
+    {
+      "path": "backend/db/strategy.py",
+      "sha256": "0a66f3d398d945180e89bcd212979f5c956958e3e166f74eda5260393b9b4fd5",
+      "size_bytes": 72420,
+      "source_status": "M backend/db/strategy.py"
+    },
+    {
+      "path": "backend/services/b3_protocol_types.py",
+      "sha256": "8da47b9bd9153bff63ad3f15713cadc8b7a8f0e5a46ed781c5c984d917eb791a",
+      "size_bytes": 7559,
+      "source_status": "M backend/services/b3_protocol_types.py"
+    },
+    {
+      "path": "backend/services/b4_protocol_types.py",
+      "sha256": "10eb75f2cec6e5df23eab08be656baef0b487a2c5a7f13feecd44aa64862d0c3",
+      "size_bytes": 5011,
+      "source_status": "clean"
+    },
+    {
+      "path": "backend/services/b5_oos_types.py",
+      "sha256": "9a27939dec1040046dce95b9938d89fe46809cd15c0dbeadfdfcd45c3f0faa4d",
+      "size_bytes": 17082,
+      "source_status": "M backend/services/b5_oos_types.py"
+    },
+    {
+      "path": "backend/services/b6_same_draw_executor.py",
+      "sha256": "acdcaad80ec78240042046de6ab3b26cfc3a16be91acb6d3434fab68a101959f",
+      "size_bytes": 34958,
+      "source_status": "?? backend/services/b6_same_draw_executor.py"
+    },
+    {
+      "path": "backend/services/b6_validation_flow.py",
+      "sha256": "a39a2df2bd6222d47f19463a43ba8fb6b62182ec21a106cd1b097e3e515855fd",
+      "size_bytes": 22356,
+      "source_status": "M backend/services/b6_validation_flow.py"
+    },
+    {
+      "path": "backend/services/b6_validation_worker.py",
+      "sha256": "b853e89a3c61af97ac2120207c97acd9ad0305f8ff991954a766dc5b6b84e477",
+      "size_bytes": 36914,
+      "source_status": "?? backend/services/b6_validation_worker.py"
+    },
+    {
+      "path": "backend/services/daily_market_scout.py",
+      "sha256": "17158673bc8546d4740326bca1451ad0deee8b921f5f99bf916f08468b7f9e11",
+      "size_bytes": 15674,
+      "source_status": "?? backend/services/daily_market_scout.py"
+    },
+    {
+      "path": "backend/services/formal_pit_partition_adapter.py",
+      "sha256": "b472e0c725d9da0b26d7fb34490791681bc507239676e8167c8f01d3538a429b",
+      "size_bytes": 32634,
+      "source_status": "?? backend/services/formal_pit_partition_adapter.py"
+    },
+    {
+      "path": "backend/services/oos_budget_ledger.py",
+      "sha256": "25a8817be833e401e23ce7ee70cdc83bad0c913eace3692574cfecd5dcff523a",
+      "size_bytes": 34839,
+      "source_status": "M backend/services/oos_budget_ledger.py"
+    },
+    {
+      "path": "backend/services/prototype_gate_criteria_surface.py",
+      "sha256": "53095cbad0c69419ed470337f91a570ae4bf90a1410be70762b7950fc3d19352",
+      "size_bytes": 4116,
+      "source_status": "?? backend/services/prototype_gate_criteria_surface.py"
+    },
+    {
+      "path": "backend/services/prototype_gate_v2.py",
+      "sha256": "393a0611a647815aed6ec90d52e53878cd424d79baf36df1b5d8dc91a2b95e3f",
+      "size_bytes": 14580,
+      "source_status": "M backend/services/prototype_gate_v2.py"
+    },
+    {
+      "path": "backend/services/strategy_revision_provenance.py",
+      "sha256": "8ab840a9ac21864ef0276e702471652dcafa91eae1b9a95e5d397d752bec85db",
+      "size_bytes": 10133,
+      "source_status": "?? backend/services/strategy_revision_provenance.py"
+    },
+    {
+      "path": "backend/services/v3_b5_bundle.py",
+      "sha256": "cd0a0455b7e1762977ad153ae87d101b51bd7992e800d74fb601967634a2dbc6",
+      "size_bytes": 15949,
+      "source_status": "?? backend/services/v3_b5_bundle.py"
+    },
+    {
+      "path": "backend/services/v3_b5_comparison.py",
+      "sha256": "3cdc3a56d3cfe97b1bbc3996f34d012af08894b3b0455d6829210f4305312ea6",
+      "size_bytes": 34720,
+      "source_status": "?? backend/services/v3_b5_comparison.py"
+    },
+    {
+      "path": "backend/services/v3_b5_costs.py",
+      "sha256": "290d25bdb1e3fee95e7a3b72c3b7e7d414f861dac91abfb2e9be46ce1b7b8e30",
+      "size_bytes": 19874,
+      "source_status": "?? backend/services/v3_b5_costs.py"
+    },
+    {
+      "path": "backend/services/v3_b5_ledger_observation.py",
+      "sha256": "b2db2655cc17a9207c604ea57a2df3a44d610fa4291c06ae60a759334c739bfd",
+      "size_bytes": 13373,
+      "source_status": "?? backend/services/v3_b5_ledger_observation.py"
+    },
+    {
+      "path": "backend/services/v3_b5_source_inventory.py",
+      "sha256": "c37750023736dc5b9905cbc3262233386ec14cc9d0e640998b9e26cca17b247a",
+      "size_bytes": 12285,
+      "source_status": "?? backend/services/v3_b5_source_inventory.py"
+    },
+    {
+      "path": "backend/services/v3_b5_types.py",
+      "sha256": "c6d04da94e8196b0f0fe525e609c4af0cb3fe8733b654fdd1114e1c38f177608",
+      "size_bytes": 4495,
+      "source_status": "?? backend/services/v3_b5_types.py"
+    },
+    {
+      "path": "contracts/b6_task.py",
+      "sha256": "c9a181e66b7bf0926eee0033911bce795f1161c6518e27ead117488e22af845b",
+      "size_bytes": 9461,
+      "source_status": "?? contracts/b6_task.py"
+    },
+    {
+      "path": "contracts/strategy.py",
+      "sha256": "b5e6df3b864f7f4cf7aa71098c14d99eb276197178b8a45617941daa8c00decc",
+      "size_bytes": 22923,
+      "source_status": "M contracts/strategy.py"
+    },
+    {
+      "path": "scripts/publish_v3_b5_bundle.py",
+      "sha256": "0516a495e39a14658e5525e1fbc443bb06fdc2bcc2546668e37e8b1fc5a92b66",
+      "size_bytes": 9735,
+      "source_status": "?? scripts/publish_v3_b5_bundle.py"
+    },
+    {
+      "path": "scripts/publish_v3_execution_semantics.py",
+      "sha256": "2603f80b10e8766a327c5998c8bcbe6a18545b9d70d485d4f61f54bd84a131eb",
+      "size_bytes": 17704,
+      "source_status": "?? scripts/publish_v3_execution_semantics.py"
+    },
+    {
+      "path": "scripts/run_b6_validation_task.py",
+      "sha256": "a55c30b166fb2847f6762c65c375e24d7ae03d390ba84ddae4316d30e28a3570",
+      "size_bytes": 7632,
+      "source_status": "?? scripts/run_b6_validation_task.py"
+    },
+    {
+      "path": "scripts/run_v3_b4_is_once.py",
+      "sha256": "47ba8d6218242a29b4ed11678a4047c14b3f98fff9a22a3aa2560f2c1ca8676f",
+      "size_bytes": 21088,
+      "source_status": "?? scripts/run_v3_b4_is_once.py"
+    },
+    {
+      "path": "scripts/run_v3_task4_once.py",
+      "sha256": "ce3c712750b44b50321e57aca8f5b22f7d46f08a62d559b59eb6a9ed6d8ff8df",
+      "size_bytes": 43480,
+      "source_status": "?? scripts/run_v3_task4_once.py"
+    },
+    {
+      "path": "scripts/verify_shsz_common_trade_calendar.py",
+      "sha256": "d74f6873ac3d827c9d87b07aba7d027937999337a9673d7dc0ea3df43abac03b",
+      "size_bytes": 14994,
+      "source_status": "?? scripts/verify_shsz_common_trade_calendar.py"
+    },
+    {
+      "path": "scripts/verify_v3_b3_successor.py",
+      "sha256": "8ad30bff4232b6cf01602aaae09db543497cf00e54b8afec2e7a713f5dded997",
+      "size_bytes": 2140,
+      "source_status": "?? scripts/verify_v3_b3_successor.py"
+    },
+    {
+      "path": "scripts/verify_v3_b5_bundle.py",
+      "sha256": "e1315949f4cf9ceec8e2e38db26d6eb3f7143777ae1e76e9277f91673eb1f80e",
+      "size_bytes": 2140,
+      "source_status": "?? scripts/verify_v3_b5_bundle.py"
+    },
+    {
+      "path": "scripts/verify_v3_execution_semantics.py",
+      "sha256": "542fc46695b833573c1c9c44d78b31bb7db46bbab48559e6566af17479625822",
+      "size_bytes": 4175,
+      "source_status": "?? scripts/verify_v3_execution_semantics.py"
+    }
+  ],
+  "isolated_base_head": "099952d221c4b5b152c7ea14f9f221d980f9a8ef",
+  "isolated_workspace": "C:\\Users\\LEGION\\.codex\\worktrees\\step4-v3-admission\\TraderLens",
+  "source_head": "099952d221c4b5b152c7ea14f9f221d980f9a8ef",
+  "source_workspace": "D:\\Codex\\TraderLens"
+}
