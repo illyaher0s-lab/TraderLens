@@ -248,6 +248,12 @@
       "source_status": "?? tests/test_task3b_formal_partition_adapter.py"
     },
     {
+      "path": "tests/test_v3_b5_bundle.py",
+      "sha256": "abb17c32e85d75cc5434875f8dc0a248be4c281d3d5ca9909eab395d188980cd",
+      "size_bytes": 36290,
+      "source_status": "?? tests/test_v3_b5_bundle.py"
+    },
+    {
       "path": "tests/test_v3_formal_pit_execution_adapter.py",
       "sha256": "e5360f8173fd3fffb554f0f346616617087e8f0aa0c8afc6f19fa1241560a056",
       "size_bytes": 22538,
