@@ -13,6 +13,7 @@ from scripts.verify_b3_execution_input_package import verify_package
 
 
 SUCCESSOR_ARTIFACT_ID = "b3eip_traderlens_v2_shsz_pit_002"
+THIRD_ARTIFACT_ID = "b3eip_traderlens_v2_shsz_pit_003"
 PHYSICAL_INTERFACES = (
     "daily",
     "daily_basic",
@@ -256,7 +257,7 @@ def test_verifier_rejects_wrong_id_root_and_input_hash(tmp_path: Path) -> None:
     assert any("hash mismatch" in error for error in wrong_hash["errors"])
 
 
-def test_publisher_rejects_unallocated_successor_id(tmp_path: Path) -> None:
+def test_publisher_rejects_unallocated_fourth_id(tmp_path: Path) -> None:
     source_root = tmp_path / "source"
     _write_source(source_root)
 
@@ -265,7 +266,7 @@ def test_publisher_rejects_unallocated_successor_id(tmp_path: Path) -> None:
             repo_root=tmp_path,
             source_root=source_root,
             packages_root=tmp_path / "packages",
-            artifact_id="b3eip_traderlens_v2_shsz_pit_003",
+            artifact_id="b3eip_traderlens_v2_shsz_pit_004",
             spec=_spec(),
         )
     except PackagePublicationError as exc:
@@ -382,3 +383,80 @@ def test_production_spec_rejects_nonapproved_template_contracts(
             match="exact V2 template is not approved",
         ):
             build_production_spec(tmp_path)
+
+
+def test_publisher_allocates_third_artifact_id(tmp_path: Path) -> None:
+    package = _publish(tmp_path, THIRD_ARTIFACT_ID)
+
+    manifest = json.loads((package / "manifest.json").read_text(encoding="utf-8"))
+    assert manifest["artifact_id"] == THIRD_ARTIFACT_ID
+    assert verify_package(
+        package,
+        tmp_path,
+        expected_artifact_id=THIRD_ARTIFACT_ID,
+    ) == {"is_valid": True, "errors": []}
+
+
+def _reindex_package_after_payload_change(package: Path, artifact_id: str) -> None:
+    from backend.services.formal_input_index import build_input_index, canonical_json_bytes
+
+    index_path = package / "input_index.json"
+    manifest_path = package / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    formal_root = f"data/pit/b3_execution_input_packages/{artifact_id}/inputs"
+    index = build_input_index(
+        package / "inputs",
+        formal_input_root_repo_relative=formal_root,
+        exact_bindings=manifest["exact_bindings"],
+    )
+    index_sha = _write_with_sidecar(index_path, canonical_json_bytes(index))
+    manifest["input_index_sha256"] = index_sha
+    for name in PHYSICAL_INTERFACES:
+        for key in ("entry_count", "total_bytes", "interface_content_hash"):
+            manifest["interfaces"][name][key] = index["interfaces"][name][key]
+    semantic = {
+        key: value
+        for key, value in manifest.items()
+        if key not in {"manifest_content_hash", "published_at"}
+    }
+    manifest["manifest_content_hash"] = _sha(_canonical(semantic))
+    _write_with_sidecar(manifest_path, _canonical(manifest))
+
+
+def test_verifier_rejects_stale_adjacent_sidecar_after_payload_and_index_update(
+    tmp_path: Path,
+) -> None:
+    source_root = tmp_path / "source"
+    packages_root = tmp_path / "packages"
+    _write_source(source_root)
+    source_part = next((source_root / "daily").rglob("*.parquet"))
+    source_part.with_name(f"{source_part.name}.sha256").write_text(
+        _sha(source_part.read_bytes()),
+        encoding="ascii",
+    )
+    publish_package(
+        repo_root=tmp_path,
+        source_root=source_root,
+        packages_root=packages_root,
+        artifact_id=SUCCESSOR_ARTIFACT_ID,
+        spec=_spec(),
+        published_at="2026-10-04T00:00:00+08:00",
+    )
+    package = packages_root / SUCCESSOR_ARTIFACT_ID
+    published_part = package / "inputs" / source_part.relative_to(source_root)
+    assert verify_package(
+        package,
+        tmp_path,
+        expected_artifact_id=SUCCESSOR_ARTIFACT_ID,
+    ) == {"is_valid": True, "errors": []}
+    published_part.write_bytes(b"new verified payload bytes")
+    _reindex_package_after_payload_change(package, SUCCESSOR_ARTIFACT_ID)
+
+    result = verify_package(
+        package,
+        tmp_path,
+        expected_artifact_id=SUCCESSOR_ARTIFACT_ID,
+    )
+
+    assert not result["is_valid"]
+    assert any("part.parquet.sha256 mismatch" in error for error in result["errors"])

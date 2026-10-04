@@ -107,19 +107,31 @@ def _read_json(path: Path, errors: list[str]) -> dict | None:
     return value
 
 
-def _verify_sidecar(path: Path, errors: list[str]) -> None:
+def _verify_sidecar(
+    path: Path,
+    errors: list[str],
+    *,
+    required: bool = True,
+    include_filename: bool = True,
+    actual_hash: str | None = None,
+) -> None:
     sidecar = path.with_name(f"{path.name}.sha256")
     if not path.is_file():
         errors.append(f"missing file: {path.name}")
         return
     if not sidecar.is_file():
-        errors.append(f"missing sidecar: {sidecar.name}")
+        if required:
+            errors.append(f"missing sidecar: {sidecar.name}")
         return
     parts = sidecar.read_text(encoding="utf-8").strip().split()
-    if len(parts) != 2 or parts[1] != path.name:
+    if include_filename:
+        valid_format = len(parts) == 2 and parts[1] == path.name
+    else:
+        valid_format = len(parts) == 1
+    if not valid_format:
         errors.append(f"invalid sidecar: {sidecar.name}")
         return
-    actual = _sha_file(path)
+    actual = actual_hash if actual_hash is not None else _sha_file(path)
     if parts[0] != actual:
         errors.append(f"{path.name}.sha256 mismatch")
 
@@ -205,6 +217,14 @@ def _verify_index(
             actual_size = physical.stat().st_size
             if entry.get("sha256") != actual_hash:
                 errors.append(f"hash mismatch: {registered}")
+            if physical.suffix == ".parquet":
+                _verify_sidecar(
+                    physical,
+                    errors,
+                    required=False,
+                    include_filename=False,
+                    actual_hash=actual_hash,
+                )
             if entry.get("byte_size") != actual_size:
                 errors.append(f"byte size mismatch: {registered}")
             recomputed_entries.append(

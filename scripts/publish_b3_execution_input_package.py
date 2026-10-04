@@ -31,6 +31,7 @@ from scripts.verify_b3_execution_input_package import verify_package
 
 ARTIFACT_ID = "b3eip_traderlens_v2_shsz_pit_001"
 SUCCESSOR_ARTIFACT_ID = "b3eip_traderlens_v2_shsz_pit_002"
+THIRD_ARTIFACT_ID = "b3eip_traderlens_v2_shsz_pit_003"
 SCHEMA_VERSION = "b3_execution_input_package.v1"
 AUTHORIZATION_SCOPE = "b3_execution_input_binding_only"
 FORMAL_SOURCE = Path(
@@ -516,7 +517,7 @@ def publish_package(
 ) -> dict:
     """Copy, index, independently verify, then atomically publish one package."""
 
-    if artifact_id not in {ARTIFACT_ID, SUCCESSOR_ARTIFACT_ID}:
+    if artifact_id not in {ARTIFACT_ID, SUCCESSOR_ARTIFACT_ID, THIRD_ARTIFACT_ID}:
         raise PackagePublicationError(f"unallocated artifact id: {artifact_id}")
     repo_root = Path(repo_root).resolve()
     source_root = Path(source_root).resolve()
