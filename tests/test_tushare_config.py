@@ -6,6 +6,7 @@ Verify config loading, path resolution, and token handling.
 
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from backend.app.tushare.config import TushareConfig
 
@@ -70,12 +71,26 @@ class TestTushareConfig(unittest.TestCase):
     
     def test_from_env_without_env_vars(self):
         """from_env creates config even without env vars."""
-        # Note: This test may pick up actual env vars in CI
-        # Just verify it doesn't crash
-        config = TushareConfig.from_env()
-        
-        # Should create config (token may or may not be present)
+        with patch.dict("os.environ", {}, clear=True):
+            config = TushareConfig.from_env()
+
         self.assertIsNotNone(config)
+        self.assertEqual(config.api_url, "http://8.163.90.143:8686/")
+
+    def test_from_env_reads_api_url_override(self):
+        with patch.dict(
+            "os.environ",
+            {"TUSHARE_API_URL": "https://provider.example/api"},
+            clear=True,
+        ):
+            config = TushareConfig.from_env()
+
+        self.assertEqual(config.api_url, "https://provider.example/api")
+
+    def test_from_env_blank_api_url_uses_default(self):
+        with patch.dict("os.environ", {"TUSHARE_API_URL": ""}, clear=True):
+            config = TushareConfig.from_env()
+
         self.assertEqual(config.api_url, "http://8.163.90.143:8686/")
 
 

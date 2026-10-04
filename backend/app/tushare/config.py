@@ -62,6 +62,7 @@ class TushareConfig:
         
         Environment variables:
         - TUSHARE_TOKEN: API token (required for API calls)
+        - TUSHARE_API_URL: Override the API endpoint
         - TUSHARE_SNAPSHOT_ROOT: Override default snapshot directory
         
         Returns:
@@ -71,12 +72,14 @@ class TushareConfig:
               Error raised only when API calls are attempted.
         """
         token = os.getenv("TUSHARE_TOKEN")
+        api_url = os.getenv("TUSHARE_API_URL") or cls().api_url
         snapshot_root_str = os.getenv("TUSHARE_SNAPSHOT_ROOT")
         
         snapshot_root = Path(snapshot_root_str) if snapshot_root_str else None
         
         return cls(
             token=token,
+            api_url=api_url,
             snapshot_root=snapshot_root,
         )
     
