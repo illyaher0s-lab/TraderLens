@@ -9,6 +9,10 @@ import json
 
 from backend.db.strategy import StrategyDB
 from backend.services.formal_pit_partition_adapter import FormalPITPartitionAdapter
+from backend.services.strategy_scoped_pit_universe import (
+    SCOPE_SNAPSHOT_ROOT,
+    StrategyScopedPITUniverse,
+)
 from backend.services.oos_budget_ledger import OOSBudgetLedger
 from backend.services.b5_oos_types import B6SameDrawOOSResult
 from backend.services.b4_protocol_types import EventBacktestResult
@@ -71,19 +75,42 @@ class B6ValidationWorker:
         self,
         db: StrategyDB,
         *,
-        repo_root: Path,
+        repo_root: Path | None = None,
+        code_root: Path | None = None,
+        artifact_root: Path | None = None,
         b4_results_root: Path | None = None,
         b5_bundle_root: Path | None = None,
+        strategy_scope_root: Path | None = None,
         ledger: Any | None = None,
         b4_result_loader=None,
     ) -> None:
         self.db = db
-        self.repo_root = Path(repo_root)
+        if repo_root is not None and artifact_root is not None:
+            if Path(repo_root).resolve() != Path(artifact_root).resolve():
+                raise ValueError("repo_root and artifact_root disagree")
+        root = artifact_root if artifact_root is not None else repo_root
+        if root is None:
+            raise ValueError("B6 worker requires an explicit artifact_root")
+        self.repo_root = Path(root).resolve()
+        active_code_root = Path(__file__).resolve().parents[2]
+        selected_code_root = (
+            Path(code_root).resolve(strict=True)
+            if code_root is not None
+            else active_code_root
+        )
+        if selected_code_root != active_code_root:
+            raise ValueError("code_root does not match the active B6 source tree")
+        self.code_root = active_code_root
         self.b4_results_root = Path(b4_results_root) if b4_results_root is not None else None
         self.b5_bundle_root = (
             Path(b5_bundle_root)
             if b5_bundle_root is not None
             else self.repo_root / V3_B5_BUNDLE_ROOT
+        )
+        self.strategy_scope_root = (
+            Path(strategy_scope_root)
+            if strategy_scope_root is not None
+            else self.repo_root / SCOPE_SNAPSHOT_ROOT
         )
         self.ledger = ledger
         self.b4_result_loader = b4_result_loader
@@ -329,12 +356,40 @@ class B6ValidationWorker:
             }
             if any(not isinstance(value, dict) for value in formal_input_binding.values()):
                 raise _PreflightInvariant("B5 formal input binding is incomplete")
+            scope_binding = lineage.get("strategy_scoped_universe")
+            if not isinstance(scope_binding, dict):
+                raise _PreflightInvariant(
+                    "B5 strategy-scoped universe binding is missing"
+                )
+            expected_scope_path = (
+                SCOPE_SNAPSHOT_ROOT / str(scope_binding.get("snapshot_id", ""))
+            ).as_posix()
+            if (
+                scope_binding.get("path") != expected_scope_path
+                or scope_binding.get("protocol_snapshot_id")
+                != protocol.protocol_snapshot_id
+                or scope_binding.get("oos_window")
+                != {
+                    "start": protocol.oos_window_start.isoformat(),
+                    "end": protocol.oos_window_end.isoformat(),
+                }
+            ):
+                raise _PreflightInvariant(
+                    "B5 strategy-scoped universe identity/window mismatch"
+                )
             adapter = FormalPITPartitionAdapter(
                 self.repo_root,
                 formal_input_binding=formal_input_binding,
             )
             if adapter.formal_binding_verified is not True:
                 raise _PreflightInvariant("B6 formal preflight received an unbound fixture adapter")
+            scoped_adapter = StrategyScopedPITUniverse(
+                adapter,
+                scope_snapshot_dir=(
+                    self.strategy_scope_root / str(scope_binding["snapshot_id"])
+                ),
+                expected_binding=scope_binding,
+            )
             trading_dates = adapter.common_trading_dates(
                 protocol.oos_window_start,
                 protocol.oos_window_end,
@@ -348,13 +403,17 @@ class B6ValidationWorker:
                     "b6_formal_scope_unavailable",
                     "verified formal calendar does not exactly cover the OOS window",
                 )
+            if scoped_adapter.trading_dates != trading_dates:
+                raise _PreflightInvariant(
+                    "B5 strategy-scoped universe dates do not match the verified OOS calendar"
+                )
 
             symbols_by_date: dict[date, tuple[str, ...]] = {}
             missing_lifecycle: set[str] = set()
             ineligible_membership: set[str] = set()
             unsupported_symbols: set[str] = set()
             for as_of_date in trading_dates:
-                symbols = tuple(adapter.symbols_as_of(as_of_date))
+                symbols = tuple(scoped_adapter.symbols_as_of(as_of_date))
                 if not symbols:
                     raise _PreflightBlocked(
                         "b6_formal_scope_unavailable",
@@ -462,6 +521,7 @@ class B6ValidationWorker:
                 supplement_dir,
                 verified,
                 repo_root=self.repo_root,
+                code_root=self.code_root,
                 b5_bundle_id=b5_bundle["bundle_id"],
                 b5_bundle_manifest_sha256=b5_bundle["manifest_sha256"],
                 criteria_envelope_hash=criteria_envelope_hash,
@@ -538,7 +598,15 @@ class B6ValidationWorker:
         bundle_dir = self.b5_bundle_root / str(task.b5_bundle_id)
         from scripts.verify_v3_b5_bundle import verify_verified_b5_bundle
 
-        verified = verify_verified_b5_bundle(self.repo_root, bundle_dir)
+        verified = verify_verified_b5_bundle(
+            self.repo_root,
+            bundle_dir,
+            code_root=self.code_root,
+            artifact_root=self.repo_root,
+            strategy_scope_root=self.strategy_scope_root,
+            expected_bundle_id=bundle_dir.name,
+            expected_bundle_manifest_sha256=task.b5_bundle_manifest_sha256,
+        )
         return {**verified, "path": str(bundle_dir.resolve())}
 
     def _load_b4_result(self, b4_artifact: dict[str, Any]) -> EventBacktestResult:
@@ -797,6 +865,7 @@ class B6ValidationWorker:
                 "b3_execution_input": lineage["b3_execution_input"],
                 "stock_basic_lifecycle": lineage["stock_basic_lifecycle"],
                 "membership": lineage["membership"],
+                "strategy_scoped_universe": lineage["strategy_scoped_universe"],
             },
             "authorization_binding": {
                 "authorization_scope": b5_bundle["authorization_scope"],

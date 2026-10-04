@@ -78,7 +78,21 @@ _COMPARISON_LINEAGE_EXTRAS = frozenset(
         "missing_mark_diagnostic",
     }
 )
-BUNDLE_ONLY_LINEAGE_KEYS = frozenset({"b3_execution_input", "stock_basic_lifecycle"})
+BUNDLE_ONLY_LINEAGE_KEYS = frozenset(
+    {"b3_execution_input", "stock_basic_lifecycle", "strategy_scoped_universe"}
+)
+LEGACY_B5_BUNDLE_ID = "e4b03db805ebbdee"
+LEGACY_B5_MANIFEST_SHA256 = "fb5b0c3e2cea118f33257a0cc338fe768df7fce237bf8fdf1b8b93dbcc1416a5"
+LEGACY_B5_VERIFIER_IDENTITY = {
+    "verifier_id": "v3_b5_formal_independent_verifier.v1",
+    "algorithm_id": "v3_b5_exact_sources_and_lineage.v1",
+    "source_path": "scripts/verify_v3_b5_bundle.py",
+    "source_sha256": "2e868db4ffd99eb2ffdeff75b36ba17109b0f1ec3ae20fbeab2065ab3ddc787f",
+    "source_loader_path": "scripts/publish_v3_b5_bundle.py",
+    "source_loader_sha256": "221e94ec4c972464d8aa0e02adec1d7f3bc310f7bff572fe9f052f926bc204c4",
+    "engine_source_path": "backend/services/v3_b5_bundle.py",
+    "engine_source_sha256": "ddc2e3002cb2d355a954c3468ad124c441c399674f8f963c661e314350a9fbeb",
+}
 
 
 def _sha(path: Path) -> str:
@@ -283,23 +297,40 @@ def independent_verifier_identity() -> dict[str, str]:
     engine_path = Path(__file__).resolve()
     return {
         "verifier_id": INDEPENDENT_VERIFIER_ID,
-        "algorithm_id": INDEPENDENT_VERIFIER_ALGORITHM,
+        "algorithm_id": "v3_b5_exact_sources_lineage_and_strategy_scope.v1",
         "source_path": "scripts/verify_v3_b5_bundle.py",
         "source_sha256": _sha(verifier_path),
         "source_loader_path": "scripts/publish_v3_b5_bundle.py",
         "source_loader_sha256": _sha(source_loader_path),
         "engine_source_path": "backend/services/v3_b5_bundle.py",
         "engine_source_sha256": _sha(engine_path),
+        "scope_source_path": "backend/services/strategy_scoped_pit_universe.py",
+        "scope_source_sha256": _sha(
+            engine_path.parent / "strategy_scoped_pit_universe.py"
+        ),
     }
 
 
-def _lineage_has_formal_b6_inputs(lineage: dict[str, Any]) -> bool:
+def _resolve_code_root(code_root: Path | None) -> Path:
+    active = Path(__file__).resolve().parents[2]
+    if code_root is None:
+        return active
+    requested = Path(code_root).resolve(strict=True)
+    if requested != active:
+        raise ValueError("code root does not match the active source tree")
+    return active
+
+
+def _lineage_has_formal_b6_inputs(
+    lineage: dict[str, Any], *, require_strategy_scope: bool = True
+) -> bool:
     """Keep synthetic fixture bundles outside the formal B6 admission scope."""
     formal_snapshot = lineage.get("formal_snapshot")
     b3 = lineage.get("b3_execution_input")
     lifecycle = lineage.get("stock_basic_lifecycle")
     membership = lineage.get("membership")
-    return (
+    strategy_scope = lineage.get("strategy_scoped_universe")
+    formal_inputs_match = (
         formal_snapshot
         == {
             "id": FORMAL_SNAPSHOT_ID,
@@ -327,6 +358,22 @@ def _lineage_has_formal_b6_inputs(lineage: dict[str, Any]) -> bool:
         and membership.get("id") == MEMBERSHIP_ID
         and membership.get("manifest_sha256") == MEMBERSHIP_MANIFEST_SHA256
         and membership.get("records_sha256") == MEMBERSHIP_RECORDS_SHA256
+    )
+    if not formal_inputs_match:
+        return False
+    if not require_strategy_scope:
+        return True
+    return (
+        isinstance(strategy_scope, dict)
+        and strategy_scope.get("snapshot_id", "").startswith("ssu_")
+        and strategy_scope.get("manifest_sha256")
+        and strategy_scope.get("scope_identity_sha256")
+        and strategy_scope.get("daily_members_sha256")
+        and strategy_scope.get("protocol_snapshot_id") == PROTOCOL_ID
+        and strategy_scope.get("market_scope") == ["SH", "SZ"]
+        and strategy_scope.get("path", "").startswith(
+            "data/pit/strategy_scoped_universe_snapshots/ssu_"
+        )
     )
 
 
@@ -356,8 +403,19 @@ def resolve_formal_input_bindings(repo_root: Path) -> dict[str, Any]:
     }
 
 
-def build_lineage(repo_root: Path = ROOT, *, source_inventory_dir: Path | None = None) -> dict[str, Any]:
-    repo_root = Path(repo_root).resolve()
+def build_lineage(
+    repo_root: Path = ROOT,
+    *,
+    code_root: Path | None = None,
+    artifact_root: Path | None = None,
+    source_inventory_dir: Path | None = None,
+    strategy_scope_root: Path | None = None,
+    include_strategy_scope: bool = True,
+    expected_scope_id: str | None = None,
+    expected_scope_manifest_sha256: str | None = None,
+) -> dict[str, Any]:
+    code_root = _resolve_code_root(code_root)
+    repo_root = Path(artifact_root if artifact_root is not None else repo_root).resolve(strict=True)
     source_inventory_dir = Path(source_inventory_dir) if source_inventory_dir is not None else repo_root / "data/pit/v3_b5_source_inventories" / SOURCE_INVENTORY_ID
     source_verified = verify_source_inventory(repo_root, source_inventory_dir)
     if source_verified.get("status") != "verified" or source_verified.get("artifact_id") != SOURCE_INVENTORY_ID or source_verified.get("manifest_sha256") != SOURCE_INVENTORY_MANIFEST_SHA256:
@@ -380,7 +438,7 @@ def build_lineage(repo_root: Path = ROOT, *, source_inventory_dir: Path | None =
     if not event_path.exists() or not event_sidecar.exists() or _sha(event_path) != B4_EVENT_SHA256 or event_sidecar.read_text(encoding="utf-8").split()[0] != B4_EVENT_SHA256:
         raise ValueError("B4 event result hash mismatch")
 
-    return {
+    lineage = {
         "template": dict(TEMPLATE),
         "strategy_revision_id": REVISION_ID,
         "protocol_snapshot_id": PROTOCOL_ID,
@@ -400,14 +458,66 @@ def build_lineage(repo_root: Path = ROOT, *, source_inventory_dir: Path | None =
         "gate_criteria_envelope_hash": GATE_ENVELOPE_HASH,
         "is_range": dict(IS_RANGE),
     }
+    if include_strategy_scope:
+        from backend.services.strategy_scoped_pit_universe import (
+            SCOPE_SNAPSHOT_ROOT,
+            verify_scope_snapshot,
+            _build_from_trusted_inputs,
+            _trusted_source_inputs,
+        )
+
+        scope_root = (
+            Path(strategy_scope_root)
+            if strategy_scope_root is not None
+            else repo_root / SCOPE_SNAPSHOT_ROOT
+        )
+        scope_root = scope_root.resolve(strict=True)
+        expected_scope_root = (repo_root / SCOPE_SNAPSHOT_ROOT).resolve(strict=True)
+        if scope_root != expected_scope_root:
+            raise ValueError("strategy scope root is outside the explicit artifact root")
+        expected_scope, _expected_members = _build_from_trusted_inputs(
+            _trusted_source_inputs(code_root, artifact_root=repo_root)
+        )
+        if expected_scope_id is not None and expected_scope["snapshot_id"] != expected_scope_id:
+            raise ValueError("strategy-scoped PIT universe does not match the bound snapshot ID")
+        scope_dir = scope_root / expected_scope["snapshot_id"]
+        verified_scope = verify_scope_snapshot(
+            code_root,
+            scope_dir,
+            artifact_root=repo_root,
+            expected_snapshot_id=expected_scope["snapshot_id"],
+            expected_manifest_sha256=expected_scope_manifest_sha256,
+        )
+        if verified_scope.get("status") != "verified":
+            raise ValueError(
+                "strategy-scoped PIT universe verification failed: "
+                + str(verified_scope.get("reason", verified_scope))
+            )
+        lineage["strategy_scoped_universe"] = {
+            "snapshot_id": verified_scope["snapshot_id"],
+            "path": (
+                SCOPE_SNAPSHOT_ROOT / verified_scope["snapshot_id"]
+            ).as_posix(),
+            "manifest_sha256": verified_scope["manifest_sha256"],
+            "scope_identity_sha256": verified_scope["scope_identity_sha256"],
+            "daily_members_sha256": verified_scope["daily_members_sha256"],
+            "market_scope": ["SH", "SZ"],
+            "protocol_snapshot_id": PROTOCOL_ID,
+            "oos_window": expected_scope["oos_window"],
+        }
+    return lineage
 
 
 def _bundle_core(
     lineage: dict[str, Any],
     refs: dict[str, dict[str, str]],
     verifier_identity: dict[str, str],
+    *,
+    legacy_no_scope: bool = False,
 ) -> dict[str, Any]:
-    formal_b6_scope = _lineage_has_formal_b6_inputs(lineage)
+    formal_b6_scope = _lineage_has_formal_b6_inputs(
+        lineage, require_strategy_scope=not legacy_no_scope
+    )
     return {
         "schema_version": SCHEMA,
         "status": "verified",
@@ -506,10 +616,23 @@ def publish_b5_bundle(
     results: dict[str, dict[str, Any]],
     output_root: Path,
     *,
+    code_root: Path | None = None,
+    artifact_root: Path | None = None,
     source_inventory_dir: Path | None = None,
+    strategy_scope_root: Path | None = None,
+    expected_scope_id: str | None = None,
+    expected_scope_manifest_sha256: str | None = None,
 ) -> dict[str, Any]:
     try:
-        lineage = build_lineage(repo_root, source_inventory_dir=source_inventory_dir)
+        lineage = build_lineage(
+            repo_root,
+            code_root=code_root,
+            artifact_root=artifact_root,
+            source_inventory_dir=source_inventory_dir,
+            strategy_scope_root=strategy_scope_root,
+            expected_scope_id=expected_scope_id,
+            expected_scope_manifest_sha256=expected_scope_manifest_sha256,
+        )
     except (OSError, TypeError, ValueError, KeyError) as error:
         return _not_authorized([f"source_inventory: {error}"])
     payloads, reasons = _validated_payloads(results, lineage)
@@ -544,9 +667,16 @@ def verify_b5_bundle(
     repo_root: Path,
     bundle_dir: Path,
     *,
+    code_root: Path | None = None,
+    artifact_root: Path | None = None,
     source_inventory_dir: Path | None = None,
+    strategy_scope_root: Path | None = None,
+    expected_bundle_id: str | None = None,
+    expected_bundle_manifest_sha256: str | None = None,
 ) -> dict[str, Any]:
     try:
+        code_root = _resolve_code_root(code_root)
+        artifact_root = Path(artifact_root if artifact_root is not None else repo_root).resolve(strict=True)
         bundle_dir = Path(bundle_dir)
         expected_names = {
             "manifest.json",
@@ -561,13 +691,33 @@ def verify_b5_bundle(
         if not manifest_path.exists() or not sidecar_path.exists():
             return {"status": "invalid", "reason": "bundle manifest or sidecar missing"}
         actual_manifest_sha = _sha(manifest_path)
+        if expected_bundle_id is not None and bundle_dir.name != expected_bundle_id:
+            return {"status": "invalid", "reason": "bundle ID does not match the requested ID"}
+        if expected_bundle_manifest_sha256 is not None and actual_manifest_sha != expected_bundle_manifest_sha256:
+            return {"status": "invalid", "reason": "bundle manifest hash does not match the requested hash"}
         expected_manifest_sidecar = f"{actual_manifest_sha}  manifest.json\n".encode("utf-8")
         if sidecar_path.read_bytes() != expected_manifest_sidecar:
             return {"status": "invalid", "reason": "bundle manifest sidecar mismatch"}
         manifest = _read(manifest_path)
         if manifest.get("schema_version") != SCHEMA or manifest.get("status") != "verified":
             return {"status": "invalid", "reason": "bundle schema or status mismatch"}
-        lineage = build_lineage(repo_root, source_inventory_dir=source_inventory_dir)
+        legacy_no_scope = "strategy_scoped_universe" not in manifest.get("lineage", {})
+        if legacy_no_scope and (
+            bundle_dir.name != LEGACY_B5_BUNDLE_ID
+            or actual_manifest_sha != LEGACY_B5_MANIFEST_SHA256
+        ):
+            return {"status": "invalid", "reason": "unscoped B5 bundle is not the pinned legacy artifact"}
+        bound_scope = manifest.get("lineage", {}).get("strategy_scoped_universe", {})
+        lineage = build_lineage(
+            artifact_root,
+            code_root=code_root,
+            artifact_root=artifact_root,
+            source_inventory_dir=source_inventory_dir,
+            strategy_scope_root=strategy_scope_root,
+            include_strategy_scope=not legacy_no_scope,
+            expected_scope_id=bound_scope.get("snapshot_id") if not legacy_no_scope else None,
+            expected_scope_manifest_sha256=bound_scope.get("manifest_sha256") if not legacy_no_scope else None,
+        )
         if manifest.get("lineage") != lineage:
             return {"status": "invalid", "reason": "bundle lineage mismatch"}
         refs = manifest.get("results")
@@ -591,8 +741,16 @@ def verify_b5_bundle(
             payloads[result_type] = _validate_payload_for_bundle(payload, result_type, lineage)
             if ref.get("payload_id") != payload["payload_id"] or ref.get("canonical_payload_sha256") != payload["canonical_payload_sha256"]:
                 return {"status": "invalid", "reason": f"result reference mismatch: {result_type}"}
-        verifier_identity = independent_verifier_identity()
-        core = _bundle_core(lineage, refs, verifier_identity)
+        verifier_identity = (
+            LEGACY_B5_VERIFIER_IDENTITY
+            if legacy_no_scope
+            else independent_verifier_identity()
+        )
+        if manifest.get("verifier_identity") != verifier_identity:
+            return {"status": "invalid", "reason": "independent verifier identity mismatch"}
+        core = _bundle_core(
+            lineage, refs, verifier_identity, legacy_no_scope=legacy_no_scope
+        )
         expected_id = sha256_bytes(canonical_json(core))[:16]
         expected_manifest = {**core, "bundle_id": expected_id}
         if manifest != expected_manifest or bundle_dir.name != expected_id:

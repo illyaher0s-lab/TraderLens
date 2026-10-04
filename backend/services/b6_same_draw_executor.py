@@ -27,6 +27,10 @@ from backend.services.b5_oos_types import (
     StressCostResult,
 )
 from backend.services.formal_pit_partition_adapter import FormalPITPartitionAdapter
+from backend.services.strategy_scoped_pit_universe import (
+    SCOPE_SNAPSHOT_ROOT,
+    StrategyScopedPITUniverse,
+)
 from backend.services.v3_b5_comparison import (
     BASE_COST_BPS,
     INITIAL_NAV,
@@ -74,6 +78,7 @@ class PreparedSupplementToken:
 
     __slots__ = (
         "_repo_root",
+        "_code_root",
         "_directory",
         "_token_schema_version",
         "_supplement_id",
@@ -95,12 +100,14 @@ class PreparedSupplementToken:
     def __init__(
         self,
         repo_root: Path,
+        code_root: Path,
         directory: Path,
         identity: Mapping[str, Any],
         manifest_bytes: bytes,
         frozen_verified: Mapping[str, Any],
     ) -> None:
         self._repo_root = repo_root
+        self._code_root = code_root
         self._directory = directory
         self._token_schema_version = identity["token_schema_version"]
         self._supplement_id = identity["supplement_id"]
@@ -125,11 +132,20 @@ class PreparedSupplementToken:
         verified: Mapping[str, Any],
         *,
         repo_root: Path,
+        code_root: Path | None = None,
         b5_bundle_id: str,
         b5_bundle_manifest_sha256: str,
         criteria_envelope_hash: str,
     ) -> "PreparedSupplementToken":
-        repo_root = Path(repo_root).resolve()
+        repo_root = Path(repo_root).resolve(strict=True)
+        active_code_root = Path(__file__).resolve().parents[2]
+        code_root = (
+            Path(code_root).resolve(strict=True)
+            if code_root is not None
+            else active_code_root
+        )
+        if code_root != active_code_root:
+            raise ValueError("code_root does not match the active same-draw source tree")
         directory = Path(directory).resolve()
         try:
             repo_relative_path = directory.relative_to(repo_root).as_posix()
@@ -190,9 +206,9 @@ class PreparedSupplementToken:
             expected_sha = binding.get("sha256")
             if not isinstance(relative, str) or not relative or not isinstance(expected_sha, str):
                 raise ValueError("prepared supplement source binding identity is invalid")
-            source_path = (repo_root / relative).resolve()
+            source_path = (code_root / relative).resolve()
             try:
-                canonical_relative = source_path.relative_to(repo_root).as_posix()
+                canonical_relative = source_path.relative_to(code_root).as_posix()
             except ValueError as exc:
                 raise ValueError("prepared supplement source binding path escapes repo root") from exc
             if canonical_relative != Path(relative).as_posix() or not source_path.is_file():
@@ -224,6 +240,7 @@ class PreparedSupplementToken:
         }
         return cls(
             repo_root,
+            code_root,
             directory,
             identity,
             manifest_bytes,
@@ -296,9 +313,9 @@ class PreparedSupplementToken:
         ):
             raise ValueError("prepared supplement manifest binding changed")
         for binding in identity["source_bindings"].values():
-            source_path = (self._repo_root / binding["path"]).resolve()
+            source_path = (self._code_root / binding["path"]).resolve()
             try:
-                relative = source_path.relative_to(self._repo_root).as_posix()
+                relative = source_path.relative_to(self._code_root).as_posix()
             except ValueError as exc:
                 raise ValueError("prepared supplement source binding path escapes repo root") from exc
             if relative != binding["path"] or not source_path.is_file() or _sha256(source_path) != binding["sha256"]:
@@ -450,6 +467,7 @@ def _validate_envelope(envelope: Mapping[str, Any]) -> tuple[SameDrawExecutionId
         "b3_execution_input": lineage.get("b3_execution_input"),
         "stock_basic_lifecycle": lineage.get("stock_basic_lifecycle"),
         "membership": lineage.get("membership"),
+        "strategy_scoped_universe": lineage.get("strategy_scoped_universe"),
     }
     if envelope.get("formal_input_binding") != expected_binding:
         raise ValueError("same-draw formal input binding does not match B5 lineage")
@@ -464,6 +482,16 @@ def _validate_envelope(envelope: Mapping[str, Any]) -> tuple[SameDrawExecutionId
         or authorization.get("lineage_sha256") != sha256_bytes(canonical_json(lineage))
     ):
         raise ValueError("same-draw B5 authorization identity mismatch")
+    scope_binding = lineage.get("strategy_scoped_universe")
+    if (
+        not isinstance(scope_binding, Mapping)
+        or scope_binding.get("path")
+        != (SCOPE_SNAPSHOT_ROOT / str(scope_binding.get("snapshot_id", ""))).as_posix()
+        or scope_binding.get("protocol_snapshot_id") != identity.protocol_snapshot_id
+        or scope_binding.get("oos_window")
+        != {"start": identity.oos_start.isoformat(), "end": identity.oos_end.isoformat()}
+    ):
+        raise ValueError("same-draw strategy-scoped universe binding mismatch")
     if (
         lineage.get("strategy_revision_id") != identity.strategy_revision_id
         or lineage.get("protocol_snapshot_id") != identity.protocol_snapshot_id
@@ -655,11 +683,26 @@ def execute_production_same_draw(envelope: Mapping[str, Any], *, repo_root: Path
     root = Path(repo_root).resolve()
     prepared_supplement = envelope["prepared_supplement"]
     verified_supplement = prepared_supplement.consume(identity)
+    formal_input_binding = envelope["formal_input_binding"]
     raw_source = FormalPITPartitionAdapter(
         root,
-        formal_input_binding=envelope["formal_input_binding"],
+        formal_input_binding={
+            key: formal_input_binding[key]
+            for key in (
+                "formal_snapshot",
+                "b3_execution_input",
+                "stock_basic_lifecycle",
+                "membership",
+            )
+        },
     )
-    owner = _SharedReadBoundOwner(raw_source, identity.oos_end)
+    scope_binding = formal_input_binding["strategy_scoped_universe"]
+    scoped_source = StrategyScopedPITUniverse(
+        raw_source,
+        scope_snapshot_dir=root / scope_binding["path"],
+        expected_binding=scope_binding,
+    )
+    owner = _SharedReadBoundOwner(scoped_source, identity.oos_end)
     all_common_dates = tuple(owner.common_trading_dates(date(1900, 1, 1), identity.oos_end))
     dates = tuple(day for day in all_common_dates if identity.oos_start <= day <= identity.oos_end)
     if not dates or dates[0] != identity.oos_start or dates[-1] != identity.oos_end:

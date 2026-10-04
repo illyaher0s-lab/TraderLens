@@ -147,6 +147,31 @@ def _new_task_db(temp_root: Path, bundle_id: str, bundle_sha: str):
     return db, task, protocol
 
 
+def _strategy_scope_binding(protocol) -> dict:
+    return {
+        "snapshot_id": "ssu_formal_preflight_test",
+        "path": "data/pit/strategy_scoped_universe_snapshots/ssu_formal_preflight_test",
+        "manifest_sha256": "d" * 64,
+        "scope_identity_sha256": "e" * 64,
+        "daily_members_sha256": "f" * 64,
+        "market_scope": ["SH", "SZ"],
+        "protocol_snapshot_id": protocol.protocol_snapshot_id,
+        "oos_window": {
+            "start": protocol.oos_window_start.isoformat(),
+            "end": protocol.oos_window_end.isoformat(),
+        },
+    }
+
+
+def _pass_through_strategy_scope(raw_universe, *, expected_binding, **_kwargs):
+    start = date.fromisoformat(expected_binding["oos_window"]["start"])
+    end = date.fromisoformat(expected_binding["oos_window"]["end"])
+    return SimpleNamespace(
+        trading_dates=raw_universe.common_trading_dates(start, end),
+        symbols_as_of=raw_universe.symbols_as_of,
+    )
+
+
 class TestB6FormalPreflightAdmission(unittest.TestCase):
     def test_b4_is_verified_from_b5_lineage_without_task4_runner(self) -> None:
         from backend.services.b6_validation_worker import B6ValidationWorker
@@ -399,17 +424,26 @@ class TestB6FormalPreflightAdmission(unittest.TestCase):
             "stock_basic_lifecycle": {},
             "membership": {},
         }
-        protocol = SimpleNamespace(oos_window_start=day, oos_window_end=day)
+        protocol = SimpleNamespace(
+            protocol_snapshot_id="formal-preflight-test-protocol",
+            oos_window_start=day,
+            oos_window_end=day,
+        )
+        binding["strategy_scoped_universe"] = _strategy_scope_binding(protocol)
         worker = B6ValidationWorker(None, repo_root=Path("."))
         with patch(
             "backend.services.b6_validation_worker.FormalPITPartitionAdapter",
             MixedUniverseAdapter,
         ):
-            with self.assertRaises(_PreflightBlocked) as raised:
-                worker._validate_formal_executable_scope(
-                    protocol,
-                    {"lineage": binding},
-                )
+            with patch(
+                "backend.services.b6_validation_worker.StrategyScopedPITUniverse",
+                side_effect=_pass_through_strategy_scope,
+            ):
+                with self.assertRaises(_PreflightBlocked) as raised:
+                    worker._validate_formal_executable_scope(
+                        protocol,
+                        {"lineage": binding},
+                    )
 
         self.assertIn("000991.SZ", raised.exception.detail)
         self.assertIn("832317.BJ", raised.exception.detail)
@@ -513,6 +547,7 @@ class TestB6FormalPreflightAdmission(unittest.TestCase):
                         "root_repo_relative": "data/test/stock_basic",
                         "stock_basic_files": [],
                     },
+                    "strategy_scoped_universe": _strategy_scope_binding(protocol),
                     "is_range": b4["is_range"],
                     "execution_supplement": {"id": "supplement_test", "manifest_sha256": "c" * 64},
                     "gate_criteria_envelope_hash": protocol.gate_criteria_hash,
@@ -582,10 +617,14 @@ class TestB6FormalPreflightAdmission(unittest.TestCase):
                             "backend.services.b6_validation_worker.FormalPITPartitionAdapter",
                             MissingExecutionDataAdapter,
                         ):
-                            result = worker.run_task(
-                                case_task.task_id,
-                                execute_same_draw=lambda envelope: executor_calls.append(envelope) or {},
-                            )
+                            with patch(
+                                "backend.services.b6_validation_worker.StrategyScopedPITUniverse",
+                                side_effect=_pass_through_strategy_scope,
+                            ):
+                                result = worker.run_task(
+                                    case_task.task_id,
+                                    execute_same_draw=lambda envelope: executor_calls.append(envelope) or {},
+                                )
 
                         self.assertEqual(result.status, "blocked")
                         self.assertEqual(result.reason, "b6_formal_scope_unavailable")
@@ -626,10 +665,14 @@ class TestB6FormalPreflightAdmission(unittest.TestCase):
                     "backend.services.b6_validation_worker.FormalPITPartitionAdapter",
                     MissingExecutionDataAdapter,
                 ):
-                    fixture_result = worker.run_task(
-                        fixture_task.task_id,
-                        execute_same_draw=lambda envelope: executor_calls.append(envelope) or {},
-                    )
+                    with patch(
+                        "backend.services.b6_validation_worker.StrategyScopedPITUniverse",
+                        side_effect=_pass_through_strategy_scope,
+                    ):
+                        fixture_result = worker.run_task(
+                            fixture_task.task_id,
+                            execute_same_draw=lambda envelope: executor_calls.append(envelope) or {},
+                        )
                 self.assertEqual(fixture_result.status, "failed")
                 self.assertEqual(fixture_result.reason, "invariant_error")
                 fixture_blocked_task = db.get_b6_task_by_id(fixture_task.task_id)
@@ -641,6 +684,25 @@ class TestB6FormalPreflightAdmission(unittest.TestCase):
                 self.assertEqual(executor_calls, [])
             finally:
                 db.close()
+
+    def test_worker_accepts_explicit_separate_code_and_artifact_roots(self):
+        from backend.services.b6_validation_worker import B6ValidationWorker
+
+        code_root = Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as temp_dir:
+            artifact_root = Path(temp_dir)
+            worker = B6ValidationWorker(
+                None,
+                code_root=code_root,
+                artifact_root=artifact_root,
+            )
+
+        self.assertEqual(worker.code_root, code_root.resolve())
+        self.assertEqual(worker.repo_root, artifact_root)
+        self.assertEqual(
+            worker.strategy_scope_root,
+            artifact_root / "data/pit/strategy_scoped_universe_snapshots",
+        )
 
 
 if __name__ == "__main__":

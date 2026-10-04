@@ -146,13 +146,28 @@ def _validate_comparison_sequence(
 def load_verified_results(
     repo_root: Path = ROOT,
     *,
+    code_root: Path | None = None,
+    artifact_root: Path | None = None,
     cost_dir: Path | None = None,
     comparison_dir: Path | None = None,
+    strategy_scope_root: Path | None = None,
+    include_strategy_scope: bool = True,
+    expected_scope_id: str | None = None,
+    expected_scope_manifest_sha256: str | None = None,
 ) -> dict[str, dict[str, Any]]:
-    repo_root = Path(repo_root).resolve()
+    code_root = Path(code_root) if code_root is not None else Path(__file__).resolve().parents[1]
+    repo_root = Path(artifact_root if artifact_root is not None else repo_root).resolve()
     cost_dir = Path(cost_dir) if cost_dir is not None else repo_root / "data/pit/v3_b5_costs" / COST_ARTIFACT_ID
     comparison_dir = Path(comparison_dir) if comparison_dir is not None else repo_root / "data/pit/v3_b5_comparisons" / COMPARISON_ARTIFACT_ID
-    base_lineage = build_lineage(repo_root)
+    base_lineage = build_lineage(
+        repo_root,
+        code_root=code_root,
+        artifact_root=repo_root,
+        strategy_scope_root=strategy_scope_root,
+        include_strategy_scope=include_strategy_scope,
+        expected_scope_id=expected_scope_id,
+        expected_scope_manifest_sha256=expected_scope_manifest_sha256,
+    )
     cost_manifest = _load_manifest(cost_dir, artifact_id=COST_ARTIFACT_ID, expected_sha=COST_MANIFEST_SHA256, schema=COST_SCHEMA, status="valid")
     comparison_manifest = _load_manifest(comparison_dir, artifact_id=COMPARISON_ARTIFACT_ID, expected_sha=COMPARISON_MANIFEST_SHA256, schema=COMPARISON_SCHEMA, status="verified")
     cost_payloads = _load_source_payloads(cost_dir, cost_manifest, ("base_transaction_cost", "stress_transaction_cost"), base_lineage)
@@ -187,20 +202,60 @@ def _not_authorized(reason: str) -> dict[str, Any]:
 
 def publish_verified_b5_bundle(
     repo_root: Path = ROOT,
-    output_root: Path = OUTPUT_ROOT,
+    output_root: Path | None = None,
     *,
+    code_root: Path | None = None,
+    artifact_root: Path | None = None,
     cost_dir: Path | None = None,
     comparison_dir: Path | None = None,
+    strategy_scope_root: Path | None = None,
+    expected_scope_id: str | None = None,
+    expected_scope_manifest_sha256: str | None = None,
 ) -> dict[str, Any]:
+    code_root = Path(code_root) if code_root is not None else Path(__file__).resolve().parents[1]
+    repo_root = Path(artifact_root if artifact_root is not None else repo_root).resolve()
+    output_root = Path(output_root) if output_root is not None else repo_root / "data/pit/v3_b5_validation_bundles"
     try:
-        results = load_verified_results(repo_root, cost_dir=cost_dir, comparison_dir=comparison_dir)
+        results = load_verified_results(
+            repo_root,
+            code_root=code_root,
+            artifact_root=repo_root,
+            cost_dir=cost_dir,
+            comparison_dir=comparison_dir,
+            strategy_scope_root=strategy_scope_root,
+        )
     except (OSError, TypeError, ValueError, KeyError, json.JSONDecodeError) as error:
         return _not_authorized(str(error))
-    return publish_b5_bundle(Path(repo_root), results, Path(output_root))
+    return publish_b5_bundle(
+        Path(repo_root),
+        results,
+        Path(output_root),
+        code_root=code_root,
+        artifact_root=repo_root,
+        strategy_scope_root=strategy_scope_root,
+        expected_scope_id=expected_scope_id,
+        expected_scope_manifest_sha256=expected_scope_manifest_sha256,
+    )
 
 
 def main() -> None:
-    response = publish_verified_b5_bundle()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Publish one B5 bundle against explicitly bound roots")
+    parser.add_argument("--code-root", type=Path, required=True)
+    parser.add_argument("--artifact-root", type=Path, required=True)
+    parser.add_argument("--strategy-scope-root", type=Path, required=True)
+    parser.add_argument("--scope-id", required=True)
+    parser.add_argument("--scope-manifest-sha256", required=True)
+    args = parser.parse_args()
+    response = publish_verified_b5_bundle(
+        args.artifact_root,
+        code_root=args.code_root,
+        artifact_root=args.artifact_root,
+        strategy_scope_root=args.strategy_scope_root,
+        expected_scope_id=args.scope_id,
+        expected_scope_manifest_sha256=args.scope_manifest_sha256,
+    )
     print(json.dumps(response, ensure_ascii=False, sort_keys=True))
     if response.get("status") not in {"published", "already_published"}:
         raise SystemExit(1)
