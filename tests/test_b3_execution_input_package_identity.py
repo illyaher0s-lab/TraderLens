@@ -272,3 +272,113 @@ def test_publisher_rejects_unallocated_successor_id(tmp_path: Path) -> None:
         assert "unallocated artifact id" in str(exc)
     else:
         raise AssertionError("unallocated artifact id should be rejected")
+
+
+
+def _stub_production_spec_artifacts(monkeypatch, tmp_path: Path) -> None:
+    from scripts import publish_b3_execution_input_package as publisher
+
+    expected = publisher.EXPECTED
+    data_manifest = (
+        tmp_path
+        / "data/pit/data_snapshot_manifests"
+        / expected["data_snapshot_id"]
+        / "manifest.json"
+    )
+    membership_root = (
+        tmp_path
+        / "data/pit/pit_membership_snapshots"
+        / expected["pit_membership_snapshot_id"]
+    )
+    membership_manifest = membership_root / "manifest.json"
+    coverage_root = tmp_path / "data/pit/coverage_packages" / expected["coverage_package_id"]
+    coverage_manifest = coverage_root / "coverage_manifest.json"
+    successor_manifest = (
+        tmp_path / "data/pit/qualification_successors/e5100669ed247769/manifest.json"
+    )
+    artifacts = {
+        data_manifest: {
+            "semantic_hash": expected["data_snapshot_semantic_hash"],
+            "not_authorized_for_b6_oos_gate_promotion_signal": True,
+        },
+        membership_manifest: {
+            "canonical_content_hash": expected["pit_membership_canonical_content_hash"],
+            "not_authorized_for_b6_oos_gate_promotion_signal": True,
+        },
+        coverage_manifest: {"algorithm_hash": expected["coverage_algorithm_hash"]},
+        successor_manifest: {
+            "successor_id": "test_successor",
+            "template_id": "relative_strength_rotation_shsz_sw2021_v2",
+            "template_hash": "test_template_hash",
+            "not_authorized_for_b6_oos_gate_promotion_signal_or_data_collection": True,
+        },
+    }
+
+    monkeypatch.setattr(publisher, "_assert_file_hash", lambda *_args: None)
+    monkeypatch.setattr(publisher, "_load_json", lambda path: artifacts[Path(path)])
+
+
+def test_production_spec_converts_only_the_exact_approved_template(
+    monkeypatch, tmp_path: Path
+) -> None:
+    from backend.services import strategy_template_library as library
+    from scripts.publish_b3_execution_input_package import build_production_spec
+
+    _stub_production_spec_artifacts(monkeypatch, tmp_path)
+    template_id = "relative_strength_rotation_shsz_sw2021_v2"
+    real_convert = library.convert_to_frozen_contract
+    converted = []
+
+    def reject_unrelated_template(template, created_at):
+        if template.template_id != template_id:
+            raise RuntimeError("unrelated template conversion failed")
+        result = real_convert(template, created_at)
+        converted.append(result)
+        return result
+
+    monkeypatch.setattr(library, "convert_to_frozen_contract", reject_unrelated_template)
+
+    spec = build_production_spec(tmp_path)
+
+    assert len(converted) == 1
+    assert converted[0].governance_status == "approved"
+    assert converted[0].template_hash == (
+        "867a47eeece1c0d208c591f35b5ca31d663ccda183c8721eef803483921238b6"
+    )
+    assert converted[0].data_requirements_hash == (
+        "1910d7a598b1008fb5ba6ee69833e174b5a9949f31a998e2fced436950d8df04"
+    )
+    assert converted[0].review_evidence_sha256 == (
+        "ab4391a42ade48c2319dc15bec6799a0280fbbe4ae75dc49bd1a51f403935194"
+    )
+    assert spec["template"]["template_hash"] == converted[0].template_hash
+    assert spec["template"]["data_requirements_hash"] == converted[0].data_requirements_hash
+
+
+def test_production_spec_rejects_nonapproved_template_contracts(
+    monkeypatch, tmp_path: Path
+) -> None:
+    import pytest
+    from backend.services import strategy_template_library as library
+    from scripts.publish_b3_execution_input_package import (
+        PackagePublicationError,
+        build_production_spec,
+    )
+
+    _stub_production_spec_artifacts(monkeypatch, tmp_path)
+    template = library.get_template_by_id("relative_strength_rotation_shsz_sw2021_v2")
+    assert template is not None
+    real_convert = library.convert_to_frozen_contract
+
+    for status in ("candidate", "rejected"):
+        def return_nonapproved(_template, created_at, *, forced_status=status):
+            return real_convert(_template, created_at).model_copy(
+                update={"governance_status": forced_status}
+            )
+
+        monkeypatch.setattr(library, "convert_to_frozen_contract", return_nonapproved)
+        with pytest.raises(
+            PackagePublicationError,
+            match="exact V2 template is not approved",
+        ):
+            build_production_spec(tmp_path)

@@ -103,17 +103,21 @@ def build_production_spec(repo_root: Path) -> dict:
     """Resolve only fixed, machine-checked Task 3 package inputs."""
 
     from backend.services.strategy_template_library import (
+        convert_to_frozen_contract,
         get_template_by_id,
         get_template_data_requirements_hash,
-        list_approved_templates,
     )
 
     repo_root = Path(repo_root)
     template_id = "relative_strength_rotation_shsz_sw2021_v2"
     template = get_template_by_id(template_id)
-    if template is None or all(
-        item.template_id != template_id for item in list_approved_templates()
-    ):
+    if template is None:
+        raise PackagePublicationError("exact V2 template is not approved")
+    frozen_contract = convert_to_frozen_contract(
+        template,
+        created_at=datetime.now(),
+    )
+    if frozen_contract.governance_status != "approved":
         raise PackagePublicationError("exact V2 template is not approved")
 
     template_hash = template.frozen_template_hash
