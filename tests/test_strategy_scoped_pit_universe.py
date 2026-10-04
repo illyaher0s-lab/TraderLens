@@ -32,6 +32,10 @@ SOURCE_BINDINGS = {
         "path": "backend/services/strategy_scoped_pit_universe.py",
         "sha256": "1" * 64,
     },
+    "formal_pit_partition_adapter": {
+        "path": "backend/services/formal_pit_partition_adapter.py",
+        "sha256": "5" * 64,
+    },
     "b6_preflight_consumer": {
         "path": "backend/services/b6_validation_worker.py",
         "sha256": "2" * 64,
@@ -128,6 +132,56 @@ def test_scope_snapshot_identity_binds_template_source_membership_and_daily_hash
         expected_binding=artifact["binding"],
     )
     assert loaded.symbols_as_of(day) == ("000001.SZ", "600000.SH")
+
+
+def test_scope_identity_changes_when_formal_partition_adapter_pin_changes():
+    day = date(2026, 3, 20)
+    materialized = materialize_daily_membership(
+        [{"symbol": "600000.SH", "effective_from": day, "effective_to": None}],
+        (day,),
+        ["SH", "SZ"],
+    )
+    members = canonical_daily_members_bytes(materialized.members_by_date)
+    common = dict(
+        template_binding=TEMPLATE,
+        membership_binding=MEMBERSHIP,
+        market_scope=["SH", "SZ"],
+        oos_window={"start": day.isoformat(), "end": day.isoformat()},
+        calendar_binding=CALENDAR,
+        stock_basic_lifecycle_binding=LIFECYCLE_BINDING,
+        source_bindings=SOURCE_BINDINGS,
+        daily_summary=materialized.daily_summary,
+        daily_members_sha256=hashlib.sha256(members).hexdigest(),
+    )
+
+    pinned = build_scope_snapshot_manifest(**common)
+    changed_bindings = {
+        **SOURCE_BINDINGS,
+        "formal_pit_partition_adapter": {
+            **SOURCE_BINDINGS["formal_pit_partition_adapter"],
+            "sha256": "9" * 64,
+        },
+    }
+    changed = build_scope_snapshot_manifest(
+        **{**common, "source_bindings": changed_bindings}
+    )
+
+    assert pinned["source_bindings"]["formal_pit_partition_adapter"] == (
+        SOURCE_BINDINGS["formal_pit_partition_adapter"]
+    )
+    assert pinned["snapshot_id"] != changed["snapshot_id"]
+
+
+def test_scope_source_bindings_pin_active_formal_partition_adapter():
+    code_root = scope_module.Path(__file__).resolve().parents[1]
+    adapter_path = "backend/services/formal_pit_partition_adapter.py"
+
+    assert scope_module._source_bindings(code_root)["formal_pit_partition_adapter"] == {
+        "path": adapter_path,
+        "sha256": hashlib.sha256(
+            (code_root / scope_module.Path(*adapter_path.split("/"))).read_bytes()
+        ).hexdigest(),
+    }
 
 
 def test_daily_materialization_applies_formal_lifecycle_as_of_and_retains_unknowns():

@@ -425,6 +425,7 @@ def build_scope_snapshot_manifest(
     bindings = {name: dict(value) for name, value in source_bindings.items()}
     required_sources = {
         "strategy_scoped_materializer",
+        "formal_pit_partition_adapter",
         "b6_preflight_consumer",
         "b6_same_draw_consumer",
         "strategy_template_library",
@@ -438,6 +439,12 @@ def build_scope_snapshot_manifest(
             or len(binding["sha256"]) != 64
         ):
             raise ValueError(f"invalid source binding: {name}")
+    adapter_binding = bindings["formal_pit_partition_adapter"]
+    if (
+        adapter_binding["path"] != "backend/services/formal_pit_partition_adapter.py"
+        or any(char not in "0123456789abcdef" for char in adapter_binding["sha256"])
+    ):
+        raise ValueError("formal PIT partition adapter source binding is invalid")
     normalized_window = {
         "start": _parse_day(oos_window.get("start"), label="OOS start").isoformat(),
         "end": _parse_day(oos_window.get("end"), label="OOS end").isoformat(),
@@ -711,6 +718,7 @@ def _source_bindings(code_root: Path) -> dict[str, dict[str, str]]:
     code_root = _resolve_code_root(code_root)
     paths = {
         "strategy_scoped_materializer": "backend/services/strategy_scoped_pit_universe.py",
+        "formal_pit_partition_adapter": "backend/services/formal_pit_partition_adapter.py",
         "b6_preflight_consumer": "backend/services/b6_validation_worker.py",
         "b6_same_draw_consumer": "backend/services/b6_same_draw_executor.py",
         "strategy_template_library": "backend/services/strategy_template_library.py",

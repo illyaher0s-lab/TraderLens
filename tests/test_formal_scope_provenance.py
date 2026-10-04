@@ -25,6 +25,34 @@ def _manifest(directory: Path) -> tuple[dict, str]:
     return json.loads(raw.decode("utf-8")), hashlib.sha256(raw).hexdigest()
 
 
+def test_b5_verifier_identity_pins_formal_partition_adapter(monkeypatch):
+    from backend.services import v3_b5_bundle
+
+    adapter_path = "backend/services/formal_pit_partition_adapter.py"
+    adapter_file = CODE_ROOT / Path(*adapter_path.split("/"))
+    identity = v3_b5_bundle.independent_verifier_identity()
+    assert identity["formal_pit_partition_adapter_path"] == adapter_path
+    assert identity["formal_pit_partition_adapter_sha256"] == hashlib.sha256(
+        adapter_file.read_bytes()
+    ).hexdigest()
+
+    original_sha = v3_b5_bundle._sha
+    monkeypatch.setattr(
+        v3_b5_bundle,
+        "_sha",
+        lambda path: "f" * 64
+        if Path(path).resolve() == adapter_file.resolve()
+        else original_sha(path),
+    )
+    changed_identity = v3_b5_bundle.independent_verifier_identity()
+
+    assert changed_identity["formal_pit_partition_adapter_sha256"] == "f" * 64
+    assert changed_identity != identity
+    assert v3_b5_bundle._bundle_core({}, {}, identity) != v3_b5_bundle._bundle_core(
+        {}, {}, changed_identity
+    )
+
+
 @requires_artifacts
 def test_first_generation_scope_remains_bound_to_unavailable_legacy_source():
     directory = (

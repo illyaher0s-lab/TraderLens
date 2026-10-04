@@ -308,6 +308,12 @@ def independent_verifier_identity() -> dict[str, str]:
         "scope_source_sha256": _sha(
             engine_path.parent / "strategy_scoped_pit_universe.py"
         ),
+        "formal_pit_partition_adapter_path": (
+            "backend/services/formal_pit_partition_adapter.py"
+        ),
+        "formal_pit_partition_adapter_sha256": _sha(
+            engine_path.parent / "formal_pit_partition_adapter.py"
+        ),
     }
 
 
