@@ -33,6 +33,7 @@ from contracts.research import (
     ConfirmedCandidate,
     AgentHarnessConfig,
 )
+from tests.approval_context_fixtures import attach_continued_approval
 
 
 class TestResearchDB(unittest.TestCase):
@@ -41,6 +42,9 @@ class TestResearchDB(unittest.TestCase):
     def setUp(self):
         """Create in-memory database for each test."""
         self.db = ResearchDB(":memory:")
+
+    def approval_for(self, theme_id: str) -> str:
+        return attach_continued_approval(self.db, theme_id)
 
     def test_creating_theme_persists_all_fields(self):
         """Creating a theme persists all input fields."""
@@ -153,6 +157,7 @@ class TestResearchDB(unittest.TestCase):
                 invalidation_rules=[],
                 price_snapshot={},
                 benchmark_snapshot={},
+                approval_card_id=self.approval_for("theme_004"),
                 override_reason=None,
             )
         self.assertIn("override", str(ctx.exception).lower())
@@ -192,6 +197,7 @@ class TestResearchDB(unittest.TestCase):
             invalidation_rules=[{"type": "price_drop", "threshold": -0.2}],
             price_snapshot={"close": 500.0},
             benchmark_snapshot={"index": "399006.SZ"},
+            approval_card_id=self.approval_for("theme_005"),
         )
         
         pool = self.db.list_confirmed_candidates("theme_005")
@@ -233,6 +239,7 @@ class TestResearchDB(unittest.TestCase):
             invalidation_rules=[],
             price_snapshot={},
             benchmark_snapshot={},
+            approval_card_id=self.approval_for("theme_006"),
         )
         
         self.assertTrue(confirmed.forward_only)
@@ -275,6 +282,7 @@ class TestResearchDB(unittest.TestCase):
             ],
             price_snapshot={"close": 12.5, "volume": 5000000},
             benchmark_snapshot={"index": "000001.SH", "close": 3000.0},
+            approval_card_id=self.approval_for("theme_007"),
         )
         
         self.assertEqual(confirmed.thesis_snapshot, "银行股低估值")
@@ -319,6 +327,7 @@ class TestResearchDB(unittest.TestCase):
             invalidation_rules=[{"type": "identity_break"}],
             price_snapshot={"close": 100.0},
             benchmark_snapshot={"index": "399006.SZ"},
+            approval_card_id=self.approval_for("theme_verification_freeze"),
         )
 
         pool = self.db.list_confirmed_candidates("theme_verification_freeze")

@@ -3,6 +3,8 @@
 These rules specialize the global Codex engineering rules for TraderLens.
 They do not weaken correctness requirements for trading decisions.
 
+**All actions must align with the North Star document: `TraderLens_Northstar.md`.**
+
 ## 1. Product mainline is the top-level priority
 
 TraderLens exists to help a novice A-share user make and review real trading decisions.
@@ -225,8 +227,10 @@ identified test inputs.
 
 At the end of every task report:
 
-MAINLINE STEP: <1-7>
+阶段 <阶段编号>｜卡 <三位卡号>
 BEFORE: <where the user journey stopped>
 AFTER: <where it now stops>
-NEW USER CAPABILITY: <what the user can now actually do>
-NEXT BLOCKER: <one blocker only>
+新增能力: <what the user can now actually do>
+下一阻塞: <one blocker only>
+
+阶段和卡号表示项目工作进度，与用户旅程步骤编号（1-7）不同。用户旅程步骤如需说明，只写在任务卡的范围说明中，不得用作进度标题。

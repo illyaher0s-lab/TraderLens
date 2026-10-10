@@ -1,0 +1,889 @@
+{
+  "scope_hash": "fa4e3fd8f98d8758",
+  "bj_cutoff_date": 20211115,
+  "stk_limit_buckets": {
+    "shsz": {
+      "stock_days": 884,
+      "unique_codes": 2,
+      "first_date": 20160104,
+      "last_date": 20191213
+    },
+    "bj_pre": {
+      "stock_days": 15108,
+      "unique_codes": 71,
+      "first_date": 20200727,
+      "last_date": 20211112
+    }
+  },
+  "daily_basic_buckets": {
+    "shsz": {
+      "stock_days": 13,
+      "unique_codes": 4,
+      "first_date": 20200601,
+      "last_date": 20210611
+    },
+    "bj_pre": {
+      "stock_days": 15065,
+      "unique_codes": 71,
+      "first_date": 20200727,
+      "last_date": 20211112
+    },
+    "bj_post": {
+      "stock_days": 7,
+      "unique_codes": 4,
+      "first_date": 20211115,
+      "last_date": 20221031
+    }
+  },
+  "union_buckets": {
+    "bj_pre": {
+      "stock_days": 15162,
+      "unique_codes": 71,
+      "first_date": 20200727,
+      "last_date": 20211112
+    },
+    "shsz": {
+      "stock_days": 897,
+      "unique_codes": 6,
+      "first_date": 20160104,
+      "last_date": 20210611
+    },
+    "bj_post": {
+      "stock_days": 7,
+      "unique_codes": 4,
+      "first_date": 20211115,
+      "last_date": 20221031
+    }
+  },
+  "bj_code_evidence": {
+    "832317.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20211020,
+      "gap_first": 20200727,
+      "gap_last": 20211020,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": false,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "833874.BJ": {
+      "daily_first": 20160106,
+      "daily_last": 20211105,
+      "gap_first": 20200727,
+      "gap_last": 20211105,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": false,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "833994.BJ": {
+      "daily_first": 20160106,
+      "daily_last": 20211103,
+      "gap_first": 20200727,
+      "gap_last": 20211103,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": false,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920000.BJ": {
+      "daily_first": 20170329,
+      "daily_last": 20260710,
+      "gap_first": 20201223,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20201223
+    },
+    "920010.BJ": {
+      "daily_first": 20160112,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920021.BJ": {
+      "daily_first": 20160307,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920030.BJ": {
+      "daily_first": 20161223,
+      "daily_last": 20260710,
+      "gap_first": 20201127,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20201127
+    },
+    "920039.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20210818,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210818
+    },
+    "920047.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20201124,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20201124
+    },
+    "920077.BJ": {
+      "daily_first": 20161103,
+      "daily_last": 20260710,
+      "gap_first": 20210831,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210831
+    },
+    "920089.BJ": {
+      "daily_first": 20181210,
+      "daily_last": 20260710,
+      "gap_first": 20211109,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20211109
+    },
+    "920090.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20210809,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210809
+    },
+    "920146.BJ": {
+      "daily_first": 20161125,
+      "daily_last": 20260710,
+      "gap_first": 20210720,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210720
+    },
+    "920149.BJ": {
+      "daily_first": 20161129,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920163.BJ": {
+      "daily_first": 20160901,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920167.BJ": {
+      "daily_first": 20180105,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920174.BJ": {
+      "daily_first": 20160321,
+      "daily_last": 20260710,
+      "gap_first": 20210820,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210820
+    },
+    "920184.BJ": {
+      "daily_first": 20160329,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920185.BJ": {
+      "daily_first": 20160127,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920198.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211116,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": true,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920212.BJ": {
+      "daily_first": 20160506,
+      "daily_last": 20260710,
+      "gap_first": 20210608,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210608
+    },
+    "920225.BJ": {
+      "daily_first": 20160125,
+      "daily_last": 20260710,
+      "gap_first": 20210225,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210225
+    },
+    "920239.BJ": {
+      "daily_first": 20200323,
+      "daily_last": 20260710,
+      "gap_first": 20210209,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210209
+    },
+    "920242.BJ": {
+      "daily_first": 20170417,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920263.BJ": {
+      "daily_first": 20160701,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920266.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920275.BJ": {
+      "daily_first": 20190409,
+      "daily_last": 20260710,
+      "gap_first": 20210125,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210125
+    },
+    "920278.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920305.BJ": {
+      "daily_first": 20170519,
+      "daily_last": 20260710,
+      "gap_first": 20210826,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210826
+    },
+    "920344.BJ": {
+      "daily_first": 20170227,
+      "daily_last": 20260710,
+      "gap_first": 20210108,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210108
+    },
+    "920368.BJ": {
+      "daily_first": 20161222,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920370.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920396.BJ": {
+      "daily_first": 20180419,
+      "daily_last": 20260710,
+      "gap_first": 20201118,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20201118
+    },
+    "920405.BJ": {
+      "daily_first": 20160113,
+      "daily_last": 20260710,
+      "gap_first": 20211105,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20211105
+    },
+    "920415.BJ": {
+      "daily_first": 20160111,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920418.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920427.BJ": {
+      "daily_first": 20170705,
+      "daily_last": 20260710,
+      "gap_first": 20210205,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210205
+    },
+    "920433.BJ": {
+      "daily_first": 20180327,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211116,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": true,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920445.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920475.BJ": {
+      "daily_first": 20160523,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920489.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920508.BJ": {
+      "daily_first": 20160115,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920509.BJ": {
+      "daily_first": 20160418,
+      "daily_last": 20260710,
+      "gap_first": 20210111,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210111
+    },
+    "920510.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20201228,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20201228
+    },
+    "920523.BJ": {
+      "daily_first": 20160629,
+      "daily_last": 20260710,
+      "gap_first": 20210603,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210603
+    },
+    "920553.BJ": {
+      "daily_first": 20181120,
+      "daily_last": 20260710,
+      "gap_first": 20210806,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210806
+    },
+    "920566.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20210813,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210813
+    },
+    "920599.BJ": {
+      "daily_first": 20170915,
+      "daily_last": 20260710,
+      "gap_first": 20210222,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210222
+    },
+    "920640.BJ": {
+      "daily_first": 20170118,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920642.BJ": {
+      "daily_first": 20170627,
+      "daily_last": 20260710,
+      "gap_first": 20210816,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210816
+    },
+    "920670.BJ": {
+      "daily_first": 20161122,
+      "daily_last": 20260710,
+      "gap_first": 20201208,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20201208
+    },
+    "920675.BJ": {
+      "daily_first": 20180116,
+      "daily_last": 20260710,
+      "gap_first": 20201228,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20201228
+    },
+    "920682.BJ": {
+      "daily_first": 20160115,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920726.BJ": {
+      "daily_first": 20160930,
+      "daily_last": 20260710,
+      "gap_first": 20210527,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210527
+    },
+    "920729.BJ": {
+      "daily_first": 20161214,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920735.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20210219,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210219
+    },
+    "920753.BJ": {
+      "daily_first": 20200424,
+      "daily_last": 20260710,
+      "gap_first": 20221031,
+      "gap_last": 20221031,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": true,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20221031
+    },
+    "920765.BJ": {
+      "daily_first": 20160325,
+      "daily_last": 20260710,
+      "gap_first": 20210705,
+      "gap_last": 20211116,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": true,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210705
+    },
+    "920768.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20210628,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210628
+    },
+    "920799.BJ": {
+      "daily_first": 20160105,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920819.BJ": {
+      "daily_first": 20160122,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920826.BJ": {
+      "daily_first": 20170616,
+      "daily_last": 20260710,
+      "gap_first": 20210112,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210112
+    },
+    "920832.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20210223,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210223
+    },
+    "920839.BJ": {
+      "daily_first": 20160112,
+      "daily_last": 20260710,
+      "gap_first": 20201109,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20201109
+    },
+    "920856.BJ": {
+      "daily_first": 20160105,
+      "daily_last": 20260710,
+      "gap_first": 20201225,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20201225
+    },
+    "920885.BJ": {
+      "daily_first": 20160701,
+      "daily_last": 20260710,
+      "gap_first": 20210708,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20210708
+    },
+    "920892.BJ": {
+      "daily_first": 20170905,
+      "daily_last": 20260710,
+      "gap_first": 20211028,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20211028
+    },
+    "920924.BJ": {
+      "daily_first": 20170410,
+      "daily_last": 20260710,
+      "gap_first": 20211103,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20211103
+    },
+    "920925.BJ": {
+      "daily_first": 20200320,
+      "daily_last": 20260710,
+      "gap_first": 20211025,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20211025
+    },
+    "920946.BJ": {
+      "daily_first": 20180116,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920961.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    },
+    "920964.BJ": {
+      "daily_first": 20160104,
+      "daily_last": 20260710,
+      "gap_first": 20200727,
+      "gap_last": 20211112,
+      "has_daily_pre_cutoff": true,
+      "has_daily_post_cutoff": true,
+      "has_gap_post_cutoff": false,
+      "lifecycle_exists": true,
+      "lifecycle_list_date": 20200727
+    }
+  },
+  "focus_code_evidence": {
+    "001914.SZ": {
+      "in_stk_limit_gaps": true,
+      "in_daily_basic_gaps": false,
+      "stk_gap_count": 883,
+      "db_gap_count": 0,
+      "lifecycle_exists": true
+    },
+    "300216.SZ": {
+      "in_stk_limit_gaps": false,
+      "in_daily_basic_gaps": true,
+      "stk_gap_count": 0,
+      "db_gap_count": 5,
+      "lifecycle_exists": true
+    },
+    "002604.SZ": {
+      "in_stk_limit_gaps": false,
+      "in_daily_basic_gaps": true,
+      "stk_gap_count": 0,
+      "db_gap_count": 4,
+      "lifecycle_exists": true
+    },
+    "000939.SZ": {
+      "in_stk_limit_gaps": false,
+      "in_daily_basic_gaps": true,
+      "stk_gap_count": 0,
+      "db_gap_count": 2,
+      "lifecycle_exists": true
+    },
+    "000760.SZ": {
+      "in_stk_limit_gaps": false,
+      "in_daily_basic_gaps": true,
+      "stk_gap_count": 0,
+      "db_gap_count": 2,
+      "lifecycle_exists": true
+    }
+  }
+}

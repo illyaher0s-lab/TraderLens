@@ -1,0 +1,776 @@
+{
+  "schema_version": "v3_liquidity_fault_diagnostics_expanded.v1",
+  "execution_date": "20260710",
+  "original_first_fault_count": 17,
+  "actual_missing_symbol_date_count": 45,
+  "class_counts": {
+    "suspend_corrective_candidate": 45
+  },
+  "faults": [
+    {
+      "symbol": "000524.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260624",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "000524.SZ",
+        "trade_date": "20260624",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "000524.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "000524.SZ",
+        "trade_date": "20260625",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "000524.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "000524.SZ",
+        "trade_date": "20260626",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "000972.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "000972.SZ",
+        "trade_date": "20260626",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "001331.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "001331.SZ",
+        "trade_date": "20260623",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "001331.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260624",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "001331.SZ",
+        "trade_date": "20260624",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "001331.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "001331.SZ",
+        "trade_date": "20260625",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "001331.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "001331.SZ",
+        "trade_date": "20260626",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "002175.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "002175.SZ",
+        "trade_date": "20260623",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "002175.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260624",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "002175.SZ",
+        "trade_date": "20260624",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "002175.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "002175.SZ",
+        "trade_date": "20260625",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "002175.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "002175.SZ",
+        "trade_date": "20260626",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "002289.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "002289.SZ",
+        "trade_date": "20260625",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "002731.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "002731.SZ",
+        "trade_date": "20260623",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "002731.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260624",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "002731.SZ",
+        "trade_date": "20260624",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "002731.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "002731.SZ",
+        "trade_date": "20260625",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "002731.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "002731.SZ",
+        "trade_date": "20260626",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "300332.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "300332.SZ",
+        "trade_date": "20260626",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "600228.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "600228.SH",
+        "trade_date": "20260623",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "600228.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260624",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "600228.SH",
+        "trade_date": "20260624",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "603001.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "603001.SH",
+        "trade_date": "20260625",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "603001.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "603001.SH",
+        "trade_date": "20260626",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "603137.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "603137.SH",
+        "trade_date": "20260623",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "603137.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260624",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "603137.SH",
+        "trade_date": "20260624",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "603137.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "603137.SH",
+        "trade_date": "20260625",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "603137.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "603137.SH",
+        "trade_date": "20260626",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "603721.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "603721.SH",
+        "trade_date": "20260623",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "603721.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260624",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "603721.SH",
+        "trade_date": "20260624",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "603789.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "603789.SH",
+        "trade_date": "20260625",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "603789.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "603789.SH",
+        "trade_date": "20260626",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "688121.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "688121.SH",
+        "trade_date": "20260623",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "688121.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260624",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "688121.SH",
+        "trade_date": "20260624",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "688121.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "688121.SH",
+        "trade_date": "20260625",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "688121.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "688121.SH",
+        "trade_date": "20260626",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "688146.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260624",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "688146.SH",
+        "trade_date": "20260624",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "688146.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "688146.SH",
+        "trade_date": "20260625",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "688260.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "688260.SH",
+        "trade_date": "20260626",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "688689.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "688689.SH",
+        "trade_date": "20260623",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "688689.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260624",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "688689.SH",
+        "trade_date": "20260624",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "688689.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "688689.SH",
+        "trade_date": "20260625",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "688689.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "688689.SH",
+        "trade_date": "20260626",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "920305.BJ",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "920305.BJ",
+        "trade_date": "20260623",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "920305.BJ",
+      "execution_date": "20260710",
+      "missing_date": "20260624",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "920305.BJ",
+        "trade_date": "20260624",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "920305.BJ",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "920305.BJ",
+        "trade_date": "20260625",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    },
+    {
+      "symbol": "920305.BJ",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "suspend_d_row_exists": false,
+      "daily_amount": null,
+      "tushare_suspend": {
+        "ts_code": "920305.BJ",
+        "trade_date": "20260626",
+        "suspend_type": "S",
+        "suspend_reason": null,
+        "resume_date": null
+      },
+      "tushare_daily": null,
+      "classification": "suspend_corrective_candidate"
+    }
+  ]
+}

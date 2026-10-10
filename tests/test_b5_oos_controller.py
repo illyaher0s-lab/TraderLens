@@ -66,14 +66,13 @@ class TestB5B3B4PrerequisiteBoundary(unittest.TestCase):
         
         # Valid B3 manifest
         self.manifest = DataSnapshotManifest(
-            data_snapshot_id="data_snap_001",
-            data_snapshot_hash="data_hash_001",
-            created_at=date(2024, 1, 1),
-            market_data_fingerprint="market_fp_001",
-            daily_status_fingerprint="status_fp_001",
-            membership_fingerprint="member_fp_001",
-            trading_calendar_fingerprint="cal_fp_001",
-            delisted_coverage_policy="include_during_valid_period",
+            snapshot_id="data_snap_001",
+            provider="test_provider",
+            retrieval_date=date(2024, 1, 1),
+            market_data_start=date(2023, 1, 1),
+            market_data_end=date(2023, 12, 31),
+            universe_snapshot_ids=("univ_snap_001",),
+            semantic_hash="data_hash_001",
             financial_visibility_fingerprint="fin_fp_001",
             benchmark_fingerprint="bench_fp_001",
             adjustment_factor_fingerprint="adj_fp_001",
@@ -208,14 +207,13 @@ class TestB5B3B4PrerequisiteBoundary(unittest.TestCase):
         """B5 rejects protocol manifest hash mismatch."""
         # Manifest with different data_snapshot_hash
         mismatched_manifest = DataSnapshotManifest(
-            data_snapshot_id="data_snap_002",
-            data_snapshot_hash="data_hash_DIFFERENT",
-            created_at=date(2024, 1, 1),
-            market_data_fingerprint="market_fp_001",
-            daily_status_fingerprint="status_fp_001",
-            membership_fingerprint="member_fp_001",
-            trading_calendar_fingerprint="cal_fp_001",
-            delisted_coverage_policy="include_during_valid_period",
+            snapshot_id="data_snap_002",
+            provider="test_provider",
+            retrieval_date=date(2024, 1, 1),
+            market_data_start=date(2023, 1, 1),
+            market_data_end=date(2023, 12, 31),
+            universe_snapshot_ids=("univ_snap_001",),
+            semantic_hash="data_hash_DIFFERENT",
             financial_visibility_fingerprint="fin_fp_001",
             benchmark_fingerprint="bench_fp_001",
             adjustment_factor_fingerprint="adj_fp_001",

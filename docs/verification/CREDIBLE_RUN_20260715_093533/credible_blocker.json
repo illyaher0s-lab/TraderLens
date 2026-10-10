@@ -1,0 +1,32 @@
+{
+  "run_id": "CREDIBLE_RUN_20260715_093533",
+  "status": "BLOCKED",
+  "first_product_blocker": "no_validated_signal_visible_in_dom",
+  "blocker_detail": "Signal Board DOM contains no visible signal row with lifecycle_state=prototype_passed",
+  "last_completed_step": 4,
+  "steps_completed": [
+    "1. Friend recommendation → ResearchCase",
+    "2. User hypothesis (pending verification)",
+    "3. Real research (LLM + Tushare)",
+    "4. Explicit continue → confirmed_candidate_pool"
+  ],
+  "steps_blocked": [
+    "5. Separately validated strategy signal (BLOCKED - no prototype_passed in DOM)"
+  ],
+  "case_id": "case_dab759dceb3c",
+  "real_llm_calls": 2,
+  "timings_s": {
+    "backend_start": 19.27,
+    "frontend_start": 16.79,
+    "browser_start": 0.93,
+    "workbench_load": 0.78,
+    "post_response": 4.82,
+    "research_page_load": 4.3,
+    "hypothesis_save": 0.23,
+    "run_research": 143.62,
+    "decision": 3.42,
+    "signals_page_load": 8.45
+  },
+  "total_wall_s": 230.94,
+  "productive_total_s": 224.94
+}

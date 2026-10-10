@@ -54,6 +54,7 @@ def get_template_data_requirements(template: "StrategyTemplate") -> dict:
     - Universe constraints (SW2021 PIT membership, SH/SZ calendar)
     - Ranking semantics (cross-sectional, confirm_days)
     - Unavailability rules (missing endpoints = unavailable)
+    - Liquidity requirements (V3+)
     """
     config = template.strategy_config_payload
 
@@ -109,6 +110,15 @@ def get_template_data_requirements(template: "StrategyTemplate") -> dict:
             "confirm_days": config["entry"]["confirm_days"],
             "semantic": config.get("confirm_semantics"),
         }
+
+    # ponytail: liquidity requirements if present (V3+)
+    if "liquidity" in config:
+        liq = config["liquidity"]
+        algo_payload = {k: v for k, v in liq.items() if k != "threshold_yuan"}
+        algo_hash = hashlib.sha256(
+            json.dumps(algo_payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+        ).hexdigest()
+        requirements["liquidity"] = {**liq, "algorithm_hash": algo_hash}
 
     return requirements
 
@@ -568,6 +578,61 @@ _TEMPLATES = (
         position_sizing_rules="Equal weight across max 5 positions, weekly rebalance (implementation constraint)",
         validation_gate_profile="standard",
     ),
+    StrategyTemplate(
+        template_id="relative_strength_rotation_shsz_sw2021_v3",
+        version="v3_shsz_sw2021_pit_12m_liquidity20d",
+        hypothesis_types=("relative_strength", "theme_rotation"),
+        core_entry_rule_id="relative_strength_entry",
+        supported_universe_rule_types=("point_in_time_membership",),
+        sample_split_rule_ids=("fixed_ratio_70_30",),
+        benchmark_rule_id="theme_then_industry_then_equal_weight",
+        strategy_config_payload={
+            "hypothesis_family_id": "relative_strength_rotation_shsz_sw2021",
+            "lookback_trading_days": 252,
+            "minimum_history_trading_days": 252,
+            "as_of_semantics": "latest_complete_sh_sz_common_trading_day",
+            "execution_day": "next_executable_after_as_of",
+            "adjusted_close_formula": "close * adj_factor",
+            "momentum_formula": "adjusted_close(d) / adjusted_close(s) - 1",
+            "s_definition": "d_minus_252_common_trading_days",
+            "endpoint_unavailable": "either_missing_no_fill_no_fallback_no_window_change",
+            "ranking_universe": "formal_sw2021_pit_sh_sz_complete_252d_at_d",
+            "tie_break": "return_desc_symbol_asc",
+            "top_count_formula": "ceil(0.15 * N)",
+            "confirm_semantics": "3_days_independent_pit_and_window",
+            "entry": {"relative_strength_rank_pct_max": 15, "confirm_days": 3},
+            "exit": {"rank_exit_pct_min": 40, "max_holding_days": 15, "stop_loss_pct": 8},
+            "risk": {"market_regime_allowed": ["green", "yellow"], "min_avg_amount_20d": 50000000},
+            "rebalance": {"frequency": "weekly", "max_positions": 5},
+            "market_scope": ["SH", "SZ"],
+            "liquidity": {
+                "algorithm_id": "avg_amount_20d_shsz_common_v1",
+                "threshold_yuan": 50000000,
+                "window_trading_days": 20,
+                "window_definition": "20_completed_sh_sz_common_trading_days_before_execution_day",
+                "execution_day_excluded": True,
+                "source_field": "daily.amount",
+                "source_unit": "thousand_yuan",
+                "yuan_multiplier": 1000,
+                "minimum_history_trading_days": 20,
+                "insufficient_history": "unavailable_ineligible",
+                "suspension_evidence_source": "suspend_d",
+                "suspended_day_amount_yuan": 0,
+                "other_missing": "data_fault",
+                "partial_mean_allowed": False,
+                "window_extension_allowed": False,
+            },
+        },
+        forbidden_fields=("status", "hash", "oos_start", "oos_end", "gate_verdict"),
+        forbidden_evidence_terms=("announcement", "disclosure", "report"),
+        market_fit="SW2021 PIT membership universe",
+        forbidden_market=("limit_up", "st_stock", "delisting_risk"),
+        entry_rules="Top 15% relative strength confirmed over 3 days (implementation constraint)",
+        exit_rules="Exit when rank drops below 40% or max 15 days or 8% stop-loss (implementation constraint)",
+        risk_rules="Green/yellow market regime, min 50M avg daily volume (implementation constraint)",
+        position_sizing_rules="Equal weight across max 5 positions, weekly rebalance (implementation constraint)",
+        validation_gate_profile="standard",
+    ),
 )
 
 APPROVED_TEMPLATES = _TEMPLATES
@@ -666,6 +731,46 @@ def _governance_map() -> dict:
                 "authorized_at": datetime(2026, 7, 16, 10, 30, 0),
             },
         },
+        "relative_strength_rotation_shsz_sw2021_v3": {
+            "status": "approved",
+            "citation": "10.1111/j.1540-6261.1993.tb04702.x",
+            "retrieval": date(2026, 7, 10),
+            "source_rule_mappings": (
+                SourceRuleMapping(
+                    source_claim_id="relative_strength_direction",
+                    source_locator="p.65, p.73",
+                    frozen_rule_id="entry.relative_strength_rank_pct_max",
+                    mapping_kind="source_claim",
+                    rationale="Core hypothesis: relative strength momentum direction",
+                ),
+                SourceRuleMapping(
+                    source_claim_id="equal_weight",
+                    source_locator="p.73",
+                    frozen_rule_id="rebalance.max_positions",
+                    mapping_kind="source_claim",
+                    rationale="Paper equal-weights winners",
+                ),
+            ),
+            "market_scope_difference": (
+                "J&T 1993 supports relative strength directional hypothesis only. "
+                "All parameters and SH/SZ PIT implementation constraints are frozen implementation rules."
+            ),
+            "owner_authorization": {
+                "template_id": "relative_strength_rotation_shsz_sw2021_v3",
+                "version": "v3_shsz_sw2021_pit_12m_liquidity20d",
+                "template_hash": "f7c0fd8123f62f37118cb947e1735861374435f8707e01b06d788a8ec4df39c1",
+                "data_requirements_hash": "ef2ab5b1dafe4349f305b52733a7dcb018a2961464dfbc6542a10e34805d041d",
+                "review_evidence_path": "docs/verification/TASK4_V3_AI_TECHNICAL_REVIEW.md",
+                "review_evidence_sha256": "9ea7b9f96c326afbbd0de84e5e2183cb7315c29e26d953b4a5c9aa06b7d4ae69",
+                "reviewer_id": "ai_reviewer_openai_codex_gpt5",
+                "reviewer_kind": "ai_technical_reviewer",
+                "review_decision": "approved",
+                "reviewed_at": date(2026, 8, 4),
+                "review_due_date": date(2027, 8, 4),
+                "authorized_by": "illya",
+                "authorized_at": datetime(2026, 8, 4, 0, 0, 0),
+            },
+        },
     }
 
 
@@ -677,10 +782,10 @@ def convert_to_frozen_contract(
     governance_map = _governance_map()
     gov = governance_map.get(template.template_id, {"status": "candidate", "citation": None, "retrieval": None})
 
-    # ponytail: three-way routing for data requirements hash
+    # ponytail: four-way routing for data requirements hash
     if template.template_id == _V2_TEMPLATE_ID:
         data_requirements_hash = _load_v2_requirements_hash(template)
-    elif template.template_id == "relative_strength_rotation_shsz_sw2021_v2":
+    elif template.template_id in ("relative_strength_rotation_shsz_sw2021_v2", "relative_strength_rotation_shsz_sw2021_v3"):
         data_requirements_hash = get_template_data_requirements_hash(template)
     else:
         data_requirements_hash = None  # old templates keep original behavior

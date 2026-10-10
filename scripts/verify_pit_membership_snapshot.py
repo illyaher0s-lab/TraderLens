@@ -11,15 +11,39 @@ import pandas as pd
 import pyarrow.parquet as pq
 
 
-# Expected bindings
-SNAPSHOT_ID = "pit_membership_shsz_sw2021_2024-12-31_004"
-SNAPSHOT_ID_001_RETIRED = "pit_membership_shsz_sw2021_2024-12-31_001"
-SNAPSHOT_ID_002_INVALID = "pit_membership_shsz_sw2021_2024-12-31_002"
-SNAPSHOT_ID_003_INVALID = "pit_membership_shsz_sw2021_2024-12-31_003"
+# Expected bindings (current prospective production snapshot)
+SNAPSHOT_ID = "pims_traderlens_v2_shsz_sw2021_pit_005"
 
-EXPECTED_FORMAL_DATA_SNAPSHOT_ID = "tushare_stock_basic_SW2021_membership_20241231"
-EXPECTED_FORMAL_DATA_SEMANTIC_HASH = "b7e57ef8a8e67be10c36d479adfdc4766b2c64b5dcd91b82a83f1cbedb8b3ac8"
-EXPECTED_UNIVERSE_REFERENCE_ID = "relative_strength_rotation_shsz_sw2021_v2::v2_shsz_sw2021_pit_12m::867a47eeece1c0d208c591f35b5ca31d663ccda183c8721eef803483921238b6"
+# Legacy status registry (immutable)
+LEGACY_SNAPSHOT_REGISTRY = {
+    "pims_traderlens_v2_shsz_sw2021_pit_001": {
+        "status": "retired_unaccepted",
+        "exit_code": 2,
+        "reason": "Mixed SW2014/SW2021 taxonomy, lacked source contract proving include_delisted",
+    },
+    "pims_traderlens_v2_shsz_sw2021_pit_002": {
+        "status": "unaccepted_invalid_publication",
+        "exit_code": 3,
+        "reason": "Applied DATE_POLICY_MIN filter during publication, discarding valid source records",
+    },
+    "pims_traderlens_v2_shsz_sw2021_pit_003": {
+        "status": "unaccepted_invalid_publication",
+        "exit_code": 3,
+        "reason": "Missing source_partition_audit and source_to_record_mapping_hash",
+    },
+    "pims_traderlens_v2_shsz_sw2021_pit_004": {
+        "status": "unaccepted_invalid_publication",
+        "exit_code": 3,
+        "reason": "Used .get('hash') instead of ['sha256'], resulting in null source_manifest_sha256",
+    },
+}
+
+EXPECTED_FORMAL_DATA_SNAPSHOT_ID = "ds_traderlens_v2_shsz_pit_001"
+EXPECTED_FORMAL_DATA_SEMANTIC_HASH = "da057716d4b4162b89fb89b7fd15864b4385d65cdee4e760a0743108cf1b135e"
+EXPECTED_UNIVERSE_REFERENCE_ID = "uref_traderlens_v2_shsz_sw2021_pit_001"
+BOUND_SW2021_MANIFEST = Path(
+    "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/sw_l1_membership/manifest.json"
+)
 
 
 def sha256_file(path: Path) -> str:
@@ -50,46 +74,23 @@ def verify_snapshot(repo_root: Path, snapshot_id: str, snapshots_root: Path | No
         verification result dict
     """
     
-    # Check if verifying retired _001 or invalid _002/_003
+    # Check legacy status registry first (before any file access)
     base_dir = snapshots_root or (repo_root / "data/pit/pit_membership_snapshots")
     
-    if snapshot_id == SNAPSHOT_ID_001_RETIRED:
+    if snapshot_id in LEGACY_SNAPSHOT_REGISTRY:
         snapshot_dir = base_dir / snapshot_id
+        legacy = LEGACY_SNAPSHOT_REGISTRY[snapshot_id]
+        
         if snapshot_dir.exists():
             return {
-                "status": "retired_unaccepted",
+                "status": legacy["status"],
                 "snapshot_id": snapshot_id,
-                "message": f"{snapshot_id} is permanently retired and unaccepted audit evidence. It must not be used for B6/OOS or any production workflow.",
-                "reason": "Contained SW2014+SW2021 mixed taxonomy records and lacked source contract proving include_delisted",
+                "exit_code": legacy["exit_code"],
+                "message": f"{snapshot_id} is {legacy['status']}",
+                "reason": legacy["reason"],
             }
         else:
-            return {"status": "missing", "errors": [f"Retired snapshot directory not found: {snapshot_dir}"]}
-    
-    if snapshot_id == SNAPSHOT_ID_002_INVALID:
-        snapshot_dir = base_dir / snapshot_id
-        if snapshot_dir.exists():
-            return {
-                "status": "unaccepted_invalid_publication",
-                "snapshot_id": snapshot_id,
-                "message": f"{snapshot_id} is unaccepted (applied date filtering to source records, violating source retention principle)",
-                "reason": "Applied DATE_POLICY_MIN filter during publication, discarding valid source records",
-            }
-        else:
-            return {"status": "missing", "errors": [f"Invalid snapshot directory not found: {snapshot_dir}"]}
-    
-    if snapshot_id == SNAPSHOT_ID_003_INVALID:
-        snapshot_dir = base_dir / snapshot_id
-        if snapshot_dir.exists():
-            return {
-                "status": "unaccepted_invalid_publication",
-                "snapshot_id": snapshot_id,
-                "message": f"{snapshot_id} is unaccepted (missing source_partition_audit and source_to_record_mapping_hash)",
-                "reason": "Lacks source-to-record provenance binding and partition audit trail",
-            }
-        else:
-            return {"status": "missing", "errors": [f"Invalid snapshot directory not found: {snapshot_dir}"]}
-    
-    
+            return {"status": "missing", "errors": [f"Snapshot directory not found: {snapshot_dir}"]}
     
     snapshot_dir = base_dir / snapshot_id
     
@@ -176,7 +177,7 @@ def verify_snapshot(repo_root: Path, snapshot_id: str, snapshots_root: Path | No
             "reason": "Lacks source-to-record provenance binding",
         }
     
-    # 8d. Verify all audit entries have non-null source_manifest_sha256
+    # 8d. Verify all audit entries have required fields (4-field structure)
     audit = manifest.get("source_partition_audit", [])
     for entry in audit:
         if entry.get("source_manifest_sha256") is None:
@@ -186,6 +187,112 @@ def verify_snapshot(repo_root: Path, snapshot_id: str, snapshots_root: Path | No
                 "message": f"{snapshot_id} is unaccepted (null source_manifest_sha256 in audit entry {entry.get('partition_name')})",
                 "reason": "Audit entry lacks source partition hash",
             }
+        # SW2021 partitions must have independently computed file fields
+        if entry.get("taxonomy_status") == "sw2021_accepted":
+            if entry.get("source_file_sha256") is None:
+                return {
+                    "status": "unaccepted_invalid_publication",
+                    "snapshot_id": snapshot_id,
+                    "message": f"{snapshot_id} is unaccepted (null source_file_sha256 in SW2021 entry {entry.get('partition_name')})",
+                    "reason": "SW2021 audit entry lacks independently computed file hash",
+                }
+            if entry.get("source_file_row_count") is None:
+                return {
+                    "status": "unaccepted_invalid_publication",
+                    "snapshot_id": snapshot_id,
+                    "message": f"{snapshot_id} is unaccepted (null source_file_row_count in SW2021 entry {entry.get('partition_name')})",
+                    "reason": "SW2021 audit entry lacks independently computed row count",
+                }
+    
+    # 8e. Independently verify source files (read manifest and parquet files)
+    source_contract = manifest.get("source_contract")
+    if source_contract == "tushare_sw_l1_member_v2":
+        # The production publisher binds this staged formal manifest.  Keep the
+        # package scan as a fixture-compatible fallback for temporary sources.
+        tushare_base = repo_root / "data/pit/tushare"
+        candidates = [repo_root / BOUND_SW2021_MANIFEST]
+        candidates.extend(
+            pkg_dir / "sw_l1_membership" / "manifest.json"
+            for pkg_dir in sorted(tushare_base.glob("*/"), reverse=True)
+            if pkg_dir.is_dir() and not pkg_dir.name.startswith(".")
+        )
+        audited_partitions = {entry["partition_name"] for entry in audit}
+        source_manifest_path = None
+        for candidate in candidates:
+            if not candidate.exists():
+                continue
+            candidate_manifest = json.loads(candidate.read_text(encoding="utf-8"))
+            candidate_partitions = {entry["name"] for entry in candidate_manifest.get("partitions", [])}
+            if audited_partitions.issubset(candidate_partitions):
+                source_manifest_path = candidate
+                break
+        
+        if source_manifest_path is None:
+            warnings.append("Cannot verify source files: tushare sw_l1_membership manifest not found")
+        else:
+            source_manifest = json.loads(source_manifest_path.read_text(encoding="utf-8"))
+            source_partitions = {p["name"]: p for p in source_manifest.get("partitions", [])}
+            source_dir = source_manifest_path.parent
+            
+            # Verify each audit entry's source file fields
+            for entry in audit:
+                partition_name = entry["partition_name"]
+                taxonomy_status = entry.get("taxonomy_status")
+                
+                if partition_name not in source_partitions:
+                    errors.append(f"{partition_name}: not found in source manifest")
+                    continue
+                
+                source_meta = source_partitions[partition_name]
+                
+                # Verify manifest-declared fields match
+                if entry["source_manifest_sha256"] != source_meta["sha256"]:
+                    errors.append(
+                        f"{partition_name}: source_manifest_sha256 mismatch "
+                        f"(audit: {entry['source_manifest_sha256'][:16]}..., "
+                        f"source manifest: {source_meta['sha256'][:16]}...)"
+                    )
+                
+                if entry["source_record_count"] != source_meta["row_count"]:
+                    errors.append(
+                        f"{partition_name}: source_record_count mismatch "
+                        f"(audit: {entry['source_record_count']}, source manifest: {source_meta['row_count']})"
+                    )
+                
+                # For SW2021, verify independently computed file fields
+                if taxonomy_status == "sw2021_accepted":
+                    parquet_path = source_dir / partition_name
+                    if not parquet_path.exists():
+                        errors.append(f"{partition_name}: source file not found at {parquet_path}")
+                        continue
+                    
+                    # Independently compute file hash
+                    actual_file_hash = sha256_file(parquet_path)
+                    if entry["source_file_sha256"] != actual_file_hash:
+                        errors.append(
+                            f"{partition_name}: source_file_sha256 mismatch "
+                            f"(audit: {entry['source_file_sha256'][:16]}..., actual file: {actual_file_hash[:16]}...)"
+                        )
+                    
+                    # Independently compute row count
+                    try:
+                        table = pq.read_table(parquet_path)
+                        actual_row_count = len(table)
+                        if entry["source_file_row_count"] != actual_row_count:
+                            errors.append(
+                                f"{partition_name}: source_file_row_count mismatch "
+                                f"(audit: {entry['source_file_row_count']}, actual file: {actual_row_count})"
+                            )
+                    except Exception as e:
+                        errors.append(f"{partition_name}: failed to read source file: {e}")
+    
+    # Early return if source file verification failed
+    if errors:
+        return {
+            "status": "failed",
+            "errors": errors,
+            "warnings": warnings,
+        }
     
     
     # 9. Verify records parquet sidecar
@@ -220,6 +327,69 @@ def verify_snapshot(repo_root: Path, snapshot_id: str, snapshots_root: Path | No
     if len(wrong_snapshot_ids) > 0:
         errors.append(f"Found {len(wrong_snapshot_ids)} records with wrong snapshot_id")
     
+    # 12b. Independently recompute per-partition audit fields from records.parquet
+    # Group records by source partition
+    partition_records = {}
+    for _, row in df.iterrows():
+        source_provenance = row["source"]
+        if source_provenance not in partition_records:
+            partition_records[source_provenance] = []
+        partition_records[source_provenance].append(row)
+    
+    # Verify each SW2021 partition's canonical_record_identity_hash and published_record_count
+    for entry in audit:
+        if entry["taxonomy_status"] == "sw2021_accepted":
+            partition_name = entry["partition_name"]
+            # Reconstruct source provenance from partition name: SW2021_801010.SI_is_new_Y.parquet
+            parts = partition_name.replace(".parquet", "").split("_")
+            if len(parts) >= 4:  # SW2021_801010.SI_is_new_Y
+                l1_code = parts[1]  # 801010.SI
+                is_new = parts[-1]  # Y or N
+                source_provenance = f"SW2021_{l1_code}_is_new_{is_new}"
+                
+                records_for_partition = partition_records.get(source_provenance, [])
+                actual_count = len(records_for_partition)
+                declared_count = entry["published_record_count"]
+                
+                if actual_count != declared_count:
+                    errors.append(
+                        f"{partition_name}: published_record_count mismatch "
+                        f"(declared {declared_count}, actual {actual_count})"
+                    )
+                
+                # Recompute canonical_record_identity_hash
+                canonical_identities = []
+                for rec in records_for_partition:
+                    identity_tuple = (
+                        rec["symbol"],
+                        rec["effective_from"].isoformat() if hasattr(rec["effective_from"], "isoformat") else str(rec["effective_from"]),
+                        rec["effective_to"].isoformat() if rec["effective_to"] is not None and hasattr(rec["effective_to"], "isoformat") else (str(rec["effective_to"]) if rec["effective_to"] is not None else None),
+                        l1_code,
+                    )
+                    canonical_identities.append(identity_tuple)
+                
+                canonical_identities_sorted = sorted(canonical_identities)
+                canonical_payload = json.dumps(canonical_identities_sorted, separators=(",", ":"))
+                recomputed_hash = hashlib.sha256(canonical_payload.encode()).hexdigest()
+                
+                declared_hash = entry.get("canonical_record_identity_hash")
+                if declared_hash != recomputed_hash:
+                    errors.append(
+                        f"{partition_name}: canonical_record_identity_hash mismatch "
+                        f"(declared {declared_hash[:16]}..., recomputed {recomputed_hash[:16]}...)"
+                    )
+    
+    # 12c. Independently recompute source_to_record_mapping_hash from audit
+    canonical_audit_payload = json.dumps(audit, sort_keys=True, separators=(",", ":"))
+    recomputed_mapping_hash = hashlib.sha256(canonical_audit_payload.encode()).hexdigest()
+    declared_mapping_hash = manifest.get("source_to_record_mapping_hash")
+    
+    if declared_mapping_hash != recomputed_mapping_hash:
+        errors.append(
+            f"source_to_record_mapping_hash mismatch "
+            f"(declared {declared_mapping_hash[:16]}..., recomputed {recomputed_mapping_hash[:16]}...)"
+        )
+    
     # 13. Verify canonical content hash
     exclude_keys = {"canonical_content_hash", "manifest_published_at"}
     recomputed_canonical_hash = canonical_json_hash(manifest, exclude_keys)
@@ -251,14 +421,7 @@ def verify_snapshot(repo_root: Path, snapshot_id: str, snapshots_root: Path | No
     if len(duplicates) > 0:
         errors.append(f"Found {len(duplicates)} duplicate records")
     
-    # 17. Verify include_delisted evidence (removed check)
-    delisted_count = df["effective_to"].notna().sum()
-    active_count = df["effective_to"].isna().sum()
-    
     # include_delisted is proved by source-record retention, not by delisted record existence
-    
-    if active_count == 0:
-        warnings.append("No active records found (suspicious)")
     
     if errors:
         return {
@@ -273,8 +436,6 @@ def verify_snapshot(repo_root: Path, snapshot_id: str, snapshots_root: Path | No
         "snapshot_date": manifest["snapshot_date"],
         "record_count": len(df),
         "unique_symbols": df["symbol"].nunique(),
-        "delisted_count": delisted_count,
-        "active_count": active_count,
         "canonical_content_hash": manifest["canonical_content_hash"],
         "warnings": warnings,
     }
@@ -299,40 +460,38 @@ def main():
     print(f"Verification status: {result['status']}")
     
     if result["status"] == "retired_unaccepted":
-        print(f"\n✗ {result['message']}")
+        print(f"\n[REJECTED] {result['message']}")
         print(f"Reason: {result['reason']}")
         print("\nThis snapshot must NOT be used. It is preserved only as audit evidence.")
-        return 2  # Distinct exit code for retired
+        return result.get("exit_code", 2)
     
     if result["status"] == "unaccepted_invalid_publication":
-        print(f"\n✗ {result['message']}")
+        print(f"\n[REJECTED] {result['message']}")
         print(f"Reason: {result['reason']}")
         print("\nThis snapshot must NOT be used. It is preserved only as audit evidence.")
-        return 3  # Distinct exit code for invalid publication
+        return result.get("exit_code", 3)
     
     if result["status"] == "verified":
         print(f"Snapshot ID: {result['snapshot_id']}")
         print(f"Snapshot date: {result['snapshot_date']}")
         print(f"Record count: {result['record_count']}")
         print(f"Unique symbols: {result['unique_symbols']}")
-        print(f"Delisted records: {result['delisted_count']}")
-        print(f"Active records: {result['active_count']}")
         print(f"Canonical content hash: {result['canonical_content_hash']}")
         
         if result.get("warnings"):
             print("\nWarnings:")
             for w in result["warnings"]:
-                print(f"  ⚠ {w}")
+                print(f"  [WARN] {w}")
         
-        print("\n✓ Verification passed")
+        print("\n[PASS] Verification passed")
         return 0
     else:
-        print(f"\n✗ Verification failed")
+        print(f"\n[FAIL] Verification failed")
         
         if result.get("errors"):
             print("\nErrors:")
             for e in result["errors"]:
-                print(f"  ✗ {e}")
+                print(f"  [ERROR] {e}")
         
         return 1
 

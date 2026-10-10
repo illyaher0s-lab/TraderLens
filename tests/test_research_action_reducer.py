@@ -35,6 +35,7 @@ from contracts.research import (
     ProposedAction,
     TickerVerificationRecord,
 )
+from tests.approval_context_fixtures import attach_continued_approval
 
 
 class TestResearchActionReducer(unittest.TestCase):
@@ -446,6 +447,7 @@ class TestResearchActionReducer(unittest.TestCase):
                 invalidation_rules=[],
                 price_snapshot={},
                 benchmark_snapshot={},
+                approval_card_id=attach_continued_approval(self.db, "theme_006"),
                 override_reason=None,
                 evidence_snapshot_ids=[snap_id],
             )

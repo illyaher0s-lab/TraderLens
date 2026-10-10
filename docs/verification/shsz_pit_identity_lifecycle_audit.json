@@ -1,0 +1,77 @@
+{
+  "scope_hash": "35d996036cc04179",
+  "audit_purpose": "PIT identity and lifecycle evidence for 5 SHSZ codes",
+  "results": {
+    "001914.SZ": {
+      "gap_interface": "stk_limit",
+      "gap_first": 20160104,
+      "gap_last": 20191213,
+      "gap_days": 883,
+      "daily_exists": true,
+      "predecessor_code": "000043.SZ",
+      "predecessor_covers_gap": true,
+      "stock_basic": {
+        "list_date": "19940928",
+        "delist_date": null
+      },
+      "conclusion": "requires_pit_code_alias"
+    },
+    "300216.SZ": {
+      "gap_interface": "daily_basic",
+      "gap_first": 20200805,
+      "gap_last": 20200817,
+      "gap_days": 5,
+      "stock_basic": {
+        "list_date": "20110511",
+        "delist_date": "20200916"
+      },
+      "delist_date_numeric": 20200916,
+      "gap_after_delist": false,
+      "gap_overlaps_delist_period": false,
+      "conclusion": "unexplained_blocking"
+    },
+    "002604.SZ": {
+      "gap_interface": "daily_basic",
+      "gap_first": 20200601,
+      "gap_last": 20200609,
+      "gap_days": 4,
+      "stock_basic": {
+        "list_date": "20110728",
+        "delist_date": "20200715"
+      },
+      "delist_date_numeric": 20200715,
+      "gap_after_delist": false,
+      "gap_overlaps_delist_period": false,
+      "conclusion": "unexplained_blocking"
+    },
+    "000939.SZ": {
+      "gap_interface": "daily_basic",
+      "gap_first": 20201106,
+      "gap_last": 20201109,
+      "gap_days": 2,
+      "stock_basic": {
+        "list_date": "19990923",
+        "delist_date": "20201217"
+      },
+      "delist_date_numeric": 20201217,
+      "gap_after_delist": false,
+      "gap_overlaps_delist_period": false,
+      "conclusion": "unexplained_blocking"
+    },
+    "000760.SZ": {
+      "gap_interface": "daily_basic",
+      "gap_first": 20210610,
+      "gap_last": 20210611,
+      "gap_days": 2,
+      "stock_basic": {
+        "list_date": "19970627",
+        "delist_date": "20210723"
+      },
+      "delist_date_numeric": 20210723,
+      "gap_after_delist": false,
+      "gap_overlaps_delist_period": false,
+      "conclusion": "unexplained_blocking"
+    }
+  },
+  "notes": "001914.SZ gap covered by 000043.SZ. Other 4 codes have gaps near/after delist dates. No changes applied to scope or qualification."
+}

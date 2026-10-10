@@ -310,15 +310,15 @@ def test_verifier_cli_output_is_ascii_safe():
 
 
 def test_verifier_cli_exits_zero_on_success():
-    """GREEN: Verifier CLI must reject _004 with exit 3 (unaccepted_invalid_publication)."""
+    """GREEN: Verifier CLI must exit 0 for _005 (verified)."""
     result = subprocess.run(
-        [sys.executable, str(REPO_ROOT / "scripts/verify_pit_membership_snapshot.py"), SNAPSHOT_ID_004],
+        [sys.executable, str(REPO_ROOT / "scripts/verify_pit_membership_snapshot.py"), SNAPSHOT_ID],
         capture_output=True,
         timeout=30
     )
     
-    assert result.returncode == 3, \
-        f"Verifier must exit 3 for _004 (unaccepted_invalid_publication), got: {result.returncode}"
+    assert result.returncode == 0, \
+        f"Verifier must exit 0 for _005 (verified), got: {result.returncode}"
 
 
 def test_verifier_output_has_no_delisted_statistics():

@@ -7,6 +7,7 @@
 
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import AgentChatPanel from "@/components/AgentChatPanel";
 import ApprovalCard from "@/components/ApprovalCard";
@@ -172,16 +173,24 @@ export default function WorkbenchPage() {
     <div className="min-h-screen bg-white">
       <div className="max-w-[1600px] mx-auto p-6">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-[24px] font-semibold text-[#171717]">
-            TraderLens 工作台
-          </h1>
-          <p className="text-[14px] text-[#666666] mt-1">
-            与 AI 对话开始股票调研或策略评估
-          </p>
-          <p className="text-[12px] text-[#999999] mt-2">
-            不是买卖建议 • 不会自动交易 • 需要人工审核
-          </p>
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-[24px] font-semibold text-[#171717]">
+              TraderLens 工作台
+            </h1>
+            <p className="text-[14px] text-[#666666] mt-1">
+              与 AI 对话开始股票调研或策略评估
+            </p>
+            <p className="text-[12px] text-[#999999] mt-2">
+              不是买卖建议 • 不会自动交易 • 需要人工审核
+            </p>
+          </div>
+          <Link
+            href="/trades/record"
+            className="inline-flex items-center rounded-md bg-[#171717] px-4 py-2 text-[14px] font-medium text-white hover:bg-black"
+          >
+            记录成交
+          </Link>
         </div>
 
         {/* Error Banner */}

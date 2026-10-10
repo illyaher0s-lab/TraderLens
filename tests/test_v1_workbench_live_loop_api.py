@@ -14,11 +14,15 @@ Hard requirements:
 
 import pytest
 from datetime import date
+from uuid import uuid4
 from fastapi.testclient import TestClient
 
 from backend.api.research import create_research_app
+from backend.config import runtime_paths
 from backend.db.research import ResearchDB
+from backend.db.live_trade import LiveTradeDB
 from tests.fake_serenity_runner import FakeSerenityRunner
+from tests.approval_context_fixtures import attach_continued_approval
 
 
 @pytest.fixture
@@ -60,6 +64,69 @@ def client(app):
 
 class TestWorkbenchLiveLoop:
     """Test complete live observation loop from workbench."""
+
+    @staticmethod
+    def manual_execution_request(feedback, symbol, name=None):
+        request = {
+            "feedback": feedback,
+            "symbol": symbol,
+            "execution_date": "2026-10-01",
+            "operation_id": str(uuid4()),
+            "confirmed_already_executed": True,
+        }
+        if name is not None:
+            request["name"] = name
+        return request
+
+    def test_formal_execution_feedback_rejects_test_or_ledger_overrides(
+        self, client, app, monkeypatch, tmp_path
+    ):
+        official_path = tmp_path / "official-live-trade.db"
+        monkeypatch.setattr(
+            runtime_paths, "get_live_trade_db_path", lambda: str(official_path)
+        )
+        response = client.post(
+            "/api/agent/workbench/execution-feedback",
+            json={
+                "feedback": "已买入 100 股，成交价 12.34",
+                "symbol": "600000.SH",
+                "testOnly": True,
+                "ledger_path": "data/replay_test.db",
+            },
+        )
+
+        assert response.status_code == 422
+        assert app.state.db.conn.execute(
+            "SELECT COUNT(*) FROM execution_observation_logs"
+        ).fetchone()[0] == 0
+        assert app.state.db.conn.execute(
+            "SELECT COUNT(*) FROM observation_positions"
+        ).fetchone()[0] == 0
+
+        message_response = client.post(
+            "/api/agent/workbench/message",
+            json={"message": "hello", "testOnly": True, "account_id": "live"},
+        )
+        assert message_response.status_code == 422
+        assert LiveTradeDB(str(official_path)).list_all_positions() == []
+
+    def test_formal_execution_feedback_still_accepts_valid_request(self, client, app):
+        response = client.post(
+            "/api/agent/workbench/execution-feedback",
+            json=self.manual_execution_request(
+                "已买入 100 股，成交价 12.34", "600000.SH", "浦发银行"
+            ),
+        )
+
+        assert response.status_code == 200, response.text
+        assert response.json()["status"] == "success"
+        assert response.json()["action"] == "buy"
+        assert app.state.db.conn.execute(
+            "SELECT COUNT(*) FROM execution_observation_logs"
+        ).fetchone()[0] == 1
+        assert app.state.db.conn.execute(
+            "SELECT COUNT(*) FROM observation_positions"
+        ).fetchone()[0] == 1
     
     def test_cannot_create_execution_card_without_candidate(self, client):
         """
@@ -124,6 +191,9 @@ class TestWorkbenchLiveLoop:
             f"/api/research/friend-stock/{flow_id}/run-research",
             params={"ticker": "600000.SH", "company_name": "浦发银行"}
         )
+        approval_card_id = attach_continued_approval(
+            app.state.db, flow_id, approval_card_id="test_approval"
+        )
         
         # Create pool
         pool_response = client.post(
@@ -132,7 +202,7 @@ class TestWorkbenchLiveLoop:
                 "ticker": "600000.SH",
                 "name": "浦发银行",
                 "exchange": "SSE",
-                "approval_card_id": "test_approval",
+                "approval_card_id": approval_card_id,
                 "snapshot_date": str(date.today())
             }
         )
@@ -140,11 +210,8 @@ class TestWorkbenchLiveLoop:
         
         # Now submit buy feedback
         feedback_response = client.post(
-            f"/api/agent/workbench/{conversation_id}/execution-feedback",
-            json={
-                "feedback": "已买入 100 股，成交价 12.34",
-                "symbol": "600000.SH"
-            }
+            "/api/agent/workbench/execution-feedback",
+            json=self.manual_execution_request("已买入 100 股，成交价 12.34", "600000.SH"),
         )
         
         # Should succeed and create position
@@ -167,11 +234,10 @@ class TestWorkbenchLiveLoop:
         assert "没有持仓" in data["message"]
         
         # Test 2: Create a buy position first
-        buy_response = client.post("/api/agent/workbench/conv_test/execution-feedback", json={
-            "feedback": "已买入 100 股，成交价 12.34",
-            "symbol": "AAPL",
-            "name": "Apple Inc."
-        })
+        buy_response = client.post(
+            "/api/agent/workbench/execution-feedback",
+            json=self.manual_execution_request("已买入 100 股，成交价 12.34", "AAPL", "Apple Inc."),
+        )
         assert buy_response.status_code == 200
         buy_data = buy_response.json()
         assert buy_data["status"] == "success"
@@ -202,20 +268,19 @@ class TestWorkbenchLiveLoop:
         - No LLM decides P&L
         """
         # Step 1: Create buy position
-        buy_response = client.post("/api/agent/workbench/conv_test/execution-feedback", json={
-            "feedback": "已买入 100 股，成交价 12.34",
-            "symbol": "AAPL",
-            "name": "Apple Inc."
-        })
+        buy_response = client.post(
+            "/api/agent/workbench/execution-feedback",
+            json=self.manual_execution_request("已买入 100 股，成交价 12.34", "AAPL", "Apple Inc."),
+        )
         assert buy_response.status_code == 200
         buy_data = buy_response.json()
         position_id = buy_data["position_id"]
         
         # Step 2: Submit sell feedback
-        sell_response = client.post("/api/agent/workbench/conv_test/execution-feedback", json={
-            "feedback": "已卖出 100 股，成交价 13.10",
-            "symbol": "AAPL"
-        })
+        sell_response = client.post(
+            "/api/agent/workbench/execution-feedback",
+            json=self.manual_execution_request("已卖出 100 股，成交价 13.10", "AAPL"),
+        )
         assert sell_response.status_code == 200
         sell_data = sell_response.json()
         
@@ -258,11 +323,10 @@ class TestWorkbenchLiveLoop:
         conversation_id = session_response.json()["conversation_id"]
         
         # Step 1: Buy
-        buy_response = client.post(f"/api/agent/workbench/{conversation_id}/execution-feedback", json={
-            "feedback": "已买入 100 股，成交价 12.34",
-            "symbol": "AAPL",
-            "name": "Apple Inc."
-        })
+        buy_response = client.post(
+            "/api/agent/workbench/execution-feedback",
+            json=self.manual_execution_request("已买入 100 股，成交价 12.34", "AAPL", "Apple Inc."),
+        )
         assert buy_response.status_code == 200
         buy_data = buy_response.json()
         buy_log_id = buy_data["log_id"]
@@ -275,10 +339,10 @@ class TestWorkbenchLiveLoop:
         signal_id = signal_data["signals"][0]["signal_id"]
         
         # Step 3: Sell
-        sell_response = client.post(f"/api/agent/workbench/{conversation_id}/execution-feedback", json={
-            "feedback": "已卖出 100 股，成交价 13.10",
-            "symbol": "AAPL"
-        })
+        sell_response = client.post(
+            "/api/agent/workbench/execution-feedback",
+            json=self.manual_execution_request("已卖出 100 股，成交价 13.10", "AAPL"),
+        )
         assert sell_response.status_code == 200
         sell_data = sell_response.json()
         sell_log_id = sell_data["log_id"]
@@ -308,20 +372,19 @@ class TestWorkbenchLiveLoop:
         - 仓位公式, 止损比例, 回测参数
         """
         # Run a complete flow
-        buy_response = client.post("/api/agent/workbench/conv_test/execution-feedback", json={
-            "feedback": "已买入 100 股，成交价 12.34",
-            "symbol": "AAPL",
-            "name": "Apple Inc."
-        })
+        buy_response = client.post(
+            "/api/agent/workbench/execution-feedback",
+            json=self.manual_execution_request("已买入 100 股，成交价 12.34", "AAPL", "Apple Inc."),
+        )
         buy_text = buy_response.text.lower()
         
         signal_response = client.post("/api/agent/workbench/conv_test/daily-signal")
         signal_text = signal_response.text.lower()
         
-        sell_response = client.post("/api/agent/workbench/conv_test/execution-feedback", json={
-            "feedback": "已卖出 100 股，成交价 13.10",
-            "symbol": "AAPL"
-        })
+        sell_response = client.post(
+            "/api/agent/workbench/execution-feedback",
+            json=self.manual_execution_request("已卖出 100 股，成交价 13.10", "AAPL"),
+        )
         sell_text = sell_response.text.lower()
         
         # Verify no technical parameters in any response

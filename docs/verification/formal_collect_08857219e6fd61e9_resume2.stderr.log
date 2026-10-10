@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "D:\Codex\TraderLens\scripts\verify_gate0_data_feasibility.py", line 665, in <module>
+    main()
+  File "D:\Codex\TraderLens\scripts\verify_gate0_data_feasibility.py", line 661, in main
+    print(json.dumps(formal_collect(args.max_days), indent=2))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Codex\TraderLens\scripts\verify_gate0_data_feasibility.py", line 387, in formal_collect
+    df = call(iface, allow_empty=_formal_api_allows_empty(iface), trade_date=trade_date)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Codex\TraderLens\scripts\verify_gate0_data_feasibility.py", line 362, in call
+    return _call_formal_api(client, api_name, allow_empty=allow_empty, **params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Codex\TraderLens\scripts\verify_gate0_data_feasibility.py", line 340, in _call_formal_api
+    raise ValueError(f"Formal collection API failed: {api_name}; error={last_error}")
+ValueError: Formal collection API failed: adj_factor; error=adj_factor returned an empty required partition

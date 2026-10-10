@@ -74,6 +74,8 @@ class ObservationPool:
             lifecycle_state=PositionLifecycleState.open,
             opened_at=log.confirmed_at,
             closed_at=None,
+            trade_type=log.trade_type,
+            record_source=log.record_source,
         )
 
     def close_position(self, position: ObservationPosition) -> ObservationPosition:
@@ -98,6 +100,8 @@ class ObservationPool:
             lifecycle_state=PositionLifecycleState.closed,
             opened_at=position.opened_at,
             closed_at=datetime.now(),
+            trade_type=position.trade_type,
+            record_source=position.record_source,
         )
 
     def generate_daily_signal(

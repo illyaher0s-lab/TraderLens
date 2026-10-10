@@ -14,10 +14,21 @@ Red lines:
 """
 
 import pytest
+from uuid import uuid4
 from fastapi.testclient import TestClient
 from backend.api.research import create_research_app
 from backend.db.research import ResearchDB
 from tests.fake_serenity_runner import FakeSerenityRunner
+
+
+def manual_execution_request(feedback, symbol):
+    return {
+        "feedback": feedback,
+        "symbol": symbol,
+        "execution_date": "2026-10-01",
+        "operation_id": str(uuid4()),
+        "confirmed_already_executed": True,
+    }
 
 
 @pytest.fixture
@@ -207,11 +218,8 @@ class TestWorkbenchOrchestrationGaps:
         
         # Submit buy feedback
         feedback_response = client.post(
-            f"/api/agent/workbench/{conversation_id}/execution-feedback",
-            json={
-                "feedback": "已买入 100 股，成交价 12.34",
-                "symbol": "600123.SH",
-            },
+            "/api/agent/workbench/execution-feedback",
+            json=manual_execution_request("已买入 100 股，成交价 12.34", "600123.SH"),
         )
         
         assert feedback_response.status_code == 200
@@ -242,11 +250,8 @@ class TestWorkbenchOrchestrationGaps:
         
         # Create position first (daily-signal requires open position)
         client.post(
-            f"/api/agent/workbench/{conversation_id}/execution-feedback",
-            json={
-                "feedback": "已买入 100 股，成交价 12.34",
-                "symbol": "600123.SH",
-            },
+            "/api/agent/workbench/execution-feedback",
+            json=manual_execution_request("已买入 100 股，成交价 12.34", "600123.SH"),
         )
         
         # Generate daily signal

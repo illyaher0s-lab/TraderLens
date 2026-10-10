@@ -1,0 +1,95 @@
+[
+  {
+    "artifact_id": "context_loaded_sess_d6289c8d0427",
+    "artifact_type": "context_loaded"
+  },
+  {
+    "artifact_id": "prescan_sess_d6289c8d0427",
+    "artifact_type": "prescan_result"
+  },
+  {
+    "artifact_id": "intent_sess_d6289c8d0427",
+    "artifact_type": "intent_extraction"
+  },
+  {
+    "artifact_id": "stock_identity_sess_d6289c8d0427",
+    "artifact_type": "stock_identity_resolution"
+  },
+  {
+    "artifact_id": "route_sess_d6289c8d0427",
+    "artifact_type": "workflow_route_decision"
+  },
+  {
+    "artifact_id": "market_scan_4755b552cbc8",
+    "artifact_type": "market_scan_result",
+    "status": "ok",
+    "as_of_date": "2026-07-31",
+    "candidate_count": 20,
+    "machine_candidate_count": 20,
+    "display_candidate_count": 5,
+    "candidate_is_signal": false,
+    "snapshot_path": "D:\\Codex\\TraderLens\\data\\current_market_snapshots\\as_of_date=2026-07-31\\manifest.json",
+    "snapshot_hash": "002e0647201696dd868a928ddf7d7ec37e12950e6e5e522e7c9a9ff2eae598e4",
+    "candidate_symbols": [
+      "600298.SH",
+      "000921.SZ",
+      "600690.SH",
+      "600872.SH",
+      "603369.SH"
+    ],
+    "support_statuses": [
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "support_sources": [
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "counter_statuses": [
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "counter_sources": [
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown",
+      "unknown"
+    ],
+    "support_facts": [
+      [],
+      [],
+      [],
+      [],
+      []
+    ],
+    "counter_facts": [
+      [],
+      [],
+      [],
+      [],
+      []
+    ]
+  },
+  {
+    "artifact_id": "msg_95efc27ccbad",
+    "artifact_type": "user_message"
+  },
+  {
+    "artifact_id": "msg_7b8a6756d075",
+    "artifact_type": "agent_message"
+  },
+  {
+    "artifact_id": "intent_sess_d6289c8d0427",
+    "artifact_type": "workflow_intent"
+  }
+]

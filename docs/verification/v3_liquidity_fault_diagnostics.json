@@ -1,0 +1,505 @@
+{
+  "schema_version": "v3_liquidity_fault_diagnostics.v1",
+  "source": "formal_local_before_tushare_probe",
+  "execution_date": "20260710",
+  "fault_count": 17,
+  "fault_date_range": {
+    "first": "20260623",
+    "last": "20260626"
+  },
+  "faults": [
+    {
+      "symbol": "000524.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260624",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260623",
+          "daily_row_exists": true,
+          "daily_amount": 66854.17044,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260625",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        }
+      ]
+    },
+    {
+      "symbol": "000972.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260625",
+          "daily_row_exists": true,
+          "daily_amount": 23083.293,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260626",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260629",
+          "daily_row_exists": true,
+          "daily_amount": 70620.41818,
+          "suspend_row_exists": true
+        }
+      ]
+    },
+    {
+      "symbol": "001331.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260622",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": true
+        },
+        {
+          "trade_date": "20260623",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        }
+      ]
+    },
+    {
+      "symbol": "002175.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260622",
+          "daily_row_exists": true,
+          "daily_amount": 22616.28,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260623",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        }
+      ]
+    },
+    {
+      "symbol": "002289.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": true,
+          "daily_amount": 82782.749,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260625",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260626",
+          "daily_row_exists": true,
+          "daily_amount": 467980.37825,
+          "suspend_row_exists": true
+        }
+      ]
+    },
+    {
+      "symbol": "002731.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260622",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": true
+        },
+        {
+          "trade_date": "20260623",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        }
+      ]
+    },
+    {
+      "symbol": "300332.SZ",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260625",
+          "daily_row_exists": true,
+          "daily_amount": 115043.50102,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260626",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260629",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": true
+        }
+      ]
+    },
+    {
+      "symbol": "600228.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260622",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": true
+        },
+        {
+          "trade_date": "20260623",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        }
+      ]
+    },
+    {
+      "symbol": "603001.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": true,
+          "daily_amount": 447416.221,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260625",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260626",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        }
+      ]
+    },
+    {
+      "symbol": "603137.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260622",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": true
+        },
+        {
+          "trade_date": "20260623",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        }
+      ]
+    },
+    {
+      "symbol": "603721.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260622",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": true
+        },
+        {
+          "trade_date": "20260623",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        }
+      ]
+    },
+    {
+      "symbol": "603789.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260625",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": true
+        },
+        {
+          "trade_date": "20260625",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260626",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        }
+      ]
+    },
+    {
+      "symbol": "688121.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260622",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": true
+        },
+        {
+          "trade_date": "20260623",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        }
+      ]
+    },
+    {
+      "symbol": "688146.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260624",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260623",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": true
+        },
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260625",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        }
+      ]
+    },
+    {
+      "symbol": "688260.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260626",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260625",
+          "daily_row_exists": true,
+          "daily_amount": 967180.746,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260626",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260629",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": true
+        }
+      ]
+    },
+    {
+      "symbol": "688689.SH",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260622",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": true
+        },
+        {
+          "trade_date": "20260623",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        }
+      ]
+    },
+    {
+      "symbol": "920305.BJ",
+      "execution_date": "20260710",
+      "missing_date": "20260623",
+      "daily_row_exists": false,
+      "daily_amount": null,
+      "suspend_d_row_exists": false,
+      "vendor_row_exists": null,
+      "adjacent_trading_days": [
+        {
+          "trade_date": "20260622",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": true
+        },
+        {
+          "trade_date": "20260623",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        },
+        {
+          "trade_date": "20260624",
+          "daily_row_exists": false,
+          "daily_amount": null,
+          "suspend_row_exists": false
+        }
+      ]
+    }
+  ]
+}

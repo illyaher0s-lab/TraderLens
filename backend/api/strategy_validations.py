@@ -9,7 +9,21 @@ Red lines:
 
 from fastapi import APIRouter
 
+from backend.services.strategy_validation_status import (
+    DEFAULT_AUDIT_PATH,
+    load_strategy_validation_status as _load_strategy_validation_status,
+)
+
 router = APIRouter(prefix="/api/strategy-validations", tags=["strategy_validations"])
+
+
+def load_strategy_validation_status(
+    audit_path=None,
+    *,
+    expected_sha256=None,
+):
+    """Test-injectable wrapper; production defaults remain hash-bound."""
+    return _load_strategy_validation_status(audit_path, expected_sha256=expected_sha256)
 
 
 @router.get("")
@@ -31,4 +45,5 @@ def list_validations():
     return {
         "validations": [],
         "count": 0,
+        "validation_status": load_strategy_validation_status(),
     }

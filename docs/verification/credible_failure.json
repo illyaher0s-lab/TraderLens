@@ -1,0 +1,19 @@
+{
+  "run_id": "CREDIBLE_RUN_20260711_102703",
+  "failure": "Decision (continue) failed: 503",
+  "network_requests": 27,
+  "console_messages": 5,
+  "page_errors": 0,
+  "timings": {
+    "backend_start": 4.05,
+    "frontend_start": 5.6,
+    "browser_start": 0.88,
+    "workbench_load": 0.86,
+    "post_response": 3.92,
+    "research_page_load": 2.96,
+    "hypothesis_save": 0.09,
+    "run_research": 40.56,
+    "decision": 2.43
+  },
+  "backend_tail": "INFO:     Started server process [56420]\nINFO:     Waiting for application startup.\nResearch API starting in REAL mode (LLM + Tushare enabled, Serenity=two_phase)\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:8010 (Press CTRL+C to quit)\nINFO:     127.0.0.1:65211 - \"GET /health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:53860 - \"OPTIONS /api/agent/workbench/message HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:53860 - \"POST /api/agent/workbench/message HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:53860 - \"GET /api/agent/workbench/sess_77cb0e6bd764 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:65200 - \"GET /api/research/service-health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:53860 - \"GET /api/research/themes/case_aa565db25b6a HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:54201 - \"GET /api/research/service-health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:65200 - \"GET /api/research/themes/case_aa565db25b6a HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:65200 - \"OPTIONS /api/research/themes/case_aa565db25b6a/hypothesis HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:54201 - \"POST /api/research/themes/case_aa565db25b6a/hypothesis HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:65200 - \"GET /api/research/service-health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:54201 - \"GET /api/research/themes/case_aa565db25b6a HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:54201 - \"OPTIONS /api/research/themes/case_aa565db25b6a/run-research HTTP/1.1\" 200 OK\n[LLM_TELEMETRY] loop=None stage=None call#0 elapsed_s=7.781 model=claude-sonnet-4-6\n[SYNTHESIZER_START] candidates=1 sources=5 source_ids_sent=5 omitted_sources=0 omitted_source_ids=0 pack_bytes=1390 pack_sha256=b69322d3067b740d\n[LLM_TELEMETRY] loop=None stage=None call#0 elapsed_s=19.645 model=claude-sonnet-4-6\n[SYNTHESIZER_OK] elapsed_s=19.645 in_tokens=533 out_tokens=1182\nINFO:     127.0.0.1:65200 - \"POST /api/research/themes/case_aa565db25b6a/run-research HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:65200 - \"GET /api/research/themes/case_aa565db25b6a HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:65200 - \"GET /api/research/service-health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:65200 - \"OPTIONS /api/research/themes/case_aa565db25b6a/decision HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:65200 - \"POST /api/research/themes/case_aa565db25b6a/decision HTTP/1.1\" 503 Service Unavailable\n"
+}

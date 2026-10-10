@@ -41,12 +41,13 @@ class TestResearchProtocolFreezer(unittest.TestCase):
         )
         
         self.data_snapshot = DataSnapshotManifest(
-            data_snapshot_id="data_001",
-            data_snapshot_hash="hash_data_001",
-            created_at=date(2024, 1, 1),
-            market_data_fingerprint="mkt_fp",
-            daily_status_fingerprint="status_fp",
-            membership_fingerprint="member_fp",
+            snapshot_id="data_001",
+            provider="tushare",
+            retrieval_date=date(2024, 1, 1),
+            market_data_start=date(2024, 1, 1),
+            market_data_end=date(2024, 12, 31),
+            universe_snapshot_ids=("snap_001",),
+            semantic_hash="hash_data_001",
             quality_status="ok",
             gaps=(),
         )
@@ -104,14 +105,15 @@ class TestResearchProtocolFreezer(unittest.TestCase):
         self.assertIn("strategy_config", str(ctx.exception).lower())
 
     def test_rejects_missing_data_snapshot_hash(self):
-        """Missing data_snapshot_hash must fail."""
+        """Missing data_snapshot_hash must fail. ponytail: semantic_hash"""
         invalid_snapshot = DataSnapshotManifest(
-            data_snapshot_id="data_001",
-            data_snapshot_hash="",  # Empty
-            created_at=date(2024, 1, 1),
-            market_data_fingerprint="mkt_fp",
-            daily_status_fingerprint="status_fp",
-            membership_fingerprint="member_fp",
+            snapshot_id="data_001",
+            provider="tushare",
+            retrieval_date=date(2024, 1, 1),
+            market_data_start=date(2024, 1, 1),
+            market_data_end=date(2024, 12, 31),
+            universe_snapshot_ids=("snap_001",),
+            semantic_hash="",  # Empty
             quality_status="ok",
             gaps=(),
         )
@@ -127,7 +129,7 @@ class TestResearchProtocolFreezer(unittest.TestCase):
                 backtest_start=date(2024, 1, 1),
             )
         
-        self.assertIn("data_snapshot_hash", str(ctx.exception).lower())
+        self.assertIn("semantic_hash", str(ctx.exception).lower())
 
     def test_rejects_missing_gate_criteria_hash(self):
         """Missing gate_criteria_hash must fail."""
@@ -170,12 +172,13 @@ class TestResearchProtocolFreezer(unittest.TestCase):
     def test_rejects_insufficient_data_snapshot(self):
         """Insufficient data snapshot must fail."""
         insufficient_snapshot = DataSnapshotManifest(
-            data_snapshot_id="data_001",
-            data_snapshot_hash="hash_data_001",
-            created_at=date(2024, 1, 1),
-            market_data_fingerprint="mkt_fp",
-            daily_status_fingerprint="status_fp",
-            membership_fingerprint="member_fp",
+            snapshot_id="data_001",
+            provider="tushare",
+            retrieval_date=date(2024, 1, 1),
+            market_data_start=date(2024, 1, 1),
+            market_data_end=date(2024, 12, 31),
+            universe_snapshot_ids=("snap_001",),
+            semantic_hash="hash_data_001",
             quality_status="insufficient",
             gaps=("missing critical data",),
         )

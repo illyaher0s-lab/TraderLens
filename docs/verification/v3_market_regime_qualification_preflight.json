@@ -1,0 +1,119 @@
+{
+  "schema": "v3_market_regime_qualification_preflight.v1",
+  "status": "hard_block:market_regime_formal_qualification_unavailable",
+  "generated_for": "relative_strength_rotation_shsz_sw2021_v3",
+  "approved_v3_identity": {
+    "template_id": "relative_strength_rotation_shsz_sw2021_v3",
+    "version": "v3_shsz_sw2021_pit_12m_liquidity20d",
+    "template_hash": "f7c0fd8123f62f37118cb947e1735861374435f8707e01b06d788a8ec4df39c1",
+    "data_requirements_hash": "ef2ab5b1dafe4349f305b52733a7dcb018a2961464dfbc6542a10e34805d041d",
+    "strategy_revision_id": "6440ffc03a742f4d4632078481cf3abf171eafb1a24f2bc69bc6f352d1b19ebc"
+  },
+  "candidate_config": {
+    "path": "backend/config/market_regime_thresholds.yaml",
+    "sha256": "47cebae2b540485085941eb57285c78335e782d1aaafb91fec661bd2f164582e",
+    "validation_status": "candidate",
+    "candidate_rules": [
+      "extreme_breadth_selloff",
+      "structural_breakdown_1d",
+      "structural_breakdown_5d",
+      "liquidity_exhaustion"
+    ],
+    "stress_windows": {
+      "A": ["2015-06-15", "2015-08-31"],
+      "B": ["2020-03-09", "2020-03-23"]
+    },
+    "normal_window": ["2017-09-01", "2017-11-30"],
+    "zero_gap_rule": true,
+    "normal_window_block_ratio_max": 0.05,
+    "required_pit_inputs": [
+      "trade_cal",
+      "daily",
+      "index_daily",
+      "stock_basic",
+      "namechange",
+      "suspend_d"
+    ],
+    "validation_state": {
+      "source_manifest_hash": null,
+      "validation_report_hash": null,
+      "validated_at": null,
+      "frozen_at": null,
+      "approved_by": null
+    }
+  },
+  "entrypoints_reviewed": [
+    {
+      "path": "scripts/qualify_sw2021_pit_package.py",
+      "sha256": "dce724449659f3f2af3e59e91579521ce0103b080556bd40c107caaf5af153e3",
+      "result": "not_a_market_regime_qualifier",
+      "evidence": [
+        "loads relative_strength_rotation_shsz_sw2021_v1",
+        "qualifies SW2021 PIT membership/daily package rather than the four regime metrics",
+        "writes guard_state=candidate",
+        "does not perform stress-window replay, normal-window replay, zero-gap validation, or approval"
+      ]
+    },
+    {
+      "path": "scripts/verify_gate0_data_feasibility.py",
+      "sha256": "5227a32f4f6a641d914b70aa399ceaf32d59e5daca8ff5cd44b5e28cbe549c0a",
+      "result": "not_a_market_regime_qualifier",
+      "evidence": [
+        "contains legacy data-feasibility/formal daily checks",
+        "does not replay the candidate regime rules over the registered windows",
+        "its formal-plan path uses external Tushare collection and is outside this node"
+      ]
+    },
+    {
+      "path": "tests/test_market_guard_config.py",
+      "sha256": "bf15409708f0ee818fc8c8b1cbdcfc59a06a1bec0808170caa1c80d519b6f453",
+      "result": "static_config_only",
+      "evidence": [
+        "checks candidate YAML structure, thresholds, windows, zero-gap flag, and stable semantic hash",
+        "contains no formal replay or independent qualification verifier"
+      ]
+    }
+  ],
+  "repository_discovery": {
+    "market_regime_paths_found": [
+      "backend/config/market_regime_thresholds.yaml",
+      "tests/test_market_guard_config.py"
+    ],
+    "qualifier_or_verifier_paths_found": [],
+    "formal_replay_artifact": null,
+    "formal_validation_report": null,
+    "conclusion": "No existing production entrypoint can execute and independently verify the candidate's registered stress, normal-window, and zero-gap qualification."
+  },
+  "required_gate_evidence": {
+    "rule_replay": false,
+    "stress_window_A": false,
+    "stress_window_B": false,
+    "normal_window": false,
+    "zero_gap_validation": false,
+    "source_manifest_hash": false,
+    "validation_report_hash": false,
+    "approval": false
+  },
+  "decision": {
+    "stage_b_allowed": false,
+    "supplement_published": false,
+    "executor_implemented": false,
+    "first_blocker": "market_regime_formal_qualification_unavailable",
+    "why_not_mechanical": "The approved input is still candidate and the repository has no bounded replay/verifier that can produce the required formal evidence. Running the unrelated v1 PIT qualifier or external data-feasibility path would not satisfy the contract and would broaden scope."
+  },
+  "source_documents": [
+    {
+      "path": "docs/superpowers/specs/2026-07-02-risk-attribution-design-freeze.md",
+      "sha256": "34cb1d13f23106ede0a1ab833c10be75510e253b7aaa8b7f7b886c442a471942",
+      "role": "design_context_only",
+      "not_a_qualification_artifact": true
+    },
+    {
+      "path": "docs/verification/v3_executable_strategy_contract_gap_audit.json",
+      "sha256": "ec898f92aa0326fc18305f1072bbe03357946219fb98bd10dd3e51ab0989095e",
+      "role": "prior_read_only_contract_audit",
+      "not_a_qualification_artifact": true
+    }
+  ],
+  "not_authorized_for_b4_b6_oos_gate_promotion_signal": true
+}

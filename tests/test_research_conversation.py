@@ -9,6 +9,7 @@ These tests prove:
 """
 
 import unittest
+import sqlite3
 from datetime import datetime
 from backend.db.research import ResearchDB
 from backend.services.research_conversation import ResearchConversationService
@@ -360,3 +361,83 @@ class TestResearchConversationLLM(unittest.TestCase):
         
         # Check NO proposed action created
         self.assertEqual(len(result.proposed_actions), 0)
+
+
+class _FailingConversationLLM:
+    def __init__(self, *, fail_on_second_call=False):
+        self.fail_on_second_call = fail_on_second_call
+        self.calls = 0
+        self.diagnostic = (
+            "FAKE_CONVERSATION_SENTINEL; "
+            "Authorization: Bearer FAKE_CONVERSATION_BEARER_ONLY"
+        )
+
+    def create_message(self, **_kwargs):
+        self.calls += 1
+        if self.fail_on_second_call and self.calls == 1:
+            return {
+                "content": [{
+                    "type": "tool_use",
+                    "id": "fixture_read_theme",
+                    "name": "read_theme",
+                    "input": {},
+                }]
+            }
+        raise RuntimeError(self.diagnostic)
+
+
+def _assert_conversation_provider_error_is_not_persisted(tmp_path, *, fail_on_second_call):
+    db_path = tmp_path / "conversation.sqlite"
+    db = ResearchDB(db_path=str(db_path))
+    now = datetime.now()
+    theme_id = "theme_provider_failure_fixture"
+    db.create_theme(ThemeInput(
+        theme_id=theme_id,
+        theme_name="fixture theme",
+        background="fixture background",
+        source_type="manual_theme",
+        board_version=0,
+        created_at=now,
+        updated_at=now,
+    ))
+    llm = _FailingConversationLLM(fail_on_second_call=fail_on_second_call)
+    service = ResearchConversationService(db, mode="real", llm_client=llm)
+
+    result = service.process_user_message(theme_id, "fixture question")
+    with sqlite3.connect(db_path) as check:
+        stored = check.execute(
+            "SELECT content FROM conversation_messages "
+            "WHERE theme_id = ? AND role = 'agent'",
+            (theme_id,),
+        ).fetchone()
+
+    assert stored is not None
+    forbidden_values = (
+        "FAKE_CONVERSATION_SENTINEL",
+        "Authorization: Bearer FAKE_CONVERSATION_BEARER_ONLY",
+        "FAKE_CONVERSATION_BEARER_ONLY",
+    )
+    surfaces = {
+        "returned agent_message": result.agent_message.content,
+        "durable conversation message": stored[0],
+    }
+    leaking_surfaces = [
+        name for name, content in surfaces.items()
+        if any(value in content for value in forbidden_values)
+    ]
+    assert not leaking_surfaces, f"synthetic diagnostic escaped: {leaking_surfaces}"
+    assert all("llm_provider_call_failed" in content for content in surfaces.values())
+
+
+def test_first_llm_failure_does_not_echo_into_agent_message_or_database(tmp_path):
+    _assert_conversation_provider_error_is_not_persisted(
+        tmp_path,
+        fail_on_second_call=False,
+    )
+
+
+def test_final_llm_failure_does_not_echo_into_agent_message_or_database(tmp_path):
+    _assert_conversation_provider_error_is_not_persisted(
+        tmp_path,
+        fail_on_second_call=True,
+    )

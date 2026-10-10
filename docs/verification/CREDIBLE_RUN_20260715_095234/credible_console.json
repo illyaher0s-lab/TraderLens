@@ -1,0 +1,37 @@
+[
+  {
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+    "ts": 1784080401.7902436
+  },
+  {
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding",
+    "ts": 1784080410.0960536
+  },
+  {
+    "type": "log",
+    "text": "[Fast Refresh] done in 1002ms",
+    "ts": 1784080411.0965042
+  },
+  {
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+    "ts": 1784080412.5150194
+  },
+  {
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding",
+    "ts": 1784080474.8826833
+  },
+  {
+    "type": "log",
+    "text": "[Fast Refresh] done in 839ms",
+    "ts": 1784080475.7219143
+  },
+  {
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+    "ts": 1784080476.3470902
+  }
+]

@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from backend.db.research import ResearchDB
 from backend.api.research import create_research_app
 from contracts.research import TickerVerificationRecord
+from tests.approval_context_fixtures import attach_continued_approval
 
 
 class TestConfirmedCandidatePool(unittest.TestCase):
@@ -18,6 +19,12 @@ class TestConfirmedCandidatePool(unittest.TestCase):
         self.db = ResearchDB(":memory:")
         self.app = create_research_app(self.db)
         self.client = TestClient(self.app)
+        self.approval_cards = {}
+
+    def approval_for(self, theme_id: str) -> str:
+        if theme_id not in self.approval_cards:
+            self.approval_cards[theme_id] = attach_continued_approval(self.db, theme_id)
+        return self.approval_cards[theme_id]
 
     def store_verification(self, symbol: str, company_name: str = "Verified Company") -> str:
         """Store a valid ticker identity snapshot for confirmation flow tests."""
@@ -80,6 +87,7 @@ class TestConfirmedCandidatePool(unittest.TestCase):
         confirm_response = self.client.post(
             f"/api/research/candidates/{candidate_id}/confirm",
             json={
+                "approval_card_id": self.approval_for(theme_id),
                 "confirmation_reason": "基本面稳健",
                 "evidence_level": "strong",
                 "confirmed_by": "user_001",
@@ -150,6 +158,7 @@ class TestConfirmedCandidatePool(unittest.TestCase):
         confirm_response = self.client.post(
             f"/api/research/candidates/{candidate_id}/confirm",
             json={
+                "approval_card_id": self.approval_for(theme_id),
                 "confirmation_reason": "测试确认",
                 "evidence_level": "medium",
                 "confirmed_by": "user_001",
@@ -214,6 +223,7 @@ class TestConfirmedCandidatePool(unittest.TestCase):
             self.client.post(
                 f"/api/research/candidates/{candidate_id}/confirm",
                 json={
+                    "approval_card_id": self.approval_for(theme_id),
                     "confirmation_reason": "测试",
                     "evidence_level": "medium",
                     "confirmed_by": "user_001",

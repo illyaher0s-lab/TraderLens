@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from backend.api.research import create_research_app
 from backend.db.research import ResearchDB
 from tests.fake_serenity_runner import FakeSerenityRunner
+from tests.approval_context_fixtures import attach_continued_approval
 
 
 @pytest.fixture
@@ -265,6 +266,9 @@ def test_friend_stock_api_create_pool_does_not_use_mock_market_price(client, app
         params={"ticker": "600000.SH", "company_name": "PUDONG BANK"},
     )
     assert research_response.status_code == 200
+    approval_card_id = attach_continued_approval(
+        app.state.db, flow_id, approval_card_id="card_001"
+    )
     
     # Create pool - should use injected provider with 12.34, not 10.5
     response = client.post(
@@ -273,7 +277,7 @@ def test_friend_stock_api_create_pool_does_not_use_mock_market_price(client, app
             "ticker": "600000.SH",
             "name": "PUDONG BANK",
             "exchange": "SSE",
-            "approval_card_id": "card_001",
+            "approval_card_id": approval_card_id,
             "snapshot_date": "2026-06-30",
         },
     )
@@ -309,6 +313,9 @@ def test_friend_stock_api_create_pool_persists_and_reads_back_confirmed_candidat
         params={"ticker": "600000.SH", "company_name": "PUDONG BANK"},
     )
     assert research_response.status_code == 200
+    approval_card_id = attach_continued_approval(
+        app.state.db, flow_id, approval_card_id="card_001"
+    )
     
     # Create pool
     response = client.post(
@@ -317,7 +324,7 @@ def test_friend_stock_api_create_pool_persists_and_reads_back_confirmed_candidat
             "ticker": "600000.SH",
             "name": "PUDONG BANK",
             "exchange": "SSE",
-            "approval_card_id": "card_001",
+            "approval_card_id": approval_card_id,
             "snapshot_date": "2026-06-30",
         },
     )
@@ -340,6 +347,8 @@ def test_friend_stock_api_create_pool_persists_and_reads_back_confirmed_candidat
     assert retrieved.company_name == "浦发银行"  # Resolved name from verification
     assert retrieved.price_snapshot["close"] == 12.34
     assert retrieved.verification_id == flow_id  # Linked to verification
+    assert retrieved.approval_card_id == approval_card_id
+    assert db.get_evidence_snapshots_for_candidate(retrieved.candidate_id)
     
     # Verify snapshot fields present
     assert retrieved.thesis_snapshot

@@ -19,7 +19,7 @@ import re
 import time
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-from backend.services.llm_client import _SAFE_PROVIDER_CODES, _request_input_bytes
+from backend.services.llm_client import _SAFE_PROVIDER_CODES, _request_input_bytes, _safe_diagnostic_text
 from backend.services.serenity_agent import SerenityRunContext, SerenityAgentAudit
 from contracts.research import ThemeInput
 
@@ -135,6 +135,12 @@ RULES:
 - counter_evidence: 反证，必须是结构化对象 {description, source_record_id}，source_record_id 必须属于该 symbol
 - 公告标题和日期不能用于推断公告正文；公告列表来源只证明列表元数据，正文内容未知
 - full_text_unavailable 是确定性证据缺口，不得忽略或声称已知正文内容
+- fund_daily 仅代表基金日线行情；ETF 不是上市公司，不得从行情推断发行人财报、基金持仓、基准成分或跟踪误差
+- ETF 可综合同一代码绑定的 etf_basic、fund_basic、fund_share、fund_daily、fund_div 和确切跟踪指数来源形成有边界的研究判断；每个理由必须受来源摘要直接支持。etf_basic 或 fund_basic 单独只能说明身份和字段，不能单独支持非 research_unavailable verdict
+- 不得把 fund_basic 未注明单位或计费周期的费用值解释成比例、年费或成本比较；不得把 ETF 份额当作资产规模
+- fund_div 只支持来源中明示的已实施现金派息；不得推断未来派息稳定性或收益保证。fund_daily 收盘价变化是不含分红再投的价格变化，不是总回报
+- 不得从指数名称猜测指数估值、股息率或历史表现；缺失或不完整数据必须进入 evidence_gaps。不得创造数值、阈值、持仓或公司基本面
+- 只有基金专属关键证据不足以支撑判断时，才返回 research_unavailable；允许的 ETF 来源不支持买入、卖出、目标价、止损或仓位
 - 不要创造公司名、ticker、财务数字
 - 不要输出 buy/sell/target/stop/position
 - 必须输出有效 JSON，不要添加 markdown 代码块标记
@@ -245,6 +251,91 @@ RULES:
             else:
                 timeout = None
 
+        def project_exception_chain(value):
+            if not isinstance(value, list):
+                return []
+            projected = []
+            for item in value:
+                if not isinstance(item, dict):
+                    continue
+                item_type = self._safe_exception_class(item.get("type"))
+                message = item.get("message")
+                if item_type is None or not isinstance(message, str):
+                    continue
+                projected.append({
+                    "type": item_type,
+                    "message": _safe_diagnostic_text(message, None, ()),
+                })
+            return projected
+
+        def project_attempts(value):
+            if not isinstance(value, list):
+                return []
+            projected = []
+            for item in value:
+                if not isinstance(item, dict):
+                    continue
+                attempt = item.get("attempt")
+                attempt_status = item.get("status")
+                if type(attempt) is not int or attempt < 1 or attempt_status not in {"success", "timeout", "error"}:
+                    continue
+                attempt_duration = item.get("duration_ms")
+                if (
+                    type(attempt_duration) not in {int, float}
+                    or not math.isfinite(attempt_duration)
+                    or attempt_duration < 0
+                ):
+                    attempt_duration = 0.0
+                attempt_http_status = item.get("http_status")
+                if type(attempt_http_status) is not int or not 100 <= attempt_http_status <= 599:
+                    attempt_http_status = None
+                attempt_provider_code = item.get("provider_code")
+                if attempt_provider_code not in _SAFE_PROVIDER_CODES:
+                    attempt_provider_code = None
+                entry = {
+                    "attempt": attempt,
+                    "status": attempt_status,
+                    "duration_ms": float(attempt_duration),
+                    "http_status": attempt_http_status,
+                    "provider_code": attempt_provider_code,
+                    "timeout": item.get("timeout") if type(item.get("timeout")) is bool else None,
+                    "exception_chain": project_exception_chain(item.get("exception_chain")),
+                    "response_error_text": (
+                        _safe_diagnostic_text(item["response_error_text"], None, ())
+                        if isinstance(item.get("response_error_text"), str) else None
+                    ),
+                }
+                if type(item.get("response_received")) is bool:
+                    entry["response_received"] = item["response_received"]
+                projected.append(entry)
+            return projected
+
+        safe_exception_chain = project_exception_chain(source.get("exception_chain"))
+        safe_attempts = project_attempts(source.get("attempts"))
+        diagnostic_attempt_count = source.get("attempt_count")
+        if type(diagnostic_attempt_count) is not int or diagnostic_attempt_count < 0:
+            diagnostic_attempt_count = len(safe_attempts)
+        diagnostic_retry_count = source.get("retry_count")
+        if (
+            type(diagnostic_retry_count) is not int
+            or diagnostic_retry_count < 0
+            or diagnostic_retry_count > diagnostic_attempt_count
+        ):
+            diagnostic_retry_count = max(0, diagnostic_attempt_count - 1)
+        retry_stop_reason = source.get("retry_stop_reason")
+        if retry_stop_reason not in {
+            "not_timeout", "max_retries_reached", "decision_loop_budget_exhausted",
+        }:
+            retry_stop_reason = None
+        source_response_received = source.get("response_received")
+        if type(source_response_received) is bool:
+            response_received = source_response_received
+        response_error_text = source.get("response_error_text")
+        if isinstance(response_error_text, str):
+            response_error_text = _safe_diagnostic_text(response_error_text, None, ())
+        else:
+            response_error_text = None
+
         diagnostic = {
             "stage": "synthesizer",
             "provider": SerenityAgentAudit._safe_trace_value(provider),
@@ -262,7 +353,16 @@ RULES:
             "announcement_source_count": pack_meta["announcement_source_count"],
             "response_received": response_received,
             "parse_reached": parse_reached,
+            "response_error_text": response_error_text,
+            "exception_chain": safe_exception_chain,
+            "attempt_count": diagnostic_attempt_count,
+            "retry_count": diagnostic_retry_count,
+            "retry_stop_reason": retry_stop_reason,
+            "attempts": safe_attempts,
         }
+        call_id = source.get("call_id")
+        if isinstance(call_id, str) and re.fullmatch(r"[0-9a-f]{32}", call_id):
+            diagnostic["call_id"] = call_id
         if failure_class is not None:
             diagnostic["failure_class"] = failure_class
         return diagnostic
@@ -459,11 +559,21 @@ RULES:
                 raise ValueError("Synthesizer invalidation conditions must be non-empty strings")
             if any(not isinstance(value, str) or not value.strip() for value in decision.evidence_gaps):
                 raise ValueError("Synthesizer evidence gaps must be non-empty strings")
+            eligible_prefixes = ("financials:", "announcements:")
+            has_etf_identity = any(
+                source_id.startswith(f"etf_basic:{symbol}:")
+                for source_id in context.sources_by_id
+            )
+            if has_etf_identity:
+                eligible_prefixes += (
+                    "fund_share:", "fund_daily:", "fund_div:", "index_dailybasic:",
+                )
             if decision.verdict != "research_unavailable" and not any(
-                source_id.startswith(("financials:", "announcements:"))
+                source_id.startswith(eligible_prefixes)
+                and context.sources_by_id[source_id].source_quality != "weak"
                 for source_id in decision.supporting_source_ids
             ):
-                raise ValueError("Synthesizer verdict has no traceable financial or announcement source")
+                raise ValueError("Synthesizer verdict has no traceable investment-relevant source")
     
     def _build_research_pack(self, theme: ThemeInput, context: SerenityRunContext) -> tuple[str, dict]:
         """构建压缩的研究包（带确定性边界限制）.
@@ -519,11 +629,38 @@ RULES:
                 "quality": source.source_quality,
                 "title": source.title[:100],  # 截断标题
             }
-            if sid.startswith("financials:"):
+            if sid.startswith((
+                "financials:", "etf_basic:", "fund_basic:", "fund_share:",
+                "fund_div:", "index_dailybasic:", "trade_cal:",
+            )):
                 source_summary["as_of"] = (
                     source.published_at.isoformat() if source.published_at else None
                 )
                 source_summary["summary"] = (source.summary or "")[:500]
+                source_summary["gaps"] = list(source.gaps)
+                if sid.startswith(("fund_basic:", "etf_basic:")):
+                    source_summary["as_of_basis"] = "retrieved_or_setup_date"
+                    source_summary["evidence_scope"] = "ETF identity, index mapping, and reported profile fields only"
+                elif sid.startswith("fund_share:"):
+                    source_summary["as_of_basis"] = "trade_date"
+                    source_summary["evidence_scope"] = "fund units in ten-thousand shares; not net assets"
+                elif sid.startswith("fund_div:"):
+                    source_summary["as_of_basis"] = "payment_date"
+                    source_summary["evidence_scope"] = "implemented cash distributions reported in this record"
+                elif sid.startswith("index_dailybasic:"):
+                    source_summary["as_of_basis"] = "trade_date"
+                    source_summary["evidence_scope"] = "exact mapped index valuation fields and stated coverage only"
+                elif sid.startswith("trade_cal:"):
+                    source_summary["as_of_basis"] = "calendar_date"
+                    source_summary["evidence_scope"] = "SSE calendar coverage only; cannot support a security verdict"
+            elif sid.startswith("fund_daily:"):
+                source_summary["as_of"] = (
+                    source.published_at.isoformat() if source.published_at else None
+                )
+                source_summary["as_of_basis"] = "trade_date"
+                source_summary["summary"] = (source.summary or "")[:500]
+                source_summary["gaps"] = list(source.gaps)
+                source_summary["evidence_scope"] = "ETF reported daily quote and amount; not total return or company fundamentals"
             elif sid.startswith("stock_company:"):
                 source_summary["as_of"] = source.retrieved_at.isoformat()
                 source_summary["as_of_basis"] = "retrieved_at"
@@ -539,7 +676,16 @@ RULES:
                 source_summary["gaps"] = list(source.gaps)
             pack["source_summary"].append(source_summary)
         
+        etf_reason_rules = ""
+        if any(sid.startswith("etf_basic:") for sid, _ in sources_to_send):
+            etf_reason_rules = (
+                "\nETF研究规则：candidate_verdicts.reason必须是简体中文单句，不超过120字，"
+                "只定性解读已获取的ETF证据；不得含数字、日期、百分比、金额或代码。"
+                "ETF数值事实和撤回条件由系统单独展示。\n"
+            )
+
         prompt = f"""研究主题: {theme.theme_name}
+{etf_reason_rules}
 
 已验证候选 ({len(pack['verified_candidates'])} 个):
 {json.dumps(pack['verified_candidates'], ensure_ascii=False, indent=2)}

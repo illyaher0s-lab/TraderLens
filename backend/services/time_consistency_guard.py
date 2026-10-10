@@ -54,12 +54,39 @@ class TimeConsistencyGuard:
         snapshot_date: date,
         backtest_start: date,
         universe_type: str,
+        historical_effective_from: date | None = None,
+        historical_effective_to: date | None = None,
     ) -> TimeConsistencyCheckResult:
         """
         Validate universe snapshot time consistency.
         
         snapshot_date > backtest_start blocks formal validation.
         """
+        if universe_type == "point_in_time_membership" and historical_effective_from is not None:
+            if historical_effective_from > backtest_start:
+                return TimeConsistencyCheckResult(
+                    status="fail",
+                    blocking_violations=(
+                        f"PIT membership effective_from {historical_effective_from} is after "
+                        f"backtest_start {backtest_start}.",
+                    ),
+                    warnings=(),
+                )
+            if historical_effective_to is not None and historical_effective_to < backtest_start:
+                return TimeConsistencyCheckResult(
+                    status="fail",
+                    blocking_violations=(
+                        f"PIT membership effective_to {historical_effective_to} is before "
+                        f"backtest_start {backtest_start}.",
+                    ),
+                    warnings=(),
+                )
+            return TimeConsistencyCheckResult(
+                status="pass",
+                blocking_violations=(),
+                warnings=(),
+            )
+
         if snapshot_date > backtest_start:
             return TimeConsistencyCheckResult(
                 status="fail",
@@ -108,6 +135,8 @@ class TimeConsistencyGuard:
         source_type: str,
         source_snapshot_date: date,
         backtest_start: date,
+        historical_effective_from: date | None = None,
+        historical_effective_to: date | None = None,
     ) -> TimeConsistencyCheckResult:
         """
         Validate universe source type and timestamp.
@@ -136,6 +165,31 @@ class TimeConsistencyGuard:
                 warnings=(),
             )
         
+        if source_type.startswith("B3:") and historical_effective_from is not None:
+            if historical_effective_from > backtest_start:
+                return TimeConsistencyCheckResult(
+                    status="fail",
+                    blocking_violations=(
+                        f"PIT source effective_from {historical_effective_from} is after "
+                        f"backtest_start {backtest_start}.",
+                    ),
+                    warnings=(),
+                )
+            if historical_effective_to is not None and historical_effective_to < backtest_start:
+                return TimeConsistencyCheckResult(
+                    status="fail",
+                    blocking_violations=(
+                        f"PIT source effective_to {historical_effective_to} is before "
+                        f"backtest_start {backtest_start}.",
+                    ),
+                    warnings=(),
+                )
+            return TimeConsistencyCheckResult(
+                status="pass",
+                blocking_violations=(),
+                warnings=(),
+            )
+
         # Check timestamp
         if source_snapshot_date > backtest_start:
             return TimeConsistencyCheckResult(

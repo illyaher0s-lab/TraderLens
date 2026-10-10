@@ -22,6 +22,7 @@ data/*.db
 data/*.sqlite
 data/*.sqlite3
 data/*.sqlite3-*
+/data/private_backups/
 
 # Logs and reports
 logs/
@@ -40,3 +41,7 @@ Thumbs.db
 .claude/
 *.tsbuildinfo
 nul
+
+# Test temporary directories
+.pytest-temp*/
+*tmp/

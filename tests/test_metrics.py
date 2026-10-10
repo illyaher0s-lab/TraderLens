@@ -2,10 +2,44 @@ import unittest
 from datetime import date
 
 from backend.app.contracts import DailyPortfolioValue, Trade
-from strategy_core.metrics import calculate_metrics
+from strategy_core.metrics import calculate_cagr, calculate_metrics
 
 
 class TestMetrics(unittest.TestCase):
+    def test_calculate_cagr_uses_act_365_and_returns_fraction(self):
+        self.assertAlmostEqual(
+            calculate_cagr(100000.0, 110000.0, date(2025, 1, 2), date(2026, 1, 2)),
+            0.10,
+            places=12,
+        )
+        self.assertAlmostEqual(
+            calculate_cagr(100000.0, 121000.0, date(2025, 1, 2), date(2027, 1, 2)),
+            0.10,
+            places=12,
+        )
+
+    def test_calculate_cagr_returns_minus_one_for_zero_final_value(self):
+        self.assertEqual(
+            calculate_cagr(100000.0, 0.0, date(2025, 1, 2), date(2026, 1, 2)),
+            -1.0,
+        )
+
+    def test_calculate_cagr_rejects_invalid_initial_and_final_values(self):
+        start = date(2025, 1, 2)
+        end = date(2026, 1, 2)
+        for initial in (0.0, -1.0, float("nan"), float("inf"), -float("inf")):
+            with self.subTest(initial=initial), self.assertRaises(ValueError):
+                calculate_cagr(initial, 110000.0, start, end)
+        for final in (-1.0, float("nan"), float("inf"), -float("inf")):
+            with self.subTest(final=final), self.assertRaises(ValueError):
+                calculate_cagr(100000.0, final, start, end)
+
+    def test_calculate_cagr_rejects_nonpositive_elapsed_days(self):
+        start = date(2025, 1, 2)
+        for end in (start, date(2025, 1, 1)):
+            with self.subTest(end=end), self.assertRaises(ValueError):
+                calculate_cagr(100000.0, 110000.0, start, end)
+
     def test_calculate_total_return(self):
         """
         Total return is calculated correctly.

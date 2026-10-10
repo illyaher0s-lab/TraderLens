@@ -1,0 +1,1 @@
+{"conversation_id":"sess_d6289c8d0427","workflow_type":"market_scan","stage":"created","agent_reply":"市场扫描已完成，数据日期：2026-07-31。得到 20 个机器候选，当前展示前5张初步研究卡。候选不是买入信号；反证、失效与复查信息仍待研究。","approval_card":null,"artifact_ids":["market_scan_4755b552cbc8","msg_95efc27ccbad","msg_7b8a6756d075","intent_sess_d6289c8d0427"],"next_required_user_action":"review_market_candidates"}

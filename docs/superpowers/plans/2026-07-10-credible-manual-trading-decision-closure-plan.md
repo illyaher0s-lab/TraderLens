@@ -1,266 +1,206 @@
-# TraderLens Credible Manual Trading Decision Closure Plan (V2)
+# TraderLens 实用型手工交易闭环主计划（V3）
 
-> **For agentic workers:** REQUIRED SUB-SKILL: use `subagent-driven-development` or `executing-plans` task by task. Check each checkbox only with fresh evidence. This document is a plan only; it does not authorize a release, a commit, a vendor purchase, or live trading.
+> **唯一主链锚点。** 执行 Agent 按任务边界工作并提交证据；本计划不授权自动下单、收益承诺、提交 Git 或扩大外部写入范围。
 
-**Supersedes:** `docs/superpowers/plans/2026-07-01-v1-product-closure-rebuild-plan.md` and replaces the previous revision of this file as the implementation plan for decision closure.
+**目标：** 让用户既可以输入一只股票或一个主题，也可以直接说“根据最近一个完整交易日帮我选股”；系统先给出有依据的研究候选，再由一个已验证策略决定是否产生手工执行计划，最后记录用户真实执行、持仓观察、卖出与复盘。
 
-**Goal:** Deliver one browser-proven, personal A-share manual-decision loop: natural-language friend recommendation → evidence-backed ResearchCase → approved forward candidate → signal from a separately validated strategy → Action Plan → user-confirmed buy → Observation Pool → Daily Signal → user-confirmed sell → P&L → Discipline Review; or show the precise gate that prevents it.
+**架构：** Agent 负责理解、发现、研究、反证和解释；程序负责数据真实性、计算、少量硬阻断、策略信号、风险边界和事实记录。研究候选不等于买入信号，风险也不要求归零。
 
-**Architecture:** Start with one deliberately failing browser journey, then repair only its earliest failed business step. Gate 0 proves the exact research, alpha, and point-in-time data inputs before any formal backtest wiring. Reuse Workbench, ResearchCase, `StrategyTemplateDefinition`, B3 PIT protocol types, the OOS ledger, B6/OOS/Gate/Promotion, Signal Board, Action Plan, execution logs, Observation Pool, and reviews. An Execution Card is an Action Plan view only; it is not a second persisted state machine.
-
-**Tech stack:** FastAPI, SQLite, Pydantic, `strategy_core`, Tushare Pro, local Parquet/JSON manifests, Next.js, Playwright, pytest.
+**技术栈：** 复用现有 FastAPI、SQLite、Pydantic、`strategy_core`、Tushare、本地 Parquet/JSON、Next.js、pytest 和浏览器验收工具；没有明确缺口时不新增框架或平行状态机。
 
 ---
 
-## 1. Product truth and non-goals
+## 1. 产品主链
 
-- TraderLens is personal research and manual decision support. It does not connect to a broker, submit orders, promise returns, or infer actual execution, price, quantity, or P&L.
-- The `v1.0.0` tag remains an internal UI/degraded-flow snapshot. It is not product acceptance and must not be represented as such.
-- `confirmed_candidate_pool` is a forward-only research output. It may be consumed by current Signal Board generation only after a strategy has separately reached `prototype_passed`; it must never be converted to a historical backtest universe.
-- A data fault, insufficient data, missing provenance, unconfigured guard, failed Gate, or exhausted OOS budget returns a visible blocking state. No fallback list, LLM guess, or synthetic data may upgrade it.
-- `self_reported` is the only V2 evidence level. Attachment storage and hashes are deferred; the UI must state that self-reported evidence is not broker verification.
+```text
+自然语言输入
+  ├─ 指定股票 ───────────────→ ResearchCase
+  ├─ 主题/行业 ──────────────→ Serenity / Evidence → ResearchCase
+  ├─ 无标的：“根据昨天市场选股” → Daily Market Scout → 研究候选卡
+  └─ 策略想法 ───────────────→ hypothesis_draft / candidate template
 
-> **V2 scope reduction — reviewer accepted on 2026-07-10:** V2 replaces the earlier goal of Serenity automatic industry-chain discovery with user-proposed industry-chain hypothesis verification. It does not deliver automatic chain discovery or a verified industry-chain dataset.
+ResearchCase 或研究候选卡
+  → 用户：继续 / 观察 / 停止
+  → confirmed_candidate_pool（仅前向研究快照）
+  → 一个已验证且已晋升策略的当前信号
+  → Action Plan / 无信号说明
+  → 用户人工买入、放弃或部分执行
+  → Execution Log → Observation Pool
+  → Daily Signal → 用户人工卖出
+  → P&L → Discipline Review
+```
 
-### Retained, removed, and migrated design
+“昨天”固定指**最近一个已经完整收盘的沪深共同交易日**，不是自然日昨天。页面必须显示实际数据日期。
 
-| Decision | V2 rule |
+## 2. 决策边界：避免机械化，也避免 LLM 乱交易
+
+### 2.1 四级结果，而不是只有通过/拒绝
+
+| 状态 | 含义 |
 |---|---|
-| Keep | Workbench, ResearchCase, template governance, PIT qualification, B6/OOS/Gate/Promotion, Market Guard, capital context, fixed-stop logic, Signal Board data object, Action Plan, execution log, Observation Pool, P&L, Discipline Review. |
-| Remove from the prior revision | New `contracts/template_governance.py`, `contracts/validation_data.py`, research-budget contract/service, execution-observation contract/service, attachment/hash subsystem, separate persisted Execution Card, and three disconnected acceptance scripts. |
-| Extend instead | `contracts/strategy.py` / `strategy_template_library.py`; `backend/services/b3_protocol_types.py`; `backend/services/oos_budget_ledger.py`; existing research, execution, observation, and review contracts/services. |
-| Migrate | The four hard-coded templates lose implicit `approved` status. They become `candidate` until their source dossier and frozen rule mapping pass Task 4. Existing persisted records stay readable and are labelled `legacy_ungoverned`, never promoted. |
+| `hard_block` | 数据或交易事实不可靠，不能继续 |
+| `watch` | 有逻辑但时机、证据或风险收益不足 |
+| `research_candidate` | 值得继续研究，不是买入建议 |
+| `actionable` | 已验证策略有有效信号，且当前执行边界满足 |
 
-## 2. Gate 0 — inputs that must be proved before formal validation
+### 2.2 只有这些情况可以硬阻断
 
-Gate 0 is a two-level, scope-bound data gate, not a documentation exercise. `feasibility_probe_passed` proves only provider access, fields, and landing format for 2019–2025. `formal_qualified` proves complete 2010-to-last-closed-trading-day PIT coverage for one immutable validation-data scope; it is the only status accepted by B6/OOS/Gate, Promotion, and Market Guard freeze. It is never a claim that all system data is qualified. A failing probe stops at `validation_unavailable` or `research_unavailable` with its stored reason.
+- 当前决策所需数据缺失、过期、冲突或来源失败。
+- 股票未上市、已退市、停牌或当下不可交易。
+- 当前版本固定交易政策明确禁止的 ST / `*ST` 状态。
+- 已验证策略没有信号、信号失效，或执行价格条件不满足。
+- 资本、持仓上限或用户确认缺失。
 
-### 2.1 V2 industry-chain hypothesis verification boundary
+估值偏高、行业不确定、波动较大、新闻分歧和一般性风险属于**软风险**：降低排名、置信度或进入 `watch`，不得自动变成通用拒绝。
 
-V2 does **not** claim that TraderLens automatically completes industry-chain research, and it does not define a user statement as a dataset, source, or evidence. A user may submit `user_industry_chain_hypothesis` with `upstream_entity`, `downstream_entity`, `relation_type` (`supplier`, `customer`, `competitor`, `component`, `channel`, `other`), `asserted_by`, `asserted_at`, `scope_note`, and `research_case_id`. This is a pending hypothesis only, stored in the existing ResearchCase evidence/counter-evidence payload.
+市场状态在 Daily Market Scout 中默认是软风险；只有所选冻结策略把它定义为入场条件时，才按该策略的既有确定性规则阻断。V3 不再新建一套通用 Market Guard。
 
-- `stock_basic` may resolve listed-company identity; `income`, `anns`, and company facts may be displayed as supporting facts, counter-evidence, or gaps. They do not verify a chain edge.
-- The existing `stock_basic` peer list, LLM summaries, and symbol heuristics may not create, confirm, or rank a chain edge.
-- The hypothesis is current-research context only. It has no historical membership claim and cannot enter `BacktestUniverseSpec`, template selection, OOS inputs, or a trading decision.
-- A case with no user hypothesis displays `research_requires_chain_hypothesis`; a case with a hypothesis displays `用户产业链假设（待验证）` and the available facts/counter-evidence. Neither state may display “产业链研究完成” or “产业链已验证”.
+### 2.3 Agent 与程序各自负责什么
 
-A later version may add official company-disclosure corpus or an authorised chain-data provider only under a new plan that names its licence, document/effective dates, coverage, extraction rule, and evidence status. That work is intentionally outside this V2 closure plan.
+**Agent 可以：** 理解自然语言；发现主题和候选；检索并引用资料；形成多头、空头和基准情景；指出反证和未知项；解释程序结果。
 
-### 2.2 PIT vendor, interfaces, permissions, coverage, and local format
+**Agent 不可以：** 编造价格或成交；修改策略参数；决定 PIT、OOS、Gate 或 Promotion；绕过硬阻断；把研究候选说成确定买点。
 
-**Candidate formal-validation provider:** Tushare Pro, using the account token configured for the local owner. It becomes the formal-validation source only after Gate 0 has made successful, non-empty probes and recorded the account’s observed permission result. Tushare exposes a permission error as HTTP/API code `2002`; this must be recorded as a failed gate, not retried as a different source. [Tushare HTTP API documentation](https://www.tushare.pro/document/2?doc_id=130)
+**程序负责：** 日期与身份校验、股票池、指标和排名、数据质量、策略回测与信号、成本和仓位边界、状态迁移、执行/P&L 事实。
 
-**First formal-data package: required data classes and scope:**
+## 3. 外部 API 与多 Agent 约束
 
-| Purpose | Required Tushare Pro interfaces | Minimum history to prove |
-|---|---|---|
-| Trading eligibility | `trade_cal`, `stock_basic` for `L`, `D`, and `P`, ST-status history, `namechange`, `suspend_d` | 2010-01-01 through the last fully closed trading day |
-| Raw executable market data | `daily`, `daily_basic`, `stk_limit`, `adj_factor` | same range for the scope's eligible symbols and dates |
-| Benchmark, controls, and Market Guard | `index_daily`, required benchmark/control membership, `index_member_all`, and all-A-share daily aggregates | same range for every configured benchmark, control group, and guard input |
-| Template-required membership | `index_classify`, `index_member_all`, plus the documented THS/SW endpoints actually granted to the account | each used membership's effective period; current-only classification fails PIT qualification |
-| Research-only financial facts | `income`, `balancesheet`, `cashflow`, `fina_indicator`, using `ann_date` | on-demand ResearchCase query only; excluded from the first formal-data package unless a future template declares them |
+- 所有外部 API 调用共享一个进程级并发限制：**最多 2 个在途请求**。供应商上限虽为 3，第 3 个额度永远作为安全余量。
+- V1 后端固定单 worker；并发 2 由共享 limiter 统一执行，不能靠多个进程各自限流。
+- 同时运行的外部调用型 Agent 最多 2 个；两个子 Agent 活跃时，父 Agent 只协调，不再发起外部调用。子 Agent 不得继续派生会调用外部 API 的 Agent。
+- 一次研究请求最多 3 次 LLM 调用：研究与反证最多 2 路并行，最终解释在两者结束后串行执行。
+- 市场数据按交易日和接口增量获取，不重拉已有完整历史；独立读取可两路并行，写入、发布和状态迁移必须串行。
+- 每次调用有明确超时；禁止重试风暴。超时返回可见的 `unavailable`，不得猜测结果。
+- 已授权任务范围内，执行 Agent 直接完成读取、快照、修改和测试，不反复向用户申请技术权限。工具确实要求批准时先请求父 Agent；只有新增业务范围、不可逆外部动作或 owner 选择才询问用户。
 
-Each template version declares immutable `data_requirements` and `data_requirements_hash`. The formal-data package is exactly the union of that template's requirements, its benchmark and control-group requirements, `strategy_core`/fill-model requirements, and the selected Market Guard requirements. Its `formal_qualification_key` is `(template_hash, guard_config_hash, data_requirements_hash, snapshot_hash)`. A `formal_qualified` result is valid only for that key. Any template, benchmark, control group, fill-model, Guard configuration, or field-requirement change creates a new data package and requires new qualification.
+## 4. 复用清单与当前真实边界
 
-`adj_factor` is captured as raw vendor output but V1 validation uses raw OHLC execution prices. No present-day forward-adjusted series may be treated as a past observable value; any future adjusted-price feature needs an explicit future-data proof before use. Tushare’s own documentation notes that its adjusted data depend on the selected end date. [Tushare adjustment documentation](https://www.tushare.pro/document/2?doc_id=146)
+以下成果继续使用，禁止从头重做：
 
-**Local immutable landing format:** `data/pit/tushare/<snapshot_id>/` with one Parquet file per interface and retrieval partition (`daily/trade_date=YYYYMMDD/*.parquet`, analogous partitions for other dated datasets), `manifest.json`, and `manifest.sha256`. The manifest must list interface, exact requested fields and parameters, retrieval UTC time, source response row count, earliest/latest effective date, missing-date/symbol counts, raw-file SHA-256 values, token-free permission result, adjustment policy, and source-version string. `b3_protocol_types.py` owns the manifest reference and qualification result; no new validation-data contract is created.
-
-**Gate 0 PIT acceptance has two explicit outcomes:**
-
-- `feasibility_probe_passed`: one command downloads/probes every required interface for 2019-01-01 through 2025-12-31, writes a manifest, samples at least one main-board, ChiNext, STAR, suspended, ST/name-changed, and delisted symbol, and proves the manifest hash replays unchanged. It authorizes no formal validation.
-- `formal_qualified`: a separate full acquisition covers 2010-01-01 through the last fully closed trading day for one `formal_qualification_key`, under interface-specific expected-row rules. `daily`, `stk_limit`, and `daily_basic` require rows only for stocks that are listed, not ST-excluded by the template, and normally trading on that date; a missing market row for a suspended stock is valid only when `suspend_d` explicitly explains it, and no market row is required before listing or after delisting. ST status and name-change history must cover each applicable effective period. `namechange` and `suspend_d` are sparse event tables, so a legal empty result is not a gap. Benchmark, control-group, and index-membership data must cover their configured effective periods. Financial facts are excluded unless the immutable `data_requirements` declares them; a future financial template then requires report-period records with `ann_date` availability, not daily records. Only a missing value that these rules cannot explain is a blocking gap. The replayed full manifest must have the same hash and no blocking gaps. Only this outcome may enter formal B6/OOS/Gate, Promotion, or the Market Guard candidate-to-frozen replay for its exact key.
-
-### 2.3 First alpha sources and lifecycle
-
-The first source dossiers are fixed before any template can be `approved`:
-
-| Existing template | Initial source dossier | V2 initial state |
-|---|---|---|
-| `relative_strength_rotation_v1` | Jegadeesh & Titman (1993), *Returns to Buying Winners and Selling Losers*, DOI `10.1111/j.1540-6261.1993.tb04702.x` | candidate |
-| `theme_momentum_breakout_v1` | Moskowitz & Grinblatt (1999), *Do Industries Explain Momentum?*, DOI `10.1111/0022-1082.00146` | candidate |
-| `volume_breakout_followthrough_v1` | Lee & Swaminathan (2000), *Price Momentum and Trading Volume*, DOI `10.1111/0022-1082.00280` | candidate |
-| `trend_pullback_watch_v1` | no source dossier | retired for V2; it cannot be mapped or validated |
-
-Each candidate becomes `approved` only when the extended `StrategyTemplateDefinition` records: source citation and retrieval date; a one-to-one source-claim-to-frozen-rule mapping; market-scope differences from the source; immutable `data_requirements` and `data_requirements_hash`; a deterministic implementation hash; independent reviewer identity/date; and review due date. The reviewer approves provenance and fidelity, never an expected return. A source mismatch, failed PIT qualification, failed Gate, or expired review retires the version for new mapping but preserves historic reports. New template/version proposals repeat this process; paraphrases and rule changes create a new candidate and consume the existing family’s OOS budget through `oos_budget_ledger.py`.
-
-### 2.4 Market Guard candidate-to-frozen path
-
-Reuse the candidate rules frozen in `docs/superpowers/specs/2026-07-02-risk-attribution-design-freeze.md`; do not invent or tune another guard. `backend/config/market_regime_thresholds.yaml` starts with `validation_status: candidate` and these exact pre-registered rules:
-
-| State | PIT metric and source | Candidate trigger |
-|---|---|---|
-| `extreme_breadth_selloff` | proportion of eligible A shares with `daily.pct_chg <= -5`, from qualified `daily` plus listing/suspension data | greater than `0.80` |
-| `structural_breakdown` | `000300.SH` return from qualified `index_daily` | one day `<= -0.05` or compounded five trading days `<= -0.10` |
-| `liquidity_exhaustion` | qualified all-A-share `daily.amount` divided by its preceding 30 completed trading-day mean | less than `0.30` |
-
-`trade_cal`, `daily`, `index_daily`, listing/delisting, ST status, and suspension data from the same matching `formal_qualification_key` are mandatory. Missing any required daily aggregation input after applying the `formal_qualified` expected-row rules produces `data_insufficient`/`data_fault`, never `ok`; the zero-gap rule does not require every stock to have a market row on every date. The configuration contains its semantic SHA-256, version, candidate values, source manifest hash, validation-report hash, `validation_status`, `validated_at`, `frozen_at`, and `approved_by`.
-
-The following windows and product-usability rule are pre-registered before reading replay results: stress window A is 2015-06-15 through 2015-08-31; stress window B is 2020-03-09 through 2020-03-23; normal window is 2017-09-01 through 2017-11-30. An acceptable data gap is **zero** missing required daily aggregation inputs after applying the `formal_qualified` expected-row rules on any `trade_cal` trading day; dates declared non-trading by `trade_cal` are not gaps. In the normal window, `block_new_entry` caused by an extreme market state may occur on at most `floor(0.05 * normal_window_trading_day_count)` days. `data_insufficient` and `data_fault` are reported separately and cannot be hidden in that ratio.
-
-The guard becomes `frozen` only after a `formal_qualified` replay from 2010-01-01 to the last fully closed trade day proves: the registered zero-gap rule; no value read after its `as_of_date`; stable output from two independent replays of the same full manifest; at least one extreme-market block in each registered stress window; the registered normal-window block-ratio limit; and an immutable report containing per-rule trigger counts, blocked-day count, normal-window denominator/ratio, data-gap count, manifest hash, configuration hash, and source code revision. A human approval may freeze this unchanged candidate configuration only after those checks pass. Any changed threshold, metric, universe, data policy, window, or usability limit is a new candidate and blocks new entries until it completes the same path. Freezing validates deterministic survival behaviour, not market-timing alpha.
-
-## 3. Decision and agent boundaries
-
-### 3.1 Open cognition, white-listed tools, black-listed decisions
-
-The LLM may understand free-form messages, summarize retrieved evidence, relate prior cases, and draft explanations. It receives only these read-only, audited tools: `find_research_cases`, `read_research_case`, `find_strategy_history`, `read_strategy_report`, `read_open_action_plans`, `read_positions`, and `read_reviews`.
-
-The LLM may not call a side-effect tool. Deterministic services, plus explicit user confirmation where required, exclusively decide identity confirmation, template/rule selection, PIT qualification, OOS budget reservation, Gate verdict, promotion, signal generation, market state, Action Plan eligibility, execution facts, P&L, and review attribution. These are a hard blacklist even if an LLM explanation names a different conclusion.
-
-### 3.2 Durable context and latency budget
-
-Replace “latest ten messages plus positions” with a deterministic context assembler in the existing Workbench/research query path. It loads, in this order and with stable identifiers: the current message; last 10 messages; identity claims; open positions; the three most recent same-symbol/theme ResearchCases with approval and evidence/counter-evidence summaries; up to five same-template/family rejected or retired strategies with reason and report ID; open Action Plans; and the three most recent relevant reviews. Older records remain discoverable through the white-listed history tools, so “the strategy rejected before” has a record-based answer rather than a summary guess.
-
-V2 is a single-backend-process personal deployment: every supported startup and acceptance command launches `backend.app.main:app` with `--workers 1`; `WEB_CONCURRENCY` and `UVICORN_WORKERS` must be unset or equal to `1`; multiple backend processes are out of scope. The shared startup helper and main browser script must assert these values and fail before testing if they differ.
-
-Every provider call goes through `backend/services/llm_client.py`. Its process-wide `threading.BoundedSemaphore(2)` is acquired before `create_message()` and released in `finally`; a third simultaneous request returns `llm_concurrency_exhausted` without queuing or retrying. Together with the single-worker deployment rule, this is a global V2 limit rather than a per-conversation convention.
-
-The Workbench creates one `decision_loop_id` on the initial recommendation and persists its call counter/timestamps in existing conversation/artifact metadata. The entire friend-recommendation-to-review loop has a hard **three-call** budget; after the third call the loop returns `llm_budget_exhausted` and must not start a fourth call. Template matching, validation, promotion, signal, guard, Action Plan, user confirmation, observation, P&L, and review remain deterministic. Natural-language execution feedback uses the existing deterministic interpreter; ambiguous wording asks for clarification and never invokes the LLM.
-
-| Friend-loop stage | Maximum LLM calls | Rule |
-|---|---:|---|
-| Initial friend recommendation | 1 | intent/entity extraction only |
-| ResearchCase evidence synthesis | 2 | existing two-phase Serenity planner and synthesizer; deterministic tools run between them |
-| Research approval and candidate pool | 0 | user action plus deterministic persistence |
-| Existing promoted-strategy signal, Market Guard, Action Plan | 0 | deterministic services only |
-| Buy/sell/skip/partial confirmation | 0 | structured confirmation or deterministic interpreter only |
-| Observation, Daily Signal, P&L, Discipline Review | 0 | deterministic reducers and template text only |
-| **Whole loop** | **3** | no overflow, retry, or extra explanation call |
-
-Each call has an 8-second timeout and no retry loop. For 30 production-equivalent complete loops, record stage call counts, semaphore rejections, and elapsed time. Measure automated end-to-end elapsed time from initial submission to final automated result, subtracting each user-wait interval (`approval_shown_at`→`approval_received_at`, `action_plan_shown_at`→buy confirmation, and sell request→sell confirmation). Acceptance requires automated-loop P50 ≤ 25 seconds and P95 ≤ 45 seconds, plus per-stage P50/P95. A timeout returns an explicit recoverable unavailable state, never a guessed route.
-
-## 4. Delivery sequence — cover the chain first, then deepen it
-
-### Task 0: Write and run the one failing browser acceptance chain
-
-**Files:** create `scripts/verify_credible_manual_trade_closure.py`, `docs/verification/CREDIBLE_PRODUCT_ACCEPTANCE.md`; modify `scripts/runtime_process_helpers.py`.
-
-- [ ] Drive a real browser against the local frontend and backend, with no direct database insert and no API-only substitute, through this exact sequence:
-
-  ```text
-  朋友推荐 XX
-  → ResearchCase → user chain hypothesis + facts/counter-evidence → approval
-  → confirmed_candidate_pool → separately validated strategy signal
-  → Market Guard → Action Plan → confirm buy → Observation Pool
-  → Daily Signal → confirm sell → P&L → Discipline Review
-  ```
-
-- [ ] The script uses an explicitly supplied real snapshot ID and a real self-reported ResearchCase assertion. It creates no synthetic market rows, template results, signals, executions, or reviews. Missing Gate 0 input fails with the exact first missing business step.
-- [ ] Launch the backend only as `.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8010 --workers 1`; fail if `WEB_CONCURRENCY` or `UVICORN_WORKERS` is set to a value other than `1`.
-- [ ] Run it before any module repair, save DOM/network/run-ID evidence, and record only the first failure in `CREDIBLE_PRODUCT_ACCEPTANCE.md`.
-
-**Acceptance:** the initial run fails loudly at its actual first missing product step; it does not split into friend/strategy/execution scripts or label a partial path as E2E.
-
-### Task 1: Complete Gate 0 before formal validation wiring
-
-**Files:** modify `backend/services/data_tools.py`, `backend/services/b3_protocol_types.py`, `backend/services/strategy_template_library.py`, `contracts/strategy.py`; create `scripts/verify_gate0_data_feasibility.py`; test `tests/test_gate0_data_feasibility.py`.
-
-- [ ] Implement the `user_industry_chain_hypothesis` schema in the existing ResearchCase payload, label it pending verification, and disable peer/symbol inference as chain evidence.
-- [ ] Implement the exact Tushare interface probe, Parquet landing manifest, content hashes, immutable `data_requirements` / `data_requirements_hash`, and scope-bound qualification outcome in the existing B3 types.
-- [ ] Persist and expose `feasibility_probe_passed` and `formal_qualified`, with the latter superseding the former for the same `formal_qualification_key`; record observed permissions, missing coverage, and all queries without the token. Reject formal validation unless the full-range manifest is `formal_qualified` for the exact template, Guard, requirements, and snapshot hashes.
-- [ ] Extend the existing template definition/library with the source dossier and lifecycle fields from section 2.3. Migrate the four templates to the stated candidate/retired states.
-- [ ] Re-run the browser chain. Repair only its first now-failing step; do not begin OOS wiring when Gate 0 is red.
-
-**Acceptance:** the chain can create an honest ResearchCase under the declared V2 hypothesis boundary. Formal validation is mechanically impossible without a replayable, scope-matching `formal_qualified` PIT manifest and an approved source-backed template; `feasibility_probe_passed` alone is rejected. ResearchCase financial queries cannot enter formal validation, Gate, or Promotion.
-
-### Task 2: Connect Workbench to ResearchCase and persistent context
-
-**Files:** modify `backend/api/workbench_handlers.py`, `backend/api/research.py`, `backend/db/agent_workbench.py`, `backend/services/llm_client.py`, `scripts/runtime_process_helpers.py`, `frontend/app/workbench/page.tsx`; create `frontend/app/research/page.tsx`, `frontend/app/research/[research_id]/page.tsx`; test `tests/test_workbench_research_context.py`, `tests/test_llm_client_limits.py`.
-
-- [ ] Add the deterministic context assembler and the read-only history-tool audit records described in section 3.2.
-- [ ] Route a verified recommendation to a ResearchCase, capture the user chain hypothesis and Tushare facts/counter-evidence without calling either proof, and require explicit `continue`, `stop`, or `observe` approval.
-- [ ] Persist a forward-only `confirmed_candidate_pool` only after approval. It must display its research provenance and explicit non-backtest boundary.
-- [ ] Extend the existing `LLMClient` with the process-wide concurrency-two semaphore, enforce the three-call `decision_loop_id` budget, and record the stage/automated-loop latency telemetry in section 3.2. Make the shared startup helper enforce the single-worker command/environment rule. A data or LLM failure renders `research_unavailable`, never an invented conclusion.
-- [ ] Re-run the one browser chain and repair only its first remaining failure.
-
-**Acceptance:** the user can retrieve a prior rejection/case by context or history tool, and a friend recommendation reaches a traceable candidate pool without becoming a buy signal.
-
-### Task 3: Qualify PIT universe and real execution inputs
-
-**Files:** modify `strategy_core/universe_builder.py`, `strategy_core/data_source_protocol.py`, `backend/services/b6_validation_flow.py`, `backend/services/b3_protocol_types.py`; test `tests/test_universe_builder.py`, `tests/test_b3_pit_manifest.py`, `tests/test_fill_simulator.py`.
-
-- [ ] Extend the existing B3 manifest types with effective membership, listing/delisting, ST/name-change, suspension, price-limit, liquidity, raw-price, and announcement-availability references.
-- [ ] Make `build_universe()` accept only a `formal_qualified` point-in-time universe whose `formal_qualification_key` matches the frozen template, controls, Guard, requirements, and snapshot for formal OOS. `static_list`, `confirmed_candidate_pool`, and `feasibility_probe_passed` remain rejected for historical validation.
-- [ ] Replay T+1, T+1 sellability, price limits, suspension, liquidity, board lots, costs, delisting, and overnight next-open fills from the qualified local snapshot.
-- [ ] Re-run the one browser chain and repair only its first remaining failure.
-
-**Acceptance:** no formal report can be created from static/current membership, future-adjusted price assumptions, or an incomplete manifest.
-
-### Task 4: Govern alpha, OOS reuse, and promotion using existing objects
-
-**Files:** modify `contracts/strategy.py`, `backend/services/strategy_template_library.py`, `backend/services/template_matcher.py`, `backend/services/oos_budget_ledger.py`, `backend/services/b6_validation_flow.py`, `backend/services/strategy_promotion_reducer.py`; test `tests/test_template_governance.py`, `tests/test_oos_budget_ledger.py`, `tests/test_b6_validation_flow.py`.
-
-- [ ] Make matching deterministic against the approved frozen rule schema; LLM extraction cannot choose parameters, version, family, or status.
-- [ ] Use the existing append-only OOS ledger for `(hypothesis_family_id, frozen_template_hash, strategy_config_hash, data_snapshot_hash, protocol_hash)`. Identical replay returns its immutable report; any rule/version change consumes the family budget.
-- [ ] Keep the pre-frozen three-draw OOS limit and enforce source status, scope-matching `formal_qualified` PIT status, Canary, controls, base/stress costs, Gate, and explicit human confirmation before `StrategyPromotionReducer` alone writes `prototype_passed`.
-- [ ] Admit only the promoted revision to the existing Signal Board. Rejected/candidate/retired strategies remain discoverable in history and cannot create signals.
-- [ ] Re-run the one browser chain and repair only its first remaining failure.
-
-**Acceptance:** the first source-backed template can either truthfully reach a promoted signal through real qualified data or visibly stop at its exact Gate; no hard-coded `approved` template bypasses that evidence.
-
-### Task 5: Enforce Action Plan, user-confirmed execution, observation, and review
-
-**Files:** create `backend/services/market_regime_guard.py`, `backend/config/market_regime_thresholds.yaml`; modify `backend/services/capital_context.py`, `backend/services/action_plan_builder.py`, `backend/api/workbench_execution_feedback.py`, `backend/services/observation_pool.py`, `backend/services/discipline_review.py`, `contracts/live_trade.py`; test `tests/test_market_regime_guard.py`, `tests/test_v1_capital_context.py`, `tests/test_c3_action_plan_boundary.py`, `tests/test_v1_observation_pool.py`, `tests/test_v1_discipline_review.py`.
-
-- [ ] Create `market_regime_thresholds.yaml` from the exact candidate rules in section 2.4; calculate and persist its semantic hash, candidate status, PIT manifest reference, and validation-report reference.
-- [ ] Implement the section 2.4 guard replay and freeze checks using only a `formal_qualified` manifest with matching `guard_config_hash`. Only an unchanged, human-approved `frozen` configuration may report `ok` for a new-entry decision; candidate, missing, failed, or mismatched configuration exposes `block_new_entry`.
-- [ ] Require scope-matching `formal_qualified` market data, frozen guard, capital check, and frozen invalidation/stop data before an existing Action Plan can be `eligible_for_manual_entry`; otherwise expose `block_new_entry` or `observe_only` with reason.
-- [ ] Render the Action Plan as the only execution decision state. User buy/sell/skip/partial confirmation writes the existing execution log with `evidence_level=self_reported`; no separate Execution Card record is introduced.
-- [ ] Preserve deterministic Daily Signal priority: data fault/insufficient → invalidation → fixed-stop sell → risk → hold. Market risk cannot fabricate a sell fill.
-- [ ] Compute P&L only from confirmed log facts and generate factual discipline attribution. Neither live P&L nor a review changes Gate, template approval, or promotion.
-- [ ] Re-run the one browser chain and repair only its first remaining failure.
-
-**Acceptance:** a promoted signal cannot bypass the survival checks, and every buy/sell/P&L/review fact visible in the chain is linked to user confirmation and its evidence level.
-
-### Task 6: Add the no-trade weekly value view by aggregation, not a new subsystem
-
-**Files:** modify existing dashboard API and `frontend/app/page.tsx`; test `tests/test_no_trade_weekly_summary.py`.
-
-- [ ] Aggregate existing ResearchCases, candidate pools, validation/Gate reports, market/data checks, Action Plans, observations, and reviews for the current week.
-- [ ] Show: why no executable trade existed; each candidate and its blocking gate; conditions close to trigger with the actual unmet condition; changed evidence/counter-evidence; open-position risk; data quality; discipline statistics; and the specific next re-evaluation condition/date.
-- [ ] The view contains no new persistence, background workflow, tuning control, or recommendation. Empty data says which source is unavailable, not “all clear.”
-- [ ] Re-run the one browser chain and the no-trade scenario through the same script using a valid no-entry condition.
-
-**Acceptance:** a no-trade week produces an evidence-based decision summary rather than an empty dashboard or generic `observe_only` label.
-
-### Task 7: Final one-script acceptance and release evidence
-
-**Files:** modify `scripts/verify_credible_manual_trade_closure.py`, `docs/verification/CREDIBLE_PRODUCT_ACCEPTANCE.md`, `docs/verification/V1_RELEASE_NOTES.md`, `docs/verification/V1_RELEASE_MANIFEST.md`; test `tests/test_llm_client_limits.py`.
-
-- [ ] Run the single browser script from a clean local state against qualified real snapshot data and preserve its browser DOM/network logs and all IDs: ResearchCase, candidate snapshot, template/version/hash, PIT manifest hash, Market Guard configuration/report hashes, report, Gate, strategy revision, signal, Action Plan, execution logs, position, daily signal, P&L, and review.
-- [ ] Assert the spawned backend command includes `--workers 1` and the worker environment is valid before browser steps. A second backend process or any worker setting other than one is an acceptance failure.
-- [ ] In the same script assert negative branches: missing chain assertion, non-qualified PIT data, retired/unapproved template, exhausted OOS budget, unconfigured/data-fault market guard, and unconfirmed execution. Each must stop at its own declared state.
-- [ ] Add a process-level concurrency test that starts three simultaneous `LLMClient.create_message()` attempts and proves at most two provider calls enter; add loop-budget tests proving the fourth call under one `decision_loop_id` is rejected and buy/sell confirmations consume zero calls.
-- [ ] Record the 30-loop per-stage and user-wait-excluded automated P50/P95 report. Do not pass acceptance if P50 exceeds 25 seconds, P95 exceeds 45 seconds, any call exceeds eight seconds, or a budget/concurrency rejection is mislabelled as normal research failure.
-- [ ] Run focused pytest suites, existing regression gates, and the production build. Record every command and result; do not claim pass if any required run was skipped or blocked.
-
-**Acceptance:** one fresh browser run proves the whole successful chain when all gates are available, and one script proves its critical negative boundaries. Release readiness remains false until this evidence exists.
-
-## 5. Implementation invariants
-
-- Do not add a contract/service/page when an existing owned object can carry the state.
-- Do not call an LLM for deterministic routing retries, status changes, price/quantity/P&L, template parameters, budgets, Gate, promotion, market state, or signal decisions.
-- Do not use a static symbol list, current classification, `confirmed_candidate_pool`, or invented fixture as a formal historical universe.
-- Do not use ResearchCase on-demand financial data in a backtest, Gate, or Promotion. A future financial template without a complete PIT financial package returns `validation_unavailable`.
-- Do not call a Tushare financial value PIT-valid unless its `ann_date` is on or before the decision date.
-- Do not show an LLM “researching”/“validating” state without a real recorded job.
-- Do not claim industry-chain completeness, alpha validity, data coverage, or profitable behavior beyond the captured evidence.
-
-## 6. Plan self-review record
-
-| Review | Result |
+| 已有能力或证据 | V3 用法 |
 |---|---|
-| Adversarial blocking items 1–3 | V2 limits industry-chain handling to user-hypothesis verification; Gate 0 binds each formal PIT package to template, Guard, requirements, and snapshot hashes, and records the source-backed alpha lifecycle. |
-| Items 4–6 | Existing fill semantics are requalified from PIT data; no-trade weekly value is an aggregate view. |
-| Items 7, 10 | The first and final artifact is one browser script spanning friend input through Discipline Review. |
-| Items 8–9 | Deterministic durable context plus open cognition/read-only tool whitelist and hard decision blacklist. |
-| Item 11 | Three-call whole-loop budget, process-wide concurrency two, stage table, timeout, and user-wait-excluded P50/P95 requirements are explicit. |
-| Market Guard freeze | Candidate metrics, PIT inputs, replay criteria, configuration/report hashes, and human freeze approval are explicit. |
-| Item 12 and deletion test | Supersession and retained/removed/migrated components are explicit; prohibited new contracts/services are absent. |
-| Paths and placeholders | All planned paths are existing or explicitly created; no unresolved placeholder marker or unnamed data source remains. |
-| Complexity | One main acceptance script, existing contracts/services extended, no attachment subsystem, no duplicate execution state, and no separate no-trade subsystem. |
+| Workbench 意图识别、ResearchCase、Serenity、Evidence、Approval Card、`confirmed_candidate_pool` | 直接作为研究入口和候选承载 |
+| 现有 strategy-idea 提取、模板匹配和 candidate-template evaluator | 保留抖音/视频策略入口；V3 不重写该流程，也不允许它绕过已验证模板 |
+| `strategy_core`、模板库、PIT/B3、Canary、IS/OOS、成本、对照组、Gate、Promotion | 只补一个策略走通所需的最早缺口，不复制验证框架 |
+| Signal Board、Action Plan、Execution Log、Observation Pool、Daily Signal、P&L、Discipline Review | 直接连接，不另建 Execution Card 状态机 |
+| 已接受的 formal Stock ST `_004`、standalone verifier、上市资格和 `*ST` 风险判定 | 作为只读信任根，禁止重发或重签 |
+| `avg_amount_20d_shsz_common_v1` 实现及测试 checkpoint | 保留；只补真实沪深共同日历消费绑定 |
+| SH/SZ calendar stage/verifier 代码及已接受候选快照 | 保留；修复测试隔离后从精确快照恢复，不重新设计或重复采集 |
+| 浏览器基线 `docs/verification/CREDIBLE_RUN_20260715_100308/` | 步骤 1–4 继续有效；当前最早阻断仍是步骤 5 无已验证信号 |
 
-## 7. Definition of done
+当前 formal 日线数据截至 `2026-07-10`。在增量数据刷新到最近完整交易日前，系统不得声称“根据昨天行情”完成选股。
 
-TraderLens is ready for limited personal manual decision support only when a fresh qualified-data browser run demonstrates the complete chain above, a no-trade week explains its gates and re-evaluation triggers, and every unavailable/rejected path names the evidence or data condition that stopped it. Profit is not a completion criterion.
+### 复用规则
+
+1. 已接受的不可变 artifact 永久只读；后续任务只引用其身份和哈希。
+2. 已有测试证据在相关代码、输入和契约未变化时不重复跑全套；只跑受影响 focused tests 和最终产品链。
+3. 历史失败或事故证据保留，但不作为每个新任务的前置重演项目。
+4. 普通代码修改使用目标文件快照和 focused RED→GREEN；不得把 artifact publication 流程套到普通代码上。
+5. 测试只能在独立临时仓库创建和清理 candidate/formal 路径，绝不能清理真实数据目录。
+
+## 5. 交付顺序
+
+### Task 0：冻结旧计划状态并保留现有成果
+
+- [x] 保留当前浏览器证据：步骤 1–4 已到达候选池，步骤 5 为 `no_validated_signal_visible_in_dom`。
+- [x] formal Stock ST `_004`、verifier、上市资格和退市风险能力作为已验收只读成果继续使用。
+- [x] 建立一次简洁的实际复用检查：列出本计划引用的代码入口、artifact 是否存在、当前数据末日和最早产品阻断；不重新验收历史节点。
+
+**完成标准：** 后续任务从现有状态继续，不再按旧 Task 3 的每个历史 corrective 重新开始。
+
+### Task 1：恢复“最近完整交易日”的增量数据能力
+
+**优先复用：** 现有 Tushare client、PIT 日线数据、formal adapter、SH/SZ calendar stage/verifier 和被保留的候选快照。
+
+- [x] 修复 `tests/test_shsz_common_trade_calendar.py` 的测试隔离，只允许操作 pytest 临时仓库；production stage/verifier 保持冻结。
+- [x] 从已接受快照机械恢复并完成一次 SH/SZ common calendar publication；若精确快照不可用，停止并单独登记新采集，而不是静默重建同一身份。
+- [x] 在现有历史数据之后，仅增量拉取缺失交易日所需的日线、复权、停牌、涨跌停和必要状态数据；外部 API 并发不超过 2。
+- [x] 形成按 `as_of_date` 标识的只读日快照，并让系统明确报告最近完整交易日、数据末日和缺口。
+- [x] 日快照只服务当前发现和执行，不得成为历史回测股票池；历史验证继续使用既有 PIT/B3 边界。
+
+**完成标准：** 对任意当前日期，系统能确定最新完整沪深交易日 D；数据完整时读取 D，数据过期时返回 `hard_block:data_stale`，不会使用旧日期冒充昨天。
+
+### Task 2：实现 Daily Market Scout，无标的也能选出研究候选
+
+**优先复用：** `stock_basic` 上市资格、Stock ST、停牌/日线分区、流动性派生、现有 cross-sectional rank 和模板指标。
+
+- [ ] Workbench 将“帮我选股 / 看昨天市场 / 今天关注什么”路由到 `market_scan`，不再要求用户先给股票代码。
+- [ ] 在 D 日构造当前可研究的 SH/SZ 股票池；硬过滤只使用第 2.2 节规则。
+- [ ] 使用少量固定且可解释的特征排名：中期相对强度、短期趋势、成交额/流动性、波动惩罚和行业广度。第一版不接受用户调参。
+- [ ] 输出前 20 个机器候选，进入 Agent 研究后最多展示 5 张候选卡。
+- [ ] 每张卡显示数据日期、入选原因、主要软风险、反证、失效条件和下一次复查条件。
+
+**完成标准：** 浏览器输入“根据昨天股市帮我选股”，在最新完整交易日数据上得到最多 5 个 `research_candidate`/`watch`；没有任何候选被描述为买入信号。
+
+### Task 3：让 Agent 真正研究，而不是只复述规则
+
+**优先复用：** Serenity 两阶段结构、Evidence、ticker verification、ResearchCase 和 Approval Card。
+
+- [ ] 对机器候选运行最多两路并行研究：一条寻找基本面/行业/事件支持，一条专门寻找反证和风险。
+- [ ] Agent 输出多头、空头和基准情景以及置信度；无法核实的内容明确标记未知。
+- [ ] 程序合并确定性排名和 Agent 研究，但 Agent 文本不得改写硬事实、排名原值或策略状态。
+- [ ] 用户只选择继续、观察或停止；继续后复用现有 `confirmed_candidate_pool`，并保留 forward-only 非回测边界。
+
+**完成标准：** 同一候选同时展示支持证据与反证；软风险能够降级为 `watch`，不会因为“存在风险”自动拒绝全部股票。外部调用峰值不超过 2。
+
+### Task 4：只打通一个策略的真实信号，不扩建验证平台
+
+**优先复用：** 当前 relative-strength SH/SZ 模板家族、流动性实现、B3/B4/B5/B6、OOS ledger、Gate、Promotion 和 Signal Board。
+
+- [ ] 选择现有实现和数据最完整的一个冻结模板版本；不新建第二个策略，不调参追求回测结果。
+- [ ] 只修复它当前最早的真实缺口：共同日历消费绑定和 `b3_execution_input_binding_unavailable`；不得覆盖 B3 `_001` 或重做已接受 Stock ST `_004`。
+- [ ] 使用现有 Canary、IS/OOS、成本压力、对照和 Gate 运行一次正式验证；相同输入重放读取同一结果，不重复消耗 OOS。
+- [ ] 只有现有 Promotion 流程写出 `prototype_passed` 后，Signal Board 才能产生 `actionable`；否则输出明确的 `watch`、`no_signal` 或 Gate 原因。
+
+**完成标准：** 一个既有策略对当前 D 产生可审计的“有信号/无信号”结果。没有信号是正常产品结果，不是项目失败。
+
+### Task 5：连接现有手工执行与观察闭环
+
+- [ ] Signal Board 结果复用现有 Action Plan 展示是否值得执行、价格区间、金额/股数、失效条件和风险说明。
+- [ ] 用户输入买入、卖出、放弃或部分执行后，复用现有 Execution Log；系统不猜成交价、数量和 P&L。
+- [ ] 已确认买入进入 Observation Pool；Daily Signal 继续由确定性 reducer 生成 `hold/sell/risk/invalidated`。
+- [ ] 用户确认卖出后复用现有 P&L 和 Discipline Review。
+
+**完成标准：** 一次用户确认的手工交易或放弃行为可从 Action Plan 追溯到复盘；不接券商、不自动下单。
+
+### Task 6：一次浏览器验收，只证明用户真正能用的两条路
+
+- [ ] 场景 A：无标的输入 → 最近完整交易日 → 5 张以内研究候选卡 → 继续/观察/停止。
+- [ ] 场景 B：候选或指定股票 → 已验证策略的信号/无信号 → Action Plan → 用户确认执行 → Observation → 卖出 → P&L/复盘。
+- [ ] 负向边界只保留三个产品级案例：数据过期、股票不可交易、策略无信号。其余底层边界由 focused tests 证明，不塞进浏览器脚本。
+- [ ] 用三个同时发起的测试请求证明外部 API 峰值在途数为 2；记录实际峰值，第三个请求必须等待而不是进入供应商。
+- [ ] 记录数据日期、候选来源、策略版本、信号、用户确认和最终状态；不得把局部通过写成完整通过。
+
+**完成标准：** 场景 A 必须可用；场景 B 可以产生真实 Action Plan，也可以诚实显示无信号。只有发生用户确认的模拟/手工执行时才继续验证持仓闭环。
+
+## 6. 通用收敛规则
+
+1. 每个任务只解除一个最早产品阻断，不为可能的未来需求扩展架构。
+2. 开始前先查已有实现、测试和证据；能复用就不新建文件、artifact 或状态机。
+3. 修改前建立可恢复快照；行为变更做 focused RED→GREEN。一个根因允许一次最小修正。
+4. 若出现第二个独立根因，当前任务停止并登记为下一个小任务；不得在同一节点循环扩大修复。
+5. 测试超时先区分性能和正确性；测试数量增加时可调整合理技术上限，但不能改变正确性断言。
+6. 普通代码通过 focused tests 后即可进入任务级集成；只有 immutable publication 和最终产品验收需要全量审计。
+7. 评审以任务边界为单位，不对每个命名、错误码或夹具细节重复请求多轮 owner/SOL 裁决。
+8. 一个无交易日、一个无信号策略或一个 `watch` 候选都是有效产品结果；不能为了“通过”制造交易。
+
+## 7. 明确延期
+
+- 自动下单、券商连接、自动读取真实成交。
+- 多策略同时优化、自动调参、无限策略生成。
+- 完整产业链数据库和自动确认产业链关系。
+- 所有模板、所有市场状态和所有历史窗口同时正式化。
+- 为每个日快照建立独立 publication 框架；日快照只需日期、来源、内容哈希和只读落盘。
+- 高并发 Agent 群、后台持续自治和超过 2 个外部并发请求。
+- 不影响场景 A/B 的仪表盘、美化、周报和辅助审计页面。
+
+## 8. Definition of Done
+
+V3 完成不要求“永远找到可买股票”，也不以盈利作为软件验收条件。完成条件是：
+
+1. 用户没有标的时，系统能基于最近完整交易日给出可解释的研究候选；
+2. Agent 能展示支持、反证与未知项，而不是机械地因任何风险拒绝；
+3. 至少一个既有策略能在真实数据上产生可审计的信号或无信号结果；
+4. 有信号时，用户可以完成人工执行、观察、卖出和复盘；
+5. 数据和交易事实异常会硬阻断，软风险只降级；
+6. 任意时刻外部 API 并发不超过 2，且整个链路不依赖用户作技术判断。

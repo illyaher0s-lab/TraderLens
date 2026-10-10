@@ -187,6 +187,7 @@ export const researchApi = {
 
   // Confirmation
   async confirmCandidate(candidateId: string, data: {
+    approval_card_id: string;
     confirmation_reason: string;
     evidence_level: string;
     confirmed_by: string;

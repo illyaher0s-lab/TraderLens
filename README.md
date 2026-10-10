@@ -25,6 +25,12 @@ Theme input (manual / market scan)
   -> Signal Board / Action Plan
 ```
 
+## Current Product Mainline
+
+**当前整体产品路线**按单标的研究、实际成交记录、持仓复盘、策略验证、有限发现和整体验收分阶段推进，见 [TraderLens_MAINLINE_PLAN.md](TraderLens_MAINLINE_PLAN.md)。Replay-001 已归入[历史计划归档](docs/archive/2026-10-07/TraderLens_PRODUCT_MAINLINE_PLAN.md)。用户确认的未来策略目标仍保存在归档版“未来策略目标与 Discovery 预算”一节，未来 Discovery 前须重审并冻结。
+
+Gate001 remains a historical research record with saved verdict `insufficient_evidence`. The final report review covered historical display and offline economic reconciliation; a separate independent supplemental audit passed the main scenario's seven trade legs and account reconciliation. The original capture status remains preserved, and three exit signal contexts are derived from persisted orders. See [Gate001 protocol and closeout](TraderLens_MAINLINE_ALPHA_PLAN.md), [final research report](docs/verification/GATE001_FINAL_RESEARCH_REPORT.md), [supplemental saved-capture audit](docs/verification/GATE001_SAVED_CAPTURE_AUDIT.json), and [trial/exposure ledger](docs/verification/GATE001_TRIALS.jsonl).
+
 **Implemented**:
 - ✅ Research Module (Theme input → Serenity → Evidence → Confirmation)
 - ✅ Signal Board (Strategy signals → Human review)
@@ -49,10 +55,12 @@ Theme input (manual / market scan)
 ## Important Documents
 
 **Core documents (read first)**:
-1. [AGENTS.md](AGENTS.md) - Development rules
-2. [status.md](status.md) - Current status and verification baseline
-3. [docs/verification/B4_VERIFICATION.md](docs/verification/B4_VERIFICATION.md) - B4 accepted commits, guarantees, boundaries, and test record
-4. [docs/phases/HANDOFF_B4.md](docs/phases/HANDOFF_B4.md) - B4 handoff context
+1. [TraderLens_Northstar.md](TraderLens_Northstar.md) - Long-term direction and boundaries
+2. [TraderLens_MAINLINE_PLAN.md](TraderLens_MAINLINE_PLAN.md) - Current overall route
+3. [AGENTS.md](AGENTS.md) - Project execution rules
+4. [docs/verification/B4_VERIFICATION.md](docs/verification/B4_VERIFICATION.md) - Historical B4 verification, guarantees, boundaries, and test record
+5. [docs/phases/HANDOFF_B4.md](docs/phases/HANDOFF_B4.md) - Historical B4 handoff context
+6. [status.md](status.md) - 2026-06-27 B4 historical baseline; not current application acceptance
 
 **Phase documentation**:
 - [docs/phases/](docs/phases/) - Historical phase plans and reports

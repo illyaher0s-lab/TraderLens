@@ -141,7 +141,15 @@ class TestOOSBudgetLedger(unittest.TestCase):
     """Test OOS budget ledger and atomic reservation."""
     
     def setUp(self):
-        self.ledger = OOSBudgetLedger()
+        import tempfile
+        from pathlib import Path
+        from backend.db.strategy import StrategyDB
+        
+        self.tmpfile = tempfile.NamedTemporaryFile(mode='w', suffix='.db', delete=False)
+        self.tmpfile.close()
+        self.db_path = Path(self.tmpfile.name)
+        self.db = StrategyDB(str(self.db_path))
+        self.ledger = OOSBudgetLedger(self.db)
         self.theme_id = "theme_test_001"
         self.hypothesis_id = "hyp_snap_001"
         self.config_hash_1 = "config_hash_001"
@@ -149,17 +157,24 @@ class TestOOSBudgetLedger(unittest.TestCase):
         self.gate_hash_1 = "gate_hash_001"
         self.oos_window_1 = "shared_oos_001"
     
+    def tearDown(self):
+        self.db.close()
+        if self.db_path.exists():
+            self.db_path.unlink()
+    
     def test_same_hash_tuple_returns_cached_without_budget_draw(self):
         """Same (config, data, gate) hash tuple returns cached result without consuming budget."""
         # First reservation
         rsv1 = self.ledger.reserve_oos_draw(
             self.theme_id, self.hypothesis_id,
             self.config_hash_1, self.data_hash_1, self.gate_hash_1,
-            self.oos_window_1
+            self.oos_window_1,
+            idempotency_key="kb1"
         )
         self.assertEqual(rsv1.oos_draw_index, 1)
         
         # Complete first
+        self.ledger.start_execution(rsv1.reservation_id)
         self.ledger.complete_reservation(rsv1.reservation_id, "rejected")
         
         # Check cache
@@ -171,9 +186,11 @@ class TestOOSBudgetLedger(unittest.TestCase):
             self.ledger.reserve_oos_draw(
                 self.theme_id, self.hypothesis_id,
                 self.config_hash_1, self.data_hash_1, self.gate_hash_1,
-                self.oos_window_1
+                self.oos_window_1,
+            idempotency_key="kb2"
             )
-        self.assertIn("cached result", str(ctx.exception))
+        # ponytail: DB version says "Hash tuple already used", both correct
+        self.assertTrue("cached" in str(ctx.exception).lower() or "already used" in str(ctx.exception).lower())
     
     def test_strategy_hash_change_consumes_new_draw(self):
         """Strategy config hash change consumes new OOS draw."""
@@ -181,8 +198,10 @@ class TestOOSBudgetLedger(unittest.TestCase):
         rsv1 = self.ledger.reserve_oos_draw(
             self.theme_id, self.hypothesis_id,
             self.config_hash_1, self.data_hash_1, self.gate_hash_1,
-            self.oos_window_1
+            self.oos_window_1,
+            idempotency_key="kb3"
         )
+        self.ledger.start_execution(rsv1.reservation_id)
         self.ledger.complete_reservation(rsv1.reservation_id, "rejected")
         
         # Second reservation with different config hash
@@ -190,7 +209,8 @@ class TestOOSBudgetLedger(unittest.TestCase):
         rsv2 = self.ledger.reserve_oos_draw(
             self.theme_id, self.hypothesis_id,
             config_hash_2, self.data_hash_1, self.gate_hash_1,
-            self.oos_window_1
+            self.oos_window_1,
+            idempotency_key="kb4"
         )
         
         self.assertEqual(rsv2.oos_draw_index, 2)  # Consumed new draw
@@ -201,8 +221,10 @@ class TestOOSBudgetLedger(unittest.TestCase):
         rsv1 = self.ledger.reserve_oos_draw(
             self.theme_id, self.hypothesis_id,
             self.config_hash_1, self.data_hash_1, self.gate_hash_1,
-            self.oos_window_1
+            self.oos_window_1,
+            idempotency_key="kb5"
         )
+        self.ledger.start_execution(rsv1.reservation_id)
         self.ledger.complete_reservation(rsv1.reservation_id, "rejected")
         
         # Different data hash
@@ -210,7 +232,8 @@ class TestOOSBudgetLedger(unittest.TestCase):
         rsv2 = self.ledger.reserve_oos_draw(
             self.theme_id, self.hypothesis_id,
             self.config_hash_1, data_hash_2, self.gate_hash_1,
-            "shared_oos_002"  # Different window to avoid cross-theme check
+            "shared_oos_002",  # Different window to avoid cross-theme check
+            idempotency_key="kb4"
         )
         
         self.assertEqual(rsv2.oos_draw_index, 2)
@@ -220,8 +243,10 @@ class TestOOSBudgetLedger(unittest.TestCase):
         rsv1 = self.ledger.reserve_oos_draw(
             self.theme_id, self.hypothesis_id,
             self.config_hash_1, self.data_hash_1, self.gate_hash_1,
-            self.oos_window_1
+            self.oos_window_1,
+            idempotency_key="kb7"
         )
+        self.ledger.start_execution(rsv1.reservation_id)
         self.ledger.complete_reservation(rsv1.reservation_id, "rejected")
         
         # Different gate hash
@@ -229,7 +254,8 @@ class TestOOSBudgetLedger(unittest.TestCase):
         rsv2 = self.ledger.reserve_oos_draw(
             self.theme_id, self.hypothesis_id,
             self.config_hash_1, self.data_hash_1, gate_hash_2,
-            self.oos_window_1
+            self.oos_window_1,
+            idempotency_key="kb8"
         )
         
         self.assertEqual(rsv2.oos_draw_index, 2)
@@ -241,8 +267,10 @@ class TestOOSBudgetLedger(unittest.TestCase):
             rsv = self.ledger.reserve_oos_draw(
                 self.theme_id, self.hypothesis_id,
                 f"config_{i}", f"data_{i}", f"gate_{i}",
-                f"oos_window_{i}"
+                f"oos_window_{i}",
+                idempotency_key=f"kbloop{i}"
             )
+            self.ledger.start_execution(rsv.reservation_id)
             self.ledger.complete_reservation(rsv.reservation_id, "rejected")
         
         # Fourth draw should fail
@@ -250,7 +278,8 @@ class TestOOSBudgetLedger(unittest.TestCase):
             self.ledger.reserve_oos_draw(
                 self.theme_id, self.hypothesis_id,
                 "config_4", "data_4", "gate_4",
-                "oos_window_4"
+                "oos_window_4",
+            idempotency_key="kb10"
             )
         self.assertIn("budget exhausted", str(ctx.exception))
         self.assertIn("max 3", str(ctx.exception))
@@ -260,7 +289,8 @@ class TestOOSBudgetLedger(unittest.TestCase):
         rsv1 = self.ledger.reserve_oos_draw(
             self.theme_id, self.hypothesis_id,
             self.config_hash_1, self.data_hash_1, self.gate_hash_1,
-            self.oos_window_1
+            self.oos_window_1,
+            idempotency_key="kb11"
         )
         
         # Attempt concurrent draw
@@ -268,7 +298,8 @@ class TestOOSBudgetLedger(unittest.TestCase):
             self.ledger.reserve_oos_draw(
                 self.theme_id, self.hypothesis_id,
                 "config_2", "data_2", "gate_2",
-                "oos_window_2"
+                "oos_window_2",
+            idempotency_key="kb12"
             )
         self.assertIn("Active reservation blocks", str(ctx.exception))
     
@@ -277,7 +308,8 @@ class TestOOSBudgetLedger(unittest.TestCase):
         rsv = self.ledger.reserve_oos_draw(
             self.theme_id, self.hypothesis_id,
             self.config_hash_1, self.data_hash_1, self.gate_hash_1,
-            self.oos_window_1
+            self.oos_window_1,
+            idempotency_key="kb13"
         )
         
         # Release due to infrastructure failure
@@ -287,7 +319,8 @@ class TestOOSBudgetLedger(unittest.TestCase):
         rsv2 = self.ledger.reserve_oos_draw(
             self.theme_id, self.hypothesis_id,
             self.config_hash_1, self.data_hash_1, self.gate_hash_1,
-            self.oos_window_1
+            self.oos_window_1,
+            idempotency_key="kb14"
         )
         
         self.assertEqual(rsv2.oos_draw_index, 1)  # Still draw 1
@@ -297,10 +330,12 @@ class TestOOSBudgetLedger(unittest.TestCase):
         rsv = self.ledger.reserve_oos_draw(
             self.theme_id, self.hypothesis_id,
             self.config_hash_1, self.data_hash_1, self.gate_hash_1,
-            self.oos_window_1
+            self.oos_window_1,
+            idempotency_key="kb15"
         )
         
         # Complete with rejected verdict
+        self.ledger.start_execution(rsv.reservation_id)
         self.ledger.complete_reservation(rsv.reservation_id, "rejected")
         
         # Budget consumed
@@ -314,7 +349,8 @@ class TestOOSBudgetLedger(unittest.TestCase):
         rsv1 = self.ledger.reserve_oos_draw(
             "theme_001", self.hypothesis_id,
             self.config_hash_1, self.data_hash_1, self.gate_hash_1,
-            self.oos_window_1
+            self.oos_window_1,
+            idempotency_key="kb16"
         )
         
         # Theme 2 attempts to use same OOS window + data hash
@@ -322,7 +358,8 @@ class TestOOSBudgetLedger(unittest.TestCase):
             self.ledger.reserve_oos_draw(
                 "theme_002", "hyp_002",
                 "config_2", self.data_hash_1, "gate_2",
-                self.oos_window_1  # Same OOS window + same data hash
+                self.oos_window_1,  # Same OOS window + same data hash
+                idempotency_key="kb9"
             )
         self.assertIn("Cross-theme OOS reuse rejected", str(ctx.exception))
     

@@ -1,0 +1,20 @@
+{
+  "run_id": "CREDIBLE_RUN_20260715_095234",
+  "failure": "'gbk' codec can't encode character '\\u274c' in position 4: illegal multibyte sequence",
+  "network_requests": 39,
+  "console_messages": 7,
+  "page_errors": 0,
+  "timings": {
+    "backend_start": 8.17,
+    "frontend_start": 14.82,
+    "browser_start": 1.02,
+    "workbench_load": 0.96,
+    "post_response": 5.36,
+    "research_page_load": 4.47,
+    "hypothesis_save": 0.27,
+    "run_research": 55.47,
+    "decision": 3.13,
+    "signals_page_load": 2.71
+  },
+  "backend_tail": "INFO:     Started server process [39380]\nINFO:     Waiting for application startup.\nResearch API starting in REAL mode (LLM + Tushare enabled, Serenity=two_phase)\nINFO:     Application startup complete.\nINFO:     Uvicorn running on http://0.0.0.0:8010 (Press CTRL+C to quit)\nINFO:     127.0.0.1:53085 - \"GET /health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57142 - \"OPTIONS /api/agent/workbench/message HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57142 - \"POST /api/agent/workbench/message HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:57142 - \"GET /api/agent/workbench/sess_7f830547faeb HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:49441 - \"GET /api/research/themes/case_b32be7e2f668 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:58005 - \"GET /api/research/service-health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:49441 - \"GET /api/research/themes/case_b32be7e2f668 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:58005 - \"GET /api/research/service-health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:58005 - \"OPTIONS /api/research/themes/case_b32be7e2f668/hypothesis HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:49441 - \"POST /api/research/themes/case_b32be7e2f668/hypothesis HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:58005 - \"GET /api/research/service-health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:49441 - \"GET /api/research/themes/case_b32be7e2f668 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:49441 - \"OPTIONS /api/research/themes/case_b32be7e2f668/run-research HTTP/1.1\" 200 OK\n[LLM_TELEMETRY] loop=None stage=None call#0 elapsed_s=9.741 model=claude-sonnet-4-6\n[SYNTHESIZER_START] candidates=1 sources=5 source_ids_sent=5 omitted_sources=0 omitted_source_ids=0 pack_bytes=1390 pack_sha256=b69322d3067b740d\n[LLM_TELEMETRY] loop=None stage=None call#0 elapsed_s=22.272 model=claude-sonnet-4-6\n[SYNTHESIZER_OK] elapsed_s=22.272 in_tokens=533 out_tokens=1378\nINFO:     127.0.0.1:58005 - \"POST /api/research/themes/case_b32be7e2f668/run-research HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:61944 - \"GET /api/research/service-health HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:58005 - \"GET /api/research/themes/case_b32be7e2f668 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:58005 - \"OPTIONS /api/research/themes/case_b32be7e2f668/decision HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:61944 - \"POST /api/research/themes/case_b32be7e2f668/decision HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:61944 - \"GET /api/signals/strategies HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:61944 - \"GET /api/signals?limit=50&offset=0 HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:61944 - \"GET /api/signals/strategies HTTP/1.1\" 200 OK\nINFO:     127.0.0.1:61944 - \"GET /api/signals?limit=50&offset=0 HTTP/1.1\" 200 OK\n"
+}

@@ -1,0 +1,51 @@
+{
+  "scope_hash": "35d996036cc04179",
+  "codes": {
+    "001914.SZ": {
+      "predecessor_code": "000043.SZ",
+      "official_announcement_url": "https://static.cninfo.com.cn/finalpage/2019-11-08/1207074291.PDF",
+      "announcement_date": "20191108",
+      "effective_date": "未确认",
+      "evidence_level": "official_alias_unconfirmed",
+      "reason": "PDF不可自动提取，需人工核实生效交易日",
+      "requires_canonical_identity": true
+    },
+    "300216.SZ": {
+      "gap_interface": "daily_basic",
+      "gap_first": 20200805,
+      "gap_last": 20200817,
+      "delist_date": 20200916,
+      "official_announcement_url": null,
+      "evidence_level": "unexplained_blocking",
+      "reason": "未找到gap期间停牌公告"
+    },
+    "002604.SZ": {
+      "gap_interface": "daily_basic",
+      "gap_first": 20200601,
+      "gap_last": 20200609,
+      "delist_date": 20200715,
+      "official_announcement_url": null,
+      "evidence_level": "unexplained_blocking",
+      "reason": "未找到gap期间停牌公告"
+    },
+    "000939.SZ": {
+      "gap_interface": "daily_basic",
+      "gap_first": 20201106,
+      "gap_last": 20201109,
+      "delist_date": 20201217,
+      "official_announcement_url": null,
+      "evidence_level": "unexplained_blocking",
+      "reason": "未找到gap期间停牌公告"
+    },
+    "000760.SZ": {
+      "gap_interface": "daily_basic",
+      "gap_first": 20210610,
+      "gap_last": 20210611,
+      "delist_date": 20210723,
+      "official_announcement_url": null,
+      "evidence_level": "unexplained_blocking",
+      "reason": "未找到gap期间停牌公告"
+    }
+  },
+  "notes": "001914有官方公告但生效日未确认；其余4只gap期间无停牌证据。不修改代码/资格状态。"
+}

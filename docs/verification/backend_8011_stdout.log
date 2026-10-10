@@ -1,0 +1,54 @@
+INFO:     Started server process [50260]
+INFO:     Waiting for application startup.
+ERROR:    Traceback (most recent call last):
+  File "C:\Users\LEGION\.hermes\hermes-agent\venv\Lib\site-packages\starlette\routing.py", line 638, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+  File "C:\Users\LEGION\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LEGION\.hermes\hermes-agent\venv\Lib\site-packages\fastapi\routing.py", line 201, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "C:\Users\LEGION\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LEGION\.hermes\hermes-agent\venv\Lib\site-packages\fastapi\routing.py", line 201, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "C:\Users\LEGION\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LEGION\.hermes\hermes-agent\venv\Lib\site-packages\fastapi\routing.py", line 201, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "C:\Users\LEGION\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LEGION\.hermes\hermes-agent\venv\Lib\site-packages\fastapi\routing.py", line 201, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "C:\Users\LEGION\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LEGION\.hermes\hermes-agent\venv\Lib\site-packages\fastapi\routing.py", line 201, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "C:\Users\LEGION\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LEGION\.hermes\hermes-agent\venv\Lib\site-packages\fastapi\routing.py", line 201, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "C:\Users\LEGION\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LEGION\.hermes\hermes-agent\venv\Lib\site-packages\fastapi\routing.py", line 201, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "C:\Users\LEGION\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LEGION\.hermes\hermes-agent\venv\Lib\site-packages\fastapi\routing.py", line 201, in merged_lifespan
+    async with original_context(app) as maybe_original_state:
+  File "C:\Users\LEGION\.hermes\hermes-agent\venv\Lib\site-packages\fastapi\routing.py", line 226, in __aenter__
+    await self._router._startup()
+  File "C:\Users\LEGION\.hermes\hermes-agent\venv\Lib\site-packages\fastapi\routing.py", line 4615, in _startup
+    handler()
+  File "D:\Codex\TraderLens\backend\app\main.py", line 81, in startup
+    raise RuntimeError(
+RuntimeError: RESEARCH_CONVERSATION_MODE=real requires SERENITY_EXECUTION_MODE=two_phase. Set SERENITY_EXECUTION_MODE=two_phase for production.
+
+ERROR:    Application startup failed. Exiting.

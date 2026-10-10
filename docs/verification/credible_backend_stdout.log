@@ -1,0 +1,31 @@
+INFO:     Started server process [11836]
+INFO:     Waiting for application startup.
+Research API starting in REAL mode (LLM + Tushare enabled, Serenity=two_phase)
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8010 (Press CTRL+C to quit)
+INFO:     127.0.0.1:54711 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54932 - "OPTIONS /api/agent/workbench/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54932 - "POST /api/agent/workbench/message HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54932 - "GET /api/agent/workbench/sess_f35788b5eecb HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56263 - "GET /api/research/service-health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54932 - "GET /api/research/themes/case_d4e19946979d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54623 - "GET /api/research/service-health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56263 - "GET /api/research/themes/case_d4e19946979d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56263 - "OPTIONS /api/research/themes/case_d4e19946979d/hypothesis HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54623 - "POST /api/research/themes/case_d4e19946979d/hypothesis HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56263 - "GET /api/research/service-health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54623 - "GET /api/research/themes/case_d4e19946979d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54623 - "OPTIONS /api/research/themes/case_d4e19946979d/run-research HTTP/1.1" 200 OK
+[LLM_TELEMETRY] loop=None stage=None call#0 elapsed_s=15.136 model=claude-sonnet-4-6
+[SYNTHESIZER_START] candidates=1 sources=5 source_ids_sent=5 omitted_sources=0 omitted_source_ids=0 pack_bytes=1390 pack_sha256=b69322d3067b740d
+[LLM_TELEMETRY] loop=None stage=None call#0 elapsed_s=25.734 model=claude-sonnet-4-6
+[SYNTHESIZER_OK] elapsed_s=25.734 in_tokens=533 out_tokens=1452
+INFO:     127.0.0.1:56263 - "POST /api/research/themes/case_d4e19946979d/run-research HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56263 - "GET /api/research/themes/case_d4e19946979d HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56263 - "GET /api/research/service-health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56263 - "OPTIONS /api/research/themes/case_d4e19946979d/decision HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56263 - "POST /api/research/themes/case_d4e19946979d/decision HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56263 - "GET /api/signals/strategies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58552 - "GET /api/signals?limit=50&offset=0 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56263 - "GET /api/signals/strategies HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58552 - "GET /api/signals?limit=50&offset=0 HTTP/1.1" 200 OK

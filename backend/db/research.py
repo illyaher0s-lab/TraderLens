@@ -41,6 +41,7 @@ from contracts.research import (
     EvidenceItem,
     ConflictItem,
 )
+from contracts.approval_card import ApprovalCard
 
 
 class ResearchDB:
@@ -87,8 +88,16 @@ class ResearchDB:
                 updated_at TEXT NOT NULL
             )
         """)
-
+        # V2 (2026-07-10): user-proposed industry-chain hypothesis, pending-only.
+        self._ensure_column(
+            "research_themes", "user_industry_chain_hypothesis", "TEXT"
+        )
+        # V2 (2026-07-10): research synthesis result + explicit decision trust boundary.
         self._ensure_column("research_themes", "research_output", "TEXT")
+        self._ensure_column("research_themes", "approval_decision", "TEXT")
+        self._ensure_column("research_themes", "confirmed_by", "TEXT")
+        self._ensure_column("research_themes", "confirmed_at", "TEXT")
+        self._ensure_column("research_themes", "decision_loop_id", "TEXT")
 
         # research_candidates
         cursor.execute("""
@@ -221,6 +230,7 @@ class ResearchDB:
         self._ensure_column("confirmed_candidates", "verification_id", "TEXT")
         self._ensure_column("confirmed_candidates", "evidence_snapshot_ids", "TEXT DEFAULT '[]'")
         self._ensure_column("confirmed_candidates", "primary_evidence_snapshot_id", "TEXT")
+        self._ensure_column("confirmed_candidates", "approval_card_id", "TEXT")
 
         # evidence_snapshots (immutable, append-only)
         cursor.execute("""
@@ -239,6 +249,12 @@ class ResearchDB:
                 FOREIGN KEY (candidate_id) REFERENCES research_candidates(candidate_id)
             )
         """)
+        self._ensure_column("evidence_snapshots", "verification_id", "TEXT")
+        self._ensure_column("evidence_snapshots", "snapshot_date", "TEXT")
+        self._ensure_column("evidence_snapshots", "packet_input_hash", "TEXT DEFAULT ''")
+        self._ensure_column("evidence_snapshots", "tool_result_hash", "TEXT DEFAULT ''")
+        self._ensure_column("evidence_snapshots", "packet_data", "TEXT DEFAULT ''")
+        self._ensure_column("evidence_snapshots", "audit_id", "TEXT")
         cursor.execute(
             "CREATE INDEX IF NOT EXISTS idx_snapshots_candidate ON evidence_snapshots(candidate_id)"
         )
@@ -296,8 +312,8 @@ class ResearchDB:
         cursor.execute(
             """
             INSERT INTO research_themes 
-            (theme_id, theme_name, background, source_type, research_mode, urgency, notes, status, board_version, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (theme_id, theme_name, background, source_type, research_mode, urgency, notes, status, board_version, user_industry_chain_hypothesis, research_output, approval_decision, confirmed_by, confirmed_at, decision_loop_id, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 theme.theme_id,
@@ -309,6 +325,12 @@ class ResearchDB:
                 theme.notes,
                 theme.status,
                 theme.board_version,
+                json.dumps(theme.user_industry_chain_hypothesis) if theme.user_industry_chain_hypothesis else None,
+                json.dumps(theme.research_output) if theme.research_output else None,
+                theme.approval_decision,
+                theme.confirmed_by,
+                theme.confirmed_at.isoformat() if theme.confirmed_at else None,
+                theme.decision_loop_id,
                 theme.created_at.isoformat(),
                 theme.updated_at.isoformat(),
             ),
@@ -333,9 +355,21 @@ class ResearchDB:
             notes=row["notes"],
             status=row["status"],
             board_version=row["board_version"],
-            research_output=(
-                json.loads(row["research_output"]) if row["research_output"] else None
+            user_industry_chain_hypothesis=(
+                json.loads(row["user_industry_chain_hypothesis"])
+                if row["user_industry_chain_hypothesis"] else None
             ),
+            research_output=(
+                json.loads(row["research_output"])
+                if row["research_output"] else None
+            ),
+            approval_decision=row["approval_decision"],
+            confirmed_by=row["confirmed_by"],
+            confirmed_at=(
+                datetime.fromisoformat(row["confirmed_at"])
+                if row["confirmed_at"] else None
+            ),
+            decision_loop_id=row["decision_loop_id"],
             created_at=datetime.fromisoformat(row["created_at"]),
             updated_at=datetime.fromisoformat(row["updated_at"]),
         )
@@ -355,9 +389,21 @@ class ResearchDB:
                 notes=row["notes"],
                 status=row["status"],
                 board_version=row["board_version"],
-                research_output=(
-                    json.loads(row["research_output"]) if row["research_output"] else None
+                user_industry_chain_hypothesis=(
+                    json.loads(row["user_industry_chain_hypothesis"])
+                    if row["user_industry_chain_hypothesis"] else None
                 ),
+                research_output=(
+                    json.loads(row["research_output"])
+                    if row["research_output"] else None
+                ),
+                approval_decision=row["approval_decision"],
+                confirmed_by=row["confirmed_by"],
+                confirmed_at=(
+                    datetime.fromisoformat(row["confirmed_at"])
+                    if row["confirmed_at"] else None
+                ),
+                decision_loop_id=row["decision_loop_id"],
                 created_at=datetime.fromisoformat(row["created_at"]),
                 updated_at=datetime.fromisoformat(row["updated_at"]),
             )
@@ -367,7 +413,7 @@ class ResearchDB:
     def store_research_output(
         self, theme_id: str, research_output: dict, *, commit: bool = True
     ) -> None:
-        """Persist Serenity synthesis output on the ResearchCase."""
+        """Persist real Serenity+Tushare synthesis result on the ResearchCase."""
         cursor = self.conn.cursor()
         cursor.execute(
             "UPDATE research_themes SET research_output = ?, updated_at = ? WHERE theme_id = ?",
@@ -375,6 +421,43 @@ class ResearchDB:
         )
         if commit:
             self.conn.commit()
+
+    def store_hypothesis(self, theme_id: str, hypothesis: dict) -> None:
+        """Persist user-proposed industry-chain hypothesis VERBATIM as pending-only."""
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "UPDATE research_themes SET user_industry_chain_hypothesis = ?, updated_at = ? "
+            "WHERE theme_id = ?",
+            (json.dumps(hypothesis), datetime.now().isoformat(), theme_id),
+        )
+        self.conn.commit()
+
+    def record_decision(
+        self,
+        theme_id: str,
+        decision: str,
+        confirmed_by: str,
+        decision_loop_id: str | None,
+    ) -> None:
+        """Persist the explicit user decision (continue/observe/stop) + approver.
+
+        Only a real, explicit decision reaches here. Default/LLM-text/stub/
+        data-error/LLM-error never count as approval (enforced by the caller).
+        """
+        cursor = self.conn.cursor()
+        cursor.execute(
+            "UPDATE research_themes SET approval_decision = ?, confirmed_by = ?, "
+            "confirmed_at = ?, decision_loop_id = ?, updated_at = ? WHERE theme_id = ?",
+            (
+                decision,
+                confirmed_by,
+                datetime.now().isoformat(),
+                decision_loop_id,
+                datetime.now().isoformat(),
+                theme_id,
+            ),
+        )
+        self.conn.commit()
 
     def add_candidate(self, candidate: CandidateStock):
         """Add a candidate to a theme."""
@@ -460,86 +543,131 @@ class ResearchDB:
         invalidation_rules: list[dict],
         price_snapshot: dict,
         benchmark_snapshot: dict,
+        approval_card_id: Optional[str] = None,
         override_reason: Optional[str] = None,
         source_serenity_run_id: Optional[str] = None,
         source_evidence_run_id: Optional[str] = None,
         evidence_snapshot_ids: Optional[list[str]] = None,
         primary_evidence_snapshot_id: Optional[str] = None,
     ) -> ConfirmedCandidate:
-        """Confirm a candidate into the confirmed pool."""
-        candidate = self.get_candidate(candidate_id)
-        if not candidate:
-            raise ValueError(f"Candidate {candidate_id} not found")
-
-        # Check if blocked and require override
-        if candidate.status == "blocked" and candidate.hard_filter_flags and not override_reason:
-            raise ValueError(f"Blocked candidate requires override reason")
-
-        now = datetime.now()
-        confirmed_id = f"confirmed_{candidate_id}_{now.timestamp()}"
-
-        confirmed = ConfirmedCandidate(
-            confirmed_id=confirmed_id,
-            theme_id=candidate.theme_id,
-            candidate_id=candidate_id,
-            source_serenity_run_id=source_serenity_run_id,
-            source_evidence_run_id=source_evidence_run_id,
-            symbol=candidate.symbol,
-            company_name=candidate.company_name or "",
-            verification_id=candidate.verification_id,
-            chain_layer=candidate.chain_layer,
-            thesis_snapshot=thesis_snapshot,
-            invalidation_rules=invalidation_rules,
-            price_snapshot=price_snapshot,
-            benchmark_snapshot=benchmark_snapshot,
-            confirmation_reason=confirmation_reason,
-            evidence_level=evidence_level,
-            evidence_snapshot_ids=evidence_snapshot_ids or [],
-            primary_evidence_snapshot_id=primary_evidence_snapshot_id,
-            confirmed_by=confirmed_by,
-            confirmed_at=now,
-            pool_snapshot_date=pool_snapshot_date,
-        )
+        """Atomically bind a real continued Approval Card to a confirmation."""
+        if not approval_card_id or not approval_card_id.strip():
+            raise ValueError("approval_provenance_required")
+        if self.conn.in_transaction:
+            raise RuntimeError("confirmation_transaction_already_active")
 
         cursor = self.conn.cursor()
-        cursor.execute(
-            """
-            INSERT INTO confirmed_candidates
-            (confirmed_id, theme_id, candidate_id, source_serenity_run_id, source_evidence_run_id, symbol, company_name, verification_id, chain_layer, thesis_snapshot, invalidation_rules, price_snapshot, benchmark_snapshot, confirmation_reason, evidence_level, evidence_snapshot_ids, primary_evidence_snapshot_id, confirmed_by, confirmed_at, pool_snapshot_date, forward_only)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-            """,
-            (
-                confirmed.confirmed_id,
-                confirmed.theme_id,
-                confirmed.candidate_id,
-                confirmed.source_serenity_run_id,
-                confirmed.source_evidence_run_id,
-                confirmed.symbol,
-                confirmed.company_name,
-                confirmed.verification_id,
-                confirmed.chain_layer,
-                confirmed.thesis_snapshot,
-                json.dumps(confirmed.invalidation_rules),
-                json.dumps(confirmed.price_snapshot),
-                json.dumps(confirmed.benchmark_snapshot),
-                confirmed.confirmation_reason,
-                confirmed.evidence_level,
-                json.dumps(confirmed.evidence_snapshot_ids),
-                confirmed.primary_evidence_snapshot_id,
-                confirmed.confirmed_by,
-                confirmed.confirmed_at.isoformat(),
-                confirmed.pool_snapshot_date.isoformat(),
-            ),
-        )
+        try:
+            cursor.execute("BEGIN IMMEDIATE")
+            candidate = self.get_candidate(candidate_id)
+            if not candidate:
+                raise ValueError(f"Candidate {candidate_id} not found")
+            if candidate.status == "blocked" and candidate.hard_filter_flags and not override_reason:
+                raise ValueError("Blocked candidate requires override reason")
 
-        # Update candidate status
-        cursor.execute(
-            "UPDATE research_candidates SET status = 'confirmed' WHERE candidate_id = ?",
-            (candidate_id,),
-        )
+            card_row = cursor.execute(
+                """SELECT session_id, card_data
+                FROM agent_approval_cards WHERE approval_card_id = ?""",
+                (approval_card_id,),
+            ).fetchone()
+            if not card_row:
+                raise ValueError("approval_card_unavailable")
 
-        self.conn.commit()
-        return confirmed
+            # Invalid JSON or invalid contract is an invariant failure, not typed unavailable.
+            card = ApprovalCard.model_validate_json(card_row["card_data"])
+            if card.approval_card_id != approval_card_id:
+                raise RuntimeError("approval_card_primary_key_invariant")
+            if card.workflow_id != card_row["session_id"]:
+                raise ValueError("approval_card_session_mismatch")
+            if card.decision != "continue":
+                raise ValueError("approval_card_not_continued")
+
+            has_session_research_case = cursor.execute(
+                """SELECT 1 FROM agent_artifact_refs
+                WHERE session_id = ? AND artifact_type = 'research_case'
+                  AND artifact_id = ? LIMIT 1""",
+                (card_row["session_id"], candidate.theme_id),
+            ).fetchone()
+            if not has_session_research_case or candidate.theme_id not in card.artifact_ids:
+                raise ValueError("approval_card_research_case_binding_mismatch")
+
+            now = datetime.now()
+            confirmed = ConfirmedCandidate(
+                confirmed_id=f"confirmed_{candidate_id}_{now.timestamp()}",
+                theme_id=candidate.theme_id,
+                candidate_id=candidate_id,
+                source_serenity_run_id=source_serenity_run_id,
+                source_evidence_run_id=source_evidence_run_id,
+                symbol=candidate.symbol,
+                company_name=candidate.company_name or "",
+                verification_id=candidate.verification_id,
+                chain_layer=candidate.chain_layer,
+                thesis_snapshot=thesis_snapshot,
+                invalidation_rules=invalidation_rules,
+                price_snapshot=price_snapshot,
+                benchmark_snapshot=benchmark_snapshot,
+                confirmation_reason=confirmation_reason,
+                evidence_level=evidence_level,
+                evidence_snapshot_ids=evidence_snapshot_ids or [],
+                primary_evidence_snapshot_id=primary_evidence_snapshot_id,
+                confirmed_by=confirmed_by,
+                confirmed_at=now,
+                pool_snapshot_date=pool_snapshot_date,
+                approval_card_id=approval_card_id,
+            )
+
+            cursor.execute(
+                """INSERT INTO confirmed_candidates (
+                    confirmed_id, theme_id, candidate_id, source_serenity_run_id,
+                    source_evidence_run_id, symbol, company_name, verification_id,
+                    chain_layer, thesis_snapshot, invalidation_rules, price_snapshot,
+                    benchmark_snapshot, confirmation_reason, evidence_level,
+                    evidence_snapshot_ids, primary_evidence_snapshot_id, confirmed_by,
+                    confirmed_at, pool_snapshot_date, forward_only, approval_card_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)""",
+                (
+                    confirmed.confirmed_id,
+                    confirmed.theme_id,
+                    confirmed.candidate_id,
+                    confirmed.source_serenity_run_id,
+                    confirmed.source_evidence_run_id,
+                    confirmed.symbol,
+                    confirmed.company_name,
+                    confirmed.verification_id,
+                    confirmed.chain_layer,
+                    confirmed.thesis_snapshot,
+                    json.dumps(confirmed.invalidation_rules),
+                    json.dumps(confirmed.price_snapshot),
+                    json.dumps(confirmed.benchmark_snapshot),
+                    confirmed.confirmation_reason,
+                    confirmed.evidence_level,
+                    json.dumps(confirmed.evidence_snapshot_ids),
+                    confirmed.primary_evidence_snapshot_id,
+                    confirmed.confirmed_by,
+                    confirmed.confirmed_at.isoformat(),
+                    confirmed.pool_snapshot_date.isoformat(),
+                    confirmed.approval_card_id,
+                ),
+            )
+            updated_candidate = cursor.execute(
+                "UPDATE research_candidates SET status = 'confirmed' WHERE candidate_id = ?",
+                (candidate_id,),
+            )
+            if updated_candidate.rowcount != 1:
+                raise RuntimeError("candidate_status_update_invariant")
+            updated_theme = cursor.execute(
+                """UPDATE research_themes
+                SET board_version = board_version + 1, updated_at = ?
+                WHERE theme_id = ?""",
+                (now.isoformat(), candidate.theme_id),
+            )
+            if updated_theme.rowcount != 1:
+                raise RuntimeError("theme_board_version_update_invariant")
+            self.conn.commit()
+            return confirmed
+        except Exception:
+            self.conn.rollback()
+            raise
 
     def list_confirmed_candidates(self, theme_id: str) -> list[ConfirmedCandidate]:
         """List all confirmed candidates for a theme."""
@@ -567,6 +695,9 @@ class ResearchDB:
                 confirmed_by=row["confirmed_by"],
                 confirmed_at=datetime.fromisoformat(row["confirmed_at"]),
                 pool_snapshot_date=date.fromisoformat(row["pool_snapshot_date"]),
+                approval_card_id=(
+                    row["approval_card_id"] if "approval_card_id" in row.keys() else None
+                ),
             )
             for row in cursor.fetchall()
         ]
@@ -599,6 +730,9 @@ class ResearchDB:
             confirmed_by=row["confirmed_by"],
             confirmed_at=datetime.fromisoformat(row["confirmed_at"]),
             pool_snapshot_date=date.fromisoformat(row["pool_snapshot_date"]),
+            approval_card_id=(
+                row["approval_card_id"] if "approval_card_id" in row.keys() else None
+            ),
         )
 
     def store_conversation_message(self, message: ConversationMessage):
@@ -1110,4 +1244,3 @@ class ResearchDB:
             "created_at": row["created_at"],
             "updated_at": row["updated_at"],
         }
-

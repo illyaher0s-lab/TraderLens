@@ -1,0 +1,163 @@
+{
+  "schema": "v3_e4_protocol_migration_incident.v1",
+  "status": "contained_not_yet_recovered",
+  "detected_at": "2026-08-23T12:24:11.0257361+08:00",
+  "detection_basis": {
+    "type": "filesystem_and_raw_sqlite_read_only",
+    "database_path": "data/strategy.db",
+    "database_uri": "file:D:/Codex/TraderLens/data/strategy.db?mode=ro",
+    "database_last_write_time": "2026-08-23T12:11:01.1185169+08:00",
+    "database_size_bytes": 229376,
+    "wal_present": false,
+    "shm_present": false,
+    "journal_present": false
+  },
+  "index_change": {
+    "previous_verified_index": "uq_protocol_b6_profile_per_revision",
+    "observed_index": "idx_protocol_b6_profile_per_revision",
+    "previous_index_sql": "CREATE UNIQUE INDEX uq_protocol_b6_profile_per_revision ON research_protocol_snapshots(strategy_revision_id, protocol_profile) WHERE protocol_profile = 'b6_coverage_bound'",
+    "observed_index_sql": "CREATE INDEX idx_protocol_b6_profile_per_revision ON research_protocol_snapshots(strategy_revision_id, protocol_profile)",
+    "authorization_status": "not_authorized_migration_success",
+    "rollback_performed": false
+  },
+  "root_cause": {
+    "classification": "A_test_fixture_accidentally_opened_production_db",
+    "test_file": "tests/test_migration_002_safety.py",
+    "test_name": "test_strategydb_default_is_file_backed",
+    "test_location": "tests/test_migration_002_safety.py:40",
+    "command": "D:\\Codex\\TraderLens\\.venv\\Scripts\\python.exe -m unittest tests.test_migration_002_safety -q",
+    "command_result": "exit 0; Ran 5",
+    "unsafe_call": "StrategyDB()",
+    "resolved_default_path": "data/strategy.db",
+    "auto_migration_chain": [
+      "backend/db/strategy.py:55 StrategyDB.__init__",
+      "backend/db/strategy.py:62 StrategyDB._run_migrations",
+      "backend/db/strategy.py:73 migration_002",
+      "backend/db/strategy.py:83 migration_004_allow_protocol_multiplicity"
+    ],
+    "production_write_effect": "migration_004 dropped the historical partial unique index and created the nonunique lookup index",
+    "evidence_limit": "Terminal command history did not preserve wall-clock start times for each test; database LastWriteTime and source/test paths are recorded instead."
+  },
+  "source_hashes": {
+    "backend/db/migrations/migration_004_allow_protocol_multiplicity.py": "8679652c1dbb8818cb38f376141948bd3be8fa4c67a79ea99b9c45433428283d",
+    "backend/db/strategy.py": "ce48ee803e3052da1d1c630903a3be5ec5d9615a6cc337416d8497a5e4ccb4d0",
+    "tests/test_migration_002_safety.py": "00662638a04f76be83c5a5bd6257530f676a6faaf35db1cdb520e2ddd9da2dcf",
+    "tests/test_migration_004_protocol_multiplicity.py": "4c8f2e90d838af69a7d26ab757ce18abc5a5667d3d3bc177817d84383844256d",
+    "scripts/run_v3_task4_once.py": "3aa0bcf30c43077ae921f63c0ff02d4f23207bdc883d530b30e51c12023961e3"
+  },
+  "current_schema_evidence": {
+    "user_version": 0,
+    "application_id": 0,
+    "quick_check": "ok",
+    "foreign_key_check": [],
+    "research_protocol_columns": [
+      "protocol_snapshot_id",
+      "strategy_revision_id",
+      "payload_json",
+      "strategy_config_hash",
+      "data_snapshot_hash",
+      "gate_criteria_hash",
+      "frozen_at",
+      "protocol_profile"
+    ],
+    "primary_key": "protocol_snapshot_id",
+    "protocol_indexes": [
+      "idx_protocol_b6_profile_per_revision",
+      "sqlite_autoindex_research_protocol_snapshots_1"
+    ],
+    "append_only_and_fk_triggers_preserved": true,
+    "rows_and_payloads": {
+      "research_protocol_snapshots_count": 1,
+      "b6_validation_tasks_count": 1,
+      "protocol_snapshot_id": "6f7cbdcdeb26f8cdd2611a5450dbab3ff22544b6a66ec8539f5cab9151329111",
+      "protocol_row_fingerprint_sha256": "33b25f232e7d2f78c244f30bfef59e1787d991a7a50e73b537fc985fa49a505b",
+      "task_id": "d67fff62dff63793354ebb148e1b1826474f7c9c78fe182463a75f586a2d0600",
+      "task_status": "queued",
+      "task_row_fingerprint_sha256": "05f5c471bc7bcfca1b0568dcbb2063413a8e099c2e2bcb93354beb5645fa64cf",
+      "pre_change_full_row_fingerprint_available": false,
+      "limitation": "Current identities, state, counts, and payloads were checked against the handoff facts; no complete pre-change row fingerprint was captured before the index change, so byte-for-byte row invariance cannot be claimed."
+    },
+    "counts": {
+      "research_protocol_snapshots": 1,
+      "b6_validation_tasks": 1,
+      "oos_budget_reservations": 0,
+      "oos_budget_state": 0,
+      "oos_evaluation_ledgers": 0,
+      "immutable_backtest_reports": 0,
+      "prototype_gate_results_v2": 0
+    },
+    "oos_read_reserve_consume": "zero evidenced by zero reservation/state/ledger/report/Gate rows and no production OOS command executed during containment"
+  },
+  "impact": {
+    "schema_materially_changed": true,
+    "old_protocol_or_task_rewritten": false,
+    "oos_consumed": false,
+    "new_protocol_created": false,
+    "production_artifact_written": false,
+    "authorization_violation": "A test suite opened production StrategyDB and auto-applied migration_004; this is not an authorized production migration checkpoint.",
+    "current_schema_contract_shape": "matches migration_004 nonunique-index contract, provenance and authorization remain invalid"
+  },
+  "required_next_action": "consistent_backup_and_acceptance_audit",
+  "containment_verification": {
+    "test_file_py_compile": {
+      "exit_code": 0
+    },
+    "static_zero_arg_audit_red": {
+      "exit_code": 1,
+      "ran": 1,
+      "failure": "the only zero-argument StrategyDB caller lacked TemporaryDirectory/chdir guard"
+    },
+    "static_zero_arg_audit_green": {
+      "exit_code": 0,
+      "ran": 1
+    },
+    "safe_default_strategydb_focused": {
+      "exit_code": 0,
+      "ran": 1
+    },
+    "migration_002_suite": {
+      "exit_code": 0,
+      "ran": 6,
+      "failures": 0,
+      "errors": 0
+    },
+    "production_fingerprint_before": {
+      "mtime_ns": 1787458261118516900,
+      "size_bytes": 229376,
+      "protocol_indexes": [
+        "idx_protocol_b6_profile_per_revision",
+        "sqlite_autoindex_research_protocol_snapshots_1"
+      ],
+      "counts": [1, 1, 0, 0, 0, 0, 0]
+    },
+    "production_fingerprint_after": {
+      "mtime_ns": 1787458261118516900,
+      "size_bytes": 229376,
+      "protocol_indexes": [
+        "idx_protocol_b6_profile_per_revision",
+        "sqlite_autoindex_research_protocol_snapshots_1"
+      ],
+      "counts": [1, 1, 0, 0, 0, 0, 0]
+    },
+    "production_fingerprint_unchanged": true
+  },
+  "retained_artifacts": {
+    "criteria_gate_manifest_sha256": "9a534c58da7634defc1b30dd7ff1bfb91302365f08bb0ef413fa64253997d113",
+    "criteria_kill_manifest_sha256": "604a4357a7a3295f134e870dc8cc3b05239f58831176dec4c9fce60b984d914e",
+    "supplement_manifest_sha256": "c7bff428da948b54389c6c7415072de6ca5df4ebe777d251d1a06d08e6e8fb39",
+    "b4_manifest_sha256": "7b76000efaa9d709095ccb5a0c424e71432b933404ca68d35e08383a1cd04d30",
+    "b5_bundle_manifest_sha256": "332da22da15acba31a3a5c1c666f7ce5957f439dab538d5bfa98b950b9b2696a",
+    "task4_audit_sha256": "966d21553a3f367f710cb9edb17e81a817421ca3890831373bf7e4b3ddada112",
+    "scratch_path": "_tmp_coverage_scan_result.json",
+    "scratch_sha256": "4982345cf0303e19ebb8a4badcdfa0ae55287257206b334e7c61facde7bc5a9"
+  },
+  "containment": {
+    "production_strategy_db_opened": false,
+    "migration_executed": false,
+    "backup_executed": false,
+    "rollback_executed": false,
+    "tests_executed_after_fixture_fix": true,
+    "owner_or_oos_executed": false,
+    "git_or_cleanup_executed": false
+  }
+}

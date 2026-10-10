@@ -4,12 +4,42 @@ Proves B4 consumes B3 frozen protocol through enforced boundary.
 
 All tests use run_qualification_with_b3_protocol() - the official B4 entrypoint.
 """
+import hashlib
+import json
 import unittest
 from datetime import date, datetime
 
 from backend.services.backtest_engine_qualification import BacktestEngineQualification
 from backend.services.b3_protocol_types import DataSnapshotManifest, PointInTimeMembershipSnapshot
 from contracts.strategy import ResearchProtocolSnapshot, ForwardWatchlistSnapshot
+
+
+def _semantic_hash(
+    *,
+    provider="test_provider",
+    market_data_start=date(2023, 1, 1),
+    market_data_end=date(2023, 12, 31),
+    universe_snapshot_ids=("pit_001",),
+    quality_status="ok",
+    gaps=(),
+):
+    """Compute the fixture's semantic identity from its semantic inputs."""
+    semantic_data = {
+        "provider": provider,
+        "market_data_start": market_data_start.isoformat(),
+        "market_data_end": market_data_end.isoformat(),
+        "universe_snapshot_ids": universe_snapshot_ids,
+        "quality_status": quality_status,
+        "gaps": gaps,
+    }
+    return hashlib.sha256(
+        json.dumps(
+            semantic_data,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
 
 
 def create_valid_protocol():
@@ -29,21 +59,24 @@ def create_valid_protocol():
         kill_criteria_snapshot_id="kill_001",
         prototype_gate_thresholds_json="{}",
         strategy_config_hash="config_hash_abc",
-        data_snapshot_hash="valid_hash_xyz",
+        data_snapshot_hash=_semantic_hash(),
         gate_criteria_hash="gate_hash_123",
         frozen_at=datetime(2024, 1, 1, 12, 0, 0),
         frozen_by="system",
     )
 
 
-def create_valid_manifest():
+def create_valid_manifest(*, market_data_start=date(2023, 1, 1)):
     return DataSnapshotManifest(
-        data_snapshot_id="data_001",
-        data_snapshot_hash="valid_hash_xyz",
-        created_at=date(2024, 1, 1),
-        market_data_fingerprint="market_fp",
-        daily_status_fingerprint="status_fp",
-        membership_fingerprint="member_fp",
+        snapshot_id="data_001",
+        provider="test_provider",
+        retrieval_date=date(2024, 1, 1),
+        market_data_start=market_data_start,
+        market_data_end=date(2023, 12, 31),
+        universe_snapshot_ids=("pit_001",),
+        semantic_hash=_semantic_hash(
+            market_data_start=market_data_start,
+        ),
         quality_status="ok",
         gaps=(),
     )
@@ -107,7 +140,7 @@ class TestB3ProtocolSnapshotRequiredForB4Backtest(unittest.TestCase):
             kill_criteria_snapshot_id="fake_kill",
             prototype_gate_thresholds_json="{}",
             strategy_config_hash="fake_config",
-            data_snapshot_hash="valid_hash_xyz",
+            data_snapshot_hash=_semantic_hash(),
             gate_criteria_hash="fake_gate",
             frozen=True,
             frozen_at=datetime(2024, 1, 1, 12, 0, 0),
@@ -135,12 +168,13 @@ class TestB3ProtocolSnapshotRequiredForB4Backtest(unittest.TestCase):
 
         # Fake manifest with ALL required attributes (still rejected by isinstance)
         fake_manifest = SimpleNamespace(
-            data_snapshot_id="data_001",
-            data_snapshot_hash="valid_hash_xyz",
-            created_at=date(2024, 1, 1),
-            market_data_fingerprint="fake_market",
-            daily_status_fingerprint="fake_status",
-            membership_fingerprint="fake_member",
+            snapshot_id="data_001",
+            provider="test_provider",
+            retrieval_date=date(2024, 1, 1),
+            market_data_start=date(2023, 1, 1),
+            market_data_end=date(2023, 12, 31),
+            universe_snapshot_ids=("pit_001",),
+            semantic_hash=_semantic_hash(provider="fake_provider"),
             quality_status="ok",
             gaps=(),
         )
@@ -263,17 +297,10 @@ class TestB4RejectsDataSnapshotHashMismatch(unittest.TestCase):
         """Hash mismatch through B4 entrypoint raises ValueError."""
         qualification = BacktestEngineQualification()
         
-        protocol = create_valid_protocol()  # hash="valid_hash_xyz"
+        protocol = create_valid_protocol()
         
-        manifest = DataSnapshotManifest(
-            data_snapshot_id="data_001",
-            data_snapshot_hash="different_hash_abc",  # Mismatch
-            created_at=date(2024, 1, 1),
-            market_data_fingerprint="market_fp",
-            daily_status_fingerprint="status_fp",
-            membership_fingerprint="member_fp",
-            quality_status="ok",
-            gaps=(),
+        manifest = create_valid_manifest(
+            market_data_start=date(2023, 2, 1),
         )
         
         universe = create_valid_pit_universe()
@@ -288,8 +315,8 @@ class TestB4RejectsDataSnapshotHashMismatch(unittest.TestCase):
             )
         
         self.assertIn("mismatch", str(ctx.exception).lower())
-        self.assertIn("valid_hash_xyz", str(ctx.exception))
-        self.assertIn("different_hash_abc", str(ctx.exception))
+        self.assertIn(protocol.data_snapshot_hash, str(ctx.exception))
+        self.assertIn(manifest.semantic_hash, str(ctx.exception))
 
 
 class TestB4RejectsForwardWatchlistUniverse(unittest.TestCase):
@@ -392,7 +419,7 @@ class TestB4RecordsProtocolAndSnapshotIDsInResult(unittest.TestCase):
         self.assertIn("universe_snapshot_id", result)
 
         self.assertEqual(result["protocol_snapshot_id"], "proto_001")
-        self.assertEqual(result["data_snapshot_hash"], "valid_hash_xyz")
+        self.assertEqual(result["data_snapshot_hash"], _semantic_hash())
         self.assertEqual(result["data_snapshot_id"], "data_001")
         self.assertEqual(result["universe_snapshot_id"], "pit_001")
 

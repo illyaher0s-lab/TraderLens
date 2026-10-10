@@ -34,27 +34,27 @@ class TestOwnerAuthorizationBinding(unittest.TestCase):
 
     def _assert_b6_blocks_before_reserve(self) -> None:
         from backend.services.b6_validation_flow import B6ValidationFlow
+        from backend.db.strategy import StrategyDB
         from contracts.strategy import StrategyDraft
+        from contracts.b6_task import B6ValidationTask
+
+        temp_dir = TemporaryDirectory()
+        self.addCleanup(temp_dir.cleanup)
+        db = StrategyDB(Path(temp_dir.name) / "strategy.db")
+        self.addCleanup(db.close)
 
         class FakeLedger:
             reserve_calls = 0
-
             def reserve_oos_draw(self, **kwargs):
                 self.reserve_calls += 1
                 raise AssertionError("review evidence guard must block before reserve")
 
         ledger = FakeLedger()
-        controller = MagicMock()
-        report_builder = MagicMock()
-        gate = MagicMock()
-        explanation_builder = MagicMock()
-        flow = B6ValidationFlow(
-            oos_controller=controller,
-            report_builder=report_builder,
-            gate=gate,
-            explanation_builder=explanation_builder,
-            oos_budget_ledger=ledger,
-        )
+        flow = B6ValidationFlow(oos_budget_ledger=ledger, strategy_db=db)
+
+        db.conn.execute("INSERT INTO backtest_universe_specs (universe_spec_id, payload_json, created_at) VALUES (?, ?, ?)",
+                       ("universe_001", "{}", datetime.now().isoformat()))
+
         draft = StrategyDraft(
             strategy_revision_id="review_guard_v2",
             theme_id="theme_001",
@@ -68,6 +68,41 @@ class TestOwnerAuthorizationBinding(unittest.TestCase):
             sample_split_rule_id="fixed_ratio_70_30",
             created_at=datetime(2026, 7, 15, 17, 0, 0),
         )
+        db.conn.execute("INSERT INTO strategy_drafts (strategy_revision_id, theme_id, hypothesis_id, backtest_universe_spec_id, payload_json, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                       (draft.strategy_revision_id, draft.theme_id, draft.hypothesis_id, draft.backtest_universe_spec_id, "{}", draft.created_at.isoformat()))
+        db.conn.execute(
+            """
+            INSERT INTO research_protocol_snapshots
+            (protocol_snapshot_id, strategy_revision_id, payload_json,
+             strategy_config_hash, data_snapshot_hash, gate_criteria_hash,
+             frozen_at, protocol_profile)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "protocol_001",
+                draft.strategy_revision_id,
+                "{}",
+                "strategy_config_hash",
+                "data_snapshot_hash",
+                "gate_criteria_hash",
+                draft.created_at.isoformat(),
+                "legacy_b3",
+            ),
+        )
+        db.conn.commit()
+
+        # ponytail: create running task
+        task = B6ValidationTask(
+            task_id="test_task_guard",
+            task_key=f"b6_val:{draft.strategy_revision_id}",
+            task_type="b6_validation",
+            strategy_revision_id=draft.strategy_revision_id,
+            protocol_snapshot_id="protocol_001",
+            status="running",
+            created_at=datetime(2026, 7, 15, 17, 0, 0),
+        )
+        db.create_b6_task(task)
+
         result = flow.run_minimal_validation(
             strategy_draft=draft,
             protocol=MagicMock(protocol_snapshot_id="protocol_001"),
@@ -75,17 +110,12 @@ class TestOwnerAuthorizationBinding(unittest.TestCase):
             universe=MagicMock(),
             b4_qualification={},
             b4_event_result=MagicMock(),
-            human_decision=None,
+            task_id=task.task_id,
         )
         self.assertEqual(result.status, "blocked")
         self.assertIn("candidate", result.blocking_reason.lower())
         self.assertEqual(ledger.reserve_calls, 0)
-        controller.validate_b3_b4_prerequisites.assert_not_called()
-        for protected_component in (report_builder, gate, explanation_builder):
-            self.assertEqual(
-                [call for call in protected_component.mock_calls if call[0] != "__bool__"],
-                [],
-            )
+        self.assertEqual(db.conn.execute("PRAGMA foreign_key_check").fetchall(), [])
 
     def test_v2_approved_via_governance_map(self):
         """V2 with authorization in governance_map → approved."""

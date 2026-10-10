@@ -1,453 +1,422 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { ensurePositionMarketCheck } from "@/lib/position-market-monitor";
+import TopNav from "@/components/TopNav";
+import {
+  formatAnnualFeeSummary,
+  formatDividendYield,
+  formatDrawdown,
+  formatFactValue,
+  formatHistoricalPercentile,
+  formatMeanAmount,
+  isSingleSecurityResultForCode,
+} from "@/lib/single-security-format";
 
-type DataState = "ok" | "empty" | "stale" | "unavailable";
+type NumericFact = {
+  label: string;
+  value: number | string;
+  unit: string;
+  symbol: string;
+  source: string;
+  endpoint: string;
+  field?: string;
+  date: string;
+  retrieved_at: string;
+  window?: string;
+  verification_source_url?: string | null;
+};
 
-interface DashboardData {
-  as_of_date: string;
-  open_observations: {
-    count: number;
-    items: Array<{
-      position_id: string;
-      symbol: string;
-      name: string;
-      entry_price: number;
-      opened_at: string;
-    }>;
-    data_state: DataState;
-    message: string;
-    updated_at: string;
-  };
-  today_signals: {
-    count: number;
-    items: Array<{
-      stock_code: string;
-      stock_name: string;
-      signal_type: string | null;
-      signal_date: string;
-    }>;
-    data_state: DataState;
-    message: string;
-    as_of_date: string;
-  };
-  strategy_workspace: {
-    ideas_count: number;
-    candidates_count: number;
-    rejected_count: number;
-    validations_count: number;
-    approved_strategies_count: number;
-    templates_count: number;
-    data_state: DataState;
-    message: string;
-    updated_at: string;
-  };
-  recent_reviews: {
-    count: number;
-    items: any[];
-    data_state: DataState;
-    message: string;
-    updated_at: string;
-  };
-  risk_guard: {
-    data_state: string;
-    message: string;
-    blocks_count: number;
-    downgrades_count: number;
-    updated_at: string;
-  };
+type KeyMetric = {
+  id: string;
+  label: string;
+  value: string;
+  source?: NumericFact;
+  basis: string[];
+};
+
+interface SingleSecurityResearch {
+  status: "research_completed" | "research_unavailable" | "valuation_unavailable" | "valuation_not_supported";
+  symbol: string;
+  name: string;
+  security_type: "stock" | "fund";
+  verdict: string;
+  research_reference_only: boolean;
+  narrative_sentences: string[];
+  not_applicable?: string[];
+  numeric_facts: NumericFact[];
+  evidence_gaps: string[];
+  etf_research?: {
+    category?: string;
+    valuation_conclusion?: { basis?: string | null; message?: string; label?: string | null } | null;
+  } | null;
 }
 
-export default function DailyCommandCenter() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function HomePage() {
+  const [code, setCode] = useState("");
+  const [result, setResult] = useState<SingleSecurityResearch | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tip, setTip] = useState<string | null>(null);
+  const inputCodeRef = useRef("");
+  const requestVersionRef = useRef(0);
 
   useEffect(() => {
-    fetch("http://localhost:8010/api/dashboard/today")
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch dashboard data");
-        return res.json();
-      })
-      .then((data) => {
-        setData(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
+    ensurePositionMarketCheck().then((response) => {
+      const hasPositions = response.items && response.items.length > 0;
+      setTip(hasPositions ? "持仓行情已更新" : "今日无需操作");
+    }).catch((error) => {
+      console.error("Position market check failed:", error);
+      setTip("今日无需操作");
+    });
   }, []);
 
-  // ponytail: inline state badge
-  const StateBadge = ({ state, message }: { state: DataState; message: string }) => {
-    const colors = {
-      ok: "bg-green-50 text-green-700 border-green-200",
-      empty: "bg-slate-50 text-slate-600 border-slate-200",
-      stale: "bg-yellow-50 text-yellow-700 border-yellow-200",
-      unavailable: "bg-red-50 text-red-700 border-red-200",
-    };
-    return (
-      <div className={`inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-xs ${colors[state]}`}>
-        <span>{message}</span>
-      </div>
-    );
-  };
+  const facts = result?.numeric_facts ?? [];
+  const findFact = (label: string) => facts.find((fact) => fact.label === label);
+  const dividendYieldFact = findFact("近12个月现金分红收益率");
+  const percentileFact = findFact("ETF自身现金分红收益率历史分位");
+  const valuationFact = findFact("估值参考");
+  const drawdownFact = facts.find((fact) => fact.label.includes("回撤"));
+  const averageAmountFact = findFact("近20个SSE交易日平均成交额");
+  const indexPePercentileFact = findFact("跟踪指数PE十年分位");
+  const indexPbPercentileFact = findFact("跟踪指数PB十年分位");
+  const indexValuationFact = findFact("估值参考");
+  const etfCategory = result?.etf_research?.category;
+  const managementFeeFact = findFact("管理费率");
+  const custodyFeeFact = findFact("托管费率");
+  const isFund = result?.security_type === "fund";
+  const keyMetrics: KeyMetric[] = !result
+    ? []
+    : isFund && etfCategory === "dividend"
+      ? [
+          {
+            id: "dividend-yield-history",
+            label: "ETF自身现金分红收益率 / 历史分位",
+            value: `${formatDividendYield(dividendYieldFact?.value)} · 历史分位 ${formatHistoricalPercentile(percentileFact?.value)} · ${formatFactValue("估值参考", valuationFact?.value)}`,
+            source: dividendYieldFact ?? percentileFact ?? valuationFact,
+            basis: [
+              dividendYieldFact?.window ? `当前收益率：${dividendYieldFact.window}` : "当前收益率口径未获取。",
+              percentileFact?.window ? `历史分位：${percentileFact.window}` : "历史分位样本未获取。",
+              valuationFact?.window ? `估值替代口径：${valuationFact.window}` : "指数估值不可用，ETF自身历史替代参考未获取。",
+            ],
+          },
+          {
+            id: "high-drawdown",
+            label: drawdownFact?.label ?? "距近一年已观察最高价回撤",
+            value: drawdownFact ? formatDrawdown(drawdownFact.value) : "未获取",
+            source: drawdownFact,
+            basis: [drawdownFact?.window ?? "高点观察区间和有效样本未获取。"],
+          },
+          {
+            id: "average-amount",
+            label: "近20个SSE交易日平均成交额",
+            value: averageAmountFact ? formatMeanAmount(averageAmountFact.value) : "未获取",
+            source: averageAmountFact,
+            basis: [averageAmountFact?.window ?? "完整的SSE日历20日成交额未获取。"],
+          },
+        ]
+      : isFund && etfCategory === "broad"
+        ? [
+            {
+              id: "index-pe-percentile",
+              label: "跟踪指数PE十年分位",
+              value: formatHistoricalPercentile(indexPePercentileFact?.value),
+              source: indexPePercentileFact,
+              basis: [indexPePercentileFact?.window ?? "PE完整历史覆盖未获取。"],
+            },
+            {
+              id: "index-pb-percentile",
+              label: "跟踪指数PB十年分位",
+              value: formatHistoricalPercentile(indexPbPercentileFact?.value),
+              source: indexPbPercentileFact,
+              basis: [indexPbPercentileFact?.window ?? "PB完整历史覆盖未获取。"],
+            },
+            {
+              id: "index-valuation",
+              label: "估值结论",
+              value: indexValuationFact
+                ? formatFactValue("估值参考", indexValuationFact.value)
+                : result.etf_research?.valuation_conclusion?.label
+                  ?? result.etf_research?.valuation_conclusion?.message
+                  ?? "未形成估值结论",
+              source: indexValuationFact ?? indexPePercentileFact ?? indexPbPercentileFact,
+              basis: [indexValuationFact?.window ?? result.etf_research?.valuation_conclusion?.message ?? "估值规则或覆盖情况未获取。"],
+            },
+          ]
+        : isFund
+          ? [
+              {
+                id: "fund-close",
+                label: "最近收盘价",
+                value: formatFactValue("最近收盘价", findFact("最近收盘价")?.value, "元/份"),
+                source: findFact("最近收盘价"),
+                basis: [findFact("最近收盘价")?.window ?? "最近报告收盘价未获取。"],
+              },
+              {
+                id: "fund-return",
+                label: "近一年报告收盘价变化",
+                value: formatFactValue("近一年报告收盘价变化", findFact("近一年报告收盘价变化")?.value),
+                source: findFact("近一年报告收盘价变化"),
+                basis: [findFact("近一年报告收盘价变化")?.window ?? "一年价格变化未获取。"],
+              },
+              {
+                id: "fund-activity",
+                label: averageAmountFact?.label ?? drawdownFact?.label ?? "近20个SSE交易日平均成交额",
+                value: averageAmountFact
+                  ? formatMeanAmount(averageAmountFact.value)
+                  : drawdownFact ? formatDrawdown(drawdownFact.value) : "未获取",
+                source: averageAmountFact ?? drawdownFact,
+                basis: [averageAmountFact?.window ?? drawdownFact?.window ?? "成交额和回撤资料未获取。"],
+              },
+            ]
+          : facts.slice(0, 3).map((fact, index) => ({
+              id: `stock-${fact.endpoint}-${index}`,
+              label: fact.label,
+              value: formatFactValue(fact.label, fact.value, fact.unit),
+              source: fact,
+              basis: fact.window ? [fact.window] : [],
+            }));
 
-  if (loading) {
-    return (
-      <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-6 py-8">
-        <div className="text-sm text-slate-500">加载中...</div>
-      </main>
-    );
-  }
+  const keyFactLabels = new Set([
+    "近12个月现金分红收益率",
+    "ETF自身现金分红收益率历史分位",
+    "估值参考",
+    "近20个SSE交易日平均成交额",
+    "跟踪指数PE十年分位",
+    "跟踪指数PB十年分位",
+  ]);
+  const fundDetailFacts = facts.filter((fact) =>
+    !keyFactLabels.has(fact.label)
+    && !fact.label.includes("回撤")
+    && fact.label !== "管理费率"
+    && fact.label !== "托管费率",
+  );
+  const annualFeeSummary = formatAnnualFeeSummary(
+    managementFeeFact?.value,
+    custodyFeeFact?.value,
+  );
+  const feeSourceFacts = [managementFeeFact, custodyFeeFact].filter(
+    (fact): fact is NumericFact => Boolean(fact?.verification_source_url),
+  );
+  const feeSourceDates = [
+    managementFeeFact?.date ? `管理费来源日期 ${managementFeeFact.date}` : "管理费来源日期未获取",
+    custodyFeeFact?.date ? `托管费来源日期 ${custodyFeeFact.date}` : "托管费来源日期未获取",
+  ];
 
-  if (error || !data) {
-    return (
-      <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-6 py-8">
-        <div className="text-sm text-red-600">加载失败: {error}</div>
-      </main>
-    );
+  async function researchSecurity(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const submittedCode = code;
+    const requestVersion = ++requestVersionRef.current;
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8010";
+      const response = await fetch(`${apiBase}/api/research/single-security`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.detail || "研究暂不可用，请稍后重试。");
+      }
+      if (!isSingleSecurityResultForCode(submittedCode, payload.symbol)) {
+        throw new Error("返回证券身份与本次输入不一致，结果未展示。");
+      }
+      if (requestVersionRef.current === requestVersion && inputCodeRef.current === submittedCode) {
+        setResult(payload as SingleSecurityResearch);
+      }
+    } catch (requestError) {
+      if (requestVersionRef.current === requestVersion && inputCodeRef.current === submittedCode) {
+        setError(requestError instanceof Error ? requestError.message : "研究暂不可用，请稍后重试。");
+      }
+    } finally {
+      if (requestVersionRef.current === requestVersion) setLoading(false);
+    }
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-6 py-8">
-      {/* Header */}
-      <header className="border-b border-slate-200 pb-4">
-        <h1 className="text-2xl font-semibold text-slate-900">每日工作台</h1>
-        <p className="mt-1 text-sm text-slate-500">
-          {data.as_of_date} · TraderLens Daily Command Center
-        </p>
-      </header>
+    <>
+      <TopNav tip={tip} />
+      <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-6 py-8">
 
-      {/* Quick Actions */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Link
-          href="/workbench"
-          className="rounded-lg border border-slate-200 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-sm"
-        >
-          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            对话入口
+      <section className="max-w-3xl rounded-lg border border-slate-200 bg-white p-5">
+        <h2 className="text-lg font-semibold text-slate-900">研究一只股票或 ETF</h2>
+        <p className="mt-1 text-sm text-slate-600">输入六位代码，查看带来源和日期的研究结果。</p>
+        <form className="mt-4 flex flex-wrap items-end gap-3" onSubmit={researchSecurity}>
+          <div className="flex min-w-56 flex-col gap-1">
+            <label htmlFor="security-code" className="text-sm font-medium text-slate-700">证券代码</label>
+            <input
+              id="security-code"
+              aria-label="证券代码"
+              inputMode="numeric"
+              autoComplete="off"
+              maxLength={6}
+              pattern="[0-9]{6}"
+              value={code}
+              onChange={(event) => {
+                const nextCode = event.target.value.replace(/\D/g, "").slice(0, 6);
+                inputCodeRef.current = nextCode;
+                requestVersionRef.current += 1;
+                setCode(nextCode);
+                setResult(null);
+                setError(null);
+                setLoading(false);
+              }}
+              placeholder="例如 510880"
+              className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500"
+            />
           </div>
-          <div className="mt-2 text-sm font-medium text-slate-900">
-            Agent Workbench
-          </div>
-        </Link>
+          <button
+            type="submit"
+            disabled={loading || !/^\d{6}$/.test(code)}
+            className="rounded-md bg-[#171717] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? "研究中…" : "开始研究"}
+          </button>
+        </form>
 
-        <Link
-          href="/observations"
-          className="rounded-lg border border-slate-200 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-sm"
-        >
-          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            观察池
-          </div>
-          <div className="mt-2 text-sm font-medium text-slate-900">
-            Observation Pool
-          </div>
-        </Link>
+        {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
 
-        <Link
-          href="/signals"
-          className="rounded-lg border border-slate-200 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-sm"
-        >
-          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            信号板
-          </div>
-          <div className="mt-2 text-sm font-medium text-slate-900">
-            Signal Board
-          </div>
-        </Link>
+        {result && (
+          <div className="mt-6 space-y-5 border-t border-slate-200 pt-5">
+            {result.status === "research_unavailable" && (
+              <p role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-800">
+                AI总结暂不可用。以下确定性计算与已核验资料仍照常展示；未形成AI综合研究判断。
+              </p>
+            )}
+            <div>
+              <p className="text-sm text-slate-500">{result.symbol} · {result.name} · {result.security_type === "fund" ? "ETF/基金" : "股票"}</p>
+              <p className="mt-1 text-sm font-semibold text-amber-800">仅研究参考</p>
+              <h3 className="mt-1 text-xl font-semibold text-slate-900">{result.verdict}</h3>
+            </div>
 
-        <Link
-          href="/strategies"
-          className="rounded-lg border border-slate-200 bg-white p-4 transition-all hover:border-slate-300 hover:shadow-sm"
-        >
-          <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
-            策略工作区
+            <div className="space-y-2 text-sm leading-6 text-slate-800">
+              {result.narrative_sentences.map((sentence, index) => <p key={index}>{sentence}</p>)}
+            </div>
+
+            <section aria-label="可核验数值" className="rounded-md bg-slate-50 p-4">
+              <h4 className="text-sm font-semibold text-slate-900">关键指标（三组）</h4>
+              {keyMetrics.length === 0 ? (
+                <p className="mt-2 text-sm text-slate-600">未获取可核验数值。</p>
+              ) : (
+                <ul className="mt-2 space-y-3">
+                  {keyMetrics.map((metric) => (
+                    <li key={metric.id}>
+                      <p className="text-sm font-medium text-slate-900">
+                        {metric.label}：{metric.value}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-600">
+                        {metric.source
+                          ? `${metric.source.source} · ${metric.source.endpoint}${metric.source.field ? `.${metric.source.field}` : ""} · ${metric.source.symbol} · 来源日期 ${metric.source.date} · 获取时间 ${new Date(metric.source.retrieved_at).toLocaleString("zh-CN")}`
+                          : "来源日期未获取"}
+                      </p>
+                      <details className="mt-1">
+                        <summary className="cursor-pointer text-xs text-slate-500 hover:text-slate-700">
+                          统计口径（{metric.basis.length}项）
+                        </summary>
+                        {metric.basis.map((basis, index) => (
+                          <p key={`${metric.id}-basis-${index}`} className="mt-1 text-xs text-slate-600">
+                            {basis}
+                          </p>
+                        ))}
+                      </details>
+                      {metric.source?.verification_source_url && (
+                        <a
+                          href={metric.source.verification_source_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-1 inline-block text-xs text-blue-700 underline"
+                        >
+                          官方单位核验来源
+                        </a>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            {result.security_type === "fund" && (() => {
+              return (
+                <section aria-label="基金资料" className="rounded-md border border-slate-200 p-4">
+                  <h4 className="text-sm font-semibold text-slate-900">已核验基金资料与其他数值</h4>
+                  <ul className="mt-2 space-y-3">
+                    {fundDetailFacts.map((fact, index) => (
+                      <li key={`${fact.endpoint}-${fact.date}-${index}`}>
+                        <p className="text-sm font-medium text-slate-900">
+                          {fact.label}：{formatFactValue(fact.label, fact.value, fact.unit)}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-600">
+                          {fact.source} · {fact.endpoint}{fact.field ? `.${fact.field}` : ""} · {fact.symbol} · 来源日期 {fact.date} · 获取时间 {new Date(fact.retrieved_at).toLocaleString("zh-CN")}
+                        </p>
+                        {fact.window && <p className="mt-1 text-xs text-slate-600">统计口径：{fact.window}</p>}
+                        {fact.verification_source_url && (
+                          <a
+                            href={fact.verification_source_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-1 inline-block text-xs text-blue-700 underline"
+                          >
+                            官方单位核验来源
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                    <li key="verified-annual-fees">
+                      <p className="text-sm font-medium text-slate-900">
+                        {annualFeeSummary ?? `管理费${formatFactValue("管理费率", managementFeeFact?.value)} + 托管费${formatFactValue("托管费率", custodyFeeFact?.value)}；合计未获取`}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-600">
+                        {(managementFeeFact ?? custodyFeeFact)?.source ?? "来源未获取"} · fund_basic · {feeSourceDates.join(" · ")}
+                      </p>
+                      {feeSourceFacts.map((fact) => (
+                        <a
+                          key={`${fact.label}-${fact.verification_source_url}`}
+                          href={fact.verification_source_url ?? undefined}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mr-3 mt-1 inline-block text-xs text-blue-700 underline"
+                        >
+                          {fact.label}官方资料
+                        </a>
+                      ))}
+                    </li>
+                  </ul>
+                  <p role="note" className="mt-3 text-xs leading-5 text-slate-600">
+                    {annualFeeSummary
+                      ? "管理费与托管费年费率合计已核验。当前未完成招募说明书中计提与派息口径关系的核对；本页不把年费率换算为分红扣项，也不从显示的股息率重复扣减。"
+                      : "管理费或托管费尚未全部核验，合计未获取；不估算其与本页历史现金分红收益率的扣减关系。"}
+                  </p>
+                </section>
+              );
+            })()}
+
+            {(result.not_applicable?.length ?? 0) > 0 && (
+              <section aria-label="不适用资料">
+                <h4 className="text-sm font-semibold text-slate-900">不适用资料</h4>
+                <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-slate-700">
+                  {result.not_applicable?.map((item, index) => <li key={index}>{item}</li>)}
+                </ul>
+              </section>
+            )}
+
+            <section aria-label="证据缺口">
+              <h4 className="text-sm font-semibold text-slate-900">证据缺口</h4>
+              {result.evidence_gaps.length === 0 ? (
+                <p className="mt-1 text-sm text-slate-600">未获取。</p>
+              ) : (
+                <ul className="mt-1 list-disc space-y-1 pl-5 text-sm text-slate-700">
+                  {result.evidence_gaps.map((gap, index) => <li key={index}>{gap}</li>)}
+                </ul>
+              )}
+            </section>
           </div>
-          <div className="mt-2 text-sm font-medium text-slate-900">
-            Strategy Workspace
-          </div>
-        </Link>
+        )}
       </section>
-
-      {/* Main Content Grid */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Open Observations */}
-        <section className="rounded-lg border border-slate-200 bg-white">
-          <div className="border-b border-slate-200 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-900">
-                持仓观察
-              </h2>
-              <Link
-                href="/observations"
-                className="text-xs font-medium text-blue-600 hover:text-blue-700"
-              >
-                查看全部 →
-              </Link>
-            </div>
-          </div>
-          <div className="p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="text-xs text-slate-500">
-                {data.open_observations.count} 个持仓
-              </div>
-              <StateBadge 
-                state={data.open_observations.data_state} 
-                message={data.open_observations.message}
-              />
-            </div>
-            {data.open_observations.count === 0 ? (
-              <div className="py-6 text-center text-sm text-slate-500">
-                {data.open_observations.message}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {data.open_observations.items.map((obs) => (
-                  <Link
-                    key={obs.position_id}
-                    href={`/observations/${obs.position_id}`}
-                    className="block rounded border border-slate-100 p-3 transition-colors hover:bg-slate-50"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-slate-900">
-                          {obs.symbol}
-                        </div>
-                        <div className="mt-1 text-xs text-slate-500">
-                          {obs.name}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xs text-slate-500">
-                          ¥{obs.entry_price.toFixed(2)}
-                        </div>
-                        <div className="mt-1 text-xs text-slate-400">
-                          {new Date(obs.opened_at).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Today Signals */}
-        <section className="rounded-lg border border-slate-200 bg-white">
-          <div className="border-b border-slate-200 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-900">
-                今日信号
-              </h2>
-              <Link
-                href="/signals"
-                className="text-xs font-medium text-blue-600 hover:text-blue-700"
-              >
-                查看全部 →
-              </Link>
-            </div>
-          </div>
-          <div className="p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="text-xs text-slate-500">
-                {data.today_signals.count} 条信号
-              </div>
-              <StateBadge 
-                state={data.today_signals.data_state} 
-                message={data.today_signals.message}
-              />
-            </div>
-            {data.today_signals.count === 0 ? (
-              <div className="py-6 text-center text-sm text-slate-500">
-                {data.today_signals.message}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {data.today_signals.items.map((sig, idx) => (
-                  <div
-                    key={idx}
-                    className="rounded border border-slate-100 p-3"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-slate-900">
-                          {sig.stock_code}
-                        </div>
-                        <div className="mt-1 text-xs text-slate-500">
-                          {sig.stock_name}
-                        </div>
-                      </div>
-                      <div className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                        {sig.signal_type || "N/A"}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Strategy Workspace */}
-        <section className="rounded-lg border border-slate-200 bg-white">
-          <div className="border-b border-slate-200 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-slate-900">
-                策略工作区
-              </h2>
-              <Link
-                href="/strategies"
-                className="text-xs font-medium text-blue-600 hover:text-blue-700"
-              >
-                查看详情 →
-              </Link>
-            </div>
-          </div>
-          <div className="p-4">
-            <div className="mb-3 flex items-center justify-end">
-              <StateBadge 
-                state={data.strategy_workspace.data_state} 
-                message={data.strategy_workspace.message}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Link
-                href="/strategy-ideas"
-                className="rounded border border-slate-100 p-3 transition-colors hover:bg-slate-50"
-              >
-                <div className="text-xs text-slate-500">策略想法</div>
-                <div className="mt-1 text-lg font-semibold text-slate-900">
-                  {data.strategy_workspace.ideas_count}
-                </div>
-              </Link>
-
-              <Link
-                href="/candidate-strategies"
-                className="rounded border border-slate-100 p-3 transition-colors hover:bg-slate-50"
-              >
-                <div className="text-xs text-slate-500">待批准</div>
-                <div className="mt-1 text-lg font-semibold text-slate-900">
-                  {data.strategy_workspace.candidates_count}
-                </div>
-              </Link>
-
-              <Link
-                href="/rejected-strategies"
-                className="rounded border border-slate-100 p-3 transition-colors hover:bg-slate-50"
-              >
-                <div className="text-xs text-slate-500">已拒绝</div>
-                <div className="mt-1 text-lg font-semibold text-slate-900">
-                  {data.strategy_workspace.rejected_count}
-                </div>
-              </Link>
-
-              <Link
-                href="/strategy-validations"
-                className="rounded border border-slate-100 p-3 transition-colors hover:bg-slate-50"
-              >
-                <div className="text-xs text-slate-500">验证案例</div>
-                <div className="mt-1 text-lg font-semibold text-slate-900">
-                  {data.strategy_workspace.validations_count}
-                </div>
-              </Link>
-
-              <Link
-                href="/strategies"
-                className="rounded border border-slate-100 p-3 transition-colors hover:bg-slate-50"
-              >
-                <div className="text-xs text-slate-500">已批准策略</div>
-                <div className="mt-1 text-lg font-semibold text-slate-900">
-                  {data.strategy_workspace.approved_strategies_count}
-                </div>
-              </Link>
-
-              <Link
-                href="/strategy-templates"
-                className="rounded border border-slate-100 p-3 transition-colors hover:bg-slate-50"
-              >
-                <div className="text-xs text-slate-500">策略模板</div>
-                <div className="mt-1 text-lg font-semibold text-slate-900">
-                  {data.strategy_workspace.templates_count}
-                </div>
-              </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* Recent Reviews */}
-        <section className="rounded-lg border border-slate-200 bg-white">
-          <div className="border-b border-slate-200 px-4 py-3">
-            <h2 className="text-sm font-semibold text-slate-900">
-              近期复盘
-            </h2>
-          </div>
-          <div className="p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="text-xs text-slate-500">
-                {data.recent_reviews.count} 条复盘
-              </div>
-              <StateBadge 
-                state={data.recent_reviews.data_state} 
-                message={data.recent_reviews.message}
-              />
-            </div>
-            {data.recent_reviews.count === 0 ? (
-              <div className="py-6 text-center text-sm text-slate-500">
-                {data.recent_reviews.message}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {data.recent_reviews.items.map((review, idx) => (
-                  <div
-                    key={idx}
-                    className="rounded border border-slate-100 p-3"
-                  >
-                    <div className="text-sm font-medium text-slate-900">
-                      {review.title}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Risk Guard */}
-        <section className="rounded-lg border border-slate-200 bg-white">
-          <div className="border-b border-slate-200 px-4 py-3">
-            <h2 className="text-sm font-semibold text-slate-900">
-              风险守卫状态
-            </h2>
-          </div>
-          <div className="p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="text-xs text-slate-500">
-                {data.risk_guard.message}
-              </div>
-              <div className="inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-xs bg-slate-50 text-slate-600 border-slate-200">
-                <span>仅状态展示</span>
-              </div>
-            </div>
-            <div className="space-y-2 text-xs text-slate-500">
-              <div className="flex justify-between">
-                <span>阻断次数</span>
-                <span>{data.risk_guard.blocks_count}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>降级次数</span>
-                <span>{data.risk_guard.downgrades_count}</span>
-              </div>
-              <div className="mt-3 rounded bg-slate-50 p-2 text-[11px] text-slate-600">
-                此区域仅显示风险守卫状态，不代表交易允许或阻断决策
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
     </main>
+    </>
   );
 }

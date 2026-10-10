@@ -1,0 +1,1860 @@
+{
+  "mode": "formal",
+  "status": "formal_run_complete",
+  "formal_performance_result_allowed": true,
+  "data_loaded": true,
+  "metrics": {
+    "primary": {
+      "strategy": {
+        "metrics": {
+          "cagr_act_365": 0.04081168900348375,
+          "mdd_loss_fraction": 0.32584838194832905,
+          "calmar": 0.1252474809279716,
+          "sharpe": 0.33232026326714653,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 991,
+          "drawdown_duration_calendar_days": 1491,
+          "mean_exposure_fraction": 0.8212024069977327,
+          "mean_capital_occupancy_fraction": 0.9139287293853074,
+          "completed_round_trips": 3,
+          "completed_trade_pnl_cny": [
+            18211.01,
+            12346.11,
+            19354.96
+          ],
+          "worst_completed_trade_pnl_cny": 12346.11,
+          "best_winner_share": 0.38778107424094527,
+          "independent_entry_calendar_years": [
+            2010,
+            2015,
+            2018
+          ],
+          "open_trade_count": 1,
+          "open_quantity": 52000,
+          "terminal_open_trade_pnl_cny": 5207.07,
+          "max_floating_loss_cny": 30025.88,
+          "terminal_holding_sessions": 673,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 0.0,
+          "terminal_cash_cny": 12691.15,
+          "terminal_market_value_cny": 142428.0,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 155119.15
+        },
+        "terminal_nav_cny": 155119.15,
+        "terminal_cash_cny": 12691.15,
+        "terminal_market_value_cny": 142428.0,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 7,
+          "reference_trade_count": 7,
+          "engine_terminal_nav_cny": 155119.15,
+          "reference_terminal_nav_cny": 155119.15,
+          "terminal_nav_cny": 155119.15,
+          "trade_economic_profit_cny": 55119.15
+        },
+        "trades": [
+          {
+            "direction": "buy",
+            "trade_date": "2010-04-20",
+            "quantity": 40700,
+            "price": 2.455,
+            "net_cash_flow": -99948.48
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2015-01-06",
+            "quantity": 40700,
+            "price": 2.728,
+            "net_cash_flow": 110996.29
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2015-08-25",
+            "quantity": 48900,
+            "price": 2.412,
+            "net_cash_flow": -117982.18
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2015-09-10",
+            "quantity": 48900,
+            "price": 2.666,
+            "net_cash_flow": 130328.29
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2015-11-30",
+            "quantity": 46500,
+            "price": 2.802,
+            "net_cash_flow": -130332.09
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2017-10-20",
+            "quantity": 46500,
+            "price": 3.079,
+            "net_cash_flow": 143130.55
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2018-03-29",
+            "quantity": 52000,
+            "price": 2.88,
+            "net_cash_flow": -149804.93
+          }
+        ],
+        "entry_signal_count": 25,
+        "exit_signal_count": 3
+      },
+      "buy_hold": {
+        "metrics": {
+          "cagr_act_365": 0.02275352233646899,
+          "mdd_loss_fraction": 0.437317908523024,
+          "calmar": 0.05202970629150683,
+          "sharpe": 0.2169199729655477,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 1354,
+          "drawdown_duration_calendar_days": 2029,
+          "mean_exposure_fraction": 0.9013355174162249,
+          "mean_capital_occupancy_fraction": 0.8843837522488767,
+          "completed_round_trips": 0,
+          "completed_trade_pnl_cny": [],
+          "worst_completed_trade_pnl_cny": null,
+          "best_winner_share": 0.0,
+          "independent_entry_calendar_years": [
+            2010
+          ],
+          "open_trade_count": 1,
+          "open_quantity": 36700,
+          "terminal_open_trade_pnl_cny": 28008.82,
+          "max_floating_loss_cny": 36913.48,
+          "terminal_holding_sessions": 2667,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 0.0,
+          "terminal_cash_cny": 27487.52,
+          "terminal_market_value_cny": 100521.3,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 128008.82
+        },
+        "terminal_nav_cny": 128008.82,
+        "terminal_cash_cny": 27487.52,
+        "terminal_market_value_cny": 100521.3,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 1,
+          "reference_trade_count": 1,
+          "engine_terminal_nav_cny": 128008.82,
+          "reference_terminal_nav_cny": 128008.82,
+          "terminal_nav_cny": 128008.82,
+          "trade_economic_profit_cny": 28008.82
+        },
+        "trades": [
+          {
+            "direction": "buy",
+            "trade_date": "2010-01-13",
+            "quantity": 36700,
+            "price": 2.723,
+            "net_cash_flow": -99964.08
+          }
+        ],
+        "entry_signal_count": 1,
+        "exit_signal_count": 0
+      },
+      "cash": {
+        "metrics": {
+          "cagr_act_365": 0.0,
+          "mdd_loss_fraction": 0.0,
+          "calmar": null,
+          "sharpe": 0.0,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 0,
+          "drawdown_duration_calendar_days": 0,
+          "mean_exposure_fraction": 0.0,
+          "mean_capital_occupancy_fraction": 0.0,
+          "completed_round_trips": 0,
+          "completed_trade_pnl_cny": [],
+          "worst_completed_trade_pnl_cny": null,
+          "best_winner_share": 0.0,
+          "independent_entry_calendar_years": [],
+          "open_trade_count": 0,
+          "open_quantity": 0,
+          "terminal_open_trade_pnl_cny": null,
+          "max_floating_loss_cny": 0.0,
+          "terminal_holding_sessions": 0,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 0.0,
+          "terminal_cash_cny": 100000.0,
+          "terminal_market_value_cny": 0.0,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 100000.0
+        },
+        "terminal_nav_cny": 100000.0,
+        "terminal_cash_cny": 100000.0,
+        "terminal_market_value_cny": 0.0,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 0,
+          "reference_trade_count": 0,
+          "engine_terminal_nav_cny": 100000.0,
+          "reference_terminal_nav_cny": 100000.0,
+          "terminal_nav_cny": 100000.0,
+          "trade_economic_profit_cny": 0.0
+        },
+        "trades": [],
+        "entry_signal_count": 0,
+        "exit_signal_count": 0
+      }
+    },
+    "double_cost": {
+      "strategy": {
+        "metrics": {
+          "cagr_act_365": 0.0406614276113797,
+          "mdd_loss_fraction": 0.32529802305276617,
+          "calmar": 0.12499746303341062,
+          "sharpe": 0.33157826981166616,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 991,
+          "drawdown_duration_calendar_days": 1491,
+          "mean_exposure_fraction": 0.8208600415964703,
+          "mean_capital_occupancy_fraction": 0.9124787514992517,
+          "completed_round_trips": 3,
+          "completed_trade_pnl_cny": [
+            18021.94,
+            12148.92,
+            19602.39
+          ],
+          "worst_completed_trade_pnl_cny": 12148.92,
+          "best_winner_share": 0.393833836448293,
+          "independent_entry_calendar_years": [
+            2010,
+            2015,
+            2018
+          ],
+          "open_trade_count": 1,
+          "open_quantity": 51900,
+          "terminal_open_trade_pnl_cny": 5100.29,
+          "max_floating_loss_cny": 30022.63,
+          "terminal_holding_sessions": 673,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 0.0,
+          "terminal_cash_cny": 12719.44,
+          "terminal_market_value_cny": 142154.1,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 154873.54
+        },
+        "terminal_nav_cny": 154873.54,
+        "terminal_cash_cny": 12719.44,
+        "terminal_market_value_cny": 142154.1,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 7,
+          "reference_trade_count": 7,
+          "engine_terminal_nav_cny": 154873.54,
+          "reference_terminal_nav_cny": 154873.54,
+          "terminal_nav_cny": 154873.54,
+          "trade_economic_profit_cny": 54873.54
+        },
+        "trades": [
+          {
+            "direction": "buy",
+            "trade_date": "2010-04-20",
+            "quantity": 40600,
+            "price": 2.456,
+            "net_cash_flow": -99773.43
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2015-01-06",
+            "quantity": 40600,
+            "price": 2.727,
+            "net_cash_flow": 110649.77
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2015-08-25",
+            "quantity": 48800,
+            "price": 2.413,
+            "net_cash_flow": -117825.05
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2015-09-10",
+            "quantity": 48800,
+            "price": 2.665,
+            "net_cash_flow": 129973.97
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2015-11-30",
+            "quantity": 46400,
+            "price": 2.803,
+            "net_cash_flow": -130137.24
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2017-10-23",
+            "quantity": 46400,
+            "price": 3.088,
+            "net_cash_flow": 143197.23
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2018-03-29",
+            "quantity": 51900,
+            "price": 2.881,
+            "net_cash_flow": -149613.61
+          }
+        ],
+        "entry_signal_count": 25,
+        "exit_signal_count": 3
+      },
+      "buy_hold": {
+        "metrics": {
+          "cagr_act_365": 0.02264948644809639,
+          "mdd_loss_fraction": 0.4367607151796331,
+          "calmar": 0.051857883873051625,
+          "sharpe": 0.2164267235561919,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 1354,
+          "drawdown_duration_calendar_days": 2029,
+          "mean_exposure_fraction": 0.8993261459445433,
+          "mean_capital_occupancy_fraction": 0.8819739872563728,
+          "completed_round_trips": 0,
+          "completed_trade_pnl_cny": [],
+          "worst_completed_trade_pnl_cny": null,
+          "best_winner_share": 0.0,
+          "independent_entry_calendar_years": [
+            2010
+          ],
+          "open_trade_count": 1,
+          "open_quantity": 36600,
+          "terminal_open_trade_pnl_cny": 27865.98,
+          "max_floating_loss_cny": 36879.42,
+          "terminal_holding_sessions": 2667,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 0.0,
+          "terminal_cash_cny": 27618.58,
+          "terminal_market_value_cny": 100247.4,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 127865.98
+        },
+        "terminal_nav_cny": 127865.98,
+        "terminal_cash_cny": 27618.58,
+        "terminal_market_value_cny": 100247.4,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 1,
+          "reference_trade_count": 1,
+          "engine_terminal_nav_cny": 127865.98,
+          "reference_terminal_nav_cny": 127865.98,
+          "terminal_nav_cny": 127865.98,
+          "trade_economic_profit_cny": 27865.98
+        },
+        "trades": [
+          {
+            "direction": "buy",
+            "trade_date": "2010-01-13",
+            "quantity": 36600,
+            "price": 2.724,
+            "net_cash_flow": -99758.22
+          }
+        ],
+        "entry_signal_count": 1,
+        "exit_signal_count": 0
+      },
+      "cash": {
+        "metrics": {
+          "cagr_act_365": 0.0,
+          "mdd_loss_fraction": 0.0,
+          "calmar": null,
+          "sharpe": 0.0,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 0,
+          "drawdown_duration_calendar_days": 0,
+          "mean_exposure_fraction": 0.0,
+          "mean_capital_occupancy_fraction": 0.0,
+          "completed_round_trips": 0,
+          "completed_trade_pnl_cny": [],
+          "worst_completed_trade_pnl_cny": null,
+          "best_winner_share": 0.0,
+          "independent_entry_calendar_years": [],
+          "open_trade_count": 0,
+          "open_quantity": 0,
+          "terminal_open_trade_pnl_cny": null,
+          "max_floating_loss_cny": 0.0,
+          "terminal_holding_sessions": 0,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 0.0,
+          "terminal_cash_cny": 100000.0,
+          "terminal_market_value_cny": 0.0,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 100000.0
+        },
+        "terminal_nav_cny": 100000.0,
+        "terminal_cash_cny": 100000.0,
+        "terminal_market_value_cny": 0.0,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 0,
+          "reference_trade_count": 0,
+          "engine_terminal_nav_cny": 100000.0,
+          "reference_terminal_nav_cny": 100000.0,
+          "terminal_nav_cny": 100000.0,
+          "trade_economic_profit_cny": 0.0
+        },
+        "trades": [],
+        "entry_signal_count": 0,
+        "exit_signal_count": 0
+      }
+    },
+    "cash_yield_3pct": {
+      "strategy": {
+        "metrics": {
+          "cagr_act_365": 0.04620089879358669,
+          "mdd_loss_fraction": 0.32402334150749257,
+          "calmar": 0.14258509457572013,
+          "sharpe": 0.36486226628606894,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 990,
+          "drawdown_duration_calendar_days": 1488,
+          "mean_exposure_fraction": 0.8196732307369348,
+          "mean_capital_occupancy_fraction": 0.944495861319339,
+          "completed_round_trips": 3,
+          "completed_trade_pnl_cny": [
+            18345.25,
+            12750.07,
+            20145.8
+          ],
+          "worst_completed_trade_pnl_cny": 12750.07,
+          "best_winner_share": 0.3931569021129905,
+          "independent_entry_calendar_years": [
+            2010,
+            2015,
+            2018
+          ],
+          "open_trade_count": 1,
+          "open_quantity": 54800,
+          "terminal_open_trade_pnl_cny": 5487.45,
+          "max_floating_loss_cny": 30247.2,
+          "terminal_holding_sessions": 673,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 7437.09,
+          "terminal_cash_cny": 14068.46,
+          "terminal_market_value_cny": 150097.2,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 164165.66
+        },
+        "terminal_nav_cny": 164165.66,
+        "terminal_cash_cny": 14068.46,
+        "terminal_market_value_cny": 150097.2,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 7,
+          "reference_trade_count": 7,
+          "engine_terminal_nav_cny": 164165.66,
+          "reference_terminal_nav_cny": 164165.66,
+          "terminal_nav_cny": 164165.66,
+          "trade_economic_profit_cny": 56728.57
+        },
+        "trades": [
+          {
+            "direction": "buy",
+            "trade_date": "2010-04-20",
+            "quantity": 41000,
+            "price": 2.455,
+            "net_cash_flow": -100685.2
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2015-01-06",
+            "quantity": 41000,
+            "price": 2.728,
+            "net_cash_flow": 111814.45
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2015-08-25",
+            "quantity": 50500,
+            "price": 2.412,
+            "net_cash_flow": -121842.54
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2015-09-10",
+            "quantity": 50500,
+            "price": 2.666,
+            "net_cash_flow": 134592.61
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2015-11-30",
+            "quantity": 48400,
+            "price": 2.802,
+            "net_cash_flow": -135657.49
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2017-10-20",
+            "quantity": 48400,
+            "price": 3.079,
+            "net_cash_flow": 148978.89
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2018-03-29",
+            "quantity": 54800,
+            "price": 2.88,
+            "net_cash_flow": -157871.35
+          }
+        ],
+        "entry_signal_count": 25,
+        "exit_signal_count": 3
+      },
+      "buy_hold": {
+        "metrics": {
+          "cagr_act_365": 0.025558636957583758,
+          "mdd_loss_fraction": 0.4344278439695792,
+          "calmar": 0.058832870204731866,
+          "sharpe": 0.2310610115191937,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 1354,
+          "drawdown_duration_calendar_days": 2029,
+          "mean_exposure_fraction": 0.8935230754837866,
+          "mean_capital_occupancy_fraction": 0.8843837522488767,
+          "completed_round_trips": 0,
+          "completed_trade_pnl_cny": [],
+          "worst_completed_trade_pnl_cny": null,
+          "best_winner_share": 0.0,
+          "independent_entry_calendar_years": [
+            2010
+          ],
+          "open_trade_count": 1,
+          "open_quantity": 36700,
+          "terminal_open_trade_pnl_cny": 28008.82,
+          "max_floating_loss_cny": 36913.48,
+          "terminal_holding_sessions": 2667,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 3906.49,
+          "terminal_cash_cny": 31394.01,
+          "terminal_market_value_cny": 100521.3,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 131915.31
+        },
+        "terminal_nav_cny": 131915.31,
+        "terminal_cash_cny": 31394.01,
+        "terminal_market_value_cny": 100521.3,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 1,
+          "reference_trade_count": 1,
+          "engine_terminal_nav_cny": 131915.31,
+          "reference_terminal_nav_cny": 131915.31,
+          "terminal_nav_cny": 131915.31,
+          "trade_economic_profit_cny": 28008.82
+        },
+        "trades": [
+          {
+            "direction": "buy",
+            "trade_date": "2010-01-13",
+            "quantity": 36700,
+            "price": 2.723,
+            "net_cash_flow": -99964.08
+          }
+        ],
+        "entry_signal_count": 1,
+        "exit_signal_count": 0
+      },
+      "cash": {
+        "metrics": {
+          "cagr_act_365": 0.03045158383068447,
+          "mdd_loss_fraction": 0.0,
+          "calmar": null,
+          "sharpe": 21.037387064973792,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 0,
+          "drawdown_duration_calendar_days": 0,
+          "mean_exposure_fraction": 0.0,
+          "mean_capital_occupancy_fraction": 0.0,
+          "completed_round_trips": 0,
+          "completed_trade_pnl_cny": [],
+          "worst_completed_trade_pnl_cny": null,
+          "best_winner_share": 0.0,
+          "independent_entry_calendar_years": [],
+          "open_trade_count": 0,
+          "open_quantity": 0,
+          "terminal_open_trade_pnl_cny": null,
+          "max_floating_loss_cny": 0.0,
+          "terminal_holding_sessions": 0,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 38989.59,
+          "terminal_cash_cny": 138989.59,
+          "terminal_market_value_cny": 0.0,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 138989.59
+        },
+        "terminal_nav_cny": 138989.59,
+        "terminal_cash_cny": 138989.59,
+        "terminal_market_value_cny": 0.0,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 0,
+          "reference_trade_count": 0,
+          "engine_terminal_nav_cny": 138989.59,
+          "reference_terminal_nav_cny": 138989.59,
+          "terminal_nav_cny": 138989.59,
+          "trade_economic_profit_cny": 0.0
+        },
+        "trades": [],
+        "entry_signal_count": 0,
+        "exit_signal_count": 0
+      }
+    }
+  },
+  "scenario_results": {
+    "primary": {
+      "strategy": {
+        "metrics": {
+          "cagr_act_365": 0.04081168900348375,
+          "mdd_loss_fraction": 0.32584838194832905,
+          "calmar": 0.1252474809279716,
+          "sharpe": 0.33232026326714653,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 991,
+          "drawdown_duration_calendar_days": 1491,
+          "mean_exposure_fraction": 0.8212024069977327,
+          "mean_capital_occupancy_fraction": 0.9139287293853074,
+          "completed_round_trips": 3,
+          "completed_trade_pnl_cny": [
+            18211.01,
+            12346.11,
+            19354.96
+          ],
+          "worst_completed_trade_pnl_cny": 12346.11,
+          "best_winner_share": 0.38778107424094527,
+          "independent_entry_calendar_years": [
+            2010,
+            2015,
+            2018
+          ],
+          "open_trade_count": 1,
+          "open_quantity": 52000,
+          "terminal_open_trade_pnl_cny": 5207.07,
+          "max_floating_loss_cny": 30025.88,
+          "terminal_holding_sessions": 673,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 0.0,
+          "terminal_cash_cny": 12691.15,
+          "terminal_market_value_cny": 142428.0,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 155119.15
+        },
+        "terminal_nav_cny": 155119.15,
+        "terminal_cash_cny": 12691.15,
+        "terminal_market_value_cny": 142428.0,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 7,
+          "reference_trade_count": 7,
+          "engine_terminal_nav_cny": 155119.15,
+          "reference_terminal_nav_cny": 155119.15,
+          "terminal_nav_cny": 155119.15,
+          "trade_economic_profit_cny": 55119.15
+        },
+        "trades": [
+          {
+            "direction": "buy",
+            "trade_date": "2010-04-20",
+            "quantity": 40700,
+            "price": 2.455,
+            "net_cash_flow": -99948.48
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2015-01-06",
+            "quantity": 40700,
+            "price": 2.728,
+            "net_cash_flow": 110996.29
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2015-08-25",
+            "quantity": 48900,
+            "price": 2.412,
+            "net_cash_flow": -117982.18
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2015-09-10",
+            "quantity": 48900,
+            "price": 2.666,
+            "net_cash_flow": 130328.29
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2015-11-30",
+            "quantity": 46500,
+            "price": 2.802,
+            "net_cash_flow": -130332.09
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2017-10-20",
+            "quantity": 46500,
+            "price": 3.079,
+            "net_cash_flow": 143130.55
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2018-03-29",
+            "quantity": 52000,
+            "price": 2.88,
+            "net_cash_flow": -149804.93
+          }
+        ],
+        "entry_signal_count": 25,
+        "exit_signal_count": 3
+      },
+      "buy_hold": {
+        "metrics": {
+          "cagr_act_365": 0.02275352233646899,
+          "mdd_loss_fraction": 0.437317908523024,
+          "calmar": 0.05202970629150683,
+          "sharpe": 0.2169199729655477,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 1354,
+          "drawdown_duration_calendar_days": 2029,
+          "mean_exposure_fraction": 0.9013355174162249,
+          "mean_capital_occupancy_fraction": 0.8843837522488767,
+          "completed_round_trips": 0,
+          "completed_trade_pnl_cny": [],
+          "worst_completed_trade_pnl_cny": null,
+          "best_winner_share": 0.0,
+          "independent_entry_calendar_years": [
+            2010
+          ],
+          "open_trade_count": 1,
+          "open_quantity": 36700,
+          "terminal_open_trade_pnl_cny": 28008.82,
+          "max_floating_loss_cny": 36913.48,
+          "terminal_holding_sessions": 2667,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 0.0,
+          "terminal_cash_cny": 27487.52,
+          "terminal_market_value_cny": 100521.3,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 128008.82
+        },
+        "terminal_nav_cny": 128008.82,
+        "terminal_cash_cny": 27487.52,
+        "terminal_market_value_cny": 100521.3,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 1,
+          "reference_trade_count": 1,
+          "engine_terminal_nav_cny": 128008.82,
+          "reference_terminal_nav_cny": 128008.82,
+          "terminal_nav_cny": 128008.82,
+          "trade_economic_profit_cny": 28008.82
+        },
+        "trades": [
+          {
+            "direction": "buy",
+            "trade_date": "2010-01-13",
+            "quantity": 36700,
+            "price": 2.723,
+            "net_cash_flow": -99964.08
+          }
+        ],
+        "entry_signal_count": 1,
+        "exit_signal_count": 0
+      },
+      "cash": {
+        "metrics": {
+          "cagr_act_365": 0.0,
+          "mdd_loss_fraction": 0.0,
+          "calmar": null,
+          "sharpe": 0.0,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 0,
+          "drawdown_duration_calendar_days": 0,
+          "mean_exposure_fraction": 0.0,
+          "mean_capital_occupancy_fraction": 0.0,
+          "completed_round_trips": 0,
+          "completed_trade_pnl_cny": [],
+          "worst_completed_trade_pnl_cny": null,
+          "best_winner_share": 0.0,
+          "independent_entry_calendar_years": [],
+          "open_trade_count": 0,
+          "open_quantity": 0,
+          "terminal_open_trade_pnl_cny": null,
+          "max_floating_loss_cny": 0.0,
+          "terminal_holding_sessions": 0,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 0.0,
+          "terminal_cash_cny": 100000.0,
+          "terminal_market_value_cny": 0.0,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 100000.0
+        },
+        "terminal_nav_cny": 100000.0,
+        "terminal_cash_cny": 100000.0,
+        "terminal_market_value_cny": 0.0,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 0,
+          "reference_trade_count": 0,
+          "engine_terminal_nav_cny": 100000.0,
+          "reference_terminal_nav_cny": 100000.0,
+          "terminal_nav_cny": 100000.0,
+          "trade_economic_profit_cny": 0.0
+        },
+        "trades": [],
+        "entry_signal_count": 0,
+        "exit_signal_count": 0
+      }
+    },
+    "double_cost": {
+      "strategy": {
+        "metrics": {
+          "cagr_act_365": 0.0406614276113797,
+          "mdd_loss_fraction": 0.32529802305276617,
+          "calmar": 0.12499746303341062,
+          "sharpe": 0.33157826981166616,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 991,
+          "drawdown_duration_calendar_days": 1491,
+          "mean_exposure_fraction": 0.8208600415964703,
+          "mean_capital_occupancy_fraction": 0.9124787514992517,
+          "completed_round_trips": 3,
+          "completed_trade_pnl_cny": [
+            18021.94,
+            12148.92,
+            19602.39
+          ],
+          "worst_completed_trade_pnl_cny": 12148.92,
+          "best_winner_share": 0.393833836448293,
+          "independent_entry_calendar_years": [
+            2010,
+            2015,
+            2018
+          ],
+          "open_trade_count": 1,
+          "open_quantity": 51900,
+          "terminal_open_trade_pnl_cny": 5100.29,
+          "max_floating_loss_cny": 30022.63,
+          "terminal_holding_sessions": 673,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 0.0,
+          "terminal_cash_cny": 12719.44,
+          "terminal_market_value_cny": 142154.1,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 154873.54
+        },
+        "terminal_nav_cny": 154873.54,
+        "terminal_cash_cny": 12719.44,
+        "terminal_market_value_cny": 142154.1,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 7,
+          "reference_trade_count": 7,
+          "engine_terminal_nav_cny": 154873.54,
+          "reference_terminal_nav_cny": 154873.54,
+          "terminal_nav_cny": 154873.54,
+          "trade_economic_profit_cny": 54873.54
+        },
+        "trades": [
+          {
+            "direction": "buy",
+            "trade_date": "2010-04-20",
+            "quantity": 40600,
+            "price": 2.456,
+            "net_cash_flow": -99773.43
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2015-01-06",
+            "quantity": 40600,
+            "price": 2.727,
+            "net_cash_flow": 110649.77
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2015-08-25",
+            "quantity": 48800,
+            "price": 2.413,
+            "net_cash_flow": -117825.05
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2015-09-10",
+            "quantity": 48800,
+            "price": 2.665,
+            "net_cash_flow": 129973.97
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2015-11-30",
+            "quantity": 46400,
+            "price": 2.803,
+            "net_cash_flow": -130137.24
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2017-10-23",
+            "quantity": 46400,
+            "price": 3.088,
+            "net_cash_flow": 143197.23
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2018-03-29",
+            "quantity": 51900,
+            "price": 2.881,
+            "net_cash_flow": -149613.61
+          }
+        ],
+        "entry_signal_count": 25,
+        "exit_signal_count": 3
+      },
+      "buy_hold": {
+        "metrics": {
+          "cagr_act_365": 0.02264948644809639,
+          "mdd_loss_fraction": 0.4367607151796331,
+          "calmar": 0.051857883873051625,
+          "sharpe": 0.2164267235561919,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 1354,
+          "drawdown_duration_calendar_days": 2029,
+          "mean_exposure_fraction": 0.8993261459445433,
+          "mean_capital_occupancy_fraction": 0.8819739872563728,
+          "completed_round_trips": 0,
+          "completed_trade_pnl_cny": [],
+          "worst_completed_trade_pnl_cny": null,
+          "best_winner_share": 0.0,
+          "independent_entry_calendar_years": [
+            2010
+          ],
+          "open_trade_count": 1,
+          "open_quantity": 36600,
+          "terminal_open_trade_pnl_cny": 27865.98,
+          "max_floating_loss_cny": 36879.42,
+          "terminal_holding_sessions": 2667,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 0.0,
+          "terminal_cash_cny": 27618.58,
+          "terminal_market_value_cny": 100247.4,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 127865.98
+        },
+        "terminal_nav_cny": 127865.98,
+        "terminal_cash_cny": 27618.58,
+        "terminal_market_value_cny": 100247.4,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 1,
+          "reference_trade_count": 1,
+          "engine_terminal_nav_cny": 127865.98,
+          "reference_terminal_nav_cny": 127865.98,
+          "terminal_nav_cny": 127865.98,
+          "trade_economic_profit_cny": 27865.98
+        },
+        "trades": [
+          {
+            "direction": "buy",
+            "trade_date": "2010-01-13",
+            "quantity": 36600,
+            "price": 2.724,
+            "net_cash_flow": -99758.22
+          }
+        ],
+        "entry_signal_count": 1,
+        "exit_signal_count": 0
+      },
+      "cash": {
+        "metrics": {
+          "cagr_act_365": 0.0,
+          "mdd_loss_fraction": 0.0,
+          "calmar": null,
+          "sharpe": 0.0,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 0,
+          "drawdown_duration_calendar_days": 0,
+          "mean_exposure_fraction": 0.0,
+          "mean_capital_occupancy_fraction": 0.0,
+          "completed_round_trips": 0,
+          "completed_trade_pnl_cny": [],
+          "worst_completed_trade_pnl_cny": null,
+          "best_winner_share": 0.0,
+          "independent_entry_calendar_years": [],
+          "open_trade_count": 0,
+          "open_quantity": 0,
+          "terminal_open_trade_pnl_cny": null,
+          "max_floating_loss_cny": 0.0,
+          "terminal_holding_sessions": 0,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 0.0,
+          "terminal_cash_cny": 100000.0,
+          "terminal_market_value_cny": 0.0,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 100000.0
+        },
+        "terminal_nav_cny": 100000.0,
+        "terminal_cash_cny": 100000.0,
+        "terminal_market_value_cny": 0.0,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 0,
+          "reference_trade_count": 0,
+          "engine_terminal_nav_cny": 100000.0,
+          "reference_terminal_nav_cny": 100000.0,
+          "terminal_nav_cny": 100000.0,
+          "trade_economic_profit_cny": 0.0
+        },
+        "trades": [],
+        "entry_signal_count": 0,
+        "exit_signal_count": 0
+      }
+    },
+    "cash_yield_3pct": {
+      "strategy": {
+        "metrics": {
+          "cagr_act_365": 0.04620089879358669,
+          "mdd_loss_fraction": 0.32402334150749257,
+          "calmar": 0.14258509457572013,
+          "sharpe": 0.36486226628606894,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 990,
+          "drawdown_duration_calendar_days": 1488,
+          "mean_exposure_fraction": 0.8196732307369348,
+          "mean_capital_occupancy_fraction": 0.944495861319339,
+          "completed_round_trips": 3,
+          "completed_trade_pnl_cny": [
+            18345.25,
+            12750.07,
+            20145.8
+          ],
+          "worst_completed_trade_pnl_cny": 12750.07,
+          "best_winner_share": 0.3931569021129905,
+          "independent_entry_calendar_years": [
+            2010,
+            2015,
+            2018
+          ],
+          "open_trade_count": 1,
+          "open_quantity": 54800,
+          "terminal_open_trade_pnl_cny": 5487.45,
+          "max_floating_loss_cny": 30247.2,
+          "terminal_holding_sessions": 673,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 7437.09,
+          "terminal_cash_cny": 14068.46,
+          "terminal_market_value_cny": 150097.2,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 164165.66
+        },
+        "terminal_nav_cny": 164165.66,
+        "terminal_cash_cny": 14068.46,
+        "terminal_market_value_cny": 150097.2,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 7,
+          "reference_trade_count": 7,
+          "engine_terminal_nav_cny": 164165.66,
+          "reference_terminal_nav_cny": 164165.66,
+          "terminal_nav_cny": 164165.66,
+          "trade_economic_profit_cny": 56728.57
+        },
+        "trades": [
+          {
+            "direction": "buy",
+            "trade_date": "2010-04-20",
+            "quantity": 41000,
+            "price": 2.455,
+            "net_cash_flow": -100685.2
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2015-01-06",
+            "quantity": 41000,
+            "price": 2.728,
+            "net_cash_flow": 111814.45
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2015-08-25",
+            "quantity": 50500,
+            "price": 2.412,
+            "net_cash_flow": -121842.54
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2015-09-10",
+            "quantity": 50500,
+            "price": 2.666,
+            "net_cash_flow": 134592.61
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2015-11-30",
+            "quantity": 48400,
+            "price": 2.802,
+            "net_cash_flow": -135657.49
+          },
+          {
+            "direction": "sell",
+            "trade_date": "2017-10-20",
+            "quantity": 48400,
+            "price": 3.079,
+            "net_cash_flow": 148978.89
+          },
+          {
+            "direction": "buy",
+            "trade_date": "2018-03-29",
+            "quantity": 54800,
+            "price": 2.88,
+            "net_cash_flow": -157871.35
+          }
+        ],
+        "entry_signal_count": 25,
+        "exit_signal_count": 3
+      },
+      "buy_hold": {
+        "metrics": {
+          "cagr_act_365": 0.025558636957583758,
+          "mdd_loss_fraction": 0.4344278439695792,
+          "calmar": 0.058832870204731866,
+          "sharpe": 0.2310610115191937,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 1354,
+          "drawdown_duration_calendar_days": 2029,
+          "mean_exposure_fraction": 0.8935230754837866,
+          "mean_capital_occupancy_fraction": 0.8843837522488767,
+          "completed_round_trips": 0,
+          "completed_trade_pnl_cny": [],
+          "worst_completed_trade_pnl_cny": null,
+          "best_winner_share": 0.0,
+          "independent_entry_calendar_years": [
+            2010
+          ],
+          "open_trade_count": 1,
+          "open_quantity": 36700,
+          "terminal_open_trade_pnl_cny": 28008.82,
+          "max_floating_loss_cny": 36913.48,
+          "terminal_holding_sessions": 2667,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 3906.49,
+          "terminal_cash_cny": 31394.01,
+          "terminal_market_value_cny": 100521.3,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 131915.31
+        },
+        "terminal_nav_cny": 131915.31,
+        "terminal_cash_cny": 31394.01,
+        "terminal_market_value_cny": 100521.3,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 1,
+          "reference_trade_count": 1,
+          "engine_terminal_nav_cny": 131915.31,
+          "reference_terminal_nav_cny": 131915.31,
+          "terminal_nav_cny": 131915.31,
+          "trade_economic_profit_cny": 28008.82
+        },
+        "trades": [
+          {
+            "direction": "buy",
+            "trade_date": "2010-01-13",
+            "quantity": 36700,
+            "price": 2.723,
+            "net_cash_flow": -99964.08
+          }
+        ],
+        "entry_signal_count": 1,
+        "exit_signal_count": 0
+      },
+      "cash": {
+        "metrics": {
+          "cagr_act_365": 0.03045158383068447,
+          "mdd_loss_fraction": 0.0,
+          "calmar": null,
+          "sharpe": 21.037387064973792,
+          "sharpe_risk_free_rate": 0.0,
+          "drawdown_duration_trading_days": 0,
+          "drawdown_duration_calendar_days": 0,
+          "mean_exposure_fraction": 0.0,
+          "mean_capital_occupancy_fraction": 0.0,
+          "completed_round_trips": 0,
+          "completed_trade_pnl_cny": [],
+          "worst_completed_trade_pnl_cny": null,
+          "best_winner_share": 0.0,
+          "independent_entry_calendar_years": [],
+          "open_trade_count": 0,
+          "open_quantity": 0,
+          "terminal_open_trade_pnl_cny": null,
+          "max_floating_loss_cny": 0.0,
+          "terminal_holding_sessions": 0,
+          "unfilled_terminal_orders": 0,
+          "historical_rejected_orders": 0,
+          "cash_interest_income_cny": 38989.59,
+          "terminal_cash_cny": 138989.59,
+          "terminal_market_value_cny": 0.0,
+          "terminal_receivable_cny": 0.0,
+          "terminal_nav_cny": 138989.59
+        },
+        "terminal_nav_cny": 138989.59,
+        "terminal_cash_cny": 138989.59,
+        "terminal_market_value_cny": 0.0,
+        "terminal_receivable_cny": 0.0,
+        "reconciliation": {
+          "status": "passed",
+          "errors": [],
+          "engine_trade_count": 0,
+          "reference_trade_count": 0,
+          "engine_terminal_nav_cny": 138989.59,
+          "reference_terminal_nav_cny": 138989.59,
+          "terminal_nav_cny": 138989.59,
+          "trade_economic_profit_cny": 0.0
+        },
+        "trades": [],
+        "entry_signal_count": 0,
+        "exit_signal_count": 0
+      }
+    }
+  },
+  "scenario_economics": {
+    "primary": {
+      "strategy_cagr_at_least_cash_plus_1pp": true,
+      "buy_hold_rule_a": true,
+      "buy_hold_rule_b": true,
+      "passed": true
+    },
+    "double_cost": {
+      "strategy_cagr_at_least_cash_plus_1pp": true,
+      "buy_hold_rule_a": true,
+      "buy_hold_rule_b": true,
+      "passed": true
+    },
+    "cash_yield_3pct": {
+      "strategy_cagr_at_least_cash_plus_1pp": true,
+      "buy_hold_rule_a": true,
+      "buy_hold_rule_b": true,
+      "passed": true
+    }
+  },
+  "validity_errors": [],
+  "deterministic_verdict": "insufficient_evidence",
+  "scenario_thresholds_pass": true,
+  "trial": {
+    "trial_id": "gate001-b840116400c94e38b1b65ada162f65dd",
+    "attempt_class": "new_research",
+    "market_sample": true,
+    "counts_as_new_research": true,
+    "new_research_count": 1,
+    "technical_rerun_count": 0,
+    "synthetic_validation_count": 3,
+    "formal_authorization_reference": "01a10622-d30d-7f80-b450-27fd97759458: one-time Gate001 formal historical research run authorized by controller",
+    "technical_audit_recorded_under_parent_trial": true
+  },
+  "trial_ledger_written": true,
+  "data_source_provenance": {
+    "market": {
+      "snapshot_id": "snapshot_20261005T002537Z",
+      "manifest_sha256": "c434e25e79736fd58f77a37f5b6d47a0465bafd85dc08d06f6d6482c9eaef9f4",
+      "rows_loaded": 2918,
+      "data_start": "2009-01-05",
+      "data_end": "2020-12-31",
+      "raw_file_hashes": [
+        {
+          "path": "data/alpha_gate_001/snapshot_20261005T002537Z/raw/fund_adj_2009_2014.json",
+          "sha256": "5efda5c00ba1831e7046de998825f088a32944720c3eb7145f68dd6ae95520d1"
+        },
+        {
+          "path": "data/alpha_gate_001/snapshot_20261005T002537Z/raw/fund_adj_2015_2020.json",
+          "sha256": "4d1a0bab989aee9a6a4941a3d6dbaa03fccd1ce94cb4ac485a360a744602e455"
+        },
+        {
+          "path": "data/alpha_gate_001/snapshot_20261005T002537Z/raw/fund_daily_2009_2014.json",
+          "sha256": "407331eda620a738eb2d36882c54c323dc113c93211819871c1034831afeb2fe"
+        },
+        {
+          "path": "data/alpha_gate_001/snapshot_20261005T002537Z/raw/fund_daily_2015_2020.json",
+          "sha256": "64396a488e2545c36271428f3d128cdaa219226904cb5c7536f334bfceb8a6ac"
+        },
+        {
+          "path": "data/alpha_gate_001/snapshot_20261005T002537Z/raw/trade_cal_2009_2014.json",
+          "sha256": "aa878ee27ba71796d73ba396d3ccdf930795d139501ceeea73ac821b8a48695d"
+        },
+        {
+          "path": "data/alpha_gate_001/snapshot_20261005T002537Z/raw/trade_cal_2015_2020.json",
+          "sha256": "6184a7837d02c7d98b515bb12c120e01393a6f855051e751fee4ff0c5dd53312"
+        }
+      ]
+    },
+    "dividends": {
+      "snapshot_id": "fund_div_announcements_20261005T004106Z",
+      "manifest_sha256": "afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68",
+      "announcement_window": [
+        "2009-01-01",
+        "2020-12-31"
+      ],
+      "target_raw_rows": 20,
+      "duplicate_rows": 7,
+      "official_spotcheck_dates": [
+        "2019-01-10",
+        "2020-01-13"
+      ],
+      "evidence_gap": "The raw snapshot is marked raw_unverified; official announcement checks cover only 2019-01-10 and 2020-01-13. They do not establish full-history completeness or independently verify every historical event.",
+      "raw_file_hashes": [
+        {
+          "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20090318.json",
+          "sha256": "AFBB778763F76923ED0482E24263710E549ABF5311A645B13368F5437B23509B"
+        },
+        {
+          "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20091016.json",
+          "sha256": "B195B1A1205457A80BB22CDFA148E03E3E2D75CA4C9DCDCB31B9C9B4708253DF"
+        },
+        {
+          "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20100709.json",
+          "sha256": "69F6B0F8DDF61892EE499BC031D538C4E6A08BA9F82D3D915B1060D8AB3C5486"
+        },
+        {
+          "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20101018.json",
+          "sha256": "A3DABBABBAC0CE9F4B1BC3B7059CF6B78858537ADEF164866D2C04F431962F45"
+        },
+        {
+          "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20111018.json",
+          "sha256": "575E5B3E8BF602E20855B9BA2AF2A6DA17F1B940A7109AEE06792D887AE8D81D"
+        },
+        {
+          "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20121212.json",
+          "sha256": "EEF9D48B8FF57FC8F681DF454C643B9535CF37A6072C54AF6D713E46E2F21052"
+        },
+        {
+          "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20140115.json",
+          "sha256": "93D8A9BCD4B9758F467B6327C7D15D3E4962F83A04CBA429B832EDCD6CCBB036"
+        },
+        {
+          "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20150114.json",
+          "sha256": "ACB5FAFFCAD3312CDD9B42E32B62519B109108E587303F33E8E9ED5C29CCC5E4"
+        },
+        {
+          "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20160114.json",
+          "sha256": "91E209BBDAC692214547B6E1BFE8A9EE6B93E71E67ACB22A4E5E18E9346E6525"
+        },
+        {
+          "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20170117.json",
+          "sha256": "8FF38CAAA7BE8C6C2976806F6E693A0388DB742709B0F704C9EB3503045A2F99"
+        },
+        {
+          "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20180117.json",
+          "sha256": "5203AA28AF9F5122C0982BC27F3B5F83DC5B8F4DF6BDF7F51BB2497775B177B7"
+        },
+        {
+          "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20190110.json",
+          "sha256": "6162909425A0068A5C603D30026004532680C83D8983560D20D6C93C8D2F7DE6"
+        },
+        {
+          "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20200113.json",
+          "sha256": "CC99AB71785C08CDB2A75DFB155A15562FF0019FAEF8CFD7C73ED769F8B9492A"
+        }
+      ]
+    },
+    "window": {
+      "warmup_start": "2009-01-01",
+      "evaluation_start": "2010-01-12",
+      "evaluation_end": "2020-12-31",
+      "date_only_t1_metadata": "2021-01-04",
+      "market_rows_end": "2020-12-31",
+      "date_only_has_bar": false,
+      "holdout_values_used": false,
+      "prior_holdout_access_disclosure": "Date-only dividend announcement metadata through 2026-01-16 was previously accessed; no Holdout dividend amount or performance is used by this protocol.",
+      "boundary_note": "No 2021-2025 prices, factors, returns, or strategy outcomes were included. Dividend loader scope is announcements through 2020-12-31; prior metadata access is disclosed."
+    },
+    "execution_proxy": {
+      "status": "accepted_with_research_proxy_limitations",
+      "accepted_source_years": [
+        2004,
+        2006,
+        2012
+      ],
+      "proxy": "Use the sourced daily first actually executable daily open with its declared limit; retry a blocked order on later research-window sessions using only that session's observed evidence.",
+      "limitations": [
+        "Daily bars establish an observed open, not opening-auction queue priority or guaranteed fill.",
+        "Intraday suspensions or halts not reflected in the pinned daily source remain unavailable.",
+        "The accepted rule is a research execution proxy and does not claim the user's broker-specific outcome."
+      ],
+      "controller_source_ruling": "codex://threads/01a10622-d30d-7f80-b450-27fd97759458"
+    }
+  },
+  "trade_audit": {
+    "status": "passed",
+    "parent_trial_id": "gate001-b840116400c94e38b1b65ada162f65dd",
+    "scope": "Same formal trial captured engine/reference objects; no second backtest.",
+    "completed_round_trips": 3,
+    "reviewed_transaction_count": 5,
+    "reviewed_transactions": [
+      {
+        "trade_sequence": 1,
+        "review_reason": "首笔成交",
+        "direction": "buy",
+        "signal": {
+          "signal_date": "2010-04-19",
+          "bar_available": true,
+          "raw_close_cny": "2.453",
+          "adjusted_close_cny": "2.5052489",
+          "previous_adjusted_close_cny": "2.6318901",
+          "previous_ma250": "2.5732883256",
+          "signal_day_ma250": "2.5750934944",
+          "ma250_down_cross": true
+        },
+        "fill": {
+          "intended_date": "2010-04-20",
+          "actual_date": "2010-04-20",
+          "delay_sessions": 0,
+          "price_cny": "2.455",
+          "quantity": 40700,
+          "gross_cny": "99918.50",
+          "commission_cny": "29.98",
+          "stamp_duty_cny": "0.00",
+          "transfer_fee_cny": "0.00",
+          "total_fee_cny": "29.98",
+          "net_cash_flow_cny": "-99948.48",
+          "engine_reference_trade_match": true
+        },
+        "cycle_dividends": [
+          {
+            "ann_date": "2010-07-09",
+            "record_date": "2010-07-14",
+            "ex_date": "2010-07-15",
+            "pay_date": "2010-07-21",
+            "quantity_at_record": 40700,
+            "dividend_cny": "814.00",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20100709.json|raw_sha256=69f6b0f8ddf61892ee499bc031d538c4e6a08ba9f82d3d915b1060d8ab3c5486|row=0"
+          },
+          {
+            "ann_date": "2010-07-09",
+            "record_date": "2010-07-14",
+            "ex_date": "2010-07-15",
+            "pay_date": "2010-07-21",
+            "quantity_at_record": 40700,
+            "dividend_cny": "814.00",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20100709.json|raw_sha256=69f6b0f8ddf61892ee499bc031d538c4e6a08ba9f82d3d915b1060d8ab3c5486|row=1"
+          },
+          {
+            "ann_date": "2010-10-18",
+            "record_date": "2010-10-21",
+            "ex_date": "2010-10-22",
+            "pay_date": "2010-10-28",
+            "quantity_at_record": 40700,
+            "dividend_cny": "854.70",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20101018.json|raw_sha256=a3dabbabbac0ce9f4b1bc3b7059cf6b78858537adef164866d2c04f431962f45|row=0"
+          },
+          {
+            "ann_date": "2010-10-18",
+            "record_date": "2010-10-21",
+            "ex_date": "2010-10-22",
+            "pay_date": "2010-10-28",
+            "quantity_at_record": 40700,
+            "dividend_cny": "854.70",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20101018.json|raw_sha256=a3dabbabbac0ce9f4b1bc3b7059cf6b78858537adef164866d2c04f431962f45|row=1"
+          },
+          {
+            "ann_date": "2011-10-18",
+            "record_date": "2011-10-21",
+            "ex_date": "2011-10-24",
+            "pay_date": "2011-10-28",
+            "quantity_at_record": 40700,
+            "dividend_cny": "1424.50",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20111018.json|raw_sha256=575e5b3e8bf602e20855b9ba2af2a6da17f1b940a7109aee06792d887ae8d81d|row=0"
+          },
+          {
+            "ann_date": "2012-12-12",
+            "record_date": "2012-12-17",
+            "ex_date": "2012-12-18",
+            "pay_date": "2012-12-24",
+            "quantity_at_record": 40700,
+            "dividend_cny": "1668.70",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20121212.json|raw_sha256=eef9d48b8ff57fc8f681df454c643b9535cf37a6072c54af6d713e46e2f21052|row=0"
+          },
+          {
+            "ann_date": "2014-01-15",
+            "record_date": "2014-01-20",
+            "ex_date": "2014-01-21",
+            "pay_date": "2014-01-27",
+            "quantity_at_record": 40700,
+            "dividend_cny": "2401.30",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20140115.json|raw_sha256=93d8a9bcd4b9758f467b6327c7d15d3e4962f83a04cba429b832edcd6ccbb036|row=0"
+          },
+          {
+            "ann_date": "2014-01-15",
+            "record_date": "2014-01-20",
+            "ex_date": "2014-01-21",
+            "pay_date": "2014-01-27",
+            "quantity_at_record": 40700,
+            "dividend_cny": "2401.30",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20140115.json|raw_sha256=93d8a9bcd4b9758f467b6327c7d15d3e4962f83a04cba429b832edcd6ccbb036|row=1"
+          }
+        ],
+        "cycle_economic_pnl_cny": "18211.01",
+        "open_cycle_terminal_pnl_cny": null,
+        "eod_account_reconciliation": {
+          "date": "2010-04-20",
+          "engine_cash_cny": "51.52",
+          "reference_cash_cny": "51.52",
+          "engine_market_value_cny": "99552.2",
+          "reference_market_value_cny": "99552.20",
+          "engine_receivable_cny": "0.00",
+          "reference_receivable_cny": "0.00",
+          "engine_nav_cny": "99603.72",
+          "reference_nav_cny": "99603.72",
+          "all_fields_match": true
+        }
+      },
+      {
+        "trade_sequence": 2,
+        "review_reason": "分红周期卖出",
+        "direction": "sell",
+        "signal": {
+          "signal_date": "2015-01-05",
+          "bar_available": true,
+          "raw_close_cny": "2.746",
+          "adjusted_close_cny": "3.087877",
+          "previous_adjusted_close_cny": "2.9518125",
+          "previous_ma250": "2.018527764",
+          "signal_day_ma250": "2.023386664",
+          "ma250_down_cross": false
+        },
+        "fill": {
+          "intended_date": "2015-01-06",
+          "actual_date": "2015-01-06",
+          "delay_sessions": 0,
+          "price_cny": "2.728",
+          "quantity": 40700,
+          "gross_cny": "111029.60",
+          "commission_cny": "33.31",
+          "stamp_duty_cny": "0.00",
+          "transfer_fee_cny": "0.00",
+          "total_fee_cny": "33.31",
+          "net_cash_flow_cny": "110996.29",
+          "engine_reference_trade_match": true
+        },
+        "cycle_dividends": [
+          {
+            "ann_date": "2010-07-09",
+            "record_date": "2010-07-14",
+            "ex_date": "2010-07-15",
+            "pay_date": "2010-07-21",
+            "quantity_at_record": 40700,
+            "dividend_cny": "814.00",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20100709.json|raw_sha256=69f6b0f8ddf61892ee499bc031d538c4e6a08ba9f82d3d915b1060d8ab3c5486|row=0"
+          },
+          {
+            "ann_date": "2010-07-09",
+            "record_date": "2010-07-14",
+            "ex_date": "2010-07-15",
+            "pay_date": "2010-07-21",
+            "quantity_at_record": 40700,
+            "dividend_cny": "814.00",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20100709.json|raw_sha256=69f6b0f8ddf61892ee499bc031d538c4e6a08ba9f82d3d915b1060d8ab3c5486|row=1"
+          },
+          {
+            "ann_date": "2010-10-18",
+            "record_date": "2010-10-21",
+            "ex_date": "2010-10-22",
+            "pay_date": "2010-10-28",
+            "quantity_at_record": 40700,
+            "dividend_cny": "854.70",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20101018.json|raw_sha256=a3dabbabbac0ce9f4b1bc3b7059cf6b78858537adef164866d2c04f431962f45|row=0"
+          },
+          {
+            "ann_date": "2010-10-18",
+            "record_date": "2010-10-21",
+            "ex_date": "2010-10-22",
+            "pay_date": "2010-10-28",
+            "quantity_at_record": 40700,
+            "dividend_cny": "854.70",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20101018.json|raw_sha256=a3dabbabbac0ce9f4b1bc3b7059cf6b78858537adef164866d2c04f431962f45|row=1"
+          },
+          {
+            "ann_date": "2011-10-18",
+            "record_date": "2011-10-21",
+            "ex_date": "2011-10-24",
+            "pay_date": "2011-10-28",
+            "quantity_at_record": 40700,
+            "dividend_cny": "1424.50",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20111018.json|raw_sha256=575e5b3e8bf602e20855b9ba2af2a6da17f1b940a7109aee06792d887ae8d81d|row=0"
+          },
+          {
+            "ann_date": "2012-12-12",
+            "record_date": "2012-12-17",
+            "ex_date": "2012-12-18",
+            "pay_date": "2012-12-24",
+            "quantity_at_record": 40700,
+            "dividend_cny": "1668.70",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20121212.json|raw_sha256=eef9d48b8ff57fc8f681df454c643b9535cf37a6072c54af6d713e46e2f21052|row=0"
+          },
+          {
+            "ann_date": "2014-01-15",
+            "record_date": "2014-01-20",
+            "ex_date": "2014-01-21",
+            "pay_date": "2014-01-27",
+            "quantity_at_record": 40700,
+            "dividend_cny": "2401.30",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20140115.json|raw_sha256=93d8a9bcd4b9758f467b6327c7d15d3e4962f83a04cba429b832edcd6ccbb036|row=0"
+          },
+          {
+            "ann_date": "2014-01-15",
+            "record_date": "2014-01-20",
+            "ex_date": "2014-01-21",
+            "pay_date": "2014-01-27",
+            "quantity_at_record": 40700,
+            "dividend_cny": "2401.30",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20140115.json|raw_sha256=93d8a9bcd4b9758f467b6327c7d15d3e4962f83a04cba429b832edcd6ccbb036|row=1"
+          }
+        ],
+        "cycle_economic_pnl_cny": "18211.01",
+        "open_cycle_terminal_pnl_cny": null,
+        "eod_account_reconciliation": {
+          "date": "2015-01-06",
+          "engine_cash_cny": "118211.01",
+          "reference_cash_cny": "118211.01",
+          "engine_market_value_cny": "0.0",
+          "reference_market_value_cny": "0.00",
+          "engine_receivable_cny": "0.00",
+          "reference_receivable_cny": "0.00",
+          "engine_nav_cny": "118211.01",
+          "reference_nav_cny": "118211.01",
+          "all_fields_match": true
+        }
+      },
+      {
+        "trade_sequence": 3,
+        "review_reason": "补足审计样本",
+        "direction": "buy",
+        "signal": {
+          "signal_date": "2015-08-24",
+          "bar_available": true,
+          "raw_close_cny": "2.591",
+          "adjusted_close_cny": "3.0120375",
+          "previous_adjusted_close_cny": "3.3468375",
+          "previous_ma250": "3.111572004",
+          "signal_day_ma250": "3.115433794",
+          "ma250_down_cross": true
+        },
+        "fill": {
+          "intended_date": "2015-08-25",
+          "actual_date": "2015-08-25",
+          "delay_sessions": 0,
+          "price_cny": "2.412",
+          "quantity": 48900,
+          "gross_cny": "117946.80",
+          "commission_cny": "35.38",
+          "stamp_duty_cny": "0.00",
+          "transfer_fee_cny": "0.00",
+          "total_fee_cny": "35.38",
+          "net_cash_flow_cny": "-117982.18",
+          "engine_reference_trade_match": true
+        },
+        "cycle_dividends": [],
+        "cycle_economic_pnl_cny": "12346.11",
+        "open_cycle_terminal_pnl_cny": null,
+        "eod_account_reconciliation": {
+          "date": "2015-08-25",
+          "engine_cash_cny": "228.83",
+          "reference_cash_cny": "228.83",
+          "engine_market_value_cny": "115110.6",
+          "reference_market_value_cny": "115110.60",
+          "engine_receivable_cny": "0.00",
+          "reference_receivable_cny": "0.00",
+          "engine_nav_cny": "115339.43",
+          "reference_nav_cny": "115339.43",
+          "all_fields_match": true
+        }
+      },
+      {
+        "trade_sequence": 4,
+        "review_reason": "最差完成周期",
+        "direction": "sell",
+        "signal": {
+          "signal_date": "2015-09-09",
+          "bar_available": true,
+          "raw_close_cny": "2.7",
+          "adjusted_close_cny": "3.13875",
+          "previous_adjusted_close_cny": "3.0748125",
+          "previous_ma250": "3.149413106",
+          "signal_day_ma250": "3.1538852",
+          "ma250_down_cross": false
+        },
+        "fill": {
+          "intended_date": "2015-09-10",
+          "actual_date": "2015-09-10",
+          "delay_sessions": 0,
+          "price_cny": "2.666",
+          "quantity": 48900,
+          "gross_cny": "130367.40",
+          "commission_cny": "39.11",
+          "stamp_duty_cny": "0.00",
+          "transfer_fee_cny": "0.00",
+          "total_fee_cny": "39.11",
+          "net_cash_flow_cny": "130328.29",
+          "engine_reference_trade_match": true
+        },
+        "cycle_dividends": [],
+        "cycle_economic_pnl_cny": "12346.11",
+        "open_cycle_terminal_pnl_cny": null,
+        "eod_account_reconciliation": {
+          "date": "2015-09-10",
+          "engine_cash_cny": "130557.12",
+          "reference_cash_cny": "130557.12",
+          "engine_market_value_cny": "0.0",
+          "reference_market_value_cny": "0.00",
+          "engine_receivable_cny": "0.00",
+          "reference_receivable_cny": "0.00",
+          "engine_nav_cny": "130557.12",
+          "reference_nav_cny": "130557.12",
+          "all_fields_match": true
+        }
+      },
+      {
+        "trade_sequence": 7,
+        "review_reason": "期末未平仓",
+        "direction": "buy",
+        "signal": {
+          "signal_date": "2018-03-28",
+          "bar_available": true,
+          "raw_close_cny": "2.877",
+          "adjusted_close_cny": "3.6503376",
+          "previous_adjusted_close_cny": "3.6960144",
+          "previous_ma250": "3.6881239616",
+          "signal_day_ma250": "3.6892948352",
+          "ma250_down_cross": true
+        },
+        "fill": {
+          "intended_date": "2018-03-29",
+          "actual_date": "2018-03-29",
+          "delay_sessions": 0,
+          "price_cny": "2.880",
+          "quantity": 52000,
+          "gross_cny": "149760.00",
+          "commission_cny": "44.93",
+          "stamp_duty_cny": "0.00",
+          "transfer_fee_cny": "0.00",
+          "total_fee_cny": "44.93",
+          "net_cash_flow_cny": "-149804.93",
+          "engine_reference_trade_match": true
+        },
+        "cycle_dividends": [
+          {
+            "ann_date": "2019-01-10",
+            "record_date": "2019-01-15",
+            "ex_date": "2019-01-16",
+            "pay_date": "2019-01-21",
+            "quantity_at_record": 52000,
+            "dividend_cny": "5096.00",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20190110.json|raw_sha256=6162909425a0068a5c603d30026004532680c83d8983560d20d6c93c8d2f7de6|row=0"
+          },
+          {
+            "ann_date": "2019-01-10",
+            "record_date": "2019-01-15",
+            "ex_date": "2019-01-16",
+            "pay_date": "2019-01-21",
+            "quantity_at_record": 52000,
+            "dividend_cny": "5096.00",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20190110.json|raw_sha256=6162909425a0068a5c603d30026004532680c83d8983560d20d6c93c8d2f7de6|row=1"
+          },
+          {
+            "ann_date": "2020-01-13",
+            "record_date": "2020-01-16",
+            "ex_date": "2020-01-17",
+            "pay_date": "2020-01-22",
+            "quantity_at_record": 52000,
+            "dividend_cny": "7488.00",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20200113.json|raw_sha256=cc99ab71785c08cdb2a75dfb155a15562ff0019faef8cfd7c73ed769f8b9492a|row=0"
+          },
+          {
+            "ann_date": "2020-01-13",
+            "record_date": "2020-01-16",
+            "ex_date": "2020-01-17",
+            "pay_date": "2020-01-22",
+            "quantity_at_record": 52000,
+            "dividend_cny": "7488.00",
+            "source_ref": "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20200113.json|raw_sha256=cc99ab71785c08cdb2a75dfb155a15562ff0019faef8cfd7c73ed769f8b9492a|row=1"
+          }
+        ],
+        "cycle_economic_pnl_cny": "5207.07",
+        "open_cycle_terminal_pnl_cny": "5207.07",
+        "eod_account_reconciliation": {
+          "date": "2018-03-29",
+          "engine_cash_cny": "107.15",
+          "reference_cash_cny": "107.15",
+          "engine_market_value_cny": "152256.0",
+          "reference_market_value_cny": "152256.00",
+          "engine_receivable_cny": "0.00",
+          "reference_receivable_cny": "0.00",
+          "engine_nav_cny": "152363.15",
+          "reference_nav_cny": "152363.15",
+          "all_fields_match": true
+        }
+      }
+    ],
+    "terminal_open_trade_count": 1,
+    "terminal_open_quantity": 52000,
+    "terminal_open_pnl_cny": "5207.07",
+    "maximum_floating_loss_cny": "30025.88",
+    "terminal_receivable_cny": "0.00",
+    "all_sample_trade_and_eod_fields_match": true
+  },
+  "verdict_interpretation": "worth_continuing means eligible only for further verification; it does not mean qualified, prove alpha, or authorize live trading."
+}

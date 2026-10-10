@@ -8,8 +8,9 @@ Protects B4 boundaries by checking production code files for forbidden imports/k
 - No modification of B3 frozen objects
 """
 import ast
+import hashlib
+import tempfile
 import unittest
-import subprocess
 from pathlib import Path
 
 
@@ -317,53 +318,109 @@ class TestB4DoesNotImportPrototypeGate(unittest.TestCase):
             self.fail("B4 must not import prototype_gate:\n" + "\n".join(violations))
 
 
-class TestB4ForbiddenFilesUnchangedByGitDiffHelper(unittest.TestCase):
-    """Git diff helper: forbidden files not modified."""
-    
-    def test_b4_forbidden_files_unchanged_by_git_diff_helper(self):
-        """Forbidden files must not appear in git diff."""
-        project_root = Path(__file__).parent.parent
-        
-        try:
-            # Check staged changes
-            result_staged = subprocess.run(
-                ["git", "diff", "--cached", "--name-only"],
-                cwd=project_root,
-                capture_output=True,
-                text=True,
-                timeout=5,
+def _file_fingerprint(path: Path) -> tuple[int, int, str]:
+    data = path.read_bytes()
+    stat = path.stat()
+    return stat.st_size, stat.st_mtime_ns, hashlib.sha256(data).hexdigest()
+
+
+def _tree_fingerprint(root: Path) -> dict[str, tuple[int, int, str]]:
+    if not root.exists():
+        return {}
+    return {
+        str(path.relative_to(root)): _file_fingerprint(path)
+        for path in sorted(root.rglob("*"))
+        if path.is_file()
+    }
+
+
+class TestB4ProtectedFilesUnchangedByTempRunner(unittest.TestCase):
+    """The real B4 temp writer must preserve protected repository inputs."""
+
+    def test_b4_temp_runner_preserves_inputs_and_writes_only_temp(self):
+        project_root = Path(__file__).parent.parent.resolve()
+        protected = {
+            project_root / relative_path: _file_fingerprint(project_root / relative_path)
+            for relative_path in FORBIDDEN_FILES[2:6]
+        }
+        source_dirs = (
+            project_root / "data/pit/v3_b4_is_results",
+            project_root / "data/pit/v3_execution_semantics_supplements",
+        )
+        source_before = {path: _tree_fingerprint(path) for path in source_dirs}
+
+        from scripts.publish_v3_execution_semantics import publish_v3_execution_semantics
+        from scripts.run_v3_b4_is_once import run_v3_b4_is_once
+        from tests.test_run_v3_b4_is_once import _fixture_data
+
+        with tempfile.TemporaryDirectory() as raw_tmp:
+            temp_root = Path(raw_tmp)
+            supplement = publish_v3_execution_semantics(
+                output_root=temp_root / "supplements"
             )
-            
-            # Check unstaged changes
-            result_unstaged = subprocess.run(
-                ["git", "diff", "--name-only"],
-                cwd=project_root,
-                capture_output=True,
-                text=True,
-                timeout=5,
+            result = run_v3_b4_is_once(
+                repo_root=project_root,
+                output_root=temp_root / "b4-results",
+                audit_path=temp_root / "audit.json",
+                data_source=_fixture_data(),
+                supplement_dir=Path(supplement["path"]),
             )
-            
-            changed_files = set()
-            if result_staged.returncode == 0:
-                changed_files.update(result_staged.stdout.strip().split("\n"))
-            if result_unstaged.returncode == 0:
-                changed_files.update(result_unstaged.stdout.strip().split("\n"))
-            
-            # Filter out empty strings
-            changed_files = {f for f in changed_files if f}
-            
-            # Check if any forbidden file is modified
-            violations = []
-            for forbidden_file in FORBIDDEN_FILES:
-                if forbidden_file in changed_files:
-                    violations.append(f"Forbidden file modified: {forbidden_file}")
-            
-            if violations:
-                self.fail("Forbidden files modified:\n" + "\n".join(violations))
-        
-        except (subprocess.TimeoutExpired, FileNotFoundError):
-            # Git not available or timeout - skip this test
-            self.skipTest("Git not available")
+
+            artifact_path = Path(result["path"]).resolve()
+            self.assertTrue(artifact_path.is_relative_to(temp_root / "b4-results"))
+            self.assertEqual(result["status"], "published")
+            self.assertEqual(result["read_audit"]["oos_read_count"], 0)
+            self.assertEqual(
+                {
+                    path.relative_to(artifact_path).as_posix()
+                    for path in artifact_path.rglob("*")
+                    if path.is_file()
+                },
+                {
+                    "manifest.json",
+                    "manifest.json.sha256",
+                    "event_result.json",
+                    "event_result.json.sha256",
+                },
+            )
+            self.assertTrue((temp_root / "audit.json").is_file())
+            self.assertTrue(
+                all(
+                    path.is_relative_to(temp_root)
+                    for path in (artifact_path, Path(supplement["path"]).resolve(), temp_root / "audit.json")
+                )
+            )
+
+        self.assertEqual(
+            protected,
+            {
+                path: _file_fingerprint(path)
+                for path in protected
+            },
+        )
+        self.assertEqual(
+            source_before,
+            {path: _tree_fingerprint(path) for path in source_dirs},
+        )
+
+    def test_compatibility_module_has_no_process_invocation(self):
+        tree = ast.parse(Path(__file__).read_text(encoding="utf-8"))
+        imported_modules = {
+            alias.name
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Import)
+            for alias in node.names
+        }
+        self.assertNotIn("subprocess", imported_modules)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom):
+                self.assertNotEqual(node.module, "subprocess")
+            if isinstance(node, ast.Call):
+                self.assertFalse(
+                    isinstance(node.func, ast.Attribute)
+                    and isinstance(node.func.value, ast.Name)
+                    and node.func.value.id == "subprocess"
+                )
 
 
 class TestB4HasNoSignalBoardDependency(unittest.TestCase):

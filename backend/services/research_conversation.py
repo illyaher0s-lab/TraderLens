@@ -189,8 +189,8 @@ Important constraints:
                 tools=tools,
                 max_tokens=4096,
             )
-        except Exception as e:
-            return f"LLM API error: {str(e)}", []
+        except Exception:
+            return "LLM API error: llm_provider_call_failed", []
 
         # Process response
         agent_text_parts = []
@@ -286,8 +286,10 @@ Important constraints:
                             proposed_actions.append(action)
                             self.db.store_proposed_action(action)
                 
-            except Exception as e:
-                agent_text_parts.append(f"\n(Error getting final response: {str(e)})")
+            except Exception:
+                agent_text_parts.append(
+                    "\n(Error getting final response: llm_provider_call_failed)"
+                )
 
         agent_content = "\n".join(agent_text_parts) if agent_text_parts else "我理解了你的消息。"
         return agent_content, proposed_actions

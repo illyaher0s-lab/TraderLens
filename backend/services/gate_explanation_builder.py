@@ -81,6 +81,18 @@ class GateExplanationBuilder:
             Plain summary text
         """
         verdict = gate_result.verdict
+        same_draw_result = None
+        read_audit_verified = False
+        try:
+            import json
+
+            checks = json.loads(gate_result.checks_json)
+            candidate = checks.get("same_draw_result")
+            if isinstance(candidate, dict):
+                same_draw_result = candidate
+            read_audit_verified = checks.get("same_draw_read_audit_verified") is True
+        except (json.JSONDecodeError, AttributeError):
+            same_draw_result = None
         
         if verdict == "rejected":
             # Summarize blocking issues
@@ -115,6 +127,28 @@ class GateExplanationBuilder:
         else:
             summary = f"Gate verdict: {verdict}"
         
+        if same_draw_result is not None:
+            summary += (
+                " Same-draw results show strategy net return "
+                f"base={same_draw_result['strategy_net_return_base']}, "
+                f"stress={same_draw_result['strategy_net_return_stress']}; "
+                "market benchmark net return "
+                f"base={same_draw_result['benchmark_net_return_base']}, "
+                f"stress={same_draw_result['benchmark_net_return_stress']}; "
+                "same-universe control return "
+                f"base={same_draw_result['same_universe_control_return_base']}, "
+                f"stress={same_draw_result['same_universe_control_return_stress']}. "
+                "Arithmetic excess Alpha vs benchmark is "
+                f"base={same_draw_result['alpha_vs_benchmark_base']}, "
+                f"stress={same_draw_result['alpha_vs_benchmark_stress']}; "
+                "vs control is "
+                f"base={same_draw_result['alpha_vs_control_base']}, "
+                f"stress={same_draw_result['alpha_vs_control_stress']}. "
+                "These are arithmetic excess measures, not causal attribution."
+            )
+            if read_audit_verified:
+                summary += " Read audit verified for the same-draw execution envelope."
+
         return summary
     
     def _extract_evidence_references(self, gate_result: PrototypeGateResultV2) -> tuple[str, ...]:

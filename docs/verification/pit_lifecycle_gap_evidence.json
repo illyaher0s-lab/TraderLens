@@ -1,0 +1,152 @@
+{
+  "status": "lifecycle_source_incomplete",
+  "checked_trade_days": 2554,
+  "unique_gap_codes": 3,
+  "total_gap_stock_days": 3653,
+  "gap_codes": [
+    {
+      "ts_code": "300114.SZ",
+      "total_days": 2203,
+      "first_date": "20160104",
+      "last_date": "20250214",
+      "intervals": [
+        {
+          "start": "20160104",
+          "end": "20230111",
+          "trading_days": 1710
+        },
+        {
+          "start": "20230202",
+          "end": "20250214",
+          "trading_days": 493
+        }
+      ],
+      "in_namechange": false,
+      "in_stock_st": false
+    },
+    {
+      "ts_code": "000043.SZ",
+      "total_days": 883,
+      "first_date": "20160104",
+      "last_date": "20191213",
+      "intervals": [
+        {
+          "start": "20160104",
+          "end": "20160706",
+          "trading_days": 124
+        },
+        {
+          "start": "20161021",
+          "end": "20190412",
+          "trading_days": 605
+        },
+        {
+          "start": "20190429",
+          "end": "20191021",
+          "trading_days": 116
+        },
+        {
+          "start": "20191023",
+          "end": "20191213",
+          "trading_days": 38
+        }
+      ],
+      "in_namechange": false,
+      "in_stock_st": false
+    },
+    {
+      "ts_code": "000022.SZ",
+      "total_days": 567,
+      "first_date": "20160104",
+      "last_date": "20181220",
+      "intervals": [
+        {
+          "start": "20160104",
+          "end": "20171117",
+          "trading_days": 458
+        },
+        {
+          "start": "20180710",
+          "end": "20180927",
+          "trading_days": 57
+        },
+        {
+          "start": "20181010",
+          "end": "20181220",
+          "trading_days": 52
+        }
+      ],
+      "in_namechange": false,
+      "in_stock_st": false
+    }
+  ],
+  "native_stock_basic_probe": {
+    "attempted_statuses": [
+      "L",
+      "D",
+      "P"
+    ],
+    "requested_fields": [
+      "ts_code",
+      "symbol",
+      "name",
+      "market",
+      "exchange",
+      "list_status",
+      "list_date",
+      "delist_date"
+    ],
+    "results": [
+      {
+        "list_status": "L",
+        "row_count": 5530,
+        "fields": [
+          "ts_code",
+          "symbol",
+          "name",
+          "market",
+          "exchange",
+          "list_status",
+          "list_date",
+          "delist_date"
+        ],
+        "found_gap_codes": [],
+        "error_type": null
+      },
+      {
+        "list_status": "D",
+        "row_count": 335,
+        "fields": [
+          "ts_code",
+          "symbol",
+          "name",
+          "market",
+          "exchange",
+          "list_status",
+          "list_date",
+          "delist_date"
+        ],
+        "found_gap_codes": [],
+        "error_type": null
+      },
+      {
+        "list_status": "P",
+        "row_count": 0,
+        "fields": [
+          "ts_code",
+          "symbol",
+          "name",
+          "market",
+          "exchange",
+          "list_status",
+          "list_date",
+          "delist_date"
+        ],
+        "found_gap_codes": [],
+        "error_type": null
+      }
+    ],
+    "found_gap_codes": []
+  },
+  "formal_qualification_run": false
+}

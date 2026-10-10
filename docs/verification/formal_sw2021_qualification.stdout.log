@@ -1,0 +1,31 @@
+[qualification] 100/2554 days elapsed=4.2s
+[qualification] 200/2554 days elapsed=9.4s
+[qualification] 300/2554 days elapsed=14.6s
+[qualification] 400/2554 days elapsed=19.2s
+[qualification] 500/2554 days elapsed=24.7s
+[qualification] 600/2554 days elapsed=29.7s
+[qualification] 700/2554 days elapsed=35.0s
+[qualification] 800/2554 days elapsed=40.3s
+[qualification] 900/2554 days elapsed=45.7s
+[qualification] 1000/2554 days elapsed=51.0s
+[qualification] 1100/2554 days elapsed=56.3s
+[qualification] 1200/2554 days elapsed=62.1s
+[qualification] 1300/2554 days elapsed=68.4s
+[qualification] 1400/2554 days elapsed=75.0s
+[qualification] 1500/2554 days elapsed=82.4s
+[qualification] 1600/2554 days elapsed=89.3s
+[qualification] 1700/2554 days elapsed=95.4s
+[qualification] 1800/2554 days elapsed=102.3s
+[qualification] 1900/2554 days elapsed=108.5s
+[qualification] 2000/2554 days elapsed=115.7s
+[qualification] 2100/2554 days elapsed=122.8s
+[qualification] 2200/2554 days elapsed=129.7s
+[qualification] 2300/2554 days elapsed=136.1s
+[qualification] 2400/2554 days elapsed=143.6s
+[qualification] 2500/2554 days elapsed=151.4s
+{
+  "status": "not_qualified",
+  "checked_trade_days": 2554,
+  "blocking_gap_count": 1519,
+  "first_gap": "20160104: stk_limit missing 1 expected codes"
+}

@@ -43,7 +43,7 @@ class TushareClient:
         
         # Initialize Tushare pro API
         token = config.ensure_token()
-        self.pro = ts.pro_api(token)
+        self.pro = ts.pro_api(token, timeout=config.request_timeout_seconds)
         self.pro._DataApi__http_url = config.api_url
         
         # Rate limiting state
@@ -100,7 +100,10 @@ class TushareClient:
         
         for attempt in range(self.config.retry_attempts):
             try:
-                df = self.pro.query(api_name, fields=fields, **kwargs)
+                query_kwargs = dict(kwargs)
+                if fields is not None:
+                    query_kwargs["fields"] = fields
+                df = self.pro.query(api_name, **query_kwargs)
                 
                 # Tushare returns DataFrame, check if empty or error
                 if df is None:

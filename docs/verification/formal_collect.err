@@ -1,0 +1,4 @@
+usage: verify_gate0_data_feasibility.py [-h]
+                                        {collect,merge,probe,formal-plan,formal-dryrun}
+                                        ...
+verify_gate0_data_feasibility.py: error: argument command: invalid choice: 'formal-collect' (choose from 'collect', 'merge', 'probe', 'formal-plan', 'formal-dryrun')

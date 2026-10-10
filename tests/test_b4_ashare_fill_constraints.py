@@ -219,6 +219,24 @@ class TestB4AshareFillConstraints(unittest.TestCase):
         
         self.assertEqual(filled_sell.status, "rejected")
         self.assertEqual(filled_sell.rejection_reason, "suspended")
+
+    def test_suspended_status_without_bar_rejects_before_bar_read(self):
+        calendar = self._create_calendar()
+        day = date(2024, 1, 10)
+        status = DailyStatus(
+            date=day, symbol="000001.SZ", is_st=False, is_suspended=True,
+            is_limit_up=False, is_limit_down=False, suspend_reason="S",
+        )
+        self.data_source.add_status("000001.SZ", day, status)
+        self.data_source.get_daily_bar = lambda symbol, trade_date: (_ for _ in ()).throw(
+            AssertionError("suspended fill must not read a bar")
+        )
+        order = self._create_order("order_suspended_no_bar", "000001.SZ", "buy", 100, date(2024, 1, 9), day)
+
+        rejected = simulate_fill(order, day, self.data_source, self.portfolio, calendar=calendar)
+
+        self.assertEqual(rejected.status, "rejected")
+        self.assertEqual(rejected.rejection_reason, "suspended")
     
     def test_t_plus_1_blocks_same_day_sell(self):
         """T+1 restriction: cannot sell same-day purchased stock."""

@@ -5,16 +5,26 @@ This index intentionally excludes Signal Board process docs and milestone closeo
 ## Latest Verification
 
 - `verification/B4_VERIFICATION.md` - B4 event-driven backtest verification. B4 is correctness/future-data protection only; it is not profitability proof, B5 OOS, Gate pass, promotion, Signal Board output, or live trading readiness.
+- `../status.md` - 2026-06-27 B4 historical baseline; does not represent current application acceptance.
 - `verification/B3_VERIFICATION.md` - B3 point-in-time data protocol verification.
 - `verification/B2_VERIFICATION.md` - B2 hypothesis builder verification.
 
+## Current Product Mainline and Gate001 History
+
+- `../TraderLens_MAINLINE_PLAN.md` - current overall six-stage product route.
+- `archive/2026-10-07/TraderLens_PRODUCT_MAINLINE_PLAN.md` - archived Replay-001 topic; confirmed future strategy targets remain in its future-goals section.
+- `../TraderLens_MAINLINE_ALPHA_PLAN.md` - archived Gate001 V1 protocol and evidence-status closeout; frozen rules remain unchanged.
+- `verification/GATE001_FINAL_RESEARCH_REPORT.md` - saved `insufficient_evidence` result; independent acceptance is limited to historical display and offline economic reconciliation.
+- `verification/GATE001_SAVED_CAPTURE_AUDIT.json` - independently accepted supplemental audit for the primary scenario's seven trade legs and account reconciliation; three exit contexts are derived from persisted orders, and the original capture history remains intact.
+- `verification/GATE001_TRIALS.jsonl` - Gate001 attempt ledger and recorded Holdout-exposure event; that event does not change research counters.
+- `../data/alpha_gate_001/GATE001_PROTOCOL_V1_20261005_a94b1e3f6d6a46af87894e0269777a32.json` - frozen Gate001 protocol source.
+
 ## Read First
 
-1. `../README.md`
-2. `../HANDOFF_PROMPT.md` - Latest handoff (Phase 4: Production entry enabled)
-3. `../status.md` ⭐ **UPDATED: Serenity 双阶段生产入口启用（896 tests）**
-4. `design/MVP-V1-Design.md`
-5. `design/QUICK-REFERENCE.md`
+1. `../TraderLens_Northstar.md`
+2. `../TraderLens_MAINLINE_PLAN.md`
+3. `../AGENTS.md`
+4. `../README.md`
 
 ## Phase Documentation
 
@@ -86,4 +96,4 @@ The research module is the upstream candidate-selection workflow:
 - `design/M3-PLANNING.md`
 - `architecture/ARCHITECTURE.md`
 
-These are secondary. Prefer the core product design files above when deciding what to build next.
+These are secondary. Historical design files are implementation references only; current decisions follow Northstar, the overall mainline, and the active phase task card.

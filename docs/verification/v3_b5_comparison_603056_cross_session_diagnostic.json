@@ -1,0 +1,574 @@
+{
+  "schema": "v3_b5_comparison_603056_cross_session_diagnostic.v1",
+  "status": "diagnostic_only",
+  "conclusion": "cross_session_explained",
+  "conclusion_basis": "The only reversed end-before-start timing in formal IS is 603056.SH/2026-01-09 13:00-9:30. Local rows show a valid 2026-01-09 daily bar, no daily with R+S on 2026-01-12, no daily with S on 2026-01-13, and a daily+R row on 2026-01-14. The issuer announcement records a 2026-01-09 13:00 halt, continuation from 2026-01-12, and resumption at the 2026-01-14 open. This explains the string as a cross-session/provider representation for this event, not a generic reversed-timing parser rule.",
+  "scope": {
+    "target_symbol": "603056.SH",
+    "target_window": {
+      "start": "2026-01-05",
+      "end": "2026-01-16",
+      "common_open_days": [
+        "20260105",
+        "20260106",
+        "20260107",
+        "20260108",
+        "20260109",
+        "20260112",
+        "20260113",
+        "20260114",
+        "20260115",
+        "20260116"
+      ]
+    },
+    "formal_is_reverse_scan": {
+      "start": "20250627",
+      "end": "20260319",
+      "suspend_partition_count": 176
+    },
+    "oos_read": false,
+    "real_slice_run": false,
+    "preflight_run": false,
+    "publisher_run": false,
+    "verifier_run": false,
+    "task6_run": false
+  },
+  "db_read_only_gate": {
+    "path": "data/strategy.db",
+    "read_mode": "sqlite URI mode=ro",
+    "counts": {
+      "research_protocol_snapshots": 1,
+      "b6_validation_tasks": 0,
+      "oos_budget_reservations": 0,
+      "oos_budget_state": 0,
+      "oos_evaluation_ledgers": 0,
+      "immutable_backtest_reports": 0,
+      "prototype_gate_results_v2": 0
+    },
+    "matches_handoff_baseline": true,
+    "oos_unread_unreserved_unconsumed": true
+  },
+  "target_window_raw_evidence": {
+    "days": [
+      {
+        "date": "20260105",
+        "daily_rows": [
+          {
+            "amount": 62681.325,
+            "change": 0.23,
+            "close": 13.9,
+            "high": 13.92,
+            "low": 13.69,
+            "open": 13.7,
+            "pct_chg": 1.6825,
+            "pre_close": 13.67,
+            "trade_date": "20260105",
+            "ts_code": "603056.SH",
+            "vol": 45242
+          }
+        ],
+        "suspend_d_rows": [],
+        "source_partitions": {
+          "daily": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260105/part.parquet",
+            "exists": true,
+            "sha256": "110412b97ace5a673ba6480e1857d724a9b831292eb69feefb53957309613cd8",
+            "sidecar_sha256": "110412b97ace5a673ba6480e1857d724a9b831292eb69feefb53957309613cd8",
+            "sidecar_matches": true
+          },
+          "suspend_d": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260105/part.parquet",
+            "exists": true,
+            "sha256": "5ab00aa78fa35d1e2d2f8ac9d1f679ab3da31854a11815075b127a875be6637d",
+            "sidecar_sha256": "5ab00aa78fa35d1e2d2f8ac9d1f679ab3da31854a11815075b127a875be6637d",
+            "sidecar_matches": true
+          }
+        }
+      },
+      {
+        "date": "20260106",
+        "daily_rows": [
+          {
+            "amount": 73674.255,
+            "change": 0.09,
+            "close": 13.99,
+            "high": 14.02,
+            "low": 13.82,
+            "open": 13.96,
+            "pct_chg": 0.6475,
+            "pre_close": 13.9,
+            "trade_date": "20260106",
+            "ts_code": "603056.SH",
+            "vol": 52880
+          }
+        ],
+        "suspend_d_rows": [],
+        "source_partitions": {
+          "daily": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260106/part.parquet",
+            "exists": true,
+            "sha256": "6cf44b401322e55a189ba720dcb0467db73f7a131be908814b141f26ec12379b",
+            "sidecar_sha256": "6cf44b401322e55a189ba720dcb0467db73f7a131be908814b141f26ec12379b",
+            "sidecar_matches": true
+          },
+          "suspend_d": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260106/part.parquet",
+            "exists": true,
+            "sha256": "30bfde5af79a34e0842bcdbfdbc7de5938b9630b288a9a7a9e5e1dcbd066e769",
+            "sidecar_sha256": "30bfde5af79a34e0842bcdbfdbc7de5938b9630b288a9a7a9e5e1dcbd066e769",
+            "sidecar_matches": true
+          }
+        }
+      },
+      {
+        "date": "20260107",
+        "daily_rows": [
+          {
+            "amount": 56570.922,
+            "change": -0.15,
+            "close": 13.84,
+            "high": 13.97,
+            "low": 13.81,
+            "open": 13.93,
+            "pct_chg": -1.0722,
+            "pre_close": 13.99,
+            "trade_date": "20260107",
+            "ts_code": "603056.SH",
+            "vol": 40796
+          }
+        ],
+        "suspend_d_rows": [],
+        "source_partitions": {
+          "daily": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260107/part.parquet",
+            "exists": true,
+            "sha256": "75cc3306162309c456ce22fc483c68079535785644173d70b87de81ced43ae28",
+            "sidecar_sha256": "75cc3306162309c456ce22fc483c68079535785644173d70b87de81ced43ae28",
+            "sidecar_matches": true
+          },
+          "suspend_d": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260107/part.parquet",
+            "exists": true,
+            "sha256": "01ce24b3258e352b98c50bc512d7520eee45fa38e9bce5fdb681cf65d2fd1383",
+            "sidecar_sha256": "01ce24b3258e352b98c50bc512d7520eee45fa38e9bce5fdb681cf65d2fd1383",
+            "sidecar_matches": true
+          }
+        }
+      },
+      {
+        "date": "20260108",
+        "daily_rows": [
+          {
+            "amount": 44373.82,
+            "change": 0.06,
+            "close": 13.9,
+            "high": 13.92,
+            "low": 13.79,
+            "open": 13.88,
+            "pct_chg": 0.4335,
+            "pre_close": 13.84,
+            "trade_date": "20260108",
+            "ts_code": "603056.SH",
+            "vol": 32025.01
+          }
+        ],
+        "suspend_d_rows": [],
+        "source_partitions": {
+          "daily": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260108/part.parquet",
+            "exists": true,
+            "sha256": "5db892813e64e2e2a5254cdb7277d726dc13580c0a6594a741378f9e4a3cde66",
+            "sidecar_sha256": "5db892813e64e2e2a5254cdb7277d726dc13580c0a6594a741378f9e4a3cde66",
+            "sidecar_matches": true
+          },
+          "suspend_d": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260108/part.parquet",
+            "exists": true,
+            "sha256": "ba2d7987742de5eb4bdcb591182b1a63a3ae3bed53f0bc15a46c096fdc79a01d",
+            "sidecar_sha256": "ba2d7987742de5eb4bdcb591182b1a63a3ae3bed53f0bc15a46c096fdc79a01d",
+            "sidecar_matches": true
+          }
+        }
+      },
+      {
+        "date": "20260109",
+        "daily_rows": [
+          {
+            "amount": 63988.132,
+            "change": 0.14,
+            "close": 14.04,
+            "high": 14.19,
+            "low": 13.85,
+            "open": 13.9,
+            "pct_chg": 1.0072,
+            "pre_close": 13.9,
+            "trade_date": "20260109",
+            "ts_code": "603056.SH",
+            "vol": 45364
+          }
+        ],
+        "suspend_d_rows": [
+          {
+            "ts_code": "603056.SH",
+            "trade_date": "20260109",
+            "suspend_timing": "13:00-9:30",
+            "suspend_type": "S"
+          }
+        ],
+        "source_partitions": {
+          "daily": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260109/part.parquet",
+            "exists": true,
+            "sha256": "f258fb1ebb01818c4fb68a944e2e4d3ddf979c6432347c807b6759d40facd461",
+            "sidecar_sha256": "f258fb1ebb01818c4fb68a944e2e4d3ddf979c6432347c807b6759d40facd461",
+            "sidecar_matches": true
+          },
+          "suspend_d": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260109/part.parquet",
+            "exists": true,
+            "sha256": "032e73a6c476262209bd2b4580c98a7d702c24b19bb10dae008e757fa459a94f",
+            "sidecar_sha256": "032e73a6c476262209bd2b4580c98a7d702c24b19bb10dae008e757fa459a94f",
+            "sidecar_matches": true
+          }
+        }
+      },
+      {
+        "date": "20260112",
+        "daily_rows": [],
+        "suspend_d_rows": [
+          {
+            "ts_code": "603056.SH",
+            "trade_date": "20260112",
+            "suspend_timing": null,
+            "suspend_type": "R"
+          },
+          {
+            "ts_code": "603056.SH",
+            "trade_date": "20260112",
+            "suspend_timing": null,
+            "suspend_type": "S"
+          }
+        ],
+        "source_partitions": {
+          "daily": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260112/part.parquet",
+            "exists": true,
+            "sha256": "b1727dbbea699d18bf54d7231ccb6f3fc41db8c33557e3a00cb36eb870cdd577",
+            "sidecar_sha256": "b1727dbbea699d18bf54d7231ccb6f3fc41db8c33557e3a00cb36eb870cdd577",
+            "sidecar_matches": true
+          },
+          "suspend_d": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260112/part.parquet",
+            "exists": true,
+            "sha256": "a91bdd85a0ca185d1e57af881f481ad55e9828759c2a2b863dc0f07c8f57b45e",
+            "sidecar_sha256": "a91bdd85a0ca185d1e57af881f481ad55e9828759c2a2b863dc0f07c8f57b45e",
+            "sidecar_matches": true
+          }
+        }
+      },
+      {
+        "date": "20260113",
+        "daily_rows": [],
+        "suspend_d_rows": [
+          {
+            "ts_code": "603056.SH",
+            "trade_date": "20260113",
+            "suspend_timing": null,
+            "suspend_type": "S"
+          }
+        ],
+        "source_partitions": {
+          "daily": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260113/part.parquet",
+            "exists": true,
+            "sha256": "15e1de4b34c7be9cd0613de2724329399820936fdd708860b3b7699b76952245",
+            "sidecar_sha256": "15e1de4b34c7be9cd0613de2724329399820936fdd708860b3b7699b76952245",
+            "sidecar_matches": true
+          },
+          "suspend_d": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260113/part.parquet",
+            "exists": true,
+            "sha256": "92a77c331c6c4cf7614c8f5fd34035b01879cf28ab16b4d2a4e9a09196fde0e5",
+            "sidecar_sha256": "92a77c331c6c4cf7614c8f5fd34035b01879cf28ab16b4d2a4e9a09196fde0e5",
+            "sidecar_matches": true
+          }
+        }
+      },
+      {
+        "date": "20260114",
+        "daily_rows": [
+          {
+            "amount": 37000.03,
+            "change": 1.4,
+            "close": 15.44,
+            "high": 15.44,
+            "low": 15.44,
+            "open": 15.44,
+            "pct_chg": 9.9715,
+            "pre_close": 14.04,
+            "trade_date": "20260114",
+            "ts_code": "603056.SH",
+            "vol": 23963.75
+          }
+        ],
+        "suspend_d_rows": [
+          {
+            "ts_code": "603056.SH",
+            "trade_date": "20260114",
+            "suspend_timing": null,
+            "suspend_type": "R"
+          }
+        ],
+        "source_partitions": {
+          "daily": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260114/part.parquet",
+            "exists": true,
+            "sha256": "fcebb15e25dd54ff48615c7d9d094003da2446970755f652fa2a13ffd9cf60de",
+            "sidecar_sha256": "fcebb15e25dd54ff48615c7d9d094003da2446970755f652fa2a13ffd9cf60de",
+            "sidecar_matches": true
+          },
+          "suspend_d": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260114/part.parquet",
+            "exists": true,
+            "sha256": "9029d7c47aea79204cde311733f46f99f9884ba7393a8a4ae514dac39d742969",
+            "sidecar_sha256": "9029d7c47aea79204cde311733f46f99f9884ba7393a8a4ae514dac39d742969",
+            "sidecar_matches": true
+          }
+        }
+      },
+      {
+        "date": "20260115",
+        "daily_rows": [
+          {
+            "amount": 25748.472,
+            "change": 1.54,
+            "close": 16.98,
+            "high": 16.98,
+            "low": 16.98,
+            "open": 16.98,
+            "pct_chg": 9.9741,
+            "pre_close": 15.44,
+            "trade_date": "20260115",
+            "ts_code": "603056.SH",
+            "vol": 15164
+          }
+        ],
+        "suspend_d_rows": [],
+        "source_partitions": {
+          "daily": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260115/part.parquet",
+            "exists": true,
+            "sha256": "d5fa31932ea9f2fde1b3ea80aedee87d2348cbc8388637f48c27ce623ea39f51",
+            "sidecar_sha256": "d5fa31932ea9f2fde1b3ea80aedee87d2348cbc8388637f48c27ce623ea39f51",
+            "sidecar_matches": true
+          },
+          "suspend_d": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260115/part.parquet",
+            "exists": true,
+            "sha256": "1d925559ac18a287d27767796e4351481314ed2feff4a282f25be2808bddd047",
+            "sidecar_sha256": "1d925559ac18a287d27767796e4351481314ed2feff4a282f25be2808bddd047",
+            "sidecar_matches": true
+          }
+        }
+      },
+      {
+        "date": "20260116",
+        "daily_rows": [
+          {
+            "amount": 559712.576,
+            "change": 1.7,
+            "close": 18.68,
+            "high": 18.68,
+            "low": 18.68,
+            "open": 18.68,
+            "pct_chg": 10.0118,
+            "pre_close": 16.98,
+            "trade_date": "20260116",
+            "ts_code": "603056.SH",
+            "vol": 299632
+          }
+        ],
+        "suspend_d_rows": [],
+        "source_partitions": {
+          "daily": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260116/part.parquet",
+            "exists": true,
+            "sha256": "5a5a322ec81eb79f18e0e26957420996ae8f66a909ed1e34754fcec041d57672",
+            "sidecar_sha256": "5a5a322ec81eb79f18e0e26957420996ae8f66a909ed1e34754fcec041d57672",
+            "sidecar_matches": true
+          },
+          "suspend_d": {
+            "path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260116/part.parquet",
+            "exists": true,
+            "sha256": "76eae2052e8c324fecabf7fd8a44b243e893f05c26c6493e1c6f654968ee7f1a",
+            "sidecar_sha256": "76eae2052e8c324fecabf7fd8a44b243e893f05c26c6493e1c6f654968ee7f1a",
+            "sidecar_matches": true
+          }
+        }
+      }
+    ],
+    "summary": {
+      "daily_row_count": 8,
+      "suspend_d_row_count": 5,
+      "daily_present_dates": [
+        "20260105",
+        "20260106",
+        "20260107",
+        "20260108",
+        "20260109",
+        "20260114",
+        "20260115",
+        "20260116"
+      ],
+      "daily_absent_dates": [
+        "20260112",
+        "20260113"
+      ],
+      "daily_finite_positive_open_close_amount_vol": true,
+      "invalid_daily_rows": [],
+      "suspend_type_counts": {
+        "S": 3,
+        "R": 2
+      },
+      "suspend_timing_null_count": 4
+    }
+  },
+  "formal_is_reverse_timing_scan": {
+    "selection": "only suspend_timing strings whose parsed end minute is strictly earlier than start minute",
+    "partition_count": 176,
+    "reverse_event_count": 1,
+    "by_suspend_type": {
+      "S": 1
+    },
+    "by_daily_presence": {
+      "daily_present": 1
+    },
+    "by_type_and_daily": {
+      "S+daily_present": 1
+    },
+    "adjacent_pattern_counts": {
+      "previous D/no-suspend -> next no-daily R+S": 1
+    },
+    "events": [
+      {
+        "symbol": "603056.SH",
+        "date": "20260109",
+        "suspend_type": "S",
+        "suspend_timing": "13:00-9:30",
+        "daily_present": true,
+        "previous_common_open_day": {
+          "date": "20260108",
+          "daily_present": true,
+          "suspend_d": []
+        },
+        "next_common_open_day": {
+          "date": "20260112",
+          "daily_present": false,
+          "suspend_d": [
+            {
+              "suspend_type": "R",
+              "suspend_timing": null
+            },
+            {
+              "suspend_type": "S",
+              "suspend_timing": null
+            }
+          ]
+        }
+      }
+    ],
+    "interpretation": "single-point pattern in local formal IS; no repeated reversed-timing convention was observed"
+  },
+  "external_evidence": {
+    "access_date": "2026-08-15",
+    "tushare_suspend_d": {
+      "url": "https://tushare.pro/document/2?doc_id=214",
+      "use": "field semantics only: S=停牌, R=复牌; suspend_timing is documented for intraday suspension and otherwise empty"
+    },
+    "issuer_announcement_text_mirror": {
+      "url": "https://money.finance.sina.com.cn/corp/view/vCB_AllBulletinDetail.php?id=11906767&stockid=603056",
+      "use": "reproduces the 2026-01-09 emergency halt from 13:00, expected 2026-01-12 open resumption"
+    },
+    "sse_announcement_index_reference": {
+      "url": "https://q.stock.sohu.com/cn/603056/bw_24.shtml",
+      "use": "records the same SSE announcement, 13:00 intraday halt, 2026-01-12 continuation and 2026-01-14 resumption, with SSE PDF references"
+    },
+    "sse_trading_hours": {
+      "url": "https://www.sse.com.cn/lawandrules/sselawsrules2025/trade/universal/c/c_20260424_10816492.shtml",
+      "use": "09:30-11:30 and 13:00-15:00 continuous auction sessions"
+    },
+    "external_data_ingested": false
+  },
+  "contract_interpretation": {
+    "20260109_open_before_1300_halt": true,
+    "20260109_daily_open": 13.9,
+    "20260109_daily_close": 14.04,
+    "20260109_daily_amount": 63988.132,
+    "20260109_daily_vol": 45364,
+    "same_day_daily_use": "safe for the exact 2026-01-09 open and mark observation because the halt begins at 13:00 and the daily row is finite/valid; event-specific inference, not a generic reversed-string rule",
+    "next_open_after_20260109": "2026-01-12 has no daily row and R+S suspension evidence; do not reuse 2026-01-09 daily for the 2026-01-12 fill/mark",
+    "20260112_and_20260113_handling": "remain locked/fail-loud; no synthetic next-open or generic carry is authorized by this diagnosis",
+    "minimal_contract_implication": "preserve raw suspend_timing and source partition hash; allow this exact cross-session event only with verified start/continuation evidence; do not introduce a general time parser or automatically reinterpret arbitrary reversed intervals"
+  },
+  "local_contract_and_code_locations": {
+    "schema": "data suspend_d partitions preserve ts_code, trade_date, suspend_timing, suspend_type as nullable large_string fields; tests/test_suspend_d_schema.py:12-24 and scripts/verify_gate0_data_feasibility.py:74-75",
+    "adapter": "backend/services/formal_pit_partition_adapter.py:421-453 loads suspend_d and uses row membership for is_suspended; timing is not consumed by DailyStatus",
+    "comparison": "backend/services/v3_b5_comparison.py:426-450 execution uses daily open when available but conflicts on is_suspended; :452-477 mark uses daily close but conflicts on is_suspended",
+    "frozen_schedule": "docs/superpowers/specs/2026-08-10-v3-b5-minimal-validation-design.md:386-389 and docs/superpowers/plans/2026-08-10-v3-b5-minimal-validation-plan.md:53",
+    "frozen_precedence": "docs/superpowers/specs/2026-08-10-v3-b5-minimal-validation-design.md:203-225: daily plus exact S/P or ambiguous conflict remains fail-loud until an authorized narrow contract change"
+  },
+  "source_hashes": {
+    "backend/services/formal_pit_partition_adapter.py": "f849a87a11bffd184ef7f6f22b9a31811eb35fcfeb50fcc0f59d971424e28387",
+    "backend/services/v3_b5_comparison.py": "365a5d993ef9dbfd4e3472579ab8aa84fe140545bca61ed8227db7744074a68d",
+    "backend/services/v3_b5_ledger_observation.py": "b2db2655cc17a9207c604ea57a2df3a44d610fa4291c06ae60a759334c739bfd",
+    "contracts/stable.py": "f0241e13bfc7ea2daea4bbd7a213b609885eb6fecd0ab3b0fdfddd4ec5c8722f",
+    "scripts/v3_liquidity_source_adapter.py": "5a024e9322f6b6018c7f4ac44a3f95782babb1ecf486d7296f6810b9f2df164b",
+    "scripts/verify_gate0_data_feasibility.py": "5227a32f4f6a641d914b70aa399ceaf32d59e5daca8ff5cd44b5e28cbe549c0a",
+    "tests/test_suspend_d_schema.py": "87de1f3c61c97aa3465711f54887902b014201b4a4b722a42eeef3533155d562",
+    "tests/test_market_regime_v12_diagnostic_arithmetic.py": "619e67d71ee42429587e54b3e7c9288fb153b946c0bb2b6df0c05f51ae7b6fc6",
+    "docs/superpowers/specs/2026-08-10-v3-b5-minimal-validation-design.md": "8011298fd3fdab26b2caa47ad2a1ae4a9bea9fbfb9c06f3e3498fe87ba759909",
+    "docs/superpowers/plans/2026-08-10-v3-b5-minimal-validation-plan.md": "6a83cdee822bdf60a04887a966e32169f0abdc8d361c98141531966f8e5bf798",
+    "docs/verification/v3_b5_comparison_suspension_precedence_diagnostic.json": "4e0088bac9f242443bef1a945de6319cecae8f4391ebdedc941cc32b68ef1eb2",
+    "docs/verification/v3_b5_comparison_s_intraday_diagnostic.json": "1e4e0c220bba53570146833866e366534c6bcdbf0d0a4f9388cf3147ff6dab81"
+  },
+  "verification_commands": [
+    {
+      "command": "read AGENTS.md and systematic-debugging SKILL.md",
+      "exit_code": 0,
+      "result": "read complete"
+    },
+    {
+      "command": "target-file absence guard plus fresh strategy.db SQLite URI mode=ro count query",
+      "exit_code": 0,
+      "result": "target absent; DB counts (1,0,0,0,0,0,0); OOS unread/unreserved/unconsumed"
+    },
+    {
+      "command": "bounded 603056.SH daily/suspend_d raw enumeration for 20260105..20260116",
+      "exit_code": 0,
+      "result": "10 common-open partitions; 8 daily rows; 5 suspend_d rows including 20260112 R+S"
+    },
+    {
+      "command": "bounded formal IS reversed suspend_timing scan 20250627..20260319 with preloaded adjacent index",
+      "exit_code": 0,
+      "result": "176 suspend partitions; exactly 1 reverse event, 603056.SH/20260109 S+daily; next day no-daily R+S"
+    },
+    {
+      "command": "pytest -q -p no:cacheprovider tests/test_suspend_d_schema.py",
+      "exit_code": 0,
+      "result": "2 passed in 5.27s"
+    },
+    {
+      "command": "official Tushare, issuer-announcement mirror, SSE-index and SSE-trading-hours lookups",
+      "exit_code": 0,
+      "result": "external explanatory evidence available; no external data ingested"
+    }
+  ],
+  "preservation": {
+    "target_diagnostic_preexisted": false,
+    "existing_diagnostics_modified": false,
+    "production_spec_plan_tests_modified": false,
+    "oos_artifacts_written": false,
+    "real_workflow_actions": []
+  },
+  "recommendation": "Task5 may treat this single row as cross_session_explained for a future narrow auditable design: use 2026-01-09 daily for its own open/mark, but keep 2026-01-12 and 2026-01-13 no-daily suspension dates locked/fail-loud. Do not implement, run a real slice, or generalize reversed timing parsing."
+}

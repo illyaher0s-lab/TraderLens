@@ -401,21 +401,81 @@ export interface ExecutionCardResponse {
 }
 
 export interface ExecutionFeedbackRequest {
-  feedback: string;
-  symbol?: string;
-  name?: string;
+  symbol: string;
+  action: "buy" | "sell";
+  position_id?: string;
+  trade_type: "actual" | "simulated";
+  price: string;
+  quantity: number;
+  execution_date: string;
+  operation_id: string;
+  confirmed_already_executed: boolean;
+  fees?: string;
+  trade_source?: "self_research" | "friend" | "media" | "system_suggestion";
+  reason?: string;
+  sell_reason?: "target" | "stop" | "changed_judgment" | "fear" | "urgent_cash";
+  exit_plan_target_price?: string;
+  exit_plan_stop_price?: string;
+  exit_plan_conditions?: string;
+  confirm_quantity_anomaly?: boolean;
+}
+
+export interface ExecutionSecurityIdentity {
+  status: "verified" | "unknown" | "unavailable";
+  symbol: string;
+  name: string | null;
+  security_type: "stock" | "fund" | "unknown";
+  quantity_unit: "share" | "fund_share" | "unknown";
+  data_source: string;
+}
+
+export interface FeeCalculationResponse {
+  source: "user_confirmed" | "simulated_estimate" | "mixed" | "unknown";
+  amount: number | null;
+  commission: number | null;
+  stamp_duty: number | null;
+  estimated_amount: number | null;
+  confirmed_amount: number | null;
+  note: string | null;
 }
 
 export interface ExecutionFeedbackResponse {
   status: string;
   action?: string;
-  position_id?: string;
+  trade_type?: "actual" | "simulated";
+  pnl_trade_type?: "actual" | "simulated" | "unknown" | null;
+  position_id?: string | null;
   log_id?: string;
   execution_log_id?: string;
   pnl_record_id?: string;
-  discipline_review_id?: string;
-  realized_pnl?: number;
-  pnl_pct?: number;
+  discipline_review_id?: string | null;
+  realized_pnl?: number | null;
+  pnl_pct?: number | null;
+  gross_pnl_amount?: number | null;
+  gross_pnl_pct?: number | null;
+  fees?: number | null;
+  fee_calculation?: FeeCalculationResponse;
+  pnl_fee_calculation?: FeeCalculationResponse | null;
+  pnl_source?: string | null;
+  trade_amount?: string;
+  security_identity_status?: "verified" | "unknown" | "unavailable";
+  security_type?: "stock" | "fund" | "unknown";
+  quantity_unit?: "share" | "fund_share" | "unknown";
+  trade_source?: "self_research" | "friend" | "media" | "system_suggestion" | null;
+  sell_reason?: "target" | "stop" | "changed_judgment" | "fear" | "urgent_cash" | null;
+  exit_plan_target_price?: number | null;
+  exit_plan_stop_price?: number | null;
+  exit_plan_conditions?: string | null;
+  exit_plan_entered_at?: string | null;
+  exit_plan_is_retrospective?: boolean | null;
+  pnl_fees?: number | null;
+  pnl_missing_fields?: string[];
+  execution_rule_status?: "verified" | "unverified" | "actual_recorded" | null;
+  record_source?: string;
+  plan_linked?: boolean;
+  execution_date?: string;
+  recorded_at?: string;
+  warnings?: string[];
   follow_up_question?: string;
   agent_reply?: string;
   next_required_user_action?: string;
@@ -464,10 +524,9 @@ export async function createExecutionCard(
  * Task 19: 记录买入/卖出
  */
 export async function submitExecutionFeedback(
-  conversationId: string,
   request: ExecutionFeedbackRequest
 ): Promise<ExecutionFeedbackResponse> {
-  const url = `${API_BASE_URL}/api/agent/workbench/${conversationId}/execution-feedback`;
+  const url = `${API_BASE_URL}/api/agent/workbench/execution-feedback`;
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -481,6 +540,19 @@ export async function submitExecutionFeedback(
     throw new Error(errorData.detail || `Failed to submit feedback: ${response.statusText}`);
   }
 
+  return response.json();
+}
+
+/** Read trusted identity details for the symbol field in the manual trade form. */
+export async function lookupExecutionSecurity(
+  code: string
+): Promise<ExecutionSecurityIdentity> {
+  const url = `${API_BASE_URL}/api/agent/workbench/security-identity/${encodeURIComponent(code)}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || `Security lookup failed: ${response.statusText}`);
+  }
   return response.json();
 }
 

@@ -173,14 +173,14 @@ class TestB6NoShortcuts(unittest.TestCase):
         self.assertIn("GateExplanationBuilder", content)
         self.assertIn("BacktestReportBuilder", content)
 
-    def test_b6_promotion_uses_strategy_promotion_reducer(self):
-        """B6 promotion uses StrategyPromotionReducer."""
+    def test_b6_validation_does_not_perform_promotion(self):
+        """B6 validation persists results without performing Promotion."""
         flow_file = "backend/services/b6_validation_flow.py"
         content = self._read_file(flow_file)
 
-        # Verify B6 uses StrategyPromotionReducer
-        self.assertIn("StrategyPromotionReducer", content)
-        self.assertIn("promote_to_prototype_passed", content)
+        self.assertNotIn("promote_to_prototype_passed(", content)
+        self.assertIn("promotion_id=None", content)
+        self.assertIn("No Promotion in B6", content)
 
 
 if __name__ == "__main__":

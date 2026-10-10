@@ -19,6 +19,7 @@ class WorkbenchPreScan(NamedTuple):
     detected_execution_action: Literal["buy", "sell"] | None
     has_strategy_rule_shape: bool
     has_stock_research_language: bool
+    has_market_scan_language: bool
     is_plain_greeting: bool
     detected_add_to_observation: bool
 
@@ -67,9 +68,9 @@ def prescan_message(user_message: str) -> WorkbenchPreScan:
     
     # Detect execution feedback pattern
     detected_execution_action = None
-    if re.search(r'已买入.*股.*成交价', user_message):
+    if re.search(r'(?:已买入|已经买入|买入了|买了|买进).*股.*成交价', user_message):
         detected_execution_action = "buy"
-    elif re.search(r'已卖出.*股.*成交价', user_message):
+    elif re.search(r'(?:已卖出|已经卖出|卖出了|卖了).*股.*成交价', user_message):
         detected_execution_action = "sell"
     
     # Detect strategy rule shape
@@ -112,6 +113,9 @@ def prescan_message(user_message: str) -> WorkbenchPreScan:
         chinese_only = re.sub(r'[^\u4e00-\u9fa5]', '', user_message)
         if 2 <= len(chinese_only) <= 12:
             has_stock_research_language = True
+
+    market_scan_patterns = [r'选股', r'市场', r'行情', r'关注什么', r'今天关注', r'昨天市场']
+    has_market_scan_language = any(re.search(pattern, user_message) for pattern in market_scan_patterns)
     
     # Detect plain greeting
     is_plain_greeting = False
@@ -145,6 +149,7 @@ def prescan_message(user_message: str) -> WorkbenchPreScan:
         detected_execution_action=detected_execution_action,
         has_strategy_rule_shape=has_strategy_rule_shape,
         has_stock_research_language=has_stock_research_language,
+        has_market_scan_language=has_market_scan_language,
         is_plain_greeting=is_plain_greeting,
         detected_add_to_observation=detected_add_to_observation,
     )

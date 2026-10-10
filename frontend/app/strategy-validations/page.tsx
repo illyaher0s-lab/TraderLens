@@ -11,10 +11,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import StrategyValidationStatusCard, {
+  StrategyValidationStatus,
+} from "@/components/StrategyValidationStatusCard";
 
 interface ValidationResponse {
   validations: any[];
   count: number;
+  validation_status: StrategyValidationStatus;
 }
 
 export default function StrategyValidationsPage() {
@@ -86,6 +90,8 @@ export default function StrategyValidationsPage() {
           </Link>
         </div>
       </header>
+
+      {data && <StrategyValidationStatusCard status={data.validation_status} />}
 
       {/* Empty State */}
       <div style={styles.emptyState}>

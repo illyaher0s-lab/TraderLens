@@ -1,0 +1,17 @@
+{
+  "schema": "gate001-technical-nonfinite-audit-v1",
+  "trial_id": "gate001-techprimary-45281f4864e040b9",
+  "parent_trial_id": "gate001-b840116400c94e38b1b65ada162f65dd",
+  "status": "mapped",
+  "policy": "Only the verified not_evaluated metrics_full.profit_factor +Infinity ratio may map to JSON null; all other nonfinite or unsupported values block acceptance.",
+  "fields": [
+    {
+      "path": "$.engine_result.prototype_gate_result.metrics_full.profit_factor",
+      "original_value": "+Infinity",
+      "json_value": null,
+      "classification": "defined_infinite_ratio",
+      "reason": "strategy_core.metrics.calculate_metrics defines profit_factor as +Infinity when completed round trips exist and total loss is zero; the captured round trips have positive realized profit and no nonpositive P&L. The prototype gate status is not_evaluated, so this descriptive ratio did not control the frozen Gate001 verdict."
+    }
+  ],
+  "blocking_paths": []
+}

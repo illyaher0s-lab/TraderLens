@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "D:\Codex\TraderLens\scripts\verify_gate0_data_feasibility.py", line 635, in <module>
+    main()
+  File "D:\Codex\TraderLens\scripts\verify_gate0_data_feasibility.py", line 631, in main
+    print(json.dumps(formal_collect(args.max_days), indent=2))
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Codex\TraderLens\scripts\verify_gate0_data_feasibility.py", line 359, in formal_collect
+    raise ValueError(f"{iface} date mismatch or empty for {trade_date}")
+ValueError: daily_basic date mismatch or empty for 20180723

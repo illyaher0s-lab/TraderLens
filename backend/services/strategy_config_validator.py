@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict
@@ -205,6 +206,11 @@ class StrategyConfigValidator:
     
     def _deep_equal(self, a: Any, b: Any) -> bool:
         """Deep equality check for config matching."""
+        if isinstance(a, Mapping) and isinstance(b, Mapping):
+            a = dict(a)
+            b = dict(b)
+        if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
+            return len(a) == len(b) and all(self._deep_equal(x, y) for x, y in zip(a, b))
         if type(a) != type(b):
             return False
         if isinstance(a, dict):

@@ -32,6 +32,12 @@ class TushareConfig:
     requests_per_minute: int = 60  # 1 request per second
     retry_attempts: int = 3
     retry_delay_seconds: float = 2.0
+
+    # Finite HTTP timeout for every Tushare API call (seconds).
+    # A hung/unreachable upstream fails fast and surfaces as a data fault
+    # instead of blocking forever. 30s matches the LLM client and
+    # serenity_executor.py precedent.
+    request_timeout_seconds: float = 30.0
     
     # Snapshot Storage
     snapshot_root: Path | None = None  # Defaults to data/tushare_snapshots
@@ -62,6 +68,7 @@ class TushareConfig:
         
         Environment variables:
         - TUSHARE_TOKEN: API token (required for API calls)
+        - TUSHARE_API_URL: Tushare-compatible API endpoint
         - TUSHARE_SNAPSHOT_ROOT: Override default snapshot directory
         
         Returns:
@@ -77,6 +84,7 @@ class TushareConfig:
         
         return cls(
             token=token,
+            api_url=os.getenv("TUSHARE_API_URL", cls.api_url),
             snapshot_root=snapshot_root,
         )
     

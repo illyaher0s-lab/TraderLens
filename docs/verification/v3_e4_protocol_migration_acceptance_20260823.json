@@ -1,0 +1,73 @@
+{
+  "artifact_type": "v3_e4_protocol_migration_acceptance",
+  "backup": {
+    "backup_db_sha256": "a2a80ff7622fbb3d6a6fee1618eea481c59705eee89fd332a8c3c6143c293251",
+    "backup_path": "data/strategy_backups/b6_preclaim/d67fff62dff63793354ebb148e1b1826474f7c9c78fe182463a75f586a2d0600.ba475e75a1a9627ccf46bfe8a07c9bd112e58a9e3de742a5fa62f1cfc4af8d6a.sqlite3",
+    "backup_snapshot": {
+      "counts": [1, 1, 0, 0, 0, 0, 0],
+      "foreign_key_check": [],
+      "protocol_row_sha256": "4eec327f5096eb0f7a527204379de7ff4c9b4019e9fc6c2d00d87bb5c79f143d",
+      "quick_check": "ok",
+      "schema_sql_fingerprint_sha256": "47ace8909d268b037e05098e125379c6edbad2c0d319715ddddba3994f347e9c",
+      "task_row_sha256": "0d83b863f58c3acf9d8efb909f43af7fda4a650d9dccb98dbfc37c53daba776b"
+    },
+    "manifest_path": "data/strategy_backups/b6_preclaim/d67fff62dff63793354ebb148e1b1826474f7c9c78fe182463a75f586a2d0600.ba475e75a1a9627ccf46bfe8a07c9bd112e58a9e3de742a5fa62f1cfc4af8d6a.sqlite3.manifest.json",
+    "manifest_sha256": "4706b000757315d71617199eac7a66126f7ca61ad69bb072732e7a1376265a22",
+    "manifest_sidecar_path": "data/strategy_backups/b6_preclaim/d67fff62dff63793354ebb148e1b1826474f7c9c78fe182463a75f586a2d0600.ba475e75a1a9627ccf46bfe8a07c9bd112e58a9e3de742a5fa62f1cfc4af8d6a.sqlite3.manifest.json.sha256",
+    "source_db_sha256": "ba475e75a1a9627ccf46bfe8a07c9bd112e58a9e3de742a5fa62f1cfc4af8d6a",
+    "source_path": "data/strategy.db",
+    "source_unchanged": true,
+    "tool_source_sha256": "a08649ddec6c1d53bcc83c241ce5f7ae8c98f718ef390dbd32306d6f89fa948b"
+  },
+  "created_at": "2026-08-23T12:42:23.9145377+08:00",
+  "database": {
+    "counts": [1, 1, 0, 0, 0, 0, 0],
+    "current_index": "idx_protocol_b6_profile_per_revision",
+    "current_index_sql": "CREATE INDEX idx_protocol_b6_profile_per_revision ON research_protocol_snapshots(strategy_revision_id, protocol_profile)",
+    "foreign_key_check": [],
+    "mtime_ns": 1787458261118516900,
+    "pre_change_full_row_fingerprint_available": false,
+    "schema_sql_fingerprint_sha256": "47ace8909d268b037e05098e125379c6edbad2c0d319715ddddba3994f347e9c",
+    "size_bytes": 229376,
+    "quick_check": "ok",
+    "unauthorized_migration_remains_recorded": true
+  },
+  "incident": {
+    "incident_json_sha256": "e55837bbaf189c960f2a1743498b622b5127edcdb5bcb21abcc68498f4731255",
+    "incident_sidecar_sha256": "a0c88732440e03a16e3e212c7531018bcc9e4a267c53096fcc5e92c561c0f2d3",
+    "incident_id": "v3_e4_protocol_migration_incident_20260823",
+    "root_cause_contained": true,
+    "rollback_performed": false,
+    "rerun_migration_performed": false
+  },
+  "lineage": {
+    "old_protocol_snapshot_id": "6f7cbdcdeb26f8cdd2611a5450dbab3ff22544b6a66ec8539f5cab9151329111",
+    "old_task_id": "d67fff62dff63793354ebb148e1b1826474f7c9c78fe182463a75f586a2d0600",
+    "old_task_status": "queued",
+    "old_task_unchanged": true,
+    "old_protocol_unchanged": true
+  },
+  "limitations": {
+    "no_pre_change_full_row_fingerprint": true,
+    "statement": "Current identities, state, counts, payload-derived row fingerprints, and schema were compared exactly; no complete pre-change row fingerprint was captured before the unauthorized index change, so pre-change byte-for-byte row invariance is not claimed."
+  },
+  "oos": {
+    "immutable_backtest_reports": 0,
+    "oos_budget_reservations": 0,
+    "oos_budget_state": 0,
+    "oos_evaluation_ledgers": 0,
+    "prototype_gate_results_v2": 0,
+    "read_reserve_consume": 0
+  },
+  "retained": {
+    "b4_manifest_sha256": "7b76000efaa9d709095ccb5a0c424e71432b933404ca68d35e08383a1cd04d30",
+    "b5_bundle_manifest_sha256": "332da22da15acba31a3a5c1c666f7ce5957f439dab538d5bfa98b950b9b2696a",
+    "criteria_gate_manifest_sha256": "9a534c58da7634defc1b30dd7ff1bfb91302365f08bb0ef413fa64253997d113",
+    "criteria_kill_manifest_sha256": "604a4357a7a3295f134e870dc8cc3b05239f58831176dec4c9fce60b984d914e",
+    "scratch_sha256": "4982345cf0303e19ebb8a4badcdfa0ae55287257206b334e7c61facde7bc5a9",
+    "supplement_manifest_sha256": "c7bff428da948b54389c6c7415072de6ca5df4ebe777d251d1a06d08e6e8fb39",
+    "task4_audit_sha256": "966d21553a3f367f710cb9edb17e81a817421ca3890831373bf7e4b3ddada112"
+  },
+  "schema": "v3_e4_protocol_migration_acceptance.v1",
+  "status": "accepted_post_incident_recovery_baseline"
+}

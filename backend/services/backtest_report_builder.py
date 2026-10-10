@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 from contracts.strategy import ImmutableBacktestReport
-from backend.services.b5_oos_types import ReportPayloadSchema
+from backend.services.b5_oos_types import B6SameDrawOOSResult, ReportPayloadSchema
 from backend.services.b4_protocol_types import EventBacktestResult
 
 
@@ -43,6 +43,7 @@ class BacktestReportBuilder:
         b4_result: EventBacktestResult,
         adjustment_mode: str,
         adjustment_snapshot_fingerprint: str,
+        same_draw_result: B6SameDrawOOSResult | None = None,
     ) -> ImmutableBacktestReport:
         """
         Build immutable backtest report from B4 result.
@@ -88,24 +89,91 @@ class BacktestReportBuilder:
             "It is not a future profit guarantee, not a live trading instruction, and not a promotion by itself."
         )
         
-        # Build report payload with explicit missing fields
-        report_payload_dict = {
-            "protocol_snapshot_id": protocol_snapshot_id,
-            "strategy_config_hash": strategy_config_hash,
-            "data_snapshot_hash": data_snapshot_hash,
-            "gate_criteria_hash": gate_criteria_hash,
-            "oos_draw_index": oos_draw_index,
-            "shared_oos_window_id": shared_oos_window_id,
-            "b4_read_trace_summary": b4_read_trace_summary,
-            "future_data_violation_count": future_data_violation_count,
-            "adjustment_mode": adjustment_mode,
-            "adjustment_snapshot_fingerprint": adjustment_snapshot_fingerprint,
-            "liquidation_impact": liquidation_impact,
-            "base_cost_result": "not_available_from_b4_result",
-            "stress_cost_result": "not_available_from_b4_result",
-            "control_comparison": "not_available_from_b4_result",
-            "disclaimer": disclaimer,
-        }
+        if same_draw_result is None:
+            # Preserve the legacy B4-only path and make its missing evidence explicit.
+            report_payload_dict = {
+                "protocol_snapshot_id": protocol_snapshot_id,
+                "strategy_config_hash": strategy_config_hash,
+                "data_snapshot_hash": data_snapshot_hash,
+                "gate_criteria_hash": gate_criteria_hash,
+                "oos_draw_index": oos_draw_index,
+                "shared_oos_window_id": shared_oos_window_id,
+                "b4_read_trace_summary": b4_read_trace_summary,
+                "future_data_violation_count": future_data_violation_count,
+                "adjustment_mode": adjustment_mode,
+                "adjustment_snapshot_fingerprint": adjustment_snapshot_fingerprint,
+                "liquidation_impact": liquidation_impact,
+                "base_cost_result": "not_available_from_b4_result",
+                "stress_cost_result": "not_available_from_b4_result",
+                "control_comparison": "not_available_from_b4_result",
+                "disclaimer": disclaimer,
+            }
+            theme_id = "not_available_from_b4_result"
+        else:
+            identity = same_draw_result.identity
+            if identity.result_schema_version == "b6_same_draw_oos_result.v2":
+                same_draw_result.assert_production_terminal_eligible()
+                if same_draw_result.read_audit.allowed_end != identity.oos_end:
+                    raise ValueError("same-draw read audit window mismatch")
+            if identity.strategy_revision_id != strategy_revision_id:
+                raise ValueError("same-draw strategy_revision_id mismatch")
+            if identity.protocol_snapshot_id != protocol_snapshot_id:
+                raise ValueError("same-draw protocol_snapshot_id mismatch")
+            if identity.data_snapshot_hash != data_snapshot_hash:
+                raise ValueError("same-draw data_snapshot_hash mismatch")
+            if identity.shared_oos_window_id != shared_oos_window_id:
+                raise ValueError("same-draw shared_oos_window_id mismatch")
+            if oos_draw_index is None:
+                raise ValueError("same-draw report requires an OOS draw index")
+            same_draw_payload = same_draw_result.to_payload()
+            report_schema_version = (
+                "b6_same_draw_oos_report.v2"
+                if identity.result_schema_version == "b6_same_draw_oos_result.v2"
+                else "b6_same_draw_oos_report.v1"
+            )
+            report_payload_dict = {
+                "schema_version": report_schema_version,
+                "task_id": identity.task_id,
+                "task_key": identity.task_key,
+                "strategy_revision_id": strategy_revision_id,
+                "protocol_snapshot_id": protocol_snapshot_id,
+                "strategy_config_hash": strategy_config_hash,
+                "data_snapshot_hash": data_snapshot_hash,
+                "gate_criteria_hash": gate_criteria_hash,
+                "b5_bundle_id": identity.b5_bundle_id,
+                "b5_bundle_manifest_sha256": identity.b5_bundle_manifest_sha256,
+                "b4_lineage": {
+                    "artifact_id": identity.b4_artifact_id,
+                    "manifest_sha256": identity.b4_manifest_sha256,
+                    "event_result_sha256": identity.b4_event_result_sha256,
+                },
+                "input_identity": {
+                    "formal_snapshot_id": identity.formal_snapshot_id,
+                    "formal_snapshot_manifest_sha256": identity.formal_snapshot_manifest_sha256,
+                    "membership_snapshot_id": identity.membership_snapshot_id,
+                    "membership_manifest_sha256": identity.membership_manifest_sha256,
+                    "calendar_id": identity.calendar_id,
+                    "calendar_manifest_sha256": identity.calendar_manifest_sha256,
+                    "data_snapshot_hash": identity.data_snapshot_hash,
+                    "execution_input_hash": identity.execution_input_hash,
+                },
+                "oos_window": {
+                    "shared_oos_window_id": identity.shared_oos_window_id,
+                    "start": identity.oos_start.isoformat(),
+                    "end": identity.oos_end.isoformat(),
+                },
+                "result_schema_version": identity.result_schema_version,
+                "same_draw_result": same_draw_payload,
+                "oos_draw_index": oos_draw_index,
+                "shared_oos_window_id": shared_oos_window_id,
+                "b4_read_trace_summary": b4_read_trace_summary,
+                "future_data_violation_count": future_data_violation_count,
+                "adjustment_mode": adjustment_mode,
+                "adjustment_snapshot_fingerprint": adjustment_snapshot_fingerprint,
+                "liquidation_impact": liquidation_impact,
+                "disclaimer": disclaimer,
+            }
+            theme_id = "same_draw_oos"
         
         report_payload_json = json.dumps(report_payload_dict, sort_keys=True)
         
@@ -118,7 +186,7 @@ class BacktestReportBuilder:
         # Build ImmutableBacktestReport
         report = ImmutableBacktestReport(
             report_id=report_id,
-            theme_id="not_available_from_b4_result",  # Future: extract from protocol
+            theme_id=theme_id,
             strategy_revision_id=strategy_revision_id,
             protocol_snapshot_id=protocol_snapshot_id,
             strategy_config_hash=strategy_config_hash,
@@ -220,23 +288,7 @@ class BacktestReportBuilder:
         """
         import json
         payload = json.loads(report.report_payload_json)
-        
-        hash_input = {
-            "protocol_snapshot_id": payload["protocol_snapshot_id"],
-            "strategy_config_hash": payload["strategy_config_hash"],
-            "data_snapshot_hash": payload["data_snapshot_hash"],
-            "gate_criteria_hash": payload["gate_criteria_hash"],
-            "oos_draw_index": payload["oos_draw_index"],
-            "shared_oos_window_id": payload["shared_oos_window_id"],
-            "b4_read_trace_summary": payload["b4_read_trace_summary"],
-            "future_data_violation_count": payload["future_data_violation_count"],
-            "adjustment_mode": payload["adjustment_mode"],
-            "adjustment_snapshot_fingerprint": payload["adjustment_snapshot_fingerprint"],
-            "liquidation_impact": payload["liquidation_impact"],
-        }
-        
-        serialized = json.dumps(hash_input, sort_keys=True)
-        return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+        return self.compute_report_hash_from_dict(payload)
     
     def compute_report_hash_from_dict(self, report_payload_dict: dict) -> str:
         """
@@ -245,21 +297,12 @@ class BacktestReportBuilder:
         Returns:
             SHA256 hash (hex string)
         """
-        hash_input = {
-            "protocol_snapshot_id": report_payload_dict["protocol_snapshot_id"],
-            "strategy_config_hash": report_payload_dict["strategy_config_hash"],
-            "data_snapshot_hash": report_payload_dict["data_snapshot_hash"],
-            "gate_criteria_hash": report_payload_dict["gate_criteria_hash"],
-            "oos_draw_index": report_payload_dict["oos_draw_index"],
-            "shared_oos_window_id": report_payload_dict["shared_oos_window_id"],
-            "b4_read_trace_summary": report_payload_dict["b4_read_trace_summary"],
-            "future_data_violation_count": report_payload_dict["future_data_violation_count"],
-            "adjustment_mode": report_payload_dict["adjustment_mode"],
-            "adjustment_snapshot_fingerprint": report_payload_dict["adjustment_snapshot_fingerprint"],
-            "liquidation_impact": report_payload_dict["liquidation_impact"],
-        }
-        
-        serialized = json.dumps(hash_input, sort_keys=True)
+        serialized = json.dumps(
+            report_payload_dict,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        )
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
     
     def _determine_evaluation_mode(self, oos_draw_index: int | None) -> str:

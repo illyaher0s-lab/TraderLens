@@ -26,15 +26,24 @@ from contracts.strategy import (
 
 class TestB5VerticalFlow(unittest.TestCase):
     def setUp(self):
-        self.db = StrategyDB(":memory:")
+        import tempfile
+        from pathlib import Path
+        from backend.db.strategy import StrategyDB
+        
+        self.tmpfile = tempfile.NamedTemporaryFile(mode='w', suffix='.db', delete=False)
+        self.tmpfile.close()
+        self.db_path = Path(self.tmpfile.name)
+        self.strategy_db = StrategyDB(str(self.db_path))
+        self.budget_ledger = OOSBudgetLedger(self.strategy_db)
         self.controller = OOSEvaluationController()
         self.gate = PrototypeGateV2()
         self.explanation_builder = GateExplanationBuilder()
-        self.budget_ledger = OOSBudgetLedger()
         self._create_universe_spec()
-
+    
     def tearDown(self):
-        self.db.close()
+        self.strategy_db.close()
+        if self.db_path.exists():
+            self.db_path.unlink()
 
     def _create_universe_spec(self):
         """Create required BacktestUniverseSpec."""
@@ -50,7 +59,7 @@ class TestB5VerticalFlow(unittest.TestCase):
             quality_status="ok",
             frozen=True,
         )
-        self.db.store_backtest_universe(universe_spec)
+        self.strategy_db.store_backtest_universe(universe_spec)
 
     def _create_frozen_protocol(self) -> ResearchProtocolSnapshot:
         """Create frozen B3 protocol."""
@@ -81,12 +90,13 @@ class TestB5VerticalFlow(unittest.TestCase):
     def _create_data_manifest(self) -> DataSnapshotManifest:
         """Create B3 data snapshot manifest."""
         return DataSnapshotManifest(
-            data_snapshot_id="data_001",
-            data_snapshot_hash="hash_data",
-            created_at=date.today(),
-            market_data_fingerprint="market_fp_001",
-            daily_status_fingerprint="status_fp_001",
-            membership_fingerprint="member_fp_001",
+            snapshot_id="data_001",
+            provider="test_provider",
+            retrieval_date=date(2024, 1, 1),
+            market_data_start=date(2023, 1, 1),
+            market_data_end=date(2024, 6, 30),
+            universe_snapshot_ids=("univ_pit_001",),
+            semantic_hash="hash_data",
             quality_status="ok",
             gaps=(),
         )
@@ -152,7 +162,7 @@ class TestB5VerticalFlow(unittest.TestCase):
 
         # Step 2: Create B3 data manifest
         manifest = self._create_data_manifest()
-        self.assertEqual(manifest.data_snapshot_hash, "hash_data")
+        self.assertEqual(manifest.semantic_hash, "hash_data")
 
         # Step 3: Create point-in-time universe
         universe = self._create_universe()
@@ -179,10 +189,12 @@ class TestB5VerticalFlow(unittest.TestCase):
             data_snapshot_hash=protocol.data_snapshot_hash,
             gate_criteria_hash=protocol.gate_criteria_hash,
             shared_oos_window_id=protocol.shared_oos_window_id,
+            idempotency_key="vertical_flow_complete",
         )
 
         self.assertEqual(reservation.oos_draw_index, 1)
         self.assertEqual(reservation.status, "reserved")
+        self.budget_ledger.start_execution(reservation.reservation_id)
 
         # Step 6: Create OOS report
         report = self._create_oos_report(protocol)
@@ -211,7 +223,7 @@ class TestB5VerticalFlow(unittest.TestCase):
 
         # Step 9: Complete reservation
         self.budget_ledger.complete_reservation(
-            reservation.reservation_id, gate_result.verdict
+            reservation.reservation_id, gate_result.verdict, report_id=report.report_id
         )
 
         # Verify budget consumed
@@ -301,6 +313,7 @@ class TestB5VerticalFlow(unittest.TestCase):
             data_snapshot_hash=protocol.data_snapshot_hash,
             gate_criteria_hash=protocol.gate_criteria_hash,
             shared_oos_window_id=protocol.shared_oos_window_id,
+            idempotency_key="vertical_budget_reservation",
         )
 
         self.assertEqual(reservation.status, "reserved")
@@ -308,10 +321,11 @@ class TestB5VerticalFlow(unittest.TestCase):
         # Create report and run Gate
         report = self._create_oos_report(protocol)
         gate_result = self.gate.evaluate(report, protocol.gate_criteria_hash)
+        self.budget_ledger.start_execution(reservation.reservation_id)
 
         # Complete reservation
         self.budget_ledger.complete_reservation(
-            reservation.reservation_id, gate_result.verdict
+            reservation.reservation_id, gate_result.verdict, report_id=report.report_id
         )
 
         # Verify budget consumed
@@ -348,10 +362,10 @@ class TestB5VerticalFlow(unittest.TestCase):
             recorded_by="test",
             frozen=True,
         )
-        self.db.create_strategy_draft(draft, initial_state)
+        self.strategy_db.create_strategy_draft(draft, initial_state)
 
         protocol = self._create_frozen_protocol()
-        self.db.store_protocol_snapshot(protocol)
+        self.strategy_db.store_protocol_snapshot(protocol)
 
         # Create report with failing data
         report = ImmutableBacktestReport(
@@ -374,22 +388,22 @@ class TestB5VerticalFlow(unittest.TestCase):
         )
 
         # Store report
-        self.db.store_backtest_report(report)
+        self.strategy_db.store_backtest_report(report)
 
         # Run Gate (will reject)
         gate_result = self.gate.evaluate(report, protocol.gate_criteria_hash)
         self.assertEqual(gate_result.verdict, "rejected")
 
         # Store gate result
-        self.db.store_gate_result(gate_result)
+        self.strategy_db.store_gate_result(gate_result)
 
         # Report still exists in DB
-        retrieved_report = self.db.get_backtest_report(report.report_id)
+        retrieved_report = self.strategy_db.get_backtest_report(report.report_id)
         self.assertIsNotNone(retrieved_report)
         self.assertEqual(retrieved_report.report_id, report.report_id)
 
         # Gate result still exists
-        retrieved_gate = self.db.get_gate_result(gate_result.gate_result_id)
+        retrieved_gate = self.strategy_db.get_gate_result(gate_result.gate_result_id)
         self.assertIsNotNone(retrieved_gate)
         self.assertEqual(retrieved_gate.verdict, "rejected")
 
@@ -405,13 +419,15 @@ class TestB5VerticalFlow(unittest.TestCase):
             data_snapshot_hash=protocol.data_snapshot_hash,
             gate_criteria_hash=protocol.gate_criteria_hash,
             shared_oos_window_id=protocol.shared_oos_window_id,
+            idempotency_key="vertical_cache_hit",
         )
         self.assertEqual(reservation1.oos_draw_index, 1)
 
         report = self._create_oos_report(protocol)
         gate_result = self.gate.evaluate(report, protocol.gate_criteria_hash)
+        self.budget_ledger.start_execution(reservation1.reservation_id)
         self.budget_ledger.complete_reservation(
-            reservation1.reservation_id, gate_result.verdict
+            reservation1.reservation_id, gate_result.verdict, report_id=report.report_id
         )
 
         # Second attempt with same hashes (cache hit)

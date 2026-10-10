@@ -1,0 +1,191 @@
+{
+  "schema": "task4_approved_strategy_executable_path_comparison.v1",
+  "generated_on": "2026-08-09",
+  "read_only": true,
+  "approved_template_ids": [
+    "relative_strength_rotation_shsz_sw2021_v2",
+    "relative_strength_rotation_shsz_sw2021_v3"
+  ],
+  "excluded_nonapproved_ids": [
+    "theme_momentum_breakout_v1",
+    "relative_strength_rotation_v1",
+    "relative_strength_rotation_vendor_industry_v1",
+    "relative_strength_rotation_sw2021_pit_v1",
+    "volume_breakout_followthrough_v1",
+    "trend_pullback_watch_v1",
+    "relative_strength_rotation_shsz_sw2021_v1"
+  ],
+  "templates": [
+    {
+      "template_id": "relative_strength_rotation_shsz_sw2021_v3",
+      "version": "v3_shsz_sw2021_pit_12m_liquidity20d",
+      "template_hash": "f7c0fd8123f62f37118cb947e1735861374435f8707e01b06d788a8ec4df39c1",
+      "data_requirements_hash": "ef2ab5b1dafe4349f305b52733a7dcb018a2961464dfbc6542a10e34805d041d",
+      "governance": {
+        "status": "approved",
+        "review_path": "docs/verification/TASK4_V3_AI_TECHNICAL_REVIEW.md",
+        "review_sha256": "9ea7b9f96c326afbbd0de84e5e2183cb7315c29e26d953b4a5c9aa06b7d4ae69",
+        "authorized_by": "illya",
+        "authorized_at": "2026-08-04T00:00:00",
+        "owner_authorization_hash": "653350938e4bda2a91ee0c3b16bd9c4bf407517d74d6f3da66cb7884cad39349"
+      },
+      "executable_completeness": {
+        "status": "incomplete",
+        "entry_confirmation_exit": "v3 momentum, 3 independent PIT confirmations, rank exit, 15-session exit and stop are frozen in the approved payload but absent from generic production signals",
+        "risk": "liquidity is qualified; market-regime qualification is absent and YAML remains candidate",
+        "rebalance": "weekly/max5 is frozen but generic run_event_backtest iterates every trading date",
+        "position_sizing": "generic 20%/100-share primitive exists, but not exact v3 portfolio orchestration"
+      },
+      "data_readiness": {
+        "status": "exact_v3_chain_ready_for_gate1_4",
+        "scope": "acbc49159d989a46",
+        "coverage": "1e79d26460c0c109",
+        "formal_snapshot": "v3ds_d73256081de82e8a",
+        "availability_successor": "12f1b9aac73dfcd4",
+        "b3": "05f38a2884dc7e47",
+        "membership": "pims_traderlens_v2_shsz_sw2021_pit_005",
+        "authorization_scope": "b6_coverage_bound"
+      },
+      "load_bearing_gaps": [
+        "market_regime_formal_qualification_unavailable",
+        "v3 executable semantics are not represented by StrategyConfig/run_event_backtest",
+        "FormalPITPartitionAdapter lacks the complete v3 runner boundary"
+      ],
+      "path_decision": "retain_v3_but_stop_at_market_regime_formal_qualification_unavailable"
+    },
+    {
+      "template_id": "relative_strength_rotation_shsz_sw2021_v2",
+      "version": "v2_shsz_sw2021_pit_12m",
+      "template_hash": "867a47eeece1c0d208c591f35b5ca31d663ccda183c8721eef803483921238b6",
+      "data_requirements_hash": "1910d7a598b1008fb5ba6ee69833e174b5a9949f31a998e2fced436950d8df04",
+      "governance": {
+        "status": "approved",
+        "review_path": "docs/verification/TASK1_V2_AI_TECHNICAL_REVIEW.md",
+        "review_sha256": "ab4391a42ade48c2319dc15bec6799a0280fbbe4ae75dc49bd1a51f403935194",
+        "authorized_by": "illya",
+        "authorized_at": "2026-07-16T10:30:00",
+        "owner_authorization_hash": "26c68a0a2337b874dc6c32c8dd9f6c6661863ab2b790da1fafaa54480a3b6c4c"
+      },
+      "executable_completeness": {
+        "status": "incomplete",
+        "reason": "same relative-strength/confirmation/rank/liquidity execution semantics are template-only; generic signals do not implement them"
+      },
+      "data_readiness": {
+        "status": "not_admissible_for_current_b6_path",
+        "legacy_successor": "e5100669ed247769; v1 identity; not_authorized_for_b6_oos_promotion_or_data_collection=true",
+        "legacy_coverage": "695245b51005e50b; v1 identity; not a v2/v3 B6 input",
+        "legacy_snapshot": "ds_traderlens_v2_shsz_pit_001; not_authorized_for_b6_oos_gate_promotion_signal=true",
+        "v2_b3_package": "b3eip_traderlens_v2_shsz_pit_001; status=incomplete",
+        "current_published_b3": "05f38a2884dc7e47 is v3 exact and cannot be rebound to v2"
+      },
+      "path_decision": "reject_switch",
+      "why_not_shorter": "It needs a new exact v2 qualification/snapshot/B3 admission path and a v2 runner; reusing v1 artifacts or v3 B3 would violate identity and authorization. It also retains the market-regime gap."
+    },
+    {
+      "template_id": "relative_strength_rotation_shsz_sw2021_v1",
+      "version": "v1_shsz_sw2021_pit",
+      "template_hash": "17a1be7ea3547e7a3cc85ea25e63b43aa2ddb4e8ced50c699db5a1bdd9cec9f0",
+      "governance_status": "candidate",
+      "decision": "exclude_candidate",
+      "reason": "legacy v1 successor/coverage are explicitly not authorized for B6/OOS/promotion/data collection"
+    },
+    {
+      "template_id": "relative_strength_rotation_sw2021_pit_v1",
+      "version": "v1_sw2021_pit",
+      "template_hash": "ccfe8d5383fca082267558747085376c31c29cfdbd90d6cd5e9d1f9db49e9e21",
+      "governance_status": "candidate_default",
+      "decision": "exclude_candidate",
+      "reason": "no owner authorization or approved exact production data chain"
+    },
+    {
+      "template_id": "relative_strength_rotation_v1",
+      "version": "v1",
+      "template_hash": "4ad573373ea52d786d4fccf58b5f443b97dbb64a68e28787800ea0a1ad8657a7",
+      "governance_status": "candidate_default",
+      "decision": "exclude_candidate",
+      "reason": "sector/tag universe and relative-strength execution are not approved exact production semantics"
+    },
+    {
+      "template_id": "relative_strength_rotation_vendor_industry_v1",
+      "version": "v1_vendor_industry",
+      "template_hash": "4741403d58e8f808403ca4c824305d67bd6efbacf6002cd230398a6c1c75b9eb",
+      "governance_status": "candidate_default",
+      "decision": "exclude_candidate",
+      "reason": "vendor-industry control/universe path has no approved exact production chain"
+    },
+    {
+      "template_id": "theme_momentum_breakout_v1",
+      "version": "v1",
+      "template_hash": "21766a55add97c9c31bfd80bbeda8ae863a75bb4022576371952932f21a98a62",
+      "governance_status": "candidate",
+      "decision": "exclude_candidate",
+      "reason": "generic MACD/breakthrough primitives do not replace missing approval and exact PIT/B3/coverage chain"
+    },
+    {
+      "template_id": "volume_breakout_followthrough_v1",
+      "version": "v1",
+      "template_hash": "8211d7eb76fb14bc984dceec1b499d7be6ba63a228257637db97778d1914f2687",
+      "governance_status": "candidate",
+      "decision": "exclude_candidate",
+      "reason": "generic volume_surge/breakthrough primitives do not replace approval or an exact formal data chain"
+    },
+    {
+      "template_id": "trend_pullback_watch_v1",
+      "version": "v1",
+      "template_hash": "b24ffadc90696f9b9dbe3ada6a4263bb640124f3a882525da4770b2e1baba000",
+      "governance_status": "retired",
+      "decision": "exclude_retired",
+      "reason": "retired templates cannot enter B6/OOS/Gate/Promotion"
+    }
+  ],
+  "production_execution_evidence": {
+    "strategy_template_library": {
+      "path": "backend/services/strategy_template_library.py",
+      "sha256": "0e289a007762656f6c8bbba8b3873e7cc7cc14eac759fd95a35b411851d323c0"
+    },
+    "generic_universe": "strategy_core/universe_builder.py supports static_list only; point_in_time_membership is not implemented",
+    "generic_signal_rules": ["rank_condition", "breakthrough", "volume_surge", "ma_condition"],
+    "fill_policy": {
+      "execution_price": "execution-date open",
+      "commission": 0.0003,
+      "min_commission": 5.0,
+      "stamp_duty": 0.001,
+      "transfer": 0.0,
+      "slippage": 0.0,
+      "max_participation": 0.1
+    },
+    "existing_conflicts": [
+      "generic run_event_backtest iterates every trading date rather than v3 weekly schedule",
+      "generic holding helper counts calendar days rather than common completed sessions",
+      "force-liquidation primitive exists but is not automatically integrated by run_event_backtest",
+      "generic engine is static-list based and cannot consume the approved PIT membership directly"
+    ],
+    "source_hashes": {
+      "backtest_engine": "3cb626f40477cc91a4b87615e4897366d162518bdbaf59344f01932080587d11",
+      "signals": "a9ee26754800760fa10a645f0a67d5815ae49b2ac8e598e527b0118cf8fde29f",
+      "orders": "70a3f6ad85e86d4062f9bd842a9961a97023b132c24dd730b438f895175c4aba",
+      "fill_simulator": "d59fa4c4a570910a9a32a86c0203d3fe9b5959585435bad1391777633b9f91aa",
+      "position_sizer": "7b26dd51b92b2559146473afa398f633071c33ffb31db4c36eed3611a967a6b8",
+      "portfolio": "f5effcb2733cf8b3d6e19c9486bd964ce7706796b1fc6ff4c3053edc805d1aed",
+      "trading_calendar": "28e78902e32997dddb86f17b83c6a3f5ca159c1ae419c7b1d8ea3dd24e501996",
+      "universe_builder": "b2dd270c8ec1660d473aeab9a994e883033aab88989a5fbca37783a86e46b654"
+    }
+  },
+  "v3_chain": {
+    "coverage_manifest_sha256": "b009ae38cb87cf7c2adbfa0ce6d179d51225b08602ffcca431ed8d1a7135dfd6",
+    "formal_snapshot_manifest_sha256": "57067e15e6ad1a92b23b42b48173b6cf1af2e7e23f3357320288fb7e109c2680",
+    "availability_successor_manifest_sha256": "082a45061556505d4e3b2613fb1a87ed878481d0d728f73c80a9564c4ebd9f91",
+    "b3_manifest_sha256": "741e511778ba7d520230c8378c952fd85dc407129d66cfb4366c7112530793a6",
+    "coverage_stats": {"expected": 1304589, "complete": 1164707, "unavailable": 139882, "data_fault": 0},
+    "status": "independently verified; data chain does not imply executable strategy semantics"
+  },
+  "conclusion": {
+    "legal_shorter_switch_exists": false,
+    "recommended_template_switch": null,
+    "recommended_action": "stop_at_v3_market_regime_formal_qualification_unavailable",
+    "reason": "Only v2 and v3 are approved. V2 lacks a complete exact B6-authorized chain and shares the same missing relative-strength execution semantics. All other templates are candidate, default-ungoverned, or retired. Switching cannot reduce complexity without lowering authorization or re-qualifying history.",
+    "quality_boundary": "Do not use candidate templates, legacy artifacts, static lists, generic DSL approximation, or renamed/rebound manifests to manufacture a signal."
+  },
+  "not_authorized_for_strategy_switch_artifact_b4_b6_oos_gate_promotion_signal": true,
+  "canonical_payload_sha256": "c1611dc9d54e3b64d34e0e31825471755250c88ad9266291cc84077a047ad91e"
+}

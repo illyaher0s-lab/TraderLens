@@ -1,0 +1,56 @@
+{
+  "mode": "synthetic",
+  "status": "synthetic_verified",
+  "formal_performance_result_allowed": false,
+  "data_classification": "synthetic_test_only",
+  "data_loaded": false,
+  "dates": [
+    "2009-12-21",
+    "2009-12-22",
+    "2009-12-23",
+    "2009-12-24"
+  ],
+  "entry_signal_count": 1,
+  "exit_signal_count": 1,
+  "pending_limit_up_attempts": 1,
+  "trades": [
+    {
+      "direction": "buy",
+      "trade_date": "2009-12-23",
+      "quantity": 9900,
+      "price": 10.005,
+      "net_cash_flow": -99079.21,
+      "total_fee": 29.71
+    },
+    {
+      "direction": "sell",
+      "trade_date": "2009-12-24",
+      "quantity": 9900,
+      "price": 10.994,
+      "net_cash_flow": 108807.95,
+      "total_fee": 32.65
+    }
+  ],
+  "dividend_entitlement_cny": 990.0,
+  "pending_dividend_entitlement_cny": 0.0,
+  "open_trade_count": 0,
+  "open_quantity": 0,
+  "terminal_cash_cny": 110718.74,
+  "terminal_market_value_cny": 0.0,
+  "terminal_receivable_cny": 0.0,
+  "terminal_nav_cny": 110718.74,
+  "reference": {
+    "status": "passed",
+    "errors": [],
+    "engine_trade_count": 2,
+    "reference_trade_count": 2,
+    "engine_terminal_nav_cny": 110718.74,
+    "reference_terminal_nav_cny": 110718.74,
+    "terminal_nav_cny": 110718.74,
+    "trade_economic_profit_cny": 10718.74
+  },
+  "warnings": [
+    "Synthetic rows verify lifecycle mechanics only; no historical strategy result was calculated.",
+    "Price-limit and volume inputs are explicit test fixtures, not exchange evidence."
+  ]
+}

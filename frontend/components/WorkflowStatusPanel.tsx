@@ -17,7 +17,7 @@ interface WorkflowStatusPanelProps {
 }
 
 type DerivedStatus = {
-  status: "idle" | "waiting" | "completed" | "failed" | "needs_clarification";
+  status: "idle" | "waiting" | "observing" | "completed" | "failed" | "needs_clarification";
   statusText: string;
   lastAction: string | null;
   currentObject: string | null;
@@ -91,6 +91,48 @@ function deriveStatusFromTimeline(timeline: TimelineItem[]): DerivedStatus {
     findLatestArtifact(artifacts, "stock_identity_resolution");
   const stockData = parseJson(latestStockIdentity?.content.artifact_content);
   const stockName = stockData?.company_name ?? null;
+
+  const latestResearchResult = findLatestArtifact(
+    currentTurnArtifacts,
+    "research_result"
+  );
+  const researchData = parseJson(latestResearchResult?.content.artifact_content);
+  if (researchData?.research_status === "research_unavailable") {
+    return {
+      status: "failed",
+      statusText: "研究不可用",
+      lastAction: "股票调研",
+      currentObject: researchData.ticker ?? stockName,
+      nextWaitingFor: "数据/服务不足，本次禁止形成交易决策",
+    };
+  }
+  if (researchData?.research_verdict === "research_positive") {
+    return {
+      status: "waiting",
+      statusText: "等待人工审阅",
+      lastAction: "股票调研",
+      currentObject: researchData.ticker ?? stockName,
+      nextWaitingFor: "等待对研究结论的人工确认",
+    };
+  }
+  if (researchData?.research_verdict === "research_watch") {
+    return {
+      status: "observing",
+      statusText: "观察中",
+      lastAction: "股票调研",
+      currentObject: researchData.ticker ?? stockName,
+      nextWaitingFor: "证据不足以继续；保持观察，不创建候选",
+    };
+  }
+  if (researchData?.research_verdict === "research_reject") {
+    return {
+      status: "completed",
+      statusText: "研究结束",
+      lastAction: "股票调研",
+      currentObject: researchData.ticker ?? stockName,
+      nextWaitingFor: null,
+    };
+  }
 
   const lastArtifact = currentTurnArtifacts[currentTurnArtifacts.length - 1];
   const artifactType = lastArtifact?.content.artifact_type;
@@ -192,6 +234,7 @@ export default function WorkflowStatusPanel({ timeline }: WorkflowStatusPanelPro
   const statusColors: Record<string, string> = {
     idle: "text-[#666666]",
     waiting: "text-[#f59e0b]",
+    observing: "text-[#3b82f6]",
     completed: "text-[#10b981]",
     failed: "text-[#ef4444]",
     needs_clarification: "text-[#3b82f6]",
@@ -200,6 +243,7 @@ export default function WorkflowStatusPanel({ timeline }: WorkflowStatusPanelPro
   const statusIcons: Record<string, string> = {
     idle: "○",
     waiting: "⏸",
+    observing: "◷",
     completed: "✓",
     failed: "!",
     needs_clarification: "?",

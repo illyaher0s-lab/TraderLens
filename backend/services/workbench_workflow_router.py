@@ -23,6 +23,7 @@ class WorkbenchRouteDecision(BaseModel):
     workflow_kind: Literal[
         "friend_stock",
         "theme_research",
+        "market_scan",
         "strategy_idea",
         "execution_feedback",
         "position_followup",
@@ -100,6 +101,19 @@ class WorkbenchWorkflowRouter:
                 workflow_state="created",
                 route_reason=f"股票身份已确认：{stock_identity.company_name} ({stock_identity.ticker})",
                 next_required_user_action="wait_for_research",
+                allowed_to_start_workflow=True,
+            )
+
+        if (
+            prescan.has_market_scan_language
+            and not prescan.detected_stock_code
+            and stock_identity.status in ("not_applicable", "not_found", "data_fault")
+        ):
+            return WorkbenchRouteDecision(
+                workflow_kind="market_scan",
+                workflow_state="created",
+                route_reason="检测到无标的市场扫描请求",
+                next_required_user_action="review_market_candidates",
                 allowed_to_start_workflow=True,
             )
         

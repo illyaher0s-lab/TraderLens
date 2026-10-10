@@ -66,6 +66,84 @@ def get_process_command_line(pid: int) -> Optional[str]:
     return result.stdout.strip() or None
 
 
+def is_traderlens_backend(port: int) -> bool:
+    """Return whether the listener exposes the mounted TraderLens Research API."""
+    try:
+        response = requests.get(f"http://127.0.0.1:{port}/api/research/themes", timeout=2)
+        return response.status_code == 200
+    except requests.RequestException:
+        return False
+
+
+def ensure_traderlens_backend(
+    port: int = 8010,
+    project_root: Optional[Path] = None,
+    timeout_seconds: int = 60,
+    extra_env: Optional[dict[str, str]] = None,
+) -> tuple[Optional[subprocess.Popen], bool]:
+    """Reuse a healthy TraderLens backend or start one on a free port."""
+    owner_pid = get_port_owner_pid(port)
+    if owner_pid is not None:
+        if is_traderlens_backend(port):
+            print(f"[OK] Reusing TraderLens backend on port {port} (PID {owner_pid})")
+            return None, True
+
+        command_line = get_process_command_line(owner_pid) or "unknown"
+        if "uvicorn" in command_line and "backend.app.main:app" in command_line:
+            print(f"[INFO] Replacing stale TraderLens backend on port {port} (PID {owner_pid})")
+            release_port(port)
+        else:
+            raise RuntimeError(
+                f"Port {port} is owned by PID {owner_pid}, not a TraderLens backend: {command_line}"
+            )
+
+    return start_backend(
+        port=port,
+        project_root=project_root,
+        timeout_seconds=timeout_seconds,
+        extra_env=extra_env,
+    ), False
+
+
+def is_traderlens_frontend(port: int) -> bool:
+    """Return whether the listener serves the TraderLens Workbench page."""
+    try:
+        response = requests.get(f"http://127.0.0.1:{port}/workbench", timeout=2)
+        return response.status_code == 200 and "TraderLens" in response.text and "输入消息" in response.text
+    except requests.RequestException:
+        return False
+
+
+def ensure_traderlens_frontend(
+    port: int = 3010,
+    project_root: Optional[Path] = None,
+    timeout_seconds: int = 90,
+) -> tuple[Optional[subprocess.Popen], bool]:
+    """Reuse a healthy TraderLens frontend or start one on a free port."""
+    owner_pid = get_port_owner_pid(port)
+    if owner_pid is not None:
+        if is_traderlens_frontend(port):
+            print(f"[OK] Reusing TraderLens frontend on port {port} (PID {owner_pid})")
+            return None, True
+
+        command_line = get_process_command_line(owner_pid) or "unknown"
+        root = project_root or Path(__file__).parent.parent
+        next_path = str(root / "node_modules" / "next").lower()
+        if "node" in command_line.lower() and next_path in command_line.lower():
+            print(f"[INFO] Replacing stale TraderLens frontend on port {port} (PID {owner_pid})")
+            release_port(port)
+        else:
+            raise RuntimeError(
+                f"Port {port} is owned by PID {owner_pid}, not a TraderLens frontend: {command_line}"
+            )
+
+    return start_frontend(
+        port=port,
+        project_root=project_root,
+        timeout_seconds=timeout_seconds,
+    ), False
+
+
 def get_parent_pid(pid: int) -> Optional[int]:
     """Get parent PID for a process."""
     command = f"Get-WmiObject Win32_Process -Filter \"ProcessId = {pid}\" | Select-Object -ExpandProperty ParentProcessId"
@@ -254,6 +332,8 @@ def start_backend(
             "0.0.0.0",
             "--port",
             str(port),
+            "--workers",
+            "1",
         ],
         cwd=project_root,
         env=env,

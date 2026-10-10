@@ -1,0 +1,197 @@
+[
+  {
+    "url": "http://localhost:3010/workbench",
+    "method": "GET",
+    "ts": 1784080401.010671
+  },
+  {
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1784080401276",
+    "method": "GET",
+    "ts": 1784080401.3159666
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1784080401276",
+    "method": "GET",
+    "ts": 1784080401.3159666
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1784080401276",
+    "method": "GET",
+    "ts": 1784080401.3159666
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/app-pages-internals.js",
+    "method": "GET",
+    "ts": 1784080401.316967
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/app/workbench/page.js",
+    "method": "GET",
+    "ts": 1784080401.316967
+  },
+  {
+    "url": "http://localhost:8010/api/agent/workbench/message",
+    "method": "POST",
+    "ts": 1784080405.0521636
+  },
+  {
+    "url": "http://localhost:8010/api/agent/workbench/sess_7f830547faeb",
+    "method": "GET",
+    "ts": 1784080407.3055923
+  },
+  {
+    "url": "http://localhost:3010/research/case_b32be7e2f668",
+    "method": "GET",
+    "ts": 1784080409.3602755
+  },
+  {
+    "url": "http://localhost:3010/_next/static/webpack/7d09fd8ef0afd8d3.webpack.hot-update.json",
+    "method": "GET",
+    "ts": 1784080410.791444
+  },
+  {
+    "url": "http://localhost:3010/_next/static/webpack/webpack.7d09fd8ef0afd8d3.hot-update.js",
+    "method": "GET",
+    "ts": 1784080410.8173745
+  },
+  {
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1784080411515",
+    "method": "GET",
+    "ts": 1784080411.734417
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1784080411515",
+    "method": "GET",
+    "ts": 1784080411.734417
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1784080411515",
+    "method": "GET",
+    "ts": 1784080411.734417
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/app-pages-internals.js",
+    "method": "GET",
+    "ts": 1784080411.735448
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/app/research/%5Bresearch_id%5D/page.js",
+    "method": "GET",
+    "ts": 1784080411.735448
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_b32be7e2f668",
+    "method": "GET",
+    "ts": 1784080412.6948826
+  },
+  {
+    "url": "http://localhost:8010/api/research/service-health",
+    "method": "GET",
+    "ts": 1784080412.6957679
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_b32be7e2f668",
+    "method": "GET",
+    "ts": 1784080412.6969376
+  },
+  {
+    "url": "http://localhost:8010/api/research/service-health",
+    "method": "GET",
+    "ts": 1784080412.6975226
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_b32be7e2f668/hypothesis",
+    "method": "POST",
+    "ts": 1784080414.0210667
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_b32be7e2f668",
+    "method": "GET",
+    "ts": 1784080414.12331
+  },
+  {
+    "url": "http://localhost:8010/api/research/service-health",
+    "method": "GET",
+    "ts": 1784080414.1243525
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_b32be7e2f668/run-research",
+    "method": "POST",
+    "ts": 1784080415.8171835
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_b32be7e2f668",
+    "method": "GET",
+    "ts": 1784080471.1905284
+  },
+  {
+    "url": "http://localhost:8010/api/research/service-health",
+    "method": "GET",
+    "ts": 1784080471.1915278
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_b32be7e2f668/decision",
+    "method": "POST",
+    "ts": 1784080471.3702343
+  },
+  {
+    "url": "http://localhost:3010/signals",
+    "method": "GET",
+    "ts": 1784080474.477131
+  },
+  {
+    "url": "http://localhost:3010/_next/static/webpack/f7f0656f31ea17cf.webpack.hot-update.json",
+    "method": "GET",
+    "ts": 1784080475.4334297
+  },
+  {
+    "url": "http://localhost:3010/_next/static/webpack/webpack.f7f0656f31ea17cf.hot-update.js",
+    "method": "GET",
+    "ts": 1784080475.4580438
+  },
+  {
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1784080475571",
+    "method": "GET",
+    "ts": 1784080475.744079
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1784080475571",
+    "method": "GET",
+    "ts": 1784080475.744079
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1784080475571",
+    "method": "GET",
+    "ts": 1784080475.744079
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/app-pages-internals.js",
+    "method": "GET",
+    "ts": 1784080475.744819
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/app/signals/page.js",
+    "method": "GET",
+    "ts": 1784080475.744819
+  },
+  {
+    "url": "http://localhost:8010/api/signals/strategies",
+    "method": "GET",
+    "ts": 1784080476.5439332
+  },
+  {
+    "url": "http://localhost:8010/api/signals?limit=50&offset=0",
+    "method": "GET",
+    "ts": 1784080476.5449302
+  },
+  {
+    "url": "http://localhost:8010/api/signals/strategies",
+    "method": "GET",
+    "ts": 1784080476.5449302
+  },
+  {
+    "url": "http://localhost:8010/api/signals?limit=50&offset=0",
+    "method": "GET",
+    "ts": 1784080476.5459285
+  }
+]

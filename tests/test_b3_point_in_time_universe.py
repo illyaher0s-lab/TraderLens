@@ -46,17 +46,20 @@ class TestB3Contracts(unittest.TestCase):
         self.assertEqual(snapshot.include_delisted, True)
 
     def test_data_snapshot_manifest_requires_hash_and_sources(self):
+        """DataSnapshotManifest must have semantic_hash and universe_snapshot_ids."""
         manifest = DataSnapshotManifest(
-            data_snapshot_id="data_001",
-            data_snapshot_hash="hash123",
-            created_at=date(2024, 1, 1),
-            market_data_fingerprint="mkt_fp",
-            daily_status_fingerprint="status_fp",
-            membership_fingerprint="member_fp",
+            snapshot_id="ds_test_001",
+            provider="tushare",
+            retrieval_date=date(2024, 1, 1),
+            market_data_start=date(2020, 1, 1),
+            market_data_end=date(2024, 12, 31),
+            universe_snapshot_ids=("pims_traderlens_v2_shsz_sw2021_pit_005",),
+            semantic_hash="a" * 64,
             quality_status="ok",
             gaps=(),
         )
-        self.assertNotEqual(manifest.data_snapshot_hash, "")
+        self.assertNotEqual(manifest.semantic_hash, "")
+        self.assertGreater(len(manifest.universe_snapshot_ids), 0)
 
     def test_oos_window_spec_requires_registered_rule(self):
         spec = OOSWindowSpec(

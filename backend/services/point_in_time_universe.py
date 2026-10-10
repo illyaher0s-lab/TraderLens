@@ -4,6 +4,8 @@ from __future__ import annotations
 from datetime import date
 
 from backend.services.b3_protocol_types import (
+    FutureMembershipLeakError,
+    MembershipCoverageUnavailable,
     PointInTimeMembershipSnapshot,
     UniverseMembershipRecord,
 )
@@ -41,6 +43,10 @@ class InMemoryMembershipSource:
         """
         Filter records to those valid during [backtest_start, backtest_end].
         
+        CRITICAL: InMemoryMembershipSource represents a SINGLE observation snapshot.
+        If source_snapshot_date > backtest_start, using it would leak future information
+        (current membership backfilling history).
+        
         Inclusion rule:
             record.effective_from <= backtest_end
             AND
@@ -52,9 +58,9 @@ class InMemoryMembershipSource:
         - Stock listed/delisted during backtest: included
         - Stock still trading (effective_to=None): included if listed before backtest_end
         """
-        # Check backfill protection
+        # Check backfill protection: single-observation snapshot cannot backfill
         if self.source_snapshot_date > backtest_start:
-            raise ValueError(
+            raise FutureMembershipLeakError(
                 f"Membership source snapshot date {self.source_snapshot_date} "
                 f"is after backtest_start {backtest_start}. "
                 f"Cannot use current membership to backfill history (future information leak)."
@@ -103,6 +109,7 @@ class PointInTimeUniverseBuilder:
         universe_spec: BacktestUniverseSpec,
         backtest_start: date,
         backtest_end: date | None = None,
+        execution_input_binding=None,  # ponytail: B3ExecutionInputBinding | None
     ) -> PointInTimeMembershipSnapshot:
         """
         Build membership snapshot for backtest period.
@@ -111,6 +118,7 @@ class PointInTimeUniverseBuilder:
             universe_spec: BacktestUniverseSpec (not watchlist or plain list)
             backtest_start: Backtest start date
             backtest_end: Backtest end date (defaults to backtest_start if None)
+            execution_input_binding: Optional B3ExecutionInputBinding for validation
         
         Returns:
             PointInTimeMembershipSnapshot with effective membership
@@ -119,6 +127,16 @@ class PointInTimeUniverseBuilder:
             TypeError: If universe_spec is not BacktestUniverseSpec
             ValueError: If membership source snapshot_date > backtest_start (future leak)
         """
+        # ponytail: validate binding before any adapter calls
+        if execution_input_binding is not None:
+            from backend.services.b3_execution_input_binding import validate_execution_input_binding
+            from pathlib import Path
+            # ponytail: assume REPO_ROOT discoverable, or pass via builder.__init__
+            repo_root = Path(__file__).parent.parent.parent
+            result = validate_execution_input_binding(execution_input_binding, repo_root)
+            if not result.is_valid:
+                raise ValueError(f"Execution input binding validation failed: {result.error}")
+            
         if backtest_end is None:
             backtest_end = backtest_start
         
@@ -157,11 +175,9 @@ class PointInTimeUniverseBuilder:
                 backtest_start,
                 backtest_end,
             )
-        except ValueError as e:
-            # Future information leak detected
-            if "backfill history" in str(e):
-                raise
-            # Other errors: mark insufficient
+        except FutureMembershipLeakError:
+            raise
+        except MembershipCoverageUnavailable as e:
             return PointInTimeMembershipSnapshot(
                 snapshot_id=f"snapshot_{backtest_start.isoformat()}",
                 snapshot_date=backtest_start,
@@ -172,15 +188,23 @@ class PointInTimeUniverseBuilder:
                 quality_status="insufficient",
                 gaps=(str(e),),
             )
+        except ValueError:
+            raise
         
         quality_status = "ok" if len(records) > 0 else "insufficient"
         gaps = () if len(records) > 0 else ("No records in effective date window",)
         
+        formal_snapshot_id = getattr(self.membership_source, "formal_snapshot_id", None)
+        if formal_snapshot_id and formal_snapshot_id not in universe_spec.membership_snapshot_ids:
+            raise ValueError(f"Formal membership snapshot {formal_snapshot_id} is not bound to universe spec")
+
         return PointInTimeMembershipSnapshot(
-            snapshot_id=f"snapshot_{backtest_start.isoformat()}",
+            snapshot_id=formal_snapshot_id or f"snapshot_{backtest_start.isoformat()}",
             snapshot_date=backtest_start,
             universe_rule_type="point_in_time_membership",
-            membership_source=universe_spec.universe_spec_id,
+            membership_source=getattr(
+                self.membership_source, "formal_membership_source", universe_spec.universe_spec_id
+            ),
             include_delisted=True,
             records=records,
             quality_status=quality_status,

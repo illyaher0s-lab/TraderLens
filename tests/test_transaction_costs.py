@@ -1,4 +1,5 @@
 import unittest
+from decimal import Decimal
 
 from strategy_core.transaction_costs import (
     calculate_transaction_costs,
@@ -148,6 +149,60 @@ class TestTransactionCosts(unittest.TestCase):
         # Slightly less cannot afford
         qty = calculate_affordable_quantity(1004.0, 10.0)
         self.assertEqual(qty, 0)
+
+
+class TestTransactionCostsCentRounding(unittest.TestCase):
+    def test_half_up_cent_rounding_is_opt_in_for_sell_commission(self):
+        legacy = calculate_transaction_costs(
+            "sell", 100, 167.500, 0.0003, 5.0, 0.0, 0.0
+        )
+        settled = calculate_transaction_costs(
+            "sell", 100, 167.500, 0.0003, 5.0, 0.0, 0.0,
+            round_to_cents=True,
+        )
+
+        self.assertAlmostEqual(legacy[1], 5.025)
+        self.assertAlmostEqual(legacy[5], 16744.975)
+        self.assertEqual(settled, (16750.0, 5.03, 0.0, 0.0, 5.03, 16744.97))
+
+    def test_cent_rounding_uses_rounded_gross_and_commission_for_buy_debit(self):
+        settled = calculate_transaction_costs(
+            "buy", 100, 167.466, 0.0003, 5.0, 0.0, 0.0,
+            round_to_cents=True,
+        )
+
+        self.assertEqual(settled, (16746.60, 5.02, 0.0, 0.0, 5.02, -16751.62))
+
+    def test_cent_rounding_sums_individually_rounded_sell_fees(self):
+        settled = calculate_transaction_costs(
+            "sell", 1000, 16.675, 0.0006, 10.0, 0.001, 0.00002,
+            round_to_cents=True,
+        )
+
+        self.assertEqual(settled, (16675.0, 10.01, 16.68, 0.33, 27.02, 16647.98))
+        self.assertEqual(
+            Decimal(str(settled[4])),
+            sum((Decimal(str(fee)) for fee in settled[1:4]), Decimal("0.00")),
+        )
+        self.assertEqual(
+            Decimal(str(settled[5])),
+            Decimal(str(settled[0])) - Decimal(str(settled[4])),
+        )
+
+    def test_cent_rounded_buy_cash_helpers_respect_the_cent_boundary(self):
+        required = calculate_total_cash_required(
+            100, 167.466, 0.0003, 5.0, round_to_cents=True
+        )
+        affordable_at_boundary = calculate_affordable_quantity(
+            16751.62, 167.466, 0.0003, 5.0, 100, round_to_cents=True
+        )
+        unaffordable_below_boundary = calculate_affordable_quantity(
+            16751.61, 167.466, 0.0003, 5.0, 100, round_to_cents=True
+        )
+
+        self.assertEqual(required, 16751.62)
+        self.assertEqual(affordable_at_boundary, 100)
+        self.assertEqual(unaffordable_below_boundary, 0)
 
 
 if __name__ == "__main__":

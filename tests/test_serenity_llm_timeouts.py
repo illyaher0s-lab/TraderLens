@@ -73,3 +73,111 @@ def test_synthesizer_requests_sixty_second_timeout():
     ResearchSynthesizer(llm).synthesize(theme, SerenityRunContext(), SerenityAgentAudit())
 
     assert llm.kwargs["timeout"] == 60.0
+
+
+def test_synthesizer_audit_preserves_safe_attempt_diagnostics():
+    diagnostic = {
+        "provider": "cc-vibe",
+        "model": "claude-sonnet-5-5",
+        "duration_ms": 37.5,
+        "input_bytes": 128,
+        "status": "error",
+        "exception_class": "APIConnectionError",
+        "http_status": 502,
+        "provider_code": "api_error",
+        "timeout": False,
+        "response_received": True,
+        "attempt_count": 1,
+        "retry_count": 0,
+        "retry_stop_reason": None,
+        "exception_chain": [{"type": "APIConnectionError", "message": "upstream unavailable"}],
+        "response_error_text": '{"error":"upstream unavailable"}',
+        "attempts": [{
+            "attempt": 1,
+            "status": "error",
+            "duration_ms": 37.5,
+            "http_status": 502,
+            "provider_code": "api_error",
+            "timeout": False,
+            "exception_chain": [{"type": "APIConnectionError", "message": "upstream unavailable"}],
+            "response_error_text": '{"error":"upstream unavailable"}',
+        }],
+        "request_headers": {"Authorization": "must-not-pass"},
+    }
+    synthesizer = ResearchSynthesizer(object())
+    pack_meta = {
+        "source_count": 0,
+        "company_source_count": 0,
+        "financial_source_count": 0,
+        "announcement_source_count": 0,
+    }
+
+    audited = synthesizer._call_audit_diagnostic(
+        diagnostic,
+        pack_meta,
+        {"provider": "cc-vibe", "model": "claude-sonnet-5-5", "duration_ms": 0.0, "input_bytes": 128},
+        status="failure",
+        response_received=False,
+        parse_reached=False,
+        failure_class="http",
+    )
+
+    assert audited["response_received"] is True
+    assert audited["attempt_count"] == 1
+    assert audited["retry_count"] == 0
+    assert audited["exception_chain"] == diagnostic["exception_chain"]
+    assert audited["response_error_text"] == diagnostic["response_error_text"]
+    assert audited["attempts"] == diagnostic["attempts"]
+    assert "request_headers" not in audited
+
+
+def test_discipline_review_projection_keeps_safe_retry_history():
+    from backend.services.discipline_review import DisciplineReviewService
+
+    source = {
+        "stage": None,
+        "status": "error",
+        "exception_class": "APITimeoutError",
+        "http_status": None,
+        "provider_code": None,
+        "timeout": True,
+        "output_parse_reached": False,
+        "attempt_count": 2,
+        "retry_count": 1,
+        "retry_stop_reason": None,
+        "response_received": False,
+        "exception_chain": [{"type": "APITimeoutError", "message": "request timed out"}],
+        "response_error_text": None,
+        "attempts": [
+            {
+                "attempt": 1,
+                "status": "timeout",
+                "duration_ms": 15.0,
+                "http_status": None,
+                "provider_code": None,
+                "timeout": True,
+                "exception_chain": [{"type": "APITimeoutError", "message": "request timed out"}],
+                "response_error_text": None,
+            },
+            {
+                "attempt": 2,
+                "status": "success",
+                "duration_ms": 22.0,
+                "http_status": None,
+                "provider_code": None,
+                "timeout": False,
+                "exception_chain": [],
+                "response_error_text": None,
+            },
+        ],
+        "environment": {"RESEARCH_LLM_API_KEY": "must-not-pass"},
+    }
+
+    projected = DisciplineReviewService._project_ai_provider_diagnostic(source)
+
+    assert projected["attempt_count"] == 2
+    assert projected["retry_count"] == 1
+    assert projected["response_received"] is False
+    assert projected["exception_chain"] == source["exception_chain"]
+    assert projected["attempts"] == source["attempts"]
+    assert "environment" not in projected

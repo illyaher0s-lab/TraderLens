@@ -9,6 +9,7 @@ import json
 import uuid
 from contextlib import contextmanager
 from datetime import datetime
+from pathlib import Path
 from typing import Tuple
 
 from backend.db.agent_workbench import ArtifactRef, attach_artifact_ref, attach_approval_card
@@ -28,7 +29,6 @@ def _sqlite_transaction(conn):
         conn.commit()
 
 
-
 class HandlerResult:
     """Handler return value."""
     def __init__(
@@ -44,6 +44,213 @@ class HandlerResult:
         self.next_required_user_action = next_required_user_action
         self.workflow_state = workflow_state
         self.approval_card = approval_card
+
+
+def _unknown_lane(symbol: str, reason: str) -> dict:
+    return {
+        "status": "unknown",
+        "source": "unknown",
+        "fact_date": "unknown",
+        "facts": [],
+        "unknown": [reason],
+        "scenarios": {"bull": "unknown", "base": "unknown", "bear": "unknown"},
+        "confidence": "unknown",
+    }
+
+
+def _normalise_lane(symbols: list[str], raw: object, lane: str) -> dict[str, dict]:
+    records = raw if isinstance(raw, dict) else {}
+    result = {}
+    for symbol in symbols:
+        value = records.get(symbol)
+        if not isinstance(value, dict):
+            result[symbol] = _unknown_lane(symbol, f"{lane} lane unavailable")
+            continue
+        result[symbol] = {
+            "status": value.get("status", "unknown"),
+            "source": value.get("source", "unknown"),
+            "fact_date": value.get("fact_date", "unknown"),
+            "facts": value.get("facts", []) if isinstance(value.get("facts", []), list) else [],
+            "unknown": value.get("unknown", []) if isinstance(value.get("unknown", []), list) else ["unverified"],
+            "scenarios": value.get("scenarios", {"bull": "unknown", "base": "unknown", "bear": "unknown"}),
+            "confidence": value.get("confidence", "unknown"),
+        }
+    return result
+
+
+def _run_default_lane(candidates: list[dict], serenity_runner) -> tuple[dict[str, dict], dict[str, dict]]:
+    """Run one Serenity batch and map its support/counter fields."""
+    symbols = [candidate["symbol"] for candidate in candidates]
+    if serenity_runner is None or type(serenity_runner).__name__ == "SerenityStubRunner":
+        unknown = {symbol: _unknown_lane(symbol, "research runner unavailable") for symbol in symbols}
+        return unknown, dict(unknown)
+    from contracts.research import CandidateStock, ThemeInput
+    now = datetime.now()
+    theme = ThemeInput(
+        theme_id="market_scan_batch",
+        theme_name="market scan",
+        background="Daily market scan research batch",
+        source_type="market_scan",
+        research_mode="quick_scan",
+        urgency="normal",
+        created_at=now,
+        updated_at=now,
+    )
+    manual = [CandidateStock(
+        candidate_id=f"market_scan_{candidate['symbol']}",
+        theme_id=theme.theme_id,
+        symbol=candidate["symbol"],
+        source_type="market_scan",
+        match_reason="scanner candidate",
+        created_at=now,
+    ) for candidate in candidates]
+    output = serenity_runner.run(theme, manual)
+    by_symbol = {item.symbol: item for item in output.candidate_shortlist}
+    support = {}
+    counter = {}
+    for symbol in symbols:
+        item = by_symbol.get(symbol)
+        if item is None:
+            support[symbol] = _unknown_lane(symbol, "support result unavailable")
+            counter[symbol] = _unknown_lane(symbol, "counter result unavailable")
+            continue
+        supporting_ids = list(item.supporting_source_ids)
+        support[symbol] = {
+            "status": "ok" if supporting_ids else "unknown",
+            "source": "serenity" if supporting_ids else "unknown",
+            "fact_date": "unknown",
+            "facts": [item.match_reason] if supporting_ids else [],
+            "unknown": list(output.evidence_gaps) if supporting_ids else ["supporting sources unavailable"],
+            "scenarios": {"bull": "unknown", "base": "unknown", "bear": "unknown"},
+            "confidence": item.match_confidence if supporting_ids else "unknown",
+        }
+        counter_items = list(item.counter_evidence)
+        counter_unknown = list(item.falsification_questions) + list(item.data_gaps)
+        counter[symbol] = {
+            "status": "ok" if counter_items else "unknown",
+            "source": "serenity" if counter_items else "unknown",
+            "fact_date": "unknown",
+            "facts": [e.description for e in counter_items],
+            "unknown": counter_unknown if counter_unknown else (["counter-evidence unavailable"] if not counter_items else []),
+            "scenarios": {"bull": "unknown", "base": "unknown", "bear": "unknown"},
+            "confidence": item.match_confidence if counter_items else "unknown",
+        }
+    return support, counter
+
+
+def _research_market_candidates(candidates: list[dict], lane_runner, serenity_runner, evidence_runner):
+    """Execute injected lanes concurrently; default uses one Serenity batch."""
+    symbols = [candidate["symbol"] for candidate in candidates]
+    if lane_runner is None:
+        return _run_default_lane(candidates, serenity_runner)
+    from concurrent.futures import ThreadPoolExecutor
+    def run_lane(lane: str):
+        return lane_runner(candidates, lane)
+    with ThreadPoolExecutor(max_workers=2, thread_name_prefix="market-scan") as pool:
+        futures = {lane: pool.submit(run_lane, lane) for lane in ("support", "counter")}
+        outputs = {}
+        for lane, future in futures.items():
+            try:
+                outputs[lane] = future.result()
+            except Exception:
+                outputs[lane] = {symbol: _unknown_lane(symbol, f"{lane} lane unavailable") for symbol in symbols}
+    return (
+        _normalise_lane(symbols, outputs["support"], "support"),
+        _normalise_lane(symbols, outputs["counter"], "counter"),
+    )
+
+
+def handle_market_scan(
+    db_conn,
+    conversation_id: str,
+    user_message: str,
+    route_decision,
+    now: datetime,
+    research_db=None,
+    validator=None,
+    serenity_runner=None,
+    evidence_runner=None,
+    lane_runner=None,
+) -> HandlerResult:
+    """Run the deterministic scout and expose only research candidates."""
+    from backend.services.daily_market_scout import DailyMarketScout
+
+    result = DailyMarketScout(Path(__file__).resolve().parents[2]).scan()
+    visible = dict(result)
+    visible["candidates"] = list(result.get("candidates", []))[:5]
+    visible["machine_candidate_count"] = result.get("candidate_count", 0)
+    visible["display_candidate_count"] = len(visible["candidates"])
+    visible["candidate_is_signal"] = False
+
+    if result.get("status") == "ok" and visible["candidates"]:
+        support, counter = _research_market_candidates(
+            visible["candidates"], lane_runner, serenity_runner, evidence_runner
+        )
+        for card in visible["candidates"]:
+            card["support"] = support[card["symbol"]]
+            card["counter"] = counter[card["symbol"]]
+
+    artifact_id = f"market_scan_{uuid.uuid4().hex[:12]}"
+    artifact = ArtifactRef(
+        artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
+        session_id=conversation_id,
+        artifact_id=artifact_id,
+        artifact_type="market_scan_result",
+        created_at=now,
+    )
+    attach_artifact_ref(db_conn, artifact, content=json.dumps(visible, ensure_ascii=False))
+
+    if result.get("status") == "ok" and research_db is not None:
+        from contracts.research import ThemeInput
+        from backend.services.approval_card_reducer import create_approval_card
+        theme_id = f"market_scan_{conversation_id}"
+        if research_db.get_theme(theme_id) is None:
+            research_db.create_theme(ThemeInput(
+                theme_id=theme_id,
+                theme_name="Daily market scan",
+                background=user_message,
+                source_type="market_scan",
+                research_mode="quick_scan",
+                urgency="normal",
+                notes="support and counter research lanes; candidate_is_signal=false",
+                status="draft",
+                board_version=0,
+                created_at=now,
+                updated_at=now,
+            ))
+        research_db.store_research_output(theme_id, {
+            "source_type": "market_scan",
+            "candidate_is_signal": False,
+            "candidates": visible["candidates"],
+        })
+        approval = create_approval_card(
+            workflow_id=conversation_id,
+            stage="market_scan_research_review",
+            title="Market scan research review",
+            plain_language_summary="Support and counter evidence are shown for review; no confirmed candidate pool was created.",
+            allowed_decisions=["continue", "stop", "downgrade_to_observation"],
+            artifact_ids=[artifact_id],
+            created_at=now,
+        )
+        attach_approval_card(db_conn, conversation_id, approval)
+
+    if result.get("status") == "ok":
+        agent_reply = (
+            f"市场扫描已完成，数据日期：{result.get('as_of_date')}。"
+            f"得到 {result.get('candidate_count', 0)} 个机器候选，当前展示前5张初步研究卡。"
+            "候选不是买入信号；反证、失效与复查信息仍待研究。"
+        )
+        next_action = "review_market_candidates"
+    else:
+        reason = result.get("reason") or "hard_block:data_incomplete"
+        agent_reply = f"市场扫描暂不可用：{reason}。未生成候选信号，请在数据恢复后重试。"
+        next_action = "retry_later"
+
+    return HandlerResult(
+        agent_reply=agent_reply,
+        artifact_ids=[artifact_id],
+        next_required_user_action=next_action,
+    )
 
 
 def handle_friend_stock(
@@ -285,9 +492,9 @@ def handle_strategy_idea(
 ) -> HandlerResult:
     """Handle strategy_idea workflow."""
     from backend.services.strategy_idea_flow import StrategyIdeaFlowService
-    
+
     artifact_ids = []
-    
+
     # Record workflow action started
     action_started_artifact = ArtifactRef(
         artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
@@ -297,19 +504,19 @@ def handle_strategy_idea(
         created_at=now,
     )
     attach_artifact_ref(db_conn, action_started_artifact)
-    
+
     if strategy_flow_service is None:
         flow_service = StrategyIdeaFlowService()
     else:
         flow_service = strategy_flow_service
-    
+
     try:
         # Create strategy idea (defaults to untrusted)
         idea = flow_service.create_idea(
             raw_source_text=user_message,
             source_channel="workbench",
         )
-        
+
         # Create strategy_idea artifact
         idea_artifact = ArtifactRef(
             artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
@@ -320,7 +527,7 @@ def handle_strategy_idea(
         )
         attach_artifact_ref(db_conn, idea_artifact)
         artifact_ids.append(idea.idea_id)
-        
+
         extraction_result = flow_service.extract_claims(idea)
         extraction_content = json.dumps({
             "extraction_id": extraction_result.extraction_id,
@@ -347,7 +554,7 @@ def handle_strategy_idea(
             claimed_exit=extraction_result.claimed_exit,
             claimed_edge=extraction_result.claimed_edge,
         )
-        
+
         mapping_result = flow_service.map_to_template(
             idea=idea,
             matched_template_id=eval_result["matched_template_id"],
@@ -416,7 +623,7 @@ def handle_strategy_idea(
             "当前系统暂无已批准模板库。策略想法已记录，但不可用于实盘交易。\n"
             "该策略想法已记录到拒绝注册表，不会生成交易信号。"
         )
-        
+
     except Exception as e:
         # Record workflow action failed
         action_failed_artifact = ArtifactRef(
@@ -427,9 +634,9 @@ def handle_strategy_idea(
             created_at=now,
         )
         attach_artifact_ref(db_conn, action_failed_artifact)
-        
+
         agent_reply = f"策略想法处理失败：{str(e)}"
-    
+
     return HandlerResult(
         agent_reply=agent_reply,
         artifact_ids=artifact_ids,
@@ -448,18 +655,18 @@ def handle_position_followup(
 ) -> HandlerResult:
     """
     Handle position_followup workflow.
-    
+
     User asks "今天要不要继续拿" - need to check open positions.
     Without position context, must clarify which stock.
     """
     artifact_ids = []
-    
+
     open_positions = open_positions or []
-    
+
     if stock_identity.status != "verified" and not open_positions:
         # No stock identity - must clarify
         agent_reply = "我没有找到你的持仓记录。请告诉我是哪只股票？"
-        
+
         # Create clarification artifact
         clarify_artifact = ArtifactRef(
             artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
@@ -470,13 +677,13 @@ def handle_position_followup(
         )
         attach_artifact_ref(db_conn, clarify_artifact)
         artifact_ids.append(clarify_artifact.artifact_id)
-        
+
         return HandlerResult(
             agent_reply=agent_reply,
             artifact_ids=artifact_ids,
             next_required_user_action="clarify_stock_for_followup",
         )
-    
+
     # Stock verified or a single open position is available from session context.
     open_position = None
     if stock_identity.status == "verified":
@@ -494,7 +701,7 @@ def handle_position_followup(
             agent_reply = f"我没有找到 {stock_identity.company_name} ({stock_identity.ticker}) 的持仓记录。"
         else:
             agent_reply = "我找到了多个或不明确的持仓上下文，请告诉我是哪只股票。"
-        
+
         clarify_artifact = ArtifactRef(
             artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
             session_id=conversation_id,
@@ -504,16 +711,16 @@ def handle_position_followup(
         )
         attach_artifact_ref(db_conn, clarify_artifact)
         artifact_ids.append(clarify_artifact.artifact_id)
-        
+
         return HandlerResult(
             agent_reply=agent_reply,
             artifact_ids=artifact_ids,
             next_required_user_action="provide_position_details",
         )
-    
+
     # Position found - provide followup advice
     followup_id = f"followup_{uuid.uuid4().hex[:8]}"
-    
+
     followup_artifact = ArtifactRef(
         artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
         session_id=conversation_id,
@@ -523,11 +730,11 @@ def handle_position_followup(
     )
     attach_artifact_ref(db_conn, followup_artifact)
     artifact_ids.append(followup_id)
-    
+
     symbol = open_position.get("symbol", stock_identity.ticker if stock_identity.status == "verified" else "")
     name = open_position.get("name", stock_identity.company_name if stock_identity.status == "verified" else "")
     agent_reply = f"已找到 {name} ({symbol}) 的持仓 {open_position_id}。持仓跟进记录：{followup_id}"
-    
+
     return HandlerResult(
         agent_reply=agent_reply,
         artifact_ids=[open_position_id] + artifact_ids,
@@ -544,11 +751,11 @@ def handle_theme_research_deferred(
 ) -> HandlerResult:
     """
     Handle theme_research workflow (deferred).
-    
+
     Theme research is not yet implemented - return "暂未开放" message.
     """
     artifact_ids = []
-    
+
     # Create deferred artifact
     deferred_artifact = ArtifactRef(
         artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
@@ -559,9 +766,9 @@ def handle_theme_research_deferred(
     )
     attach_artifact_ref(db_conn, deferred_artifact)
     artifact_ids.append(deferred_artifact.artifact_id)
-    
+
     agent_reply = "主题研究功能暂未开放，敬请期待。"
-    
+
     return HandlerResult(
         agent_reply=agent_reply,
         artifact_ids=artifact_ids,
@@ -578,11 +785,11 @@ def handle_clarification(
 ) -> HandlerResult:
     """
     Handle clarification / unknown workflow.
-    
+
     Router could not determine intent or needs more information.
     """
     artifact_ids = []
-    
+
     # Create clarification artifact
     clarify_artifact = ArtifactRef(
         artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
@@ -593,9 +800,9 @@ def handle_clarification(
     )
     attach_artifact_ref(db_conn, clarify_artifact)
     artifact_ids.append(clarify_artifact.artifact_id)
-    
+
     agent_reply = f"{route_decision.route_reason}\n\n你好，我可以帮你：\n1. 分析朋友推荐的股票（提供股票代码或公司名）\n2. 验证策略/交易想法的技术细节\n\n请问你想了解什么？"
-    
+
     return HandlerResult(
         agent_reply=agent_reply,
         artifact_ids=artifact_ids,
@@ -613,7 +820,7 @@ def handle_add_to_observation(
 ) -> HandlerResult:
     """
     Handle add_to_observation workflow.
-    
+
     User inputs "加入观察" after friend_stock research.
     Requires claimed_stock from session context.
     Creates observation_position with lifecycle_state=open.
@@ -621,14 +828,14 @@ def handle_add_to_observation(
     from backend.db.live_trade import LiveTradeDB
     from contracts.live_trade import ObservationPosition, PositionLifecycleState
     from pathlib import Path
-    
+
     artifact_ids = []
-    
+
     # Check if we have claimed_stock from session context
     if not claimed_stock or not claimed_stock.get("ticker"):
         # No stock context - must clarify
         agent_reply = "我需要知道是哪只股票。请先告诉我股票代码或公司名。"
-        
+
         clarify_artifact = ArtifactRef(
             artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
             session_id=conversation_id,
@@ -638,34 +845,34 @@ def handle_add_to_observation(
         )
         attach_artifact_ref(db_conn, clarify_artifact)
         artifact_ids.append(clarify_artifact.artifact_id)
-        
+
         return HandlerResult(
             agent_reply=agent_reply,
             artifact_ids=artifact_ids,
             next_required_user_action="provide_stock_for_observation",
         )
-    
+
     # Extract stock info from claimed_stock
     ticker = claimed_stock.get("ticker")
     company_name = claimed_stock.get("company_name", ticker)
     original_context = claimed_stock.get("original_context", "")  # May contain run_id
-    
+
     # Create observation position
     position_id = f"pos_{uuid.uuid4().hex[:12]}"
-    
+
     # Build entry_thesis from user message, claimed stock, and original context
     if original_context:
         entry_thesis = f"用户请求加入观察池：{company_name}（{ticker}）。原始上下文：{original_context}。当前输入：{user_message}"
     else:
         entry_thesis = f"用户请求加入观察池：{company_name}（{ticker}）。原始输入：{user_message}"
-    
+
     # Friend stock observation has no real execution chain - use sentinel values
     # These are NOT fake execution records, they mark "no execution chain" explicitly
     execution_card_id = "friend_stock_no_exec_card"
     signal_id = "friend_stock_no_signal"
     action_plan_id = "friend_stock_no_plan"
     capital_context_id = "friend_stock_no_capital"
-    
+
     # Create position record with sentinel values (not fake execution data)
     position = ObservationPosition(
         position_id=position_id,
@@ -685,12 +892,12 @@ def handle_add_to_observation(
         opened_at=now,
         closed_at=None,
     )
-    
+
     # Save to live_trade.db
     live_trade_db_path = Path("data/live_trade.db")
     live_trade_db = LiveTradeDB(live_trade_db_path)
     live_trade_db.save_position(position)
-    
+
     # Create position artifact
     position_artifact = ArtifactRef(
         artifact_ref_id=f"artref_{uuid.uuid4().hex[:12]}",
@@ -701,9 +908,9 @@ def handle_add_to_observation(
     )
     attach_artifact_ref(db_conn, position_artifact)
     artifact_ids.append(position_id)
-    
+
     agent_reply = f"已将 {company_name}（{ticker}）加入观察池。观察位置ID：{position_id}"
-    
+
     return HandlerResult(
         agent_reply=agent_reply,
         artifact_ids=artifact_ids,

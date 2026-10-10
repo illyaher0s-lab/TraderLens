@@ -1,0 +1,70 @@
+# Market Guard Candidate Configuration
+# Status: candidate (not frozen, not approved for production)
+# Per plan 2.4: pre-registered rules before replay validation
+
+version: "1.2"
+validation_status: candidate
+
+# Candidate trigger rules (frozen from plan 2.4)
+candidate_rules:
+  extreme_breadth_selloff:
+    metric: proportion_daily_pct_chg_lte_minus5
+    description: "Proportion of eligible A-shares with daily.pct_chg <= -5"
+    threshold_gt: 0.80
+    data_source: "qualified daily + stock_basic L/D/P + ST status + suspend_d"
+  
+  structural_breakdown_1d:
+    metric: index_000300_SH_daily_return
+    description: "CSI 300 single-day return"
+    threshold_lte: -0.05
+    data_source: "qualified index_daily for 000300.SH"
+  
+  structural_breakdown_5d:
+    metric: index_000300_SH_5d_compounded_return
+    description: "CSI 300 five-trading-day compounded return"
+    threshold_lte: -0.10
+    data_source: "qualified index_daily for 000300.SH"
+  
+  liquidity_exhaustion:
+    metric: all_a_share_amount_vs_30d_mean
+    description: "All-A daily amount / preceding 30 completed trading-day mean"
+    threshold_lt: 0.30
+    data_source: "qualified daily aggregation"
+
+# Pre-registered validation windows
+stress_windows:
+  - id: B
+    start: "2020-02-03"
+    end: "2020-02-07"
+    description: "2020 early stress window"
+
+normal_window:
+  start: "2017-09-01"
+  end: "2017-11-30"
+  description: "Normal market window for usability check"
+
+# Data quality rules
+zero_gap_rule: true
+zero_gap_description: "After applying formal_qualified expected-row rules on any trade_cal trading day, no missing required daily aggregation inputs"
+
+# Every registered stress window must demonstrate at least one rule-triggered block.
+stress_window_block_day_min: 1
+
+normal_window_block_ratio_max: 0.05
+normal_window_block_ratio_description: "block_new_entry caused by extreme market may occur on at most floor(0.05 * normal_window_trading_day_count) days"
+
+# Required PIT data dependencies
+required_pit_inputs:
+  - trade_cal
+  - daily
+  - index_daily
+  - stock_basic  # L/D/P for listing/delisting
+  - namechange   # for ST status inference
+  - suspend_d
+
+# Validation state (null before replay completes)
+source_manifest_hash: null
+validation_report_hash: null
+validated_at: null
+frozen_at: null
+approved_by: null

@@ -17,14 +17,14 @@ class OOSEvaluationController:
     
     Requirements:
     - B3 ResearchProtocolSnapshot (frozen, required)
-    - B3 DataSnapshotManifest with data_snapshot_hash
+    - B3 DataSnapshotManifest with semantic_hash
     - B4 formal qualification result from run_qualification_with_b3_protocol()
     - Point-in-time universe (rejects ForwardWatchlist, static symbols)
     
     Rejects:
     - Missing B3 protocol
     - Fake protocol object (non-isinstance)
-    - Missing data_snapshot_hash
+    - Missing semantic_hash
     - B4 legacy qualification (string-only result)
     - B4 result with Gate/promotion/prototype_passed fields
     - ForwardWatchlistSnapshot
@@ -44,7 +44,7 @@ class OOSEvaluationController:
         
         Args:
             protocol: B3 ResearchProtocolSnapshot (frozen, required)
-            manifest: B3 DataSnapshotManifest with data_snapshot_hash
+            manifest: B3 DataSnapshotManifest with semantic_hash
             universe: Point-in-time membership snapshot (required)
             b4_result: B4 formal qualification result dict
         
@@ -111,7 +111,7 @@ class OOSEvaluationController:
         Validate B3 DataSnapshotManifest.
         
         Raises:
-            ValueError: If manifest missing or no data_snapshot_hash
+            ValueError: If manifest missing or no semantic_hash
         """
         # Strict isinstance check
         if not isinstance(manifest, DataSnapshotManifest):
@@ -122,9 +122,9 @@ class OOSEvaluationController:
                 f"Must be DataSnapshotManifest (got fake object)."
             )
         
-        # Verify data_snapshot_hash exists
-        if not manifest.data_snapshot_hash or len(manifest.data_snapshot_hash.strip()) == 0:
-            raise ValueError("DataSnapshotManifest must have non-empty data_snapshot_hash")
+        # Verify semantic_hash exists (current contract field)
+        if not manifest.semantic_hash or len(manifest.semantic_hash.strip()) == 0:
+            raise ValueError("DataSnapshotManifest must have non-empty semantic_hash")
     
     def _validate_universe_spec(self, universe) -> None:
         """
@@ -228,19 +228,19 @@ class OOSEvaluationController:
         manifest: DataSnapshotManifest,
     ) -> None:
         """
-        Validate protocol manifest hash matches data snapshot hash.
+        Validate protocol data_snapshot_hash matches manifest semantic_hash.
         
         Raises:
             ValueError: If hashes don't match
         """
-        expected = protocol.data_snapshot_hash
-        actual = manifest.data_snapshot_hash
+        expected = protocol.data_snapshot_hash  # protocol still uses old name
+        actual = manifest.semantic_hash  # manifest uses current contract field
         
         if expected != actual:
             raise ValueError(
                 f"Protocol manifest hash mismatch: "
-                f"protocol expects '{expected}', "
-                f"manifest has '{actual}'. "
+                f"protocol.data_snapshot_hash expects '{expected}', "
+                f"manifest.semantic_hash has '{actual}'. "
                 f"Cannot proceed with mismatched data snapshot."
             )
     
@@ -273,11 +273,11 @@ class OOSEvaluationController:
                 f"protocol has '{protocol.data_snapshot_hash}'"
             )
         
-        if b4_result["data_snapshot_hash"] != manifest.data_snapshot_hash:
+        if b4_result["data_snapshot_hash"] != manifest.semantic_hash:
             raise ValueError(
                 f"B4 data_snapshot_hash mismatch with manifest: "
                 f"B4 has '{b4_result['data_snapshot_hash']}', "
-                f"manifest has '{manifest.data_snapshot_hash}'"
+                f"manifest.semantic_hash has '{manifest.semantic_hash}'"
             )
         
         # Verify data_snapshot_id (3-way: B4, protocol, manifest)
@@ -288,11 +288,11 @@ class OOSEvaluationController:
                 f"protocol has '{protocol.data_snapshot_id}'"
             )
         
-        if b4_result["data_snapshot_id"] != manifest.data_snapshot_id:
+        if b4_result["data_snapshot_id"] != manifest.snapshot_id:
             raise ValueError(
                 f"B4 data_snapshot_id mismatch with manifest: "
                 f"B4 has '{b4_result['data_snapshot_id']}', "
-                f"manifest has '{manifest.data_snapshot_id}'"
+                f"manifest.snapshot_id has '{manifest.snapshot_id}'"
             )
         
         # Verify universe_snapshot_id

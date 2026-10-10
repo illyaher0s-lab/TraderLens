@@ -1,0 +1,285 @@
+{
+  "audit_date": "2026-07-11",
+  "interfaces": {
+    "trade_cal": {
+      "rows": 4015,
+      "required_fields": [
+        "cal_date",
+        "is_open",
+        "pretrade_date"
+      ],
+      "actual_fields": [
+        "exchange",
+        "cal_date",
+        "is_open",
+        "pretrade_date"
+      ],
+      "missing_fields": [],
+      "hash": "fbb142b39bfba73d",
+      "date_range": "20160104-20261231"
+    },
+    "stock_basic_L": {
+      "rows": 5530,
+      "required_fields": [
+        "ts_code",
+        "symbol",
+        "name",
+        "market",
+        "exchange",
+        "list_status",
+        "list_date",
+        "delist_date"
+      ],
+      "actual_fields": [
+        "ts_code",
+        "symbol",
+        "name",
+        "market",
+        "exchange",
+        "list_status",
+        "list_date",
+        "delist_date"
+      ],
+      "missing_fields": [],
+      "hash": "f5b1d11dde85eb17",
+      "date_range": "19901201-20260710"
+    },
+    "stock_basic_D": {
+      "rows": 335,
+      "required_fields": [
+        "ts_code",
+        "symbol",
+        "name",
+        "market",
+        "exchange",
+        "list_status",
+        "list_date",
+        "delist_date"
+      ],
+      "actual_fields": [
+        "ts_code",
+        "symbol",
+        "name",
+        "market",
+        "exchange",
+        "list_status",
+        "list_date",
+        "delist_date"
+      ],
+      "missing_fields": [],
+      "hash": "7b4d79f836d3ca69",
+      "date_range": "19901210-20220525"
+    },
+    "stock_basic_P": {
+      "rows": 0,
+      "required_fields": [
+        "ts_code",
+        "symbol",
+        "name",
+        "market",
+        "exchange",
+        "list_status",
+        "list_date",
+        "delist_date"
+      ],
+      "actual_fields": [],
+      "missing_fields": [
+        "ts_code",
+        "symbol",
+        "name",
+        "market",
+        "exchange",
+        "list_status",
+        "list_date",
+        "delist_date"
+      ],
+      "hash": "empty"
+    },
+    "stock_st_20161230": {
+      "rows": 68,
+      "required_fields": [
+        "ts_code",
+        "name",
+        "trade_date",
+        "type"
+      ],
+      "actual_fields": [
+        "ts_code",
+        "name",
+        "trade_date",
+        "type",
+        "type_name"
+      ],
+      "missing_fields": [],
+      "hash": "9d605b27faa96be9",
+      "date_range": "20161230-20161230"
+    },
+    "stock_st_recent": {
+      "rows": 211,
+      "required_fields": [
+        "ts_code",
+        "name",
+        "trade_date",
+        "type"
+      ],
+      "actual_fields": [
+        "ts_code",
+        "name",
+        "trade_date",
+        "type",
+        "type_name"
+      ],
+      "missing_fields": [],
+      "hash": "2318973ef3c45494",
+      "date_range": "20260710-20260710"
+    },
+    "daily_sample": {
+      "rows": 3797,
+      "required_fields": [
+        "ts_code",
+        "trade_date",
+        "open",
+        "high",
+        "low",
+        "close",
+        "vol",
+        "amount"
+      ],
+      "actual_fields": [
+        "amount",
+        "change",
+        "close",
+        "high",
+        "low",
+        "open",
+        "pct_chg",
+        "pre_close",
+        "trade_date",
+        "ts_code",
+        "vol"
+      ],
+      "missing_fields": [],
+      "hash": "908d269faae80fa5",
+      "date_range": "20200102-20200102"
+    },
+    "daily_basic_sample": {
+      "rows": 3741,
+      "required_fields": [
+        "ts_code",
+        "trade_date",
+        "turnover_rate",
+        "total_mv",
+        "circ_mv"
+      ],
+      "actual_fields": [
+        "ts_code",
+        "trade_date",
+        "close",
+        "turnover_rate",
+        "turnover_rate_f",
+        "volume_ratio",
+        "pe",
+        "pe_ttm",
+        "pb",
+        "ps",
+        "ps_ttm",
+        "dv_ratio",
+        "dv_ttm",
+        "total_share",
+        "float_share",
+        "free_share",
+        "total_mv",
+        "circ_mv"
+      ],
+      "missing_fields": [],
+      "hash": "ccf10d260aaef19f",
+      "date_range": "20200102-20200102"
+    },
+    "index_daily_000300": {
+      "rows": 244,
+      "required_fields": [
+        "ts_code",
+        "trade_date",
+        "close",
+        "vol",
+        "amount"
+      ],
+      "actual_fields": [
+        "ts_code",
+        "trade_date",
+        "close",
+        "open",
+        "high",
+        "low",
+        "pre_close",
+        "change",
+        "pct_chg",
+        "vol",
+        "amount"
+      ],
+      "missing_fields": [],
+      "hash": "3a5d109bb7201325",
+      "date_range": "20160104-20161230"
+    },
+    "index_member_all_Y": {
+      "rows": 1,
+      "required_fields": [
+        "l1_code",
+        "l1_name",
+        "ts_code",
+        "in_date",
+        "out_date",
+        "is_new"
+      ],
+      "actual_fields": [
+        "l1_code",
+        "l1_name",
+        "l2_code",
+        "l2_name",
+        "l3_code",
+        "l3_name",
+        "ts_code",
+        "name",
+        "in_date",
+        "out_date",
+        "is_new"
+      ],
+      "missing_fields": [],
+      "hash": "36f20036f45e96ad",
+      "date_range": "19991110-19991110"
+    },
+    "index_member_all_N": {
+      "rows": 1,
+      "required_fields": [
+        "l1_code",
+        "l1_name",
+        "ts_code",
+        "in_date",
+        "out_date",
+        "is_new"
+      ],
+      "actual_fields": [
+        "l1_code",
+        "l1_name",
+        "l2_code",
+        "l2_name",
+        "l3_code",
+        "l3_name",
+        "ts_code",
+        "name",
+        "in_date",
+        "out_date",
+        "is_new"
+      ],
+      "missing_fields": [],
+      "hash": "98ceedaead931d9f",
+      "date_range": "20190626-20190626"
+    }
+  },
+  "trading_day_checkpoints": {
+    "2016": "20160104",
+    "2020": "20200102",
+    "2025": "20250102",
+    "recent": "20260710"
+  }
+}

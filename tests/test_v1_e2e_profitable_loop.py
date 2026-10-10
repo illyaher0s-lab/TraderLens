@@ -26,6 +26,7 @@ from backend.api.research import create_research_app
 from backend.db.research import ResearchDB
 from tests.fake_serenity_runner import FakeSerenityRunner
 from tests.fake_validator import FakeValidator
+from tests.approval_context_fixtures import attach_continued_approval
 
 
 @pytest.fixture
@@ -621,6 +622,9 @@ class TestE2EConfirmedCandidateForwardOnly:
             f"/api/research/friend-stock/{flow_id}/run-research",
             params={"ticker": "600000.SH", "company_name": "浦发银行"},
         )
+        approval_card_id = attach_continued_approval(
+            app.state.db, flow_id, approval_card_id="test_approval_001"
+        )
         
         # Create pool
         pool_response = client.post(
@@ -629,7 +633,7 @@ class TestE2EConfirmedCandidateForwardOnly:
                 "ticker": "600000.SH",
                 "name": "浦发银行",
                 "exchange": "SSE",
-                "approval_card_id": "test_approval_001",
+                "approval_card_id": approval_card_id,
                 "snapshot_date": str(date.today()),
             },
         )

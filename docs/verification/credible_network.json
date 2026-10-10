@@ -1,0 +1,137 @@
+[
+  {
+    "url": "http://localhost:3010/workbench",
+    "method": "GET",
+    "ts": 1783736858.5909684
+  },
+  {
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783736858709",
+    "method": "GET",
+    "ts": 1783736858.8025186
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783736858709",
+    "method": "GET",
+    "ts": 1783736858.8035343
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783736858709",
+    "method": "GET",
+    "ts": 1783736858.8045344
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/app-pages-internals.js",
+    "method": "GET",
+    "ts": 1783736858.8045344
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/app/workbench/page.js",
+    "method": "GET",
+    "ts": 1783736858.8055375
+  },
+  {
+    "url": "http://localhost:8010/api/agent/workbench/message",
+    "method": "POST",
+    "ts": 1783736862.5025387
+  },
+  {
+    "url": "http://localhost:8010/api/agent/workbench/sess_77cb0e6bd764",
+    "method": "GET",
+    "ts": 1783736863.3702703
+  },
+  {
+    "url": "http://localhost:3010/research/case_aa565db25b6a",
+    "method": "GET",
+    "ts": 1783736865.3860755
+  },
+  {
+    "url": "http://localhost:3010/_next/static/webpack/98ee243836e51f3b.webpack.hot-update.json",
+    "method": "GET",
+    "ts": 1783736865.8092003
+  },
+  {
+    "url": "http://localhost:3010/_next/static/webpack/webpack.98ee243836e51f3b.hot-update.js",
+    "method": "GET",
+    "ts": 1783736865.8157468
+  },
+  {
+    "url": "http://localhost:3010/_next/static/css/app/layout.css?v=1783736866250",
+    "method": "GET",
+    "ts": 1783736866.3276877
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/webpack.js?v=1783736866250",
+    "method": "GET",
+    "ts": 1783736866.3276877
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/main-app.js?v=1783736866250",
+    "method": "GET",
+    "ts": 1783736866.3276877
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/app-pages-internals.js",
+    "method": "GET",
+    "ts": 1783736866.3276877
+  },
+  {
+    "url": "http://localhost:3010/_next/static/chunks/app/research/%5Bresearch_id%5D/page.js",
+    "method": "GET",
+    "ts": 1783736866.3286884
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_aa565db25b6a",
+    "method": "GET",
+    "ts": 1783736866.63918
+  },
+  {
+    "url": "http://localhost:8010/api/research/service-health",
+    "method": "GET",
+    "ts": 1783736866.63918
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_aa565db25b6a",
+    "method": "GET",
+    "ts": 1783736866.63918
+  },
+  {
+    "url": "http://localhost:8010/api/research/service-health",
+    "method": "GET",
+    "ts": 1783736866.63918
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_aa565db25b6a/hypothesis",
+    "method": "POST",
+    "ts": 1783736868.4088328
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_aa565db25b6a",
+    "method": "GET",
+    "ts": 1783736868.4362898
+  },
+  {
+    "url": "http://localhost:8010/api/research/service-health",
+    "method": "GET",
+    "ts": 1783736868.4362898
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_aa565db25b6a/run-research",
+    "method": "POST",
+    "ts": 1783736870.0087676
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_aa565db25b6a",
+    "method": "GET",
+    "ts": 1783736910.5397542
+  },
+  {
+    "url": "http://localhost:8010/api/research/service-health",
+    "method": "GET",
+    "ts": 1783736910.54026
+  },
+  {
+    "url": "http://localhost:8010/api/research/themes/case_aa565db25b6a/decision",
+    "method": "POST",
+    "ts": 1783736910.6428003
+  }
+]

@@ -1,8 +1,10 @@
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 from backend.app.golden_cases import GoldenCaseDataSource
+from contracts.stable import DailyBar, DailyStatus, Signal, StrategyConfig
 from strategy_core.dsl_parser import parse_strategy_config
 from strategy_core.trading_calendar import TradingCalendar
 from strategy_core.backtest_engine import run_backtest
@@ -286,6 +288,123 @@ class TestBacktestEngine(unittest.TestCase):
             self.assertLessEqual(trade.trade_date, end_date)
         for daily_value in result.daily_portfolio_values:
             self.assertLessEqual(daily_value.date, end_date)
+
+    def test_backtest_uses_explicit_stamp_tax_for_synthetic_execution(self):
+        from strategy_core import backtest_engine, signals as signal_module
+
+        symbol = "600000.SH"
+        dates = [date(2025, 1, 2) + timedelta(days=offset) for offset in range(5)]
+
+        class SyntheticExecutionSource:
+            def __init__(self):
+                self.bars = {
+                    day: DailyBar(
+                        date=day,
+                        symbol=symbol,
+                        open=10.0,
+                        high=10.0,
+                        low=10.0,
+                        close=10.0,
+                        volume=100_000,
+                        amount=1_000_000.0,
+                        adj_factor=1.0,
+                    )
+                    for day in dates
+                }
+                self.statuses = {
+                    day: DailyStatus(
+                        date=day,
+                        symbol=symbol,
+                        is_st=False,
+                        is_suspended=False,
+                        is_limit_up=False,
+                        is_limit_down=False,
+                    )
+                    for day in dates
+                }
+
+            def symbols(self):
+                return [symbol]
+
+            def get_daily_bars(self, requested_symbol):
+                self.assert_symbol(requested_symbol)
+                return list(self.bars.values())
+
+            def get_daily_bar(self, requested_symbol, target_date):
+                self.assert_symbol(requested_symbol)
+                return self.bars[target_date]
+
+            def get_daily_status(self, requested_symbol, target_date):
+                self.assert_symbol(requested_symbol)
+                return self.statuses[target_date]
+
+            def get_price(self, requested_symbol, target_date):
+                return self.get_daily_bar(requested_symbol, target_date).close
+
+            @staticmethod
+            def assert_symbol(requested_symbol):
+                if requested_symbol != symbol:
+                    raise KeyError(requested_symbol)
+
+        def make_signal(config, signal_date, signal_type):
+            signal_id = f"synthetic:{signal_type}:{signal_date}"
+            return Signal(
+                signal_id=signal_id,
+                strategy_id=config.strategy_name,
+                strategy_version=config.version,
+                symbol=symbol,
+                signal_date=signal_date,
+                signal_type=signal_type,
+                triggered_rules=[f"synthetic-{signal_type}"],
+                audit_id=signal_id,
+            )
+
+        for stamp_tax in (0.0, 0.001):
+            with self.subTest(stamp_tax=stamp_tax):
+                config_dict = self.strategy_config.model_dump()
+                config_dict["universe"]["symbols"] = [symbol]
+                config_dict["fill_model"]["stamp_tax"] = stamp_tax
+                config_dict["backtest_config"]["start_date"] = dates[0]
+                config_dict["backtest_config"]["end_date"] = dates[-1]
+                config_dict["backtest_config"]["sample_split"] = {
+                    "in_sample_end": dates[1],
+                    "out_of_sample_start": dates[2],
+                }
+                config = StrategyConfig.model_validate(config_dict)
+                source = SyntheticExecutionSource()
+                calendar = TradingCalendar(source)
+
+                def synthetic_entries(config, data_source, trade_date, universe):
+                    if trade_date == dates[0]:
+                        return [make_signal(config, trade_date, "entry")]
+                    return []
+
+                def synthetic_exits(config, data_source, trade_date, positions):
+                    if trade_date == dates[2] and symbol in positions:
+                        return [make_signal(config, trade_date, "exit")]
+                    return []
+
+                with patch.object(backtest_engine, "generate_signals", side_effect=synthetic_entries):
+                    with patch.object(signal_module, "generate_exit_signals", side_effect=synthetic_exits):
+                        result = run_backtest(config, source, calendar, initial_capital=100_000.0)
+
+                buy_trades = [trade for trade in result.trades if trade.direction == "buy"]
+                sell_trades = [trade for trade in result.trades if trade.direction == "sell"]
+                self.assertEqual(len(buy_trades), 1)
+                self.assertEqual(len(sell_trades), 1)
+                self.assertEqual(buy_trades[0].stamp_duty, 0.0)
+                self.assertAlmostEqual(
+                    sell_trades[0].stamp_duty,
+                    sell_trades[0].gross_amount * stamp_tax,
+                )
+                self.assertAlmostEqual(
+                    sell_trades[0].total_fee,
+                    sell_trades[0].commission + sell_trades[0].stamp_duty + sell_trades[0].transfer_fee,
+                )
+                self.assertAlmostEqual(
+                    result.final_capital,
+                    100_000.0 - 12.0 - (20_000.0 * stamp_tax),
+                )
 
 
 if __name__ == "__main__":

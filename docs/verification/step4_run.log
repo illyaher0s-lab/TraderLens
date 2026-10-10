@@ -1,0 +1,37 @@
+================================================================================
+CREDIBLE MANUAL TRADE CLOSURE — TASK 0
+Run ID: CREDIBLE_RUN_20260710_172233
+================================================================================
+Checking ports [8010, 3010]...
+[WARN] Port 8010 is in use, releasing...
+[INFO] Port 8010 is owned by PID 24388
+[INFO] Process command: "C:\Users\LEGION\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\python.exe"  -m uvicorn ...
+[OK] Killed PID 24388 on port 8010
+[OK] Port 3010 is free
+[OK] All ports [8010, 3010] are available
+
+Starting backend on port 8010...
+  Python: D:\Codex\TraderLens\.venv\Scripts\python.exe
+  Module: backend.app.main:app
+[INFO] Started backend process PID 44640
+[OK] Backend ready after 2 seconds
+[TIMING] Backend start: 8.1s
+Starting frontend on port 3010...
+  Directory: D:\Codex\TraderLens
+[INFO] Started frontend process PID 2700
+[OK] Frontend ready after 4 seconds
+[TIMING] Frontend start: 11.2s
+[OK] Frontend Workbench route ready after 1 seconds
+[TIMING] Browser start: 0.9s
+[TIMING] Workbench load: 0.8s
+[TIMING] POST response: 4.1s, status=200
+[1] ResearchCase created
+[1.1] Case ID: case_f159f69c8025
+[TIMING] Research detail page: 3.9s
+[1.2] ResearchCase detail page verified
+[1.3] Service health status displayed
+
+✅ Task 2 阶段验收: ResearchCase 持久化，服务健康状态可见
+   运行模式将由 .env.local 决定
+[OK] Frontend process stopped
+[OK] Backend process stopped

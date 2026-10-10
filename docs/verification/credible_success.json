@@ -1,0 +1,49 @@
+{
+  "run_id": "CREDIBLE_RUN_20260711_103419",
+  "status": "PASS",
+  "case_id": "case_d2ca7ac4c219",
+  "real_llm_calls": 2,
+  "llm_per_call_latency_s": [],
+  "llm_total_latency_s": 0,
+  "tushare_source_ids": [
+    "financials:600519.SH:0",
+    "financials:600519.SH:1",
+    "financials:600519.SH:2",
+    "financials:600519.SH:3",
+    "sector:600519.SH:0"
+  ],
+  "evidence_gaps": [
+    "缺少公告数据验证产能扩张计划细节",
+    "缺少渠道调研数据验证经销商库存和批价动态",
+    "缺少系列酒细分产品收入结构数据",
+    "缺少竞品酱香酒企业对比数据",
+    "缺少宏观消费数据验证高端白酒需求趋势"
+  ],
+  "approval": {
+    "decision": "continue",
+    "confirmed_by": "user",
+    "decision_loop_id": "loop_case_d2ca7ac4c219",
+    "confirmed_id": "confirmed_cand_case_d2ca7ac4c219_1783737355.004577",
+    "pool_id": "pool_34a91a4d",
+    "forward_only": true,
+    "is_buy_signal": false,
+    "is_backtest_universe": false
+  },
+  "timings_s": {
+    "backend_start": 4.7,
+    "frontend_start": 7.77,
+    "browser_start": 0.79,
+    "workbench_load": 0.81,
+    "post_response": 4.16,
+    "research_page_load": 3.73,
+    "hypothesis_save": 0.22,
+    "run_research": 44.81,
+    "decision": 1.5
+  },
+  "total_wall_s": 95.95,
+  "user_wait_s": 6.0,
+  "productive_total_s": 89.95,
+  "network_requests": 27,
+  "console_messages": 4,
+  "page_errors": 0
+}

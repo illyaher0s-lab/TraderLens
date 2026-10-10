@@ -614,6 +614,12 @@ class FriendStockFlowService:
         approval_card_id: str,
         research_output: dict,
         snapshot_date: date,
+        # V2 (2026-07-10): explicit user decision — NEVER hard-coded.
+        approval_decision: str,
+        confirmed_by: str = "user",
+        decision_loop_id: str | None = None,
+        confirmed_at: datetime | None = None,
+        user_industry_chain_hypothesis: dict | None = None,
     ) -> ConfirmedCandidatePool:
         """
         Create confirmed candidate pool.
@@ -688,9 +694,19 @@ class FriendStockFlowService:
                 "friend": "推荐",
                 "research": "Serenity",
                 "research_theme_id": research_output.get("theme_id", ""),
+                # V2 (2026-07-10): explicit non-backtest / non-buy-signal boundary.
+                "forward_only": True,
+                "is_buy_signal": False,
+                "is_backtest_universe": False,
             },
             "approval_card_id": approval_card_id,
-            "approval_decision": "continue",
+            # V2 (2026-07-10): real, explicit user decision — never hard-coded.
+            "approval_decision": approval_decision,
+            "confirmed_by": confirmed_by,
+            "decision_loop_id": decision_loop_id,
+            "confirmed_at": confirmed_at or datetime.now(),
+            "user_industry_chain_hypothesis": user_industry_chain_hypothesis,
+            "forward_only": True,
             "snapshot_hash": "",
             "created_at": datetime.now(),
         }

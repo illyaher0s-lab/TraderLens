@@ -193,6 +193,7 @@ class ResearchActionReducer:
         invalidation_rules: list[dict],
         price_snapshot: dict,
         benchmark_snapshot: dict,
+        approval_card_id: str | None = None,
         override_reason: str | None = None,
         source_serenity_run_id: str | None = None,
         source_evidence_run_id: str | None = None,
@@ -304,16 +305,12 @@ class ResearchActionReducer:
             invalidation_rules=invalidation_rules,
             price_snapshot=price_snapshot,
             benchmark_snapshot=benchmark_snapshot,
+            approval_card_id=approval_card_id,
             override_reason=override_reason,
             source_serenity_run_id=source_serenity_run_id,
             source_evidence_run_id=source_evidence_run_id,
             evidence_snapshot_ids=snapshot_ids,
             primary_evidence_snapshot_id=primary,
         )
-
-        # Increment board version
-        candidate = self.db.get_candidate(candidate_id)
-        if candidate:
-            self.db.increment_board_version(candidate.theme_id)
 
         return confirmed

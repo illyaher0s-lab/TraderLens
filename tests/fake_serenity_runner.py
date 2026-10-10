@@ -17,11 +17,14 @@ class FakeSerenityRunner:
         Return a fake SerenityOutput with minimal valid structure.
         """
         now = datetime.now()
+        target = manual_candidates[0] if manual_candidates else None
+        symbol = target.symbol if target else "600000.SH"
+        company_name = target.company_name if target else "Test Company"
         candidate = CandidateStock(
             candidate_id=f"fake_cand_{theme.theme_id}",
             theme_id=theme.theme_id,
-            symbol="600000.SH",
-            company_name="Test Company",
+            symbol=symbol,
+            company_name=company_name,
             source_type="manual_stock",
             chain_layer="banking",
             match_reason="Strong player in sector",
@@ -29,7 +32,7 @@ class FakeSerenityRunner:
             status="raw",
             hard_filter_flags=[],
             created_at=now,
-            supporting_source_ids=["src_001"],
+            supporting_source_ids=[f"financials:{symbol}:0"],
             counter_evidence=[],
         )
 

@@ -192,7 +192,9 @@ class BacktestEngineQualification:
             ValueError: If hashes don't match (hard reject)
         """
         expected = protocol.data_snapshot_hash
-        actual = manifest.data_snapshot_hash
+        # V3 formal manifests expose the semantic snapshot hash.  The B3
+        # runner's legacy name is retained in the result/protocol contract.
+        actual = manifest.semantic_hash
         
         if expected != actual:
             raise ValueError(

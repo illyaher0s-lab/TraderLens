@@ -1,0 +1,2054 @@
+{
+  "candidate_narrow_rule": {
+    "coverage": {
+      "explained": 21,
+      "unresolved": 1,
+      "unresolved_rows": [
+        "603056.SH/2026-01-09"
+      ]
+    },
+    "remaining_blocker": "603056.SH/2026-01-09 has suspend_timing=13:00-9:30; its intended meaning cannot be inferred safely from the local row alone.",
+    "rule": [
+      "R never implies same-day suspension for comparison mark/execution precedence.",
+      "S + finite valid daily OHLC/amount/vol + parseable non-full-session suspend_timing: use daily mark/open for the EOD/fractional comparison, keep an intraday-suspension observation with raw timing and source hash.",
+      "S + missing/null/empty/reversed/full-session/otherwise invalid timing, or invalid daily values: remain fail-loud source conflict/data fault."
+    ],
+    "status": "evidence_supported_for_21_rows_but_not_authorized",
+    "why_uniform": "The 21 explained rows share the same evidence shape: S, non-empty parseable interval(s), no full-session coverage, and finite positive daily values. The one abnormal row fails the timing predicate instead of being silently admitted."
+  },
+  "conclusion": "mixed",
+  "conclusion_basis": "21 S+daily rows have valid daily values and parseable non-full-session suspend_timing intervals, so they are explainable as intraday suspension observations. One row, 603056.SH/2026-01-09, has reversed timing 13:00-9:30 and remains unresolved. Therefore the set is mixed, not all_explained_intraday.",
+  "db_preflight": {
+    "counts": {
+      "b6_validation_tasks": 0,
+      "immutable_backtest_reports": 0,
+      "oos_budget_reservations": 0,
+      "oos_budget_state": 0,
+      "oos_evaluation_ledgers": 0,
+      "prototype_gate_results_v2": 0,
+      "research_protocol_snapshots": 1
+    },
+    "handoff_baseline": {
+      "b6_validation_tasks": 0,
+      "immutable_backtest_reports": 0,
+      "oos_budget_reservations": 0,
+      "oos_budget_state": 0,
+      "oos_evaluation_ledgers": 0,
+      "prototype_gate_results_v2": 0,
+      "research_protocol_snapshots": 1
+    },
+    "matches_handoff_baseline": true,
+    "oos_unread_unreserved_unconsumed": true,
+    "path": "data/strategy.db",
+    "read_mode": "sqlite URI mode=ro"
+  },
+  "downstream_impact": {
+    "current_consumers": {
+      "backend/services/v3_b5_comparison.py:408,438,444,461,471": "comparison consumes only is_suspended for eligibility, execution and mark precedence",
+      "backend/services/v3_b5_ledger_observation.py:90-111": "ledger observation consumes only is_suspended; true skips bar, false reads valid bar",
+      "scripts/v3_liquidity_source_adapter.py:29-42": "liquidity consumes suspend_type and valid daily amount, not timing"
+    },
+    "daily_status_contract": {
+      "backend/services/formal_pit_partition_adapter.py:421-453": "adapter reads suspend_timing only as a raw row field and drops it when constructing DailyStatus",
+      "contracts/stable.py:78-96": "DailyStatus exposes is_suspended and suspend_reason but no suspend_timing"
+    },
+    "minimum_audit_requirement": "A rule that admits S+valid-daily+parseable-timing must retain the raw suspend_timing and source row hash in the comparison audit/evidence; current boolean-only DailyStatus is insufficient to prove the timing predicate. No general status-model redesign is justified."
+  },
+  "events": [
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2025-07-15",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 7166192.014,
+            "close": 6.52,
+            "open": 6.44,
+            "pre_close": 7.18,
+            "trade_date": "20250717",
+            "ts_code": "600930.SH",
+            "vol": 10887392.6
+          },
+          "daily_present": true,
+          "date": "2025-07-17",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 12702393.309,
+        "close": 7.18,
+        "high": 10.17,
+        "low": 5.5,
+        "open": 5.5,
+        "pre_close": 3.18,
+        "trade_date": "20250716",
+        "ts_code": "600930.SH",
+        "vol": 17970994.53
+      },
+      "date": "2025-07-16",
+      "raw_suspend_d": {
+        "suspend_timing": "09:35-09:45,09:47-09:57",
+        "suspend_type": "S",
+        "trade_date": "20250716",
+        "ts_code": "600930.SH"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20250716/part.parquet",
+          "sha256": "04cb5f77f693bb08db4ad9d724f6e445fbd14cea4144a432d4a2c6c660ae5078"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20250716/part.parquet",
+          "sha256": "5b559a5374fcc34baadf347650f9e4cb1e1b67376f06e8506fb14e9a59242d32"
+        }
+      },
+      "symbol": "600930.SH",
+      "timing_analysis": {
+        "active_session_overlap_min": 20,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 20,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "09:45",
+            "end_min": 585,
+            "raw": "09:35-09:45",
+            "start": "09:35",
+            "start_min": 575
+          },
+          {
+            "duration_min": 10,
+            "end": "09:57",
+            "end_min": 597,
+            "raw": "09:47-09:57",
+            "start": "09:47",
+            "start_min": 587
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2025-07-29",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 1623759.313,
+            "close": 60.19,
+            "open": 58.0,
+            "pre_close": 80.0,
+            "trade_date": "20250731",
+            "ts_code": "001221.SZ",
+            "vol": 260064.72
+          },
+          "daily_present": true,
+          "date": "2025-07-31",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 1741051.309,
+        "close": 80.0,
+        "high": 120.0,
+        "low": 47.01,
+        "open": 47.01,
+        "pre_close": 15.43,
+        "trade_date": "20250730",
+        "ts_code": "001221.SZ",
+        "vol": 309815.95
+      },
+      "date": "2025-07-30",
+      "raw_suspend_d": {
+        "suspend_timing": "13:05-13:15,13:17-13:27",
+        "suspend_type": "S",
+        "trade_date": "20250730",
+        "ts_code": "001221.SZ"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20250730/part.parquet",
+          "sha256": "b677461e70daf6f8930d66354f07bd7c7ebbabb22fd77a060aa2f2f9213d2dae"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20250730/part.parquet",
+          "sha256": "0e73d703d4378ef0627e4274cdac32a7077fbde0051f5c9203dfd425e27d4f01"
+        }
+      },
+      "symbol": "001221.SZ",
+      "timing_analysis": {
+        "active_session_overlap_min": 20,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 20,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "13:15",
+            "end_min": 795,
+            "raw": "13:05-13:15",
+            "start": "13:05",
+            "start_min": 785
+          },
+          {
+            "duration_min": 10,
+            "end": "13:27",
+            "end_min": 807,
+            "raw": "13:17-13:27",
+            "start": "13:17",
+            "start_min": 797
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": {
+            "amount": 1948170.151,
+            "close": 34.01,
+            "open": 32.66,
+            "pre_close": 6.56,
+            "trade_date": "20250812",
+            "ts_code": "301632.SZ",
+            "vol": 582533.6
+          },
+          "daily_present": true,
+          "date": "2025-08-12",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 1965467.459,
+            "close": 37.53,
+            "open": 44.8,
+            "pre_close": 43.6,
+            "trade_date": "20250814",
+            "ts_code": "301632.SZ",
+            "vol": 468935.49
+          },
+          "daily_present": true,
+          "date": "2025-08-14",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 2077629.859,
+        "close": 43.6,
+        "high": 46.58,
+        "low": 32.04,
+        "open": 32.84,
+        "pre_close": 34.01,
+        "trade_date": "20250813",
+        "ts_code": "301632.SZ",
+        "vol": 540441.28
+      },
+      "date": "2025-08-13",
+      "raw_suspend_d": {
+        "suspend_timing": "13:00-13:10",
+        "suspend_type": "S",
+        "trade_date": "20250813",
+        "ts_code": "301632.SZ"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20250813/part.parquet",
+          "sha256": "a9557b9d5cf50464da7a27e060b2d313d1fe818eb6a03f5a2acfe8fbb737fef0"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20250813/part.parquet",
+          "sha256": "70057c50aa053fe275643faec97a00812f315adc15f7c7e64b5d36d8de6cdd1f"
+        }
+      },
+      "symbol": "301632.SZ",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 10,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "13:10",
+            "end_min": 790,
+            "raw": "13:00-13:10",
+            "start": "13:00",
+            "start_min": 780
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": {
+            "amount": 1428717.371,
+            "close": 116.8,
+            "open": 120.0,
+            "pre_close": 27.0,
+            "trade_date": "20250930",
+            "ts_code": "301563.SZ",
+            "vol": 114329.99
+          },
+          "daily_present": true,
+          "date": "2025-09-30",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 1215947.606,
+            "close": 142.27,
+            "open": 142.0,
+            "pre_close": 164.56,
+            "trade_date": "20251010",
+            "ts_code": "301563.SZ",
+            "vol": 82949.34
+          },
+          "daily_present": true,
+          "date": "2025-10-10",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 1690501.436,
+        "close": 164.56,
+        "high": 199.0,
+        "low": 119.33,
+        "open": 122.26,
+        "pre_close": 116.8,
+        "trade_date": "20251009",
+        "ts_code": "301563.SZ",
+        "vol": 116894.45
+      },
+      "date": "2025-10-09",
+      "raw_suspend_d": {
+        "suspend_timing": "11:21-13:01",
+        "suspend_type": "S",
+        "trade_date": "20251009",
+        "ts_code": "301563.SZ"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251009/part.parquet",
+          "sha256": "9839033615accaf054dc848a3da616809bcd5b87a9bafe56dc3a43ff41267ea2"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251009/part.parquet",
+          "sha256": "d43826b8af52bd2d51b6af33be9de4bb71c92b3535eea6fd665f8c0593b89f39"
+        }
+      },
+      "symbol": "301563.SZ",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": true,
+        "elapsed_duration_min": 100,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 100,
+            "end": "13:01",
+            "end_min": 781,
+            "raw": "11:21-13:01",
+            "start": "11:21",
+            "start_min": 681
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2025-10-23",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 2717344.795,
+            "close": 83.01,
+            "open": 79.92,
+            "pre_close": 84.99,
+            "trade_date": "20251027",
+            "ts_code": "603175.SH",
+            "vol": 311441.72
+          },
+          "daily_present": true,
+          "date": "2025-10-27",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 2764496.68,
+        "close": 84.99,
+        "high": 99.77,
+        "low": 66.66,
+        "open": 70.1,
+        "pre_close": 17.08,
+        "trade_date": "20251024",
+        "ts_code": "603175.SH",
+        "vol": 368408.7
+      },
+      "date": "2025-10-24",
+      "raw_suspend_d": {
+        "suspend_timing": "10:30-10:40",
+        "suspend_type": "S",
+        "trade_date": "20251024",
+        "ts_code": "603175.SH"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251024/part.parquet",
+          "sha256": "3f537e1f5f93497a5cd83c2a3ea6be5e19b391190c17f74f25c9b4d9c6b380bb"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251024/part.parquet",
+          "sha256": "8b3ec85c30dc48c7e3b3d0a99b9a37a51f90cb379e0043f0606e92fa9657731b"
+        }
+      },
+      "symbol": "603175.SH",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 10,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "10:40",
+            "end_min": 640,
+            "raw": "10:30-10:40",
+            "start": "10:30",
+            "start_min": 630
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2025-10-27",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 729215.144,
+            "close": 31.86,
+            "open": 29.89,
+            "pre_close": 31.01,
+            "trade_date": "20251029",
+            "ts_code": "688759.SH",
+            "vol": 232272.83
+          },
+          "daily_present": true,
+          "date": "2025-10-29",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 1107252.84,
+        "close": 31.01,
+        "high": 48.91,
+        "low": 30.3,
+        "open": 48.9,
+        "pre_close": 17.78,
+        "trade_date": "20251028",
+        "ts_code": "688759.SH",
+        "vol": 340342.88
+      },
+      "date": "2025-10-28",
+      "raw_suspend_d": {
+        "suspend_timing": "09:32-09:42",
+        "suspend_type": "S",
+        "trade_date": "20251028",
+        "ts_code": "688759.SH"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251028/part.parquet",
+          "sha256": "59a00e2f676812cfe7d225707b5d2d4d82602bc17d23e9d953008240c76bf6b0"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251028/part.parquet",
+          "sha256": "1b5b5a54fb0bfac33f87add448f8dc5f9880e544ac9c5ce7df12bcf8575d1226"
+        }
+      },
+      "symbol": "688759.SH",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 10,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "09:42",
+            "end_min": 582,
+            "raw": "09:32-09:42",
+            "start": "09:32",
+            "start_min": 572
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2025-10-27",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 2216002.577,
+            "close": 26.75,
+            "open": 25.1,
+            "pre_close": 25.75,
+            "trade_date": "20251029",
+            "ts_code": "688783.SH",
+            "vol": 842326.78
+          },
+          "daily_present": true,
+          "date": "2025-10-29",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 3245796.569,
+        "close": 25.75,
+        "high": 39.78,
+        "low": 24.89,
+        "open": 39.78,
+        "pre_close": 8.62,
+        "trade_date": "20251028",
+        "ts_code": "688783.SH",
+        "vol": 1208650.3
+      },
+      "date": "2025-10-28",
+      "raw_suspend_d": {
+        "suspend_timing": "09:32-09:42",
+        "suspend_type": "S",
+        "trade_date": "20251028",
+        "ts_code": "688783.SH"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251028/part.parquet",
+          "sha256": "59a00e2f676812cfe7d225707b5d2d4d82602bc17d23e9d953008240c76bf6b0"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251028/part.parquet",
+          "sha256": "1b5b5a54fb0bfac33f87add448f8dc5f9880e544ac9c5ce7df12bcf8575d1226"
+        }
+      },
+      "symbol": "688783.SH",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 10,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "09:42",
+            "end_min": 582,
+            "raw": "09:32-09:42",
+            "start": "09:32",
+            "start_min": 572
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": {
+            "amount": 2781753.187,
+            "close": 91.1,
+            "open": 88.0,
+            "pre_close": 29.06,
+            "trade_date": "20251028",
+            "ts_code": "688765.SH",
+            "vol": 343228.94
+          },
+          "daily_present": true,
+          "date": "2025-10-28",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 1951353.887,
+            "close": 117.9,
+            "open": 115.0,
+            "pre_close": 113.22,
+            "trade_date": "20251030",
+            "ts_code": "688765.SH",
+            "vol": 166020.25
+          },
+          "daily_present": true,
+          "date": "2025-10-30",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 2171458.296,
+        "close": 113.22,
+        "high": 120.03,
+        "low": 90.0,
+        "open": 90.01,
+        "pre_close": 91.1,
+        "trade_date": "20251029",
+        "ts_code": "688765.SH",
+        "vol": 208842.16
+      },
+      "date": "2025-10-29",
+      "raw_suspend_d": {
+        "suspend_timing": "13:01-13:11",
+        "suspend_type": "S",
+        "trade_date": "20251029",
+        "ts_code": "688765.SH"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251029/part.parquet",
+          "sha256": "00ba56d0ccb5bae42e13e3c920bb65323b16302d16136f25dab4c27ef40dc2f8"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251029/part.parquet",
+          "sha256": "ab50fa45aafc9758a6a53783735eedd78f10423f0bad03677a713c4767440aad"
+        }
+      },
+      "symbol": "688765.SH",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 10,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "13:11",
+            "end_min": 791,
+            "raw": "13:01-13:11",
+            "start": "13:01",
+            "start_min": 781
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": {
+            "amount": 3391350.397,
+            "close": 18.48,
+            "open": 20.57,
+            "pre_close": 5.69,
+            "trade_date": "20251118",
+            "ts_code": "301638.SZ",
+            "vol": 1770562.42
+          },
+          "daily_present": true,
+          "date": "2025-11-18",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 2843877.159,
+            "close": 22.0,
+            "open": 22.8,
+            "pre_close": 23.89,
+            "trade_date": "20251120",
+            "ts_code": "301638.SZ",
+            "vol": 1254875.12
+          },
+          "daily_present": true,
+          "date": "2025-11-20",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 3768881.602,
+        "close": 23.89,
+        "high": 25.88,
+        "low": 17.5,
+        "open": 17.55,
+        "pre_close": 18.48,
+        "trade_date": "20251119",
+        "ts_code": "301638.SZ",
+        "vol": 1754118.75
+      },
+      "date": "2025-11-19",
+      "raw_suspend_d": {
+        "suspend_timing": "10:53-11:03",
+        "suspend_type": "S",
+        "trade_date": "20251119",
+        "ts_code": "301638.SZ"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251119/part.parquet",
+          "sha256": "bcdda783c66b4cfb15113058401d35551c03de033c9028ceb6b45204cc5b3f44"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251119/part.parquet",
+          "sha256": "3634f7ccf0acf6a9f1b87ef7aa59d3a293f3a9b3f0680a750255d5700047e635"
+        }
+      },
+      "symbol": "301638.SZ",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 10,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "11:03",
+            "end_min": 663,
+            "raw": "10:53-11:03",
+            "start": "10:53",
+            "start_min": 653
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2025-11-20",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 24867.06,
+            "close": 82.6,
+            "open": 82.6,
+            "pre_close": 118.0,
+            "trade_date": "20251124",
+            "ts_code": "920091.BJ",
+            "vol": 3010.54
+          },
+          "daily_present": true,
+          "date": "2025-11-24",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 587478.355,
+        "close": 118.0,
+        "high": 159.0,
+        "low": 35.01,
+        "open": 35.09,
+        "pre_close": 9.0,
+        "trade_date": "20251121",
+        "ts_code": "920091.BJ",
+        "vol": 133575.9
+      },
+      "date": "2025-11-21",
+      "raw_suspend_d": {
+        "suspend_timing": "10:49-10:59,11:12-11:22",
+        "suspend_type": "S",
+        "trade_date": "20251121",
+        "ts_code": "920091.BJ"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251121/part.parquet",
+          "sha256": "f960d197c6edbfbd42e8b3a6a8c8e89fe325b8a5a8e6662d8cbca39ae13aaacd"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251121/part.parquet",
+          "sha256": "1b0356329bfd1272b1d4e637cdf9924c0c40a29ac1f605e648e2b68382287ccd"
+        }
+      },
+      "symbol": "920091.BJ",
+      "timing_analysis": {
+        "active_session_overlap_min": 20,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 20,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "10:59",
+            "end_min": 659,
+            "raw": "10:49-10:59",
+            "start": "10:49",
+            "start_min": 649
+          },
+          {
+            "duration_min": 10,
+            "end": "11:22",
+            "end_min": 682,
+            "raw": "11:12-11:22",
+            "start": "11:12",
+            "start_min": 672
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2025-12-08",
+          "suspend_d": [
+            {
+              "suspend_timing": null,
+              "suspend_type": "S",
+              "trade_date": "20251208",
+              "ts_code": "600200.SH"
+            }
+          ]
+        },
+        {
+          "daily": {
+            "amount": 24242.387,
+            "close": 0.44,
+            "open": 0.39,
+            "pre_close": 0.4,
+            "trade_date": "20251210",
+            "ts_code": "600200.SH",
+            "vol": 579328.88
+          },
+          "daily_present": true,
+          "date": "2025-12-10",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 90838.329,
+        "close": 0.4,
+        "high": 0.62,
+        "low": 0.34,
+        "open": 0.62,
+        "pre_close": 1.24,
+        "trade_date": "20251209",
+        "ts_code": "600200.SH",
+        "vol": 2056779.18
+      },
+      "date": "2025-12-09",
+      "raw_suspend_d": {
+        "suspend_timing": "9:31-9:41",
+        "suspend_type": "S",
+        "trade_date": "20251209",
+        "ts_code": "600200.SH"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251209/part.parquet",
+          "sha256": "c78521b72e1507eaac640f3efa2ee18bf3d34f4640ab13791a19a72bd3e50b70"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251209/part.parquet",
+          "sha256": "e940a634504d37e2d7644f4bfffade2b9281fdb4c1a54080adf8a2f540a902c3"
+        }
+      },
+      "symbol": "600200.SH",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 10,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "09:41",
+            "end_min": 581,
+            "raw": "9:31-9:41",
+            "start": "09:31",
+            "start_min": 571
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2025-12-10",
+          "suspend_d": [
+            {
+              "suspend_timing": null,
+              "suspend_type": "S",
+              "trade_date": "20251210",
+              "ts_code": "920680.BJ"
+            }
+          ]
+        },
+        {
+          "daily": {
+            "amount": 48921.698,
+            "close": 2.17,
+            "open": 2.6,
+            "pre_close": 2.75,
+            "trade_date": "20251212",
+            "ts_code": "920680.BJ",
+            "vol": 195625.5
+          },
+          "daily_present": true,
+          "date": "2025-12-12",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 66249.075,
+        "close": 2.75,
+        "high": 5.0,
+        "low": 1.5,
+        "open": 1.5,
+        "pre_close": 9.52,
+        "trade_date": "20251211",
+        "ts_code": "920680.BJ",
+        "vol": 230917.75
+      },
+      "date": "2025-12-11",
+      "raw_suspend_d": {
+        "suspend_timing": "9:30-9:40,9:41-9:51",
+        "suspend_type": "S",
+        "trade_date": "20251211",
+        "ts_code": "920680.BJ"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251211/part.parquet",
+          "sha256": "ec4213ac213513be53a1f69e4715333f16d4105c0f38ea26db8e1f2742862cd1"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251211/part.parquet",
+          "sha256": "45b4f9490a8ac026e6994e702c70de31bf29c6001a66bfc9a4f369874619cbf8"
+        }
+      },
+      "symbol": "920680.BJ",
+      "timing_analysis": {
+        "active_session_overlap_min": 20,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 20,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "09:40",
+            "end_min": 580,
+            "raw": "9:30-9:40",
+            "start": "09:30",
+            "start_min": 570
+          },
+          {
+            "duration_min": 10,
+            "end": "09:51",
+            "end_min": 591,
+            "raw": "9:41-9:51",
+            "start": "09:41",
+            "start_min": 581
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2025-12-22",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 602476.358,
+            "close": 75.83,
+            "open": 82.0,
+            "pre_close": 101.01,
+            "trade_date": "20251224",
+            "ts_code": "301449.SZ",
+            "vol": 76086.64
+          },
+          "daily_present": true,
+          "date": "2025-12-24",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 1018662.026,
+        "close": 101.01,
+        "high": 150.99,
+        "low": 76.02,
+        "open": 78.5,
+        "pre_close": 36.8,
+        "trade_date": "20251223",
+        "ts_code": "301449.SZ",
+        "vol": 117965.16
+      },
+      "date": "2025-12-23",
+      "raw_suspend_d": {
+        "suspend_timing": "14:17-14:27,14:27-14:37",
+        "suspend_type": "S",
+        "trade_date": "20251223",
+        "ts_code": "301449.SZ"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251223/part.parquet",
+          "sha256": "24f0e728a06fdb5be7654a234a0d276d75c86723f77521bc731b223b7ef871c6"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251223/part.parquet",
+          "sha256": "76d20b933c8374017b35b47b9796faf903739ba1667975e77114bfe399490a46"
+        }
+      },
+      "symbol": "301449.SZ",
+      "timing_analysis": {
+        "active_session_overlap_min": 20,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 20,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "14:27",
+            "end_min": 867,
+            "raw": "14:17-14:27",
+            "start": "14:17",
+            "start_min": 857
+          },
+          {
+            "duration_min": 10,
+            "end": "14:37",
+            "end_min": 877,
+            "raw": "14:27-14:37",
+            "start": "14:27",
+            "start_min": 867
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2025-12-22",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 1341243.95,
+            "close": 82.73,
+            "open": 88.0,
+            "pre_close": 115.0,
+            "trade_date": "20251224",
+            "ts_code": "301667.SZ",
+            "vol": 152906.46
+          },
+          "daily_present": true,
+          "date": "2025-12-24",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 1453849.448,
+        "close": 115.0,
+        "high": 180.0,
+        "low": 59.99,
+        "open": 60.0,
+        "pre_close": 22.63,
+        "trade_date": "20251223",
+        "ts_code": "301667.SZ",
+        "vol": 193811.88
+      },
+      "date": "2025-12-23",
+      "raw_suspend_d": {
+        "suspend_timing": "14:00-14:10,14:13-14:23",
+        "suspend_type": "S",
+        "trade_date": "20251223",
+        "ts_code": "301667.SZ"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251223/part.parquet",
+          "sha256": "24f0e728a06fdb5be7654a234a0d276d75c86723f77521bc731b223b7ef871c6"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251223/part.parquet",
+          "sha256": "76d20b933c8374017b35b47b9796faf903739ba1667975e77114bfe399490a46"
+        }
+      },
+      "symbol": "301667.SZ",
+      "timing_analysis": {
+        "active_session_overlap_min": 20,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 20,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "14:10",
+            "end_min": 850,
+            "raw": "14:00-14:10",
+            "start": "14:00",
+            "start_min": 840
+          },
+          {
+            "duration_min": 10,
+            "end": "14:23",
+            "end_min": 863,
+            "raw": "14:13-14:23",
+            "start": "14:13",
+            "start_min": 853
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2025-12-22",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 1103893.028,
+            "close": 26.01,
+            "open": 27.83,
+            "pre_close": 36.81,
+            "trade_date": "20251224",
+            "ts_code": "603248.SH",
+            "vol": 399433.61
+          },
+          "daily_present": true,
+          "date": "2025-12-24",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 1529323.78,
+        "close": 36.81,
+        "high": 46.0,
+        "low": 24.02,
+        "open": 28.45,
+        "pre_close": 10.1,
+        "trade_date": "20251223",
+        "ts_code": "603248.SH",
+        "vol": 556408.21
+      },
+      "date": "2025-12-23",
+      "raw_suspend_d": {
+        "suspend_timing": "14:20-14:30,14:30-14:40",
+        "suspend_type": "S",
+        "trade_date": "20251223",
+        "ts_code": "603248.SH"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251223/part.parquet",
+          "sha256": "24f0e728a06fdb5be7654a234a0d276d75c86723f77521bc731b223b7ef871c6"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251223/part.parquet",
+          "sha256": "76d20b933c8374017b35b47b9796faf903739ba1667975e77114bfe399490a46"
+        }
+      },
+      "symbol": "603248.SH",
+      "timing_analysis": {
+        "active_session_overlap_min": 20,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 20,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "14:30",
+            "end_min": 870,
+            "raw": "14:20-14:30",
+            "start": "14:20",
+            "start_min": 860
+          },
+          {
+            "duration_min": 10,
+            "end": "14:40",
+            "end_min": 880,
+            "raw": "14:30-14:40",
+            "start": "14:30",
+            "start_min": 870
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": {
+            "amount": 869979.893,
+            "close": 90.11,
+            "open": 77.85,
+            "pre_close": 75.83,
+            "trade_date": "20251225",
+            "ts_code": "301449.SZ",
+            "vol": 98854.34
+          },
+          "daily_present": true,
+          "date": "2025-12-25",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 857266.259,
+            "close": 104.21,
+            "open": 108.0,
+            "pre_close": 114.65,
+            "trade_date": "20251229",
+            "ts_code": "301449.SZ",
+            "vol": 84436.95
+          },
+          "daily_present": true,
+          "date": "2025-12-29",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 1078573.643,
+        "close": 114.65,
+        "high": 118.0,
+        "low": 86.17,
+        "open": 88.1,
+        "pre_close": 90.11,
+        "trade_date": "20251226",
+        "ts_code": "301449.SZ",
+        "vol": 102637.49
+      },
+      "date": "2025-12-26",
+      "raw_suspend_d": {
+        "suspend_timing": "10:56-11:06",
+        "suspend_type": "S",
+        "trade_date": "20251226",
+        "ts_code": "301449.SZ"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251226/part.parquet",
+          "sha256": "9ae3ebd32d675a0e1055656daea502efa7eef666f81032572d77dce49cc8b2e9"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251226/part.parquet",
+          "sha256": "04a4a785bdec3b1915f156a6dec1bdd9196dea0b548def890927896aeaadf6c6"
+        }
+      },
+      "symbol": "301449.SZ",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 10,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "11:06",
+            "end_min": 666,
+            "raw": "10:56-11:06",
+            "start": "10:56",
+            "start_min": 656
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2025-12-30",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 1233599.554,
+            "close": 69.18,
+            "open": 65.88,
+            "pre_close": 71.32,
+            "trade_date": "20260105",
+            "ts_code": "301687.SZ",
+            "vol": 172992.78
+          },
+          "daily_present": true,
+          "date": "2026-01-05",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 1741012.129,
+        "close": 71.32,
+        "high": 95.88,
+        "low": 65.0,
+        "open": 65.0,
+        "pre_close": 21.93,
+        "trade_date": "20251231",
+        "ts_code": "301687.SZ",
+        "vol": 238276.8
+      },
+      "date": "2025-12-31",
+      "raw_suspend_d": {
+        "suspend_timing": "10:07-10:17",
+        "suspend_type": "S",
+        "trade_date": "20251231",
+        "ts_code": "301687.SZ"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20251231/part.parquet",
+          "sha256": "e8f53c4fb0144db7c620c37e498cf90bd7905fdaa290650f136c34d4acc5c849"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20251231/part.parquet",
+          "sha256": "8231af11c1daad22ee3bcd866e70fbd534d7d117b2868d10722f6c3b54780864"
+        }
+      },
+      "symbol": "301687.SZ",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 10,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "10:17",
+            "end_min": 617,
+            "raw": "10:07-10:17",
+            "start": "10:07",
+            "start_min": 607
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": {
+            "amount": 44373.82,
+            "close": 13.9,
+            "open": 13.88,
+            "pre_close": 13.84,
+            "trade_date": "20260108",
+            "ts_code": "603056.SH",
+            "vol": 32025.01
+          },
+          "daily_present": true,
+          "date": "2026-01-08",
+          "suspend_d": []
+        },
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2026-01-12",
+          "suspend_d": [
+            {
+              "suspend_timing": null,
+              "suspend_type": "R",
+              "trade_date": "20260112",
+              "ts_code": "603056.SH"
+            },
+            {
+              "suspend_timing": null,
+              "suspend_type": "S",
+              "trade_date": "20260112",
+              "ts_code": "603056.SH"
+            }
+          ]
+        }
+      ],
+      "daily": {
+        "amount": 63988.132,
+        "close": 14.04,
+        "high": 14.19,
+        "low": 13.85,
+        "open": 13.9,
+        "pre_close": 13.9,
+        "trade_date": "20260109",
+        "ts_code": "603056.SH",
+        "vol": 45364.0
+      },
+      "date": "2026-01-09",
+      "raw_suspend_d": {
+        "suspend_timing": "13:00-9:30",
+        "suspend_type": "S",
+        "trade_date": "20260109",
+        "ts_code": "603056.SH"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260109/part.parquet",
+          "sha256": "f258fb1ebb01818c4fb68a944e2e4d3ddf979c6432347c807b6759d40facd461"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260109/part.parquet",
+          "sha256": "032e73a6c476262209bd2b4580c98a7d702c24b19bb10dae008e757fa459a94f"
+        }
+      },
+      "symbol": "603056.SH",
+      "timing_analysis": {
+        "active_session_overlap_min": null,
+        "class": "abnormal_format_or_order",
+        "elapsed_duration_min": null,
+        "errors": [
+          {
+            "reason": "end_not_after_start",
+            "segment": "13:00-9:30"
+          }
+        ],
+        "full_active_session_coverage": false,
+        "segments": []
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": {
+            "amount": 920911.758,
+            "close": 129.79,
+            "open": 129.0,
+            "pre_close": 132.0,
+            "trade_date": "20260109",
+            "ts_code": "603402.SH",
+            "vol": 70294.95
+          },
+          "daily_present": true,
+          "date": "2026-01-09",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 1499153.597,
+            "close": 146.0,
+            "open": 130.0,
+            "pre_close": 138.5,
+            "trade_date": "20260113",
+            "ts_code": "603402.SH",
+            "vol": 109830.23
+          },
+          "daily_present": true,
+          "date": "2026-01-13",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 1860062.059,
+        "close": 138.5,
+        "high": 192.0,
+        "low": 127.2,
+        "open": 128.01,
+        "pre_close": 129.79,
+        "trade_date": "20260112",
+        "ts_code": "603402.SH",
+        "vol": 127200.21
+      },
+      "date": "2026-01-12",
+      "raw_suspend_d": {
+        "suspend_timing": "13:00-13:10",
+        "suspend_type": "S",
+        "trade_date": "20260112",
+        "ts_code": "603402.SH"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260112/part.parquet",
+          "sha256": "b1727dbbea699d18bf54d7231ccb6f3fc41db8c33557e3a00cb36eb870cdd577"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260112/part.parquet",
+          "sha256": "a91bdd85a0ca185d1e57af881f481ad55e9828759c2a2b863dc0f07c8f57b45e"
+        }
+      },
+      "symbol": "603402.SH",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 10,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "13:10",
+            "end_min": 790,
+            "raw": "13:00-13:10",
+            "start": "13:00",
+            "start_min": 780
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2026-01-15",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 495002.396,
+            "close": 40.25,
+            "open": 43.28,
+            "pre_close": 54.95,
+            "trade_date": "20260119",
+            "ts_code": "920086.BJ",
+            "vol": 116826.84
+          },
+          "daily_present": true,
+          "date": "2026-01-19",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 987613.412,
+        "close": 54.95,
+        "high": 79.93,
+        "low": 49.0,
+        "open": 50.0,
+        "pre_close": 11.66,
+        "trade_date": "20260116",
+        "ts_code": "920086.BJ",
+        "vol": 181017.09
+      },
+      "date": "2026-01-16",
+      "raw_suspend_d": {
+        "suspend_timing": "10:44-10:54",
+        "suspend_type": "S",
+        "trade_date": "20260116",
+        "ts_code": "920086.BJ"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260116/part.parquet",
+          "sha256": "5a5a322ec81eb79f18e0e26957420996ae8f66a909ed1e34754fcec041d57672"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260116/part.parquet",
+          "sha256": "76eae2052e8c324fecabf7fd8a44b243e893f05c26c6493e1c6f654968ee7f1a"
+        }
+      },
+      "symbol": "920086.BJ",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 10,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "10:54",
+            "end_min": 654,
+            "raw": "10:44-10:54",
+            "start": "10:44",
+            "start_min": 644
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2026-01-27",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 381278.957,
+            "close": 46.05,
+            "open": 46.0,
+            "pre_close": 52.89,
+            "trade_date": "20260129",
+            "ts_code": "920159.BJ",
+            "vol": 81642.05
+          },
+          "daily_present": true,
+          "date": "2026-01-29",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 703488.469,
+        "close": 52.89,
+        "high": 65.18,
+        "low": 47.07,
+        "open": 49.9,
+        "pre_close": 25.0,
+        "trade_date": "20260128",
+        "ts_code": "920159.BJ",
+        "vol": 136842.68
+      },
+      "date": "2026-01-28",
+      "raw_suspend_d": {
+        "suspend_timing": "13:03-13:13",
+        "suspend_type": "S",
+        "trade_date": "20260128",
+        "ts_code": "920159.BJ"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260128/part.parquet",
+          "sha256": "00735a604ecad5135e18188f68e4916f499d66157cc006936213fdb7275ed79d"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260128/part.parquet",
+          "sha256": "d25c3c6a4d40b1bb855225cf6d570f0168c31d6104ba1740f4ca6eeb1334397e"
+        }
+      },
+      "symbol": "920159.BJ",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 10,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "13:13",
+            "end_min": 793,
+            "raw": "13:03-13:13",
+            "start": "13:03",
+            "start_min": 783
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    },
+    {
+      "adjacent_context": [
+        {
+          "daily": null,
+          "daily_present": false,
+          "date": "2026-02-11",
+          "suspend_d": []
+        },
+        {
+          "daily": {
+            "amount": 178616.64,
+            "close": 29.56,
+            "open": 30.48,
+            "pre_close": 34.49,
+            "trade_date": "20260213",
+            "ts_code": "920166.BJ",
+            "vol": 58779.35
+          },
+          "daily_present": true,
+          "date": "2026-02-13",
+          "suspend_d": []
+        }
+      ],
+      "daily": {
+        "amount": 304239.257,
+        "close": 34.49,
+        "high": 43.6,
+        "low": 27.16,
+        "open": 28.0,
+        "pre_close": 12.64,
+        "trade_date": "20260212",
+        "ts_code": "920166.BJ",
+        "vol": 99333.98
+      },
+      "date": "2026-02-12",
+      "raw_suspend_d": {
+        "suspend_timing": "13:55-14:05",
+        "suspend_type": "S",
+        "trade_date": "20260212",
+        "ts_code": "920166.BJ"
+      },
+      "source_partitions": {
+        "daily": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20260212/part.parquet",
+          "sha256": "d6d4a0cbad63669d805c9b7db22cacf0953b56d0630612f097f48e5cc0a95d13"
+        },
+        "suspend_d": {
+          "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20260212/part.parquet",
+          "sha256": "389392cc326c4cb28c15f656a7da85cb3780d47d5dd674686bb2fa9e39180527"
+        }
+      },
+      "symbol": "920166.BJ",
+      "timing_analysis": {
+        "active_session_overlap_min": 10,
+        "class": "parseable_intraday_segments",
+        "crosses_midday_break": false,
+        "elapsed_duration_min": 10,
+        "full_active_session_coverage": false,
+        "segment_overlap": false,
+        "segments": [
+          {
+            "duration_min": 10,
+            "end": "14:05",
+            "end_min": 845,
+            "raw": "13:55-14:05",
+            "start": "13:55",
+            "start_min": 835
+          }
+        ]
+      },
+      "validity": {
+        "amount": true,
+        "close": true,
+        "ohlc_order_valid": true,
+        "open": true,
+        "vol": true
+      }
+    }
+  ],
+  "local_contract_and_semantics": {
+    "existing_precedence_contract": {
+      "comparison_contract": "backend/services/v3_b5_comparison.py:471-472 currently treats any adapter is_suspended plus returned daily bar as conflict",
+      "scripts/v3_liquidity_source_adapter.py:10-18": "valid daily amount precedes suspension evidence; missing exact S/P is suspension; R-only missing daily is data_fault",
+      "scripts/v3_liquidity_source_adapter.py:29-42": "valid daily amount returns daily even when suspend rows are present",
+      "tests/test_v3_liquidity_corrective.py:16-21": "a daily_amount plus S corrective row remains rejected as conflict",
+      "tests/test_v3_liquidity_source_adapter.py:16-24": "valid daily amount wins over R and R+S",
+      "tests/test_v3_liquidity_source_adapter.py:50-55": "invalid daily amount is not masked by S"
+    },
+    "official_tushare": {
+      "meaning": "suspend_type S=ͣ��, R=����; suspend_timing=����ͣ��ʱ���, non-intraday rows may be empty",
+      "url": "https://tushare.pro/document/2?doc_id=214",
+      "used_for": "field semantics only; no external data was fetched"
+    },
+    "parquet_schema": {
+      "contract_evidence": [
+        "tests/test_suspend_d_schema.py:12-24 requires ts_code, trade_date and suspend_timing/suspend_type",
+        "scripts/verify_gate0_data_feasibility.py:74-75 records native suspend_d fields ts_code,trade_date,suspend_timing,suspend_type",
+        "tests/test_market_regime_v12_diagnostic_arithmetic.py:46-55 uses nullable suspend_timing in the fixture schema"
+      ],
+      "fields": [
+        {
+          "name": "ts_code",
+          "nullable": true,
+          "type": "large_string"
+        },
+        {
+          "name": "trade_date",
+          "nullable": true,
+          "type": "large_string"
+        },
+        {
+          "name": "suspend_timing",
+          "nullable": true,
+          "type": "large_string"
+        },
+        {
+          "name": "suspend_type",
+          "nullable": true,
+          "type": "large_string"
+        }
+      ],
+      "sample_partition": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20250716/part.parquet"
+    }
+  },
+  "preservation": {
+    "oos_artifacts_written": false,
+    "previous_diagnostic_sha256": "4e0088bac9f242443bef1a945de6319cecae8f4391ebdedc941cc32b68ef1eb2",
+    "production_spec_plan_tests_modified": false,
+    "target_diagnostic_preexisted": false
+  },
+  "recommendation": "Task5 remains blocked/watch. The evidence supports a narrow, auditable S+daily timing precedence design for 21 rows, but the set is mixed because 603056.SH/2026-01-09 remains unresolved. Do not implement, run a real slice, preflight, publish, verify, Task6 or OOS.",
+  "schema": "v3_b5_comparison_s_intraday_diagnostic.v1",
+  "scope": {
+    "common_open_count": 176,
+    "is_end": "2026-03-19",
+    "is_start": "2025-06-27",
+    "oos_read": false,
+    "preflight_run": false,
+    "publisher_run": false,
+    "real_slice_run": false,
+    "selection": "all IS rows with suspend_type=S and same-day daily row",
+    "task6_run": false,
+    "verifier_run": false
+  },
+  "source_hashes": {
+    "backend/services/formal_pit_partition_adapter.py": "f849a87a11bffd184ef7f6f22b9a31811eb35fcfeb50fcc0f59d971424e28387",
+    "backend/services/v3_b5_comparison.py": "365a5d993ef9dbfd4e3472579ab8aa84fe140545bca61ed8227db7744074a68d",
+    "backend/services/v3_b5_ledger_observation.py": "b2db2655cc17a9207c604ea57a2df3a44d610fa4291c06ae60a759334c739bfd",
+    "contracts/stable.py": "f0241e13bfc7ea2daea4bbd7a213b609885eb6fecd0ab3b0fdfddd4ec5c8722f",
+    "docs/superpowers/plans/2026-08-10-v3-b5-minimal-validation-plan.md": "6a83cdee822bdf60a04887a966e32169f0abdc8d361c98141531966f8e5bf798",
+    "docs/superpowers/specs/2026-08-10-v3-b5-minimal-validation-design.md": "8011298fd3fdab26b2caa47ad2a1ae4a9bea9fbfb9c06f3e3498fe87ba759909",
+    "docs/verification/v3_b5_comparison_suspension_precedence_diagnostic.json": "4e0088bac9f242443bef1a945de6319cecae8f4391ebdedc941cc32b68ef1eb2",
+    "scripts/diagnose_market_regime_v12_daily_gaps.py": "b933630940928fc5f19c2c716ac11c56d3cea90a28514ac3c56cf1b36462f797",
+    "scripts/v3_liquidity_source_adapter.py": "5a024e9322f6b6018c7f4ac44a3f95782babb1ecf486d7296f6810b9f2df164b",
+    "tests/test_suspend_d_schema.py": "87de1f3c61c97aa3465711f54887902b014201b4a4b722a42eeef3533155d562",
+    "tests/test_v3_liquidity_corrective.py": "95ae646f14f57e63e96d6faae6abb5fcdac6dc3f173e82bba65d37ca893c3399",
+    "tests/test_v3_liquidity_source_adapter.py": "6344dc22adf7ddf4cb9aeef29e6b208e4fb59b4a24c990aa9aca3f7c32602ee1"
+  },
+  "status": "diagnostic_only",
+  "summary": {
+    "abnormal_format_or_order_count": 1,
+    "daily_open_close_amount_vol_all_finite_positive": true,
+    "daily_value_ranges": {
+      "amount": [
+        63988.132,
+        12702393.309
+      ],
+      "close": [
+        0.4,
+        164.56
+      ],
+      "open": [
+        0.62,
+        128.01
+      ],
+      "vol": [
+        45364.0,
+        17970994.53
+      ]
+    },
+    "duplicate_symbol_date_rows": 0,
+    "event_count": 22,
+    "full_active_session_coverage_count": 0,
+    "interpretation": "21 rows are short intraday intervals (13 x 10 minutes, 7 x 20 minutes, 1 x 100-minute clock interval); no row covers the full active session. One reversed interval is abnormal.",
+    "invalid_daily_rows": [],
+    "null_or_empty_timing_count": 0,
+    "ohlc_order_invalid_count": 0,
+    "parseable_intraday_count": 21,
+    "timing_classes": {
+      "abnormal_format_or_order": 1,
+      "parseable_intraday_segments": 21
+    },
+    "timing_elapsed_duration_min_counts": {
+      "10": 13,
+      "100": 1,
+      "20": 7
+    },
+    "unique_date_count": 19,
+    "unique_symbol_count": 21
+  },
+  "verification_commands": [
+    {
+      "command": "fresh strategy.db read-only COUNT query",
+      "exit_code": 0,
+      "result": "(1,0,0,0,0,0,0); OOS unread/unreserved/unconsumed"
+    },
+    {
+      "command": "bounded full-IS S+daily enumeration with adjacent-date context",
+      "exit_code": 0,
+      "result": "22 unique rows; no duplicate symbol/date; all required daily values finite and positive"
+    },
+    {
+      "command": "suspend_d Parquet schema probe",
+      "exit_code": 0,
+      "result": "four nullable large_string fields: ts_code, trade_date, suspend_timing, suspend_type"
+    },
+    {
+      "command": "actual adapter timing boundary probe for 600930.SH/2025-07-16 and 603056.SH/2026-01-09",
+      "exit_code": 0,
+      "result": "both return is_suspended=True and finite daily bars; one timing parseable, one reversed"
+    },
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/test_v3_liquidity_source_adapter.py tests/test_v3_liquidity_corrective.py",
+      "exit_code": 0,
+      "result": "12 passed in 1.03s"
+    },
+    {
+      "command": "official Tushare suspend_d documentation lookup",
+      "exit_code": 0,
+      "result": "official field semantics available; no external data request"
+    }
+  ]
+}

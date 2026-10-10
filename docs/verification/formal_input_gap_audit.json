@@ -1,0 +1,1083 @@
+{
+  "scope_hash": "fa4e3fd8f98d8758",
+  "sw2021_universe_hash": "55d2ceb6e20641b69a1dc07e17d9d8707abc4488132acf0734c6946f1dbf94dc",
+  "checked_trade_days": 2554,
+  "stk_limit": {
+    "message_count": 1198,
+    "stock_day_count": 15992,
+    "unique_codes": 73,
+    "classification": {
+      "unclassified_blocking": 15946,
+      "first_n_trading_days_observed": 46
+    },
+    "code_details": [
+      {
+        "ts_code": "001914.SZ",
+        "gap_days": 883,
+        "first_date": 20160104,
+        "last_date": 20191213,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920475.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920278.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920149.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920946.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920010.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920184.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920266.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920415.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920729.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920185.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920418.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920163.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920368.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920489.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920819.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920682.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920433.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920961.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920021.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920964.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920370.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920167.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920799.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920508.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920263.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920640.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920198.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920445.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920242.BJ",
+        "gap_days": 315,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "833874.BJ",
+        "gap_days": 310,
+        "first_date": 20200727,
+        "last_date": 20211105,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "833994.BJ",
+        "gap_days": 308,
+        "first_date": 20200727,
+        "last_date": 20211103,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "832317.BJ",
+        "gap_days": 298,
+        "first_date": 20200727,
+        "last_date": 20211020,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920839.BJ",
+        "gap_days": 246,
+        "first_date": 20201109,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920396.BJ",
+        "gap_days": 239,
+        "first_date": 20201118,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920047.BJ",
+        "gap_days": 235,
+        "first_date": 20201124,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920030.BJ",
+        "gap_days": 232,
+        "first_date": 20201127,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920670.BJ",
+        "gap_days": 225,
+        "first_date": 20201208,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920000.BJ",
+        "gap_days": 214,
+        "first_date": 20201223,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920856.BJ",
+        "gap_days": 212,
+        "first_date": 20201225,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920675.BJ",
+        "gap_days": 211,
+        "first_date": 20201228,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920510.BJ",
+        "gap_days": 211,
+        "first_date": 20201228,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920344.BJ",
+        "gap_days": 203,
+        "first_date": 20210108,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920509.BJ",
+        "gap_days": 202,
+        "first_date": 20210111,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920826.BJ",
+        "gap_days": 201,
+        "first_date": 20210112,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920275.BJ",
+        "gap_days": 192,
+        "first_date": 20210125,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920427.BJ",
+        "gap_days": 183,
+        "first_date": 20210205,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920239.BJ",
+        "gap_days": 181,
+        "first_date": 20210209,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920735.BJ",
+        "gap_days": 178,
+        "first_date": 20210219,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920599.BJ",
+        "gap_days": 177,
+        "first_date": 20210222,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920832.BJ",
+        "gap_days": 176,
+        "first_date": 20210223,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920225.BJ",
+        "gap_days": 174,
+        "first_date": 20210225,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920726.BJ",
+        "gap_days": 113,
+        "first_date": 20210527,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920523.BJ",
+        "gap_days": 108,
+        "first_date": 20210603,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920212.BJ",
+        "gap_days": 105,
+        "first_date": 20210608,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920768.BJ",
+        "gap_days": 93,
+        "first_date": 20210628,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920765.BJ",
+        "gap_days": 88,
+        "first_date": 20210705,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920885.BJ",
+        "gap_days": 85,
+        "first_date": 20210708,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920146.BJ",
+        "gap_days": 77,
+        "first_date": 20210720,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920553.BJ",
+        "gap_days": 64,
+        "first_date": 20210806,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920090.BJ",
+        "gap_days": 63,
+        "first_date": 20210809,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920566.BJ",
+        "gap_days": 59,
+        "first_date": 20210813,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920642.BJ",
+        "gap_days": 58,
+        "first_date": 20210816,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920039.BJ",
+        "gap_days": 56,
+        "first_date": 20210818,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920174.BJ",
+        "gap_days": 54,
+        "first_date": 20210820,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920305.BJ",
+        "gap_days": 50,
+        "first_date": 20210826,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920077.BJ",
+        "gap_days": 47,
+        "first_date": 20210831,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920925.BJ",
+        "gap_days": 15,
+        "first_date": 20211025,
+        "last_date": 20211112,
+        "classification": "first_n_trading_days_observed"
+      },
+      {
+        "ts_code": "920892.BJ",
+        "gap_days": 12,
+        "first_date": 20211028,
+        "last_date": 20211112,
+        "classification": "first_n_trading_days_observed"
+      },
+      {
+        "ts_code": "920924.BJ",
+        "gap_days": 8,
+        "first_date": 20211103,
+        "last_date": 20211112,
+        "classification": "first_n_trading_days_observed"
+      },
+      {
+        "ts_code": "920405.BJ",
+        "gap_days": 6,
+        "first_date": 20211105,
+        "last_date": 20211112,
+        "classification": "first_n_trading_days_observed"
+      },
+      {
+        "ts_code": "920089.BJ",
+        "gap_days": 4,
+        "first_date": 20211109,
+        "last_date": 20211112,
+        "classification": "first_n_trading_days_observed"
+      },
+      {
+        "ts_code": "688033.SH",
+        "gap_days": 1,
+        "first_date": 20190722,
+        "last_date": 20190722,
+        "classification": "first_n_trading_days_observed"
+      }
+    ]
+  },
+  "daily_basic": {
+    "message_count": 321,
+    "stock_day_count": 15085,
+    "unique_codes": 76,
+    "classification": {
+      "unclassified_blocking": 15039,
+      "first_n_trading_days_observed": 46
+    },
+    "code_details": [
+      {
+        "ts_code": "920433.BJ",
+        "gap_days": 316,
+        "first_date": 20200727,
+        "last_date": 20211116,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920198.BJ",
+        "gap_days": 316,
+        "first_date": 20200727,
+        "last_date": 20211116,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920475.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920278.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920149.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920946.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920010.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920184.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920266.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920415.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920729.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920185.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920418.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920163.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920368.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920489.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920819.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920682.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920961.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920021.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920964.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920370.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920167.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920799.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920508.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920263.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920640.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920445.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920242.BJ",
+        "gap_days": 314,
+        "first_date": 20200727,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "833874.BJ",
+        "gap_days": 309,
+        "first_date": 20200727,
+        "last_date": 20211105,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "833994.BJ",
+        "gap_days": 307,
+        "first_date": 20200727,
+        "last_date": 20211103,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "832317.BJ",
+        "gap_days": 297,
+        "first_date": 20200727,
+        "last_date": 20211020,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920839.BJ",
+        "gap_days": 246,
+        "first_date": 20201109,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920396.BJ",
+        "gap_days": 239,
+        "first_date": 20201118,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920047.BJ",
+        "gap_days": 235,
+        "first_date": 20201124,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920030.BJ",
+        "gap_days": 232,
+        "first_date": 20201127,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920670.BJ",
+        "gap_days": 225,
+        "first_date": 20201208,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920000.BJ",
+        "gap_days": 214,
+        "first_date": 20201223,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920856.BJ",
+        "gap_days": 212,
+        "first_date": 20201225,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920675.BJ",
+        "gap_days": 211,
+        "first_date": 20201228,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920510.BJ",
+        "gap_days": 211,
+        "first_date": 20201228,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920344.BJ",
+        "gap_days": 203,
+        "first_date": 20210108,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920509.BJ",
+        "gap_days": 202,
+        "first_date": 20210111,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920826.BJ",
+        "gap_days": 201,
+        "first_date": 20210112,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920275.BJ",
+        "gap_days": 192,
+        "first_date": 20210125,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920427.BJ",
+        "gap_days": 183,
+        "first_date": 20210205,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920239.BJ",
+        "gap_days": 181,
+        "first_date": 20210209,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920735.BJ",
+        "gap_days": 178,
+        "first_date": 20210219,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920599.BJ",
+        "gap_days": 177,
+        "first_date": 20210222,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920832.BJ",
+        "gap_days": 176,
+        "first_date": 20210223,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920225.BJ",
+        "gap_days": 174,
+        "first_date": 20210225,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920726.BJ",
+        "gap_days": 113,
+        "first_date": 20210527,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920523.BJ",
+        "gap_days": 108,
+        "first_date": 20210603,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920212.BJ",
+        "gap_days": 105,
+        "first_date": 20210608,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920768.BJ",
+        "gap_days": 92,
+        "first_date": 20210628,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920765.BJ",
+        "gap_days": 89,
+        "first_date": 20210705,
+        "last_date": 20211116,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920885.BJ",
+        "gap_days": 84,
+        "first_date": 20210708,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920146.BJ",
+        "gap_days": 76,
+        "first_date": 20210720,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920553.BJ",
+        "gap_days": 63,
+        "first_date": 20210806,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920090.BJ",
+        "gap_days": 62,
+        "first_date": 20210809,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920566.BJ",
+        "gap_days": 58,
+        "first_date": 20210813,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920642.BJ",
+        "gap_days": 57,
+        "first_date": 20210816,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920039.BJ",
+        "gap_days": 55,
+        "first_date": 20210818,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920174.BJ",
+        "gap_days": 53,
+        "first_date": 20210820,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920305.BJ",
+        "gap_days": 49,
+        "first_date": 20210827,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920077.BJ",
+        "gap_days": 47,
+        "first_date": 20210831,
+        "last_date": 20211112,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920925.BJ",
+        "gap_days": 15,
+        "first_date": 20211025,
+        "last_date": 20211112,
+        "classification": "first_n_trading_days_observed"
+      },
+      {
+        "ts_code": "920892.BJ",
+        "gap_days": 12,
+        "first_date": 20211028,
+        "last_date": 20211112,
+        "classification": "first_n_trading_days_observed"
+      },
+      {
+        "ts_code": "920924.BJ",
+        "gap_days": 8,
+        "first_date": 20211103,
+        "last_date": 20211112,
+        "classification": "first_n_trading_days_observed"
+      },
+      {
+        "ts_code": "920405.BJ",
+        "gap_days": 6,
+        "first_date": 20211105,
+        "last_date": 20211112,
+        "classification": "first_n_trading_days_observed"
+      },
+      {
+        "ts_code": "300216.SZ",
+        "gap_days": 5,
+        "first_date": 20200805,
+        "last_date": 20200817,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "002604.SZ",
+        "gap_days": 4,
+        "first_date": 20200601,
+        "last_date": 20200609,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920089.BJ",
+        "gap_days": 4,
+        "first_date": 20211109,
+        "last_date": 20211112,
+        "classification": "first_n_trading_days_observed"
+      },
+      {
+        "ts_code": "000939.SZ",
+        "gap_days": 2,
+        "first_date": 20201106,
+        "last_date": 20201109,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "000760.SZ",
+        "gap_days": 2,
+        "first_date": 20210610,
+        "last_date": 20210611,
+        "classification": "unclassified_blocking"
+      },
+      {
+        "ts_code": "920753.BJ",
+        "gap_days": 1,
+        "first_date": 20221031,
+        "last_date": 20221031,
+        "classification": "first_n_trading_days_observed"
+      }
+    ]
+  },
+  "intersection": {
+    "stock_day_count": 15011,
+    "unique_codes": 71
+  },
+  "stk_limit_only": {
+    "stock_day_count": 981,
+    "unique_codes": 67
+  },
+  "daily_basic_only": {
+    "stock_day_count": 74,
+    "unique_codes": 60
+  },
+  "first_gap": 20160104
+}

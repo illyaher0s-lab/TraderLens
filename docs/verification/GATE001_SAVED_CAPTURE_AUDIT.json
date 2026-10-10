@@ -1,0 +1,333 @@
+{
+  "schema": "gate001-saved-capture-offline-audit.v1",
+  "status": "supplemental_offline_audit_complete",
+  "created_at_utc": "2026-10-06T08:43:55.924538+00:00",
+  "mainline_step": 4,
+  "mainline_step_name": "executable Action Plan",
+  "source_capture_status": "mismatch_stop",
+  "formal_parent_trial_id": "gate001-b840116400c94e38b1b65ada162f65dd",
+  "technical_trial_id": "gate001-techprimary-45281f4864e040b9",
+  "scope": {
+    "offline_only": true,
+    "engine_or_reference_backtest_run": false,
+    "api_calls": false,
+    "holdout_access": false,
+    "parameter_search": false,
+    "alpha_or_qualification_claim": false,
+    "source_capture_comparison_errors_preserved": true
+  },
+  "input_artifacts": {
+    "capture": {
+      "path": "docs\\verification\\GATE001_FORMAL_TECHNICAL_PRIMARY_REPLAY.json",
+      "sha256": "097BDD0BEAD496C3FEFBC38B2E5DE2C4285B3397F85E03F8DBCC4545254B7AFF"
+    },
+    "sidecar": {
+      "path": "docs\\verification\\GATE001_FORMAL_TECHNICAL_PRIMARY_REPLAY_NONFINITE.json",
+      "sha256": "304CDA0B663D0C59AFE213FEC9EE11124393796C9313DC2BBFD50858A76C62D3"
+    },
+    "original_formal_json": {
+      "path": "docs\\verification\\GATE001_FORMAL_RESULT.json",
+      "sha256": "20336F824F5FEDEE2401D565BD3E385CB04B298AD172AA4E7026034D929480C9"
+    },
+    "original_formal_markdown": {
+      "path": "docs\\verification\\GATE001_FORMAL_RESULT.md",
+      "sha256": "206487ABE39A4B891130A516073A5A67388A3C1B6A95084C625274D8CEBC72A1"
+    },
+    "existing_order_id_parser": {
+      "path": "scripts\\gate001_reference.py",
+      "sha256": "5973E802218C038592414988202556AD2892CB6C5FF3A29890731E4DFCB79E83"
+    },
+    "frozen_market_source": {
+      "path": "strategy_core\\gate001_market_adapter.py",
+      "sha256": "F1A342A3CFD7B9E56C2DB15EF32F1325CDC54C31C45BFE936929BCFAE5E0DF05",
+      "snapshot_id": "snapshot_20261005T002537Z",
+      "manifest_sha256": "C434E25E79736FD58F77A37F5B6D47A0465BAFD85DC08D06F6D6482C9EAEF9F4",
+      "raw_file_hashes": [
+        {
+          "path": "data/alpha_gate_001/snapshot_20261005T002537Z/raw/fund_adj_2009_2014.json",
+          "sha256": "5EFDA5C00BA1831E7046DE998825F088A32944720C3EB7145F68DD6AE95520D1"
+        },
+        {
+          "path": "data/alpha_gate_001/snapshot_20261005T002537Z/raw/fund_adj_2015_2020.json",
+          "sha256": "4D1A0BAB989AEE9A6A4941A3D6DBAA03FCCD1CE94CB4AC485A360A744602E455"
+        },
+        {
+          "path": "data/alpha_gate_001/snapshot_20261005T002537Z/raw/fund_daily_2009_2014.json",
+          "sha256": "407331EDA620A738EB2D36882C54C323DC113C93211819871C1034831AFEB2FE"
+        },
+        {
+          "path": "data/alpha_gate_001/snapshot_20261005T002537Z/raw/fund_daily_2015_2020.json",
+          "sha256": "64396A488E2545C36271428F3D128CDAA219226904CB5C7536F334BFCEB8A6AC"
+        },
+        {
+          "path": "data/alpha_gate_001/snapshot_20261005T002537Z/raw/trade_cal_2009_2014.json",
+          "sha256": "AA878EE27BA71796D73BA396D3CCDF930795D139501CEEEA73AC821B8A48695D"
+        },
+        {
+          "path": "data/alpha_gate_001/snapshot_20261005T002537Z/raw/trade_cal_2015_2020.json",
+          "sha256": "6184A7837D02C7D98B515BB12C120E01393A6F855051E751FEE4FF0C5DD53312"
+        }
+      ]
+    }
+  },
+  "trade_reconciliation": {
+    "canonical_key_fields": [
+      "trade_date",
+      "direction",
+      "quantity",
+      "Decimal(price)"
+    ],
+    "matched_trade_count": 7,
+    "matched_filled_order_count": 7,
+    "engine_reference_formal_tuples_match": true,
+    "trade_details": [
+      {
+        "trade_key": {
+          "trade_date": "2010-04-20",
+          "direction": "buy",
+          "quantity": 40700,
+          "price": "2.455"
+        },
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2010-04-19:entry:2010-04-20",
+        "context": {
+          "context_source": "captured_signal",
+          "runtime_signal_captured": true,
+          "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2010-04-19:entry",
+          "signal_date": "2010-04-19",
+          "signal_type": "entry",
+          "intended_date": "2010-04-20"
+        },
+        "gross_amount_cny": "99918.50",
+        "total_fee_cny": "29.98",
+        "net_cash_flow_cny": "-99948.48"
+      },
+      {
+        "trade_key": {
+          "trade_date": "2015-01-06",
+          "direction": "sell",
+          "quantity": 40700,
+          "price": "2.728"
+        },
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2015-01-05:exit:2015-01-06",
+        "context": {
+          "context_source": "derived_from_persisted_order",
+          "runtime_signal_captured": false,
+          "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2015-01-05:exit",
+          "signal_date": "2015-01-05",
+          "signal_type": "exit",
+          "intended_date": "2015-01-06"
+        },
+        "gross_amount_cny": "111029.60",
+        "total_fee_cny": "33.31",
+        "net_cash_flow_cny": "110996.29"
+      },
+      {
+        "trade_key": {
+          "trade_date": "2015-08-25",
+          "direction": "buy",
+          "quantity": 48900,
+          "price": "2.412"
+        },
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2015-08-24:entry:2015-08-25",
+        "context": {
+          "context_source": "captured_signal",
+          "runtime_signal_captured": true,
+          "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2015-08-24:entry",
+          "signal_date": "2015-08-24",
+          "signal_type": "entry",
+          "intended_date": "2015-08-25"
+        },
+        "gross_amount_cny": "117946.80",
+        "total_fee_cny": "35.38",
+        "net_cash_flow_cny": "-117982.18"
+      },
+      {
+        "trade_key": {
+          "trade_date": "2015-09-10",
+          "direction": "sell",
+          "quantity": 48900,
+          "price": "2.666"
+        },
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2015-09-09:exit:2015-09-10",
+        "context": {
+          "context_source": "derived_from_persisted_order",
+          "runtime_signal_captured": false,
+          "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2015-09-09:exit",
+          "signal_date": "2015-09-09",
+          "signal_type": "exit",
+          "intended_date": "2015-09-10"
+        },
+        "gross_amount_cny": "130367.40",
+        "total_fee_cny": "39.11",
+        "net_cash_flow_cny": "130328.29"
+      },
+      {
+        "trade_key": {
+          "trade_date": "2015-11-30",
+          "direction": "buy",
+          "quantity": 46500,
+          "price": "2.802"
+        },
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2015-11-27:entry:2015-11-30",
+        "context": {
+          "context_source": "captured_signal",
+          "runtime_signal_captured": true,
+          "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2015-11-27:entry",
+          "signal_date": "2015-11-27",
+          "signal_type": "entry",
+          "intended_date": "2015-11-30"
+        },
+        "gross_amount_cny": "130293.00",
+        "total_fee_cny": "39.09",
+        "net_cash_flow_cny": "-130332.09"
+      },
+      {
+        "trade_key": {
+          "trade_date": "2017-10-20",
+          "direction": "sell",
+          "quantity": 46500,
+          "price": "3.079"
+        },
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2017-10-19:exit:2017-10-20",
+        "context": {
+          "context_source": "derived_from_persisted_order",
+          "runtime_signal_captured": false,
+          "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2017-10-19:exit",
+          "signal_date": "2017-10-19",
+          "signal_type": "exit",
+          "intended_date": "2017-10-20"
+        },
+        "gross_amount_cny": "143173.50",
+        "total_fee_cny": "42.95",
+        "net_cash_flow_cny": "143130.55"
+      },
+      {
+        "trade_key": {
+          "trade_date": "2018-03-29",
+          "direction": "buy",
+          "quantity": 52000,
+          "price": "2.88"
+        },
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2018-03-28:entry:2018-03-29",
+        "context": {
+          "context_source": "captured_signal",
+          "runtime_signal_captured": true,
+          "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2018-03-28:entry",
+          "signal_date": "2018-03-28",
+          "signal_type": "entry",
+          "intended_date": "2018-03-29"
+        },
+        "gross_amount_cny": "149760.00",
+        "total_fee_cny": "44.93",
+        "net_cash_flow_cny": "-149804.93"
+      }
+    ]
+  },
+  "cost_and_cashflow_reconciliation": {
+    "trade_count": 7,
+    "gross_cost_fee_and_cashflow_checks_passed": true,
+    "fields_compared_engine_reference": [
+      "gross_amount",
+      "commission",
+      "stamp_duty",
+      "transfer_fee",
+      "total_fee",
+      "net_cash_flow"
+    ],
+    "price_times_quantity_and_fee_component_arithmetic_checked": true
+  },
+  "signal_association": {
+    "captured_entry_signal_count": 4,
+    "derived_exit_context_count": 3,
+    "runtime_exit_signal_objects_captured": false,
+    "exit_context_source": "persisted filled order plus existing _signal_fields_from_order_id parser, cross-checked against saved reference context",
+    "take_profit_threshold": "0.1",
+    "take_profit_checks_passed": 3,
+    "take_profit_evidence": [
+      {
+        "buy_trade_date": "2010-04-20",
+        "buy_fill_price_cny": "2.455",
+        "exit_signal_date": "2015-01-05",
+        "frozen_close_cny": "2.746",
+        "threshold": "0.1",
+        "required_close_cny": "2.7005",
+        "condition_met": true
+      },
+      {
+        "buy_trade_date": "2015-08-25",
+        "buy_fill_price_cny": "2.412",
+        "exit_signal_date": "2015-09-09",
+        "frozen_close_cny": "2.7",
+        "threshold": "0.1",
+        "required_close_cny": "2.6532",
+        "condition_met": true
+      },
+      {
+        "buy_trade_date": "2015-11-30",
+        "buy_fill_price_cny": "2.802",
+        "exit_signal_date": "2017-10-19",
+        "frozen_close_cny": "3.083",
+        "threshold": "0.1",
+        "required_close_cny": "3.0822",
+        "condition_met": true
+      }
+    ]
+  },
+  "daily_account_reconciliation": {
+    "engine_raw_rows": 2669,
+    "reference_rows": 2668,
+    "normalized_engine_rows": 2668,
+    "normalized_eod_accounts_match": true,
+    "date_sequence_match_after_preserving_anchor_evidence": true,
+    "duplicate_anchor_date": "2010-01-12",
+    "duplicate_anchor_engine_rows": 2,
+    "dropped_from_comparison_only": "the first duplicate engine anchor row; both original rows remain untouched",
+    "reference_receivable_included_in_account_sum_check": true
+  },
+  "primary_metrics_reconciliation": {
+    "match": true,
+    "captured_metrics_match_original_formal_metrics": true,
+    "metric_count": 26
+  },
+  "terminal_account_reconciliation": {
+    "cash_cny": "12691.15",
+    "market_value_cny": "142428.00",
+    "receivable_cny": "0.00",
+    "terminal_nav_cny": "155119.15",
+    "engine_reference_formal_values_match": true
+  },
+  "sidecar_hash_audit": {
+    "actual_disk_sha256": "304CDA0B663D0C59AFE213FEC9EE11124393796C9313DC2BBFD50858A76C62D3",
+    "embedded_sha256": "EDFB6C562F846B346C60E97DD561140E0A89734B71F980A86290D09A799F0D13",
+    "lf_normalized_sha256": "EDFB6C562F846B346C60E97DD561140E0A89734B71F980A86290D09A799F0D13",
+    "disk_line_endings_contain_crlf": true,
+    "embedded_sha_matches_lf_normalized_bytes": true,
+    "difference_explanation": "The capture embeds the SHA-256 of the LF-serialized sidecar text; the saved sidecar has CRLF line endings, so its actual byte hash differs.",
+    "original_capture_sidecar_and_formal_files_modified": false
+  },
+  "preserved_capture_comparison_errors": [
+    "captured_signal_link_2",
+    "captured_signal_link_4",
+    "captured_signal_link_6",
+    "complete_seven_leg_capture",
+    "reference_trade_missing_7"
+  ],
+  "ledger_addendum": {
+    "trial_id": "gate001-capture-audit-097bdd0bead496c3",
+    "phase": "audit_addendum",
+    "attempt_class": "offline_technical_audit_addendum",
+    "counts_as_new_research": false,
+    "counts_as_technical_rerun": false,
+    "counts_before_append": {
+      "new_research": 1,
+      "technical_reruns": 4,
+      "synthetic_validations": 3
+    },
+    "counts_after_append": {
+      "new_research": 1,
+      "technical_reruns": 4,
+      "synthetic_validations": 3
+    },
+    "ledger_before_sha256": "5381B45E7FBD62C081465BF864AFB995BD77BEA7B0266ACA1AC875917661D657"
+  }
+}

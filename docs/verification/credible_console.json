@@ -1,0 +1,27 @@
+[
+  {
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+    "ts": 1783736859.1041832
+  },
+  {
+    "type": "log",
+    "text": "[Fast Refresh] rebuilding",
+    "ts": 1783736865.594044
+  },
+  {
+    "type": "log",
+    "text": "[Fast Refresh] done in 322ms",
+    "ts": 1783736865.9173615
+  },
+  {
+    "type": "info",
+    "text": "%cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold",
+    "ts": 1783736866.5827887
+  },
+  {
+    "type": "error",
+    "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "ts": 1783736913.0269132
+  }
+]

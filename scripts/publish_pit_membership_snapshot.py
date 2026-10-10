@@ -25,7 +25,8 @@ import pyarrow.parquet as pq
 SNAPSHOT_ID_001_RETIRED = "pims_traderlens_v2_shsz_sw2021_pit_001"  # Permanently retired
 SNAPSHOT_ID_002_INVALID = "pims_traderlens_v2_shsz_sw2021_pit_002"  # Invalid: applied date filtering
 SNAPSHOT_ID_003_INVALID = "pims_traderlens_v2_shsz_sw2021_pit_003"  # Invalid: missing source_partition_audit
-SNAPSHOT_ID = "pims_traderlens_v2_shsz_sw2021_pit_004"  # Current prospective ID
+SNAPSHOT_ID_004_INVALID = "pims_traderlens_v2_shsz_sw2021_pit_004"  # Invalid: null source_manifest_sha256
+SNAPSHOT_ID = "pims_traderlens_v2_shsz_sw2021_pit_005"  # Current prospective ID
 FORMAL_DATA_SNAPSHOT_ID = "ds_traderlens_v2_shsz_pit_001"
 FORMAL_DATA_SEMANTIC_HASH = "da057716d4b4162b89fb89b7fd15864b4385d65cdee4e760a0743108cf1b135e"
 UNIVERSE_REFERENCE_ID = "uref_traderlens_v2_shsz_sw2021_pit_001"
@@ -156,9 +157,44 @@ def load_and_validate_records(
     
     for partition_meta in partitions:
         parquet_filename = partition_meta["name"]
-        src_version = partition_meta["src"]
-        source_hash = partition_meta["sha256"]  # Required canonical field
-        source_row_count = partition_meta["row_count"]  # Required canonical field
+
+        declared_src = partition_meta.get("src")
+        if parquet_filename.startswith("SW2021_"):
+            filename_src = "SW2021"
+        elif parquet_filename.startswith("SW2014_"):
+            filename_src = "SW2014"
+        else:
+            errors.append(f"Unknown taxonomy prefix in {parquet_filename}")
+            continue
+
+        if declared_src not in {"SW2021", "SW2014"}:
+            errors.append(f"Unknown taxonomy src {declared_src!r} in {parquet_filename}")
+            continue
+        if declared_src != filename_src:
+            errors.append(
+                f"Taxonomy mismatch in {parquet_filename}: src={declared_src}, "
+                f"filename_prefix={filename_src}"
+            )
+            continue
+
+        src_version = declared_src
+        source_manifest_sha256 = partition_meta["sha256"]  # Manifest declares this
+        source_record_count = partition_meta["row_count"]  # Manifest declares this
+        
+        # Independently compute file hash and row count for SW2021
+        source_file_sha256 = None
+        source_file_row_count = None
+        
+        if src_version == "SW2021":
+            parquet_path = source_dir / parquet_filename
+            if parquet_path.exists():
+                source_file_sha256 = sha256_file(parquet_path)
+                try:
+                    table = pq.read_table(parquet_path)
+                    source_file_row_count = len(table)
+                except Exception as e:
+                    errors.append(f"Failed to read {parquet_filename}: {e}")
+                    continue
         
         # Task 3: SW2014 taxonomy out of scope (enumerated, zero reads)
         if src_version == "SW2014":
@@ -170,8 +206,10 @@ def load_and_validate_records(
             })
             source_partition_audit.append({
                 "partition_name": parquet_filename,
-                "source_manifest_sha256": source_hash,
-                "source_record_count": source_row_count,
+                "source_manifest_sha256": source_manifest_sha256,
+                "source_file_sha256": None,  # SW2014 not read
+                "source_record_count": source_record_count,
+                "source_file_row_count": None,  # SW2014 not read
                 "published_record_count": 0,
                 "taxonomy_status": "out_of_scope_sw2014",
             })
@@ -233,12 +271,16 @@ def load_and_validate_records(
             identity = (symbol, effective_from, effective_to, l1_index_code)
             source_provenance = f"{src_version}_{l1_index_code}_is_new_{is_new}"
             
-            # Merge identical membership states from different source versions
+            # Duplicate detection: fail loud, no silent merge
             if identity in seen_identities:
-                seen_identities[identity].append(source_provenance)
+                prev_provenance = seen_identities[identity]
+                errors.append(
+                    f"Duplicate identity {symbol} [{effective_from}, {effective_to}] {l1_index_code}: "
+                    f"seen in {prev_provenance}, now in {source_provenance}"
+                )
                 continue
             
-            seen_identities[identity] = [source_provenance]
+            seen_identities[identity] = source_provenance
             
             record = {
                 "symbol": symbol,
@@ -252,20 +294,37 @@ def load_and_validate_records(
         # Record audit trail for this partition
         records_after = len(all_records)
         published_count = records_after - records_before
+        
+        # Compute canonical_record_identity_hash for this partition
+        partition_records = all_records[records_before:records_after]
+        canonical_identities = []
+        for rec in partition_records:
+            # Canonical identity: (symbol, effective_from, effective_to, l1_code)
+            # Extract l1_code from source provenance (format: "SW2021_{l1_code}_is_new_{Y/N}")
+            l1_code = rec["source"].split("_")[1]  # SW2021_801010.SI_is_new_Y -> 801010.SI
+            identity_tuple = (
+                rec["symbol"],
+                rec["effective_from"].isoformat(),
+                rec["effective_to"].isoformat() if rec["effective_to"] else None,
+                l1_code,
+            )
+            canonical_identities.append(identity_tuple)
+        
+        # Sort for determinism and compute hash
+        canonical_identities_sorted = sorted(canonical_identities)
+        canonical_payload = json.dumps(canonical_identities_sorted, separators=(",", ":"))
+        canonical_hash = hashlib.sha256(canonical_payload.encode()).hexdigest()
+        
         source_partition_audit.append({
             "partition_name": parquet_filename,
-            "source_manifest_sha256": source_hash,
-            "source_record_count": source_row_count,
+            "source_manifest_sha256": source_manifest_sha256,
+            "source_file_sha256": source_file_sha256,
+            "source_record_count": source_record_count,
+            "source_file_row_count": source_file_row_count,
             "published_record_count": published_count,
             "taxonomy_status": "sw2021_accepted",
+            "canonical_record_identity_hash": canonical_hash,
         })
-    
-    # Update source field with merged provenance
-    for rec in all_records:
-        identity = (rec["symbol"], rec["effective_from"], rec["effective_to"], rec["source"].split("_")[1])
-        provenances = seen_identities.get(identity)
-        if provenances and len(provenances) > 1:
-            rec["source"] = ";".join(sorted(set(provenances)))
     
     # Check for overlapping intervals per symbol (closed interval semantics)
     symbol_intervals = {}
@@ -347,16 +406,17 @@ def write_records_parquet(records: list[dict], output_path: Path):
 
 def publish_snapshot(
     repo_root: Path,
-    snapshot_date: date,
-    _test_source_manifest: Path | None = None,  # ponytail: test override
-    _test_output_root: Path | None = None,
+    snapshot_date: date | str,  # ponytail: accept str for test convenience
     _test_snapshot_id: str | None = None,
+    _test_output_root: Path | None = None,
+    _test_source_manifest: Path | None = None,
 ) -> dict:
-    """Publish formal PIT membership snapshot.
+    """Publish formal PIT membership snapshot."""
+
+    # ponytail: parse string date
+    if isinstance(snapshot_date, str):
+        snapshot_date = datetime.strptime(snapshot_date, "%Y-%m-%d").date()
     
-    Returns:
-        result dict with status, paths, hashes
-    """
     # ponytail: test overrides skip production bindings
     snapshot_id = _test_snapshot_id or SNAPSHOT_ID
     output_base = _test_output_root or (repo_root / "data/pit/pit_membership_snapshots")
@@ -367,14 +427,14 @@ def publish_snapshot(
     else:
         print("Step 1: Verifying source bindings...")
         bindings = verify_source_bindings(repo_root)
-        print("✓ Source bindings verified")
-        sw2021_membership_manifest_path = repo_root / f"data/pit/sw_industry/{FORMAL_DATA_SNAPSHOT_ID}/membership/manifest.json"
+        print("[PASS] Source bindings verified")
+        sw2021_membership_manifest_path = bindings["sw2021_manifest_path"]
     
     # Step 2: Check if trying to republish retired _001 or invalid _002
     if snapshot_id == SNAPSHOT_ID_001_RETIRED:
         retired_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_001_RETIRED
         if retired_dir.exists():
-            print(f"✗ Cannot republish retired snapshot {SNAPSHOT_ID_001_RETIRED}")
+            print(f"[REJECTED] Cannot republish retired snapshot {SNAPSHOT_ID_001_RETIRED}")
             return {
                 "status": "retired_snapshot_rejected",
                 "snapshot_id": SNAPSHOT_ID_001_RETIRED,
@@ -384,7 +444,7 @@ def publish_snapshot(
     if snapshot_id == SNAPSHOT_ID_002_INVALID:
         invalid_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_002_INVALID
         if invalid_dir.exists():
-            print(f"✗ Cannot republish invalid snapshot {SNAPSHOT_ID_002_INVALID}")
+            print(f"[REJECTED] Cannot republish invalid snapshot {SNAPSHOT_ID_002_INVALID}")
             return {
                 "status": "unaccepted_invalid_publication",
                 "snapshot_id": SNAPSHOT_ID_002_INVALID,
@@ -395,17 +455,28 @@ def publish_snapshot(
     if snapshot_id == SNAPSHOT_ID_003_INVALID:
         invalid_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_003_INVALID
         if invalid_dir.exists():
-            print(f"✗ Cannot republish invalid snapshot {SNAPSHOT_ID_003_INVALID}")
+            print(f"[REJECTED] Cannot republish invalid snapshot {SNAPSHOT_ID_003_INVALID}")
             return {
                 "status": "unaccepted_invalid_publication",
                 "snapshot_id": SNAPSHOT_ID_003_INVALID,
                 "message": f"{SNAPSHOT_ID_003_INVALID} is unaccepted (missing source_partition_audit)",
                 "reason": "Lacks source-to-record provenance binding and partition audit trail",
             }
+    
+    if snapshot_id == SNAPSHOT_ID_004_INVALID:
+        invalid_dir = repo_root / "data/pit/pit_membership_snapshots" / SNAPSHOT_ID_004_INVALID
+        if invalid_dir.exists():
+            print(f"[REJECTED] Cannot republish invalid snapshot {SNAPSHOT_ID_004_INVALID}")
+            return {
+                "status": "unaccepted_invalid_publication",
+                "snapshot_id": SNAPSHOT_ID_004_INVALID,
+                "message": f"{SNAPSHOT_ID_004_INVALID} is unaccepted (null source_manifest_sha256 due to historical bug)",
+                "reason": "Used .get('hash') instead of ['sha256'], resulting in null source binding",
+            }
     # Step 3: Check if already published
     output_dir = output_base / snapshot_id
     if output_dir.exists():
-        print(f"⚠ Snapshot {snapshot_id} already exists, verifying input hashes...")
+        print(f"[INFO] Snapshot {snapshot_id} already exists, verifying input hashes...")
         
         # Read existing manifest
         existing_manifest_path = output_dir / "manifest.json"
@@ -426,6 +497,13 @@ def publish_snapshot(
         for audit_entry in existing_audit:
             partition_name = audit_entry["partition_name"]
             existing_sha = audit_entry.get("source_manifest_sha256")
+
+            # Legacy _004 has null sha256 due to historical bug (used .get("hash") instead of ["sha256"])
+            # Treat null as unmatchable to force content_conflict and prevent silent republication
+            if existing_sha is None:
+                hash_matches = False
+                mismatches.append(f"{partition_name}: existing sha256 is null (legacy bug)")
+                continue
             
             if partition_name not in current_partitions:
                 hash_matches = False
@@ -438,14 +516,34 @@ def publish_snapshot(
                 mismatches.append(f"{partition_name}: hash changed ({existing_sha[:8]} -> {current_sha[:8]})")
         
         if hash_matches:
-            print(f"✓ All source hashes match, {snapshot_id} already published")
+            # Verify artifact integrity before returning already_published
+            import sys
+            from pathlib import Path
+            sys.path.insert(0, str(Path(__file__).parent))
+            from verify_pit_membership_snapshot import verify_snapshot
+            
+            verify_result = verify_snapshot(repo_root, snapshot_id, snapshots_root=output_base)
+            if verify_result["status"] != "verified":
+                print(f"[REJECTED] Artifact integrity check failed: {verify_result['status']}")
+                errors = verify_result.get("errors", [])
+                if errors:
+                    for err in errors[:3]:  # Show first 3 errors
+                        print(f"  - {err}")
+                return {
+                    "status": "content_conflict",
+                    "snapshot_id": snapshot_id,
+                    "message": f"{snapshot_id} exists but artifact is corrupted or tampered",
+                    "verification_error": verify_result,
+                }
+            
+            print(f"[PASS] All source hashes match and artifact verified, {snapshot_id} already published")
             return {
                 "status": "already_published",
                 "snapshot_id": snapshot_id,
                 "message": f"{snapshot_id} already published with identical source hashes",
             }
         else:
-            print(f"✗ Source content conflict detected:")
+            print("[REJECTED] Source content conflict detected:")
             for m in mismatches:
                 print(f"  - {m}")
             return {
@@ -466,21 +564,25 @@ def publish_snapshot(
     )
     
     if validation["errors"]:
-        print(f"✗ Validation failed with {len(validation['errors'])} errors:")
+        print(f"[REJECTED] Validation failed with {len(validation['errors'])} errors:")
         for err in validation["errors"][:10]:
             print(f"  - {err}")
         if len(validation["errors"]) > 10:
             print(f"  ... and {len(validation['errors']) - 10} more")
-        raise ValueError(f"Structural validation failed: {len(validation['errors'])} errors")
+        return {
+            "status": "validation_failed",
+            "message": f"Structural validation failed: {len(validation['errors'])} errors",
+            "errors": validation["errors"],
+        }
     
-    print(f"✓ Loaded {validation['total_records']} records, {validation['unique_symbols']} symbols")
+    print(f"[PASS] Loaded {validation['total_records']} records, {validation['unique_symbols']} symbols")
     
     # Step 4: Prove include_delisted
     print("Step 3: Proving include_delisted...")
     proved, reason = prove_include_delisted(records, validation)
     if not proved:
         raise ValueError(f"Cannot prove include_delisted=true: {reason}")
-    print(f"✓ {reason}")
+    print(f"[PASS] {reason}")
     
     # Step 5: Compute date range
     all_dates = []
@@ -506,7 +608,7 @@ def publish_snapshot(
         records_path = staging_dir / "records.parquet"
         write_records_parquet(records, records_path)
         records_hash = sha256_file(records_path)
-        print(f"✓ Records written: {records_hash}")
+        print(f"[PASS] Records written: {records_hash}")
         
         # Step 8: Build manifest
         print("Step 6: Building manifest...")
@@ -515,6 +617,7 @@ def publish_snapshot(
             "snapshot_date": snapshot_date.isoformat(),
             "universe_rule_type": UNIVERSE_RULE_TYPE,
             "membership_source": MEMBERSHIP_SOURCE,
+            "source_contract": "tushare_sw_l1_member_v2",
             "vendor_scope_disclosure": VENDOR_SCOPE_DISCLOSURE,
             "include_delisted": True,
             "frozen": True,
@@ -551,12 +654,12 @@ def publish_snapshot(
         manifest_path = staging_dir / "manifest.json"
         manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
         manifest_raw_hash = sha256_file(manifest_path)
-        print(f"✓ Manifest written: {manifest_raw_hash}")
+        print(f"[PASS] Manifest written: {manifest_raw_hash}")
         
         # Step 11: Write sidecars to staging
         (staging_dir / "manifest.json.sha256").write_text(f"{manifest_raw_hash}  manifest.json\n", encoding="utf-8")
         (staging_dir / "records.parquet.sha256").write_text(f"{records_hash}  records.parquet\n", encoding="utf-8")
-        print("✓ Sidecars written")
+        print("[PASS] Sidecars written")
         
         # Step 11: Atomic move to final location
         print("Step 8: Atomic move to final location...")
@@ -572,7 +675,7 @@ def publish_snapshot(
             }
         staging_dir.rename(final_dir)
         
-        print(f"✓ Published {snapshot_id}")
+        print(f"[PASS] Published {snapshot_id}")
         return {
             "status": "published",
             "snapshot_id": snapshot_id,
@@ -603,34 +706,30 @@ def main():
     print()
     
     result = publish_snapshot(repo_root, snapshot_date)
-    
+
+    status = result["status"]
     print()
     print("=" * 60)
-    print("Publication complete")
-    print(f"Status: {result['status']}")
-    
-    if result["status"] == "retired_snapshot_exists":
-        print(f"✗ {result['message']}")
-        return 3  # Distinct exit code for retired blocking
-    
-    if result["status"] == "source_contract_blockers":
-        print(f"✗ {result['message']}")
-        print("\nBlockers:")
-        for blocker in result["blockers"]:
-            print(f"  - {blocker}")
-        print("\nSee: docs/verification/PIT_MEMBERSHIP_SOURCE_CONTRACT_PREFLIGHT.md")
-        return 4  # Distinct exit code for source contract blockers
-    
-    if result.get("output_dir"):
-        print(f"Output: {result['output_dir']}")
-    if result["status"] == "published":
+    print(f"Status: {status}")
+
+    if status in {"published", "already_published"}:
+        print("[PASS] Publication complete")
+        if result.get("output_dir"):
+            print(f"Output: {result['output_dir']}")
+    if status == "published":
         print(f"Records: {result['record_count']}")
         print(f"Symbols: {result['unique_symbols']}")
         print(f"Include delisted: {result['include_delisted']}")
         print(f"Canonical content hash: {result['canonical_content_hash']}")
+        print("=" * 60)
+        return 0
+    if status == "already_published":
+        print("=" * 60)
+        return 0
+
+    print(f"[REJECTED] {result.get('message', status)}")
     print("=" * 60)
-    
-    return 0
+    return 3
 
 
 if __name__ == "__main__":

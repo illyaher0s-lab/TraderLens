@@ -1,0 +1,307 @@
+{
+  "algorithm": "v3_executable_strategy_contract_completeness_read_only_v1",
+  "decision": "stop_stage_b_unresolved_load_bearing_semantics",
+  "generated_for": "parent_task_019fc6c7-2f4b-7b33-bd3d-7f5386e37163",
+  "schema": "v3_executable_strategy_contract_gap_audit.v1",
+  "not_authorized_for_b4_execution_b6_oos_gate_promotion_signal": true,
+  "strategy_identity": {
+    "template_id": "relative_strength_rotation_shsz_sw2021_v3",
+    "version": "v3_shsz_sw2021_pit_12m_liquidity20d",
+    "template_hash": "f7c0fd8123f62f37118cb947e1735861374435f8707e01b06d788a8ec4df39c1",
+    "data_requirements_hash": "ef2ab5b1dafe4349f305b52733a7dcb018a2961464dfbc6542a10e34805d041d",
+    "strategy_revision_id": "6440ffc03a742f4d4632078481cf3abf171eafb1a24f2bc69bc6f352d1b19ebc",
+    "protocol_snapshot_id": "6f7cbdcdeb26f8cdd2611a5450dbab3ff22544b6a66ec8539f5cab9151329111",
+    "owner": "illya",
+    "governance": "approved"
+  },
+  "owner_authorization": {
+    "review_evidence_path": "docs/verification/TASK4_V3_AI_TECHNICAL_REVIEW.md",
+    "review_evidence_sha256": "9ea7b9f96c326afbbd0de84e5e2183cb7315c29e26d953b4a5c9aa06b7d4ae69",
+    "reviewer_id": "ai_reviewer_openai_codex_gpt5",
+    "reviewer_kind": "ai_technical_reviewer",
+    "review_decision": "approved",
+    "reviewed_at": "2026-08-04",
+    "review_due_date": "2027-08-04",
+    "owner_authorization_hash": "653350938e4bda2a91ee0c3b16bd9c4bf407517d74d6f3da66cb7884cad39349",
+    "authorized_by": "illya",
+    "authorized_at": "2026-08-04T00:00:00"
+  },
+  "scope_and_artifacts": {
+    "scope_freeze": {
+      "artifact_id": "acbc49159d989a46",
+      "path": "data/pit/historical_scope_freezes/acbc49159d989a46",
+      "manifest_sha256": "cef48909b7b7bb05bc952a19ff8e50702540b427c58fd21eb1670afcaf675c67"
+    },
+    "coverage": {
+      "artifact_id": "1e79d26460c0c109",
+      "path": "data/pit/v3_historical_coverage_packages/1e79d26460c0c109",
+      "manifest_sha256": "b009ae38cb87cf7c2adbfa0ce6d179d51225b08602ffcca431ed8d1a7135dfd6",
+      "execution_scope": "252 common dates 20250627..20260710",
+      "source_scope": "507 dates 20240607..20260710",
+      "stats": {
+        "expected_stock_days": 1304589,
+        "complete_stock_days": 1164707,
+        "unavailable_stock_days": 139882,
+        "data_fault_count": 0
+      }
+    },
+    "suspension_evidence": {
+      "artifact_id": "4871f6ba56b40e93",
+      "path": "data/pit/v3_historical_suspension_evidence/4871f6ba56b40e93",
+      "manifest_sha256": "1cc7975a91804dbb8726d6f988ed0825ce9282f4633ef240201dbce1b3e8d99f",
+      "entry_count": 58,
+      "authorization_scope": "acbc49159d989a46 historical_liquidity_coverage_only"
+    },
+    "formal_snapshot": {
+      "snapshot_id": "v3ds_d73256081de82e8a",
+      "path": "data/pit/v3_formal_data_snapshot_manifests/v3ds_d73256081de82e8a",
+      "manifest_sha256": "57067e15e6ad1a92b23b42b48173b6cf1af2e7e23f3357320288fb7e109c2680",
+      "semantic_hash": "d73256081de82e8a764ea2394d613af820fd1b82e773c48156ca2463a452c80e",
+      "authorization_scope": "b6_coverage_bound"
+    },
+    "availability_successor": {
+      "artifact_id": "12f1b9aac73dfcd4",
+      "path": "data/pit/v3_availability_bounded_qualification_successors/12f1b9aac73dfcd4",
+      "manifest_sha256": "082a45061556505d4e3b2613fb1a87ed878481d0d728f73c80a9564c4ebd9f91",
+      "authorization_scope": "b6_coverage_bound"
+    },
+    "b3_execution_input": {
+      "artifact_id": "05f38a2884dc7e47",
+      "path": "data/pit/b3_execution_input_packages/05f38a2884dc7e47",
+      "manifest_sha256": "741e511778ba7d520230c8378c952fd85dc407129d66cfb4366c7112530793a6",
+      "authorization_scope": "b3_execution_input_binding_only"
+    },
+    "membership": {
+      "snapshot_id": "pims_traderlens_v2_shsz_sw2021_pit_005",
+      "path": "data/pit/pit_membership_snapshots/pims_traderlens_v2_shsz_sw2021_pit_005",
+      "manifest_sha256": "32f58adbca49fb89dfeb54ceeb4ac9b27b6a26c55e0c9cfeae7a8fcaf3683f10",
+      "records_sha256": "2e8c922de9f198ab18a6b38743a01f4343fbf52b876da84026389d3ffd11eec0",
+      "record_count": 7804
+    }
+  },
+  "semantic_findings": [
+    {
+      "id": "strategy_config_materialization",
+      "classification": "frozen_exact_but_executable_shape_missing",
+      "load_bearing": true,
+      "payload_evidence": "The frozen draft contains an exact v3 semantic payload, not StrategyConfig fields.",
+      "current_evidence": "StrategyConfig validation reports 31 errors: required engine fields are absent and 19 v3 semantic keys are extra.",
+      "source_paths": ["data/strategy.db", "contracts/stable.py", "backend/services/strategy_config_validator.py"],
+      "product_choice_required": false,
+      "mechanical_status": "requires a narrow v3 execution representation; generic StrategyConfig conversion would invent or drop semantics"
+    },
+    {
+      "id": "momentum_252_common_day_endpoints",
+      "classification": "frozen_exact_but_executor_gap",
+      "load_bearing": true,
+      "payload_evidence": "lookback_trading_days=252, adjusted_close=close * adj_factor, momentum=d/s-1, s_definition=d_minus_252_common_trading_days, endpoint_unavailable=no_fill.",
+      "artifact_evidence": "Formal source scope covers the required 507 dates and binds daily/adj_factor hashes.",
+      "source_paths": ["data/strategy.db", "backend/services/strategy_template_library.py", "data/pit/v3_formal_data_snapshot_manifests/v3ds_d73256081de82e8a/manifest.json", "strategy_core/signals.py"],
+      "product_choice_required": false,
+      "mechanical_status": "not implemented by current generic signal engine"
+    },
+    {
+      "id": "three_day_independent_pit_confirmation",
+      "classification": "frozen_exact_but_executor_gap",
+      "load_bearing": true,
+      "payload_evidence": "confirm_semantics=3_days_independent_pit_and_window and entry.confirm_days=3.",
+      "source_paths": ["data/strategy.db", "backend/services/strategy_template_library.py", "strategy_core/signals.py"],
+      "product_choice_required": false,
+      "mechanical_status": "no generic signal implementation consumes this v3 confirmation contract"
+    },
+    {
+      "id": "top15_entry_rank40_exit",
+      "classification": "frozen_exact_but_executor_gap",
+      "load_bearing": true,
+      "payload_evidence": "top_count_formula=ceil(0.15 * N), entry rank pct max=15, exit rank pct min=40, tie_break=return_desc_symbol_asc.",
+      "source_paths": ["data/strategy.db", "backend/services/strategy_template_library.py", "strategy_core/signals.py"],
+      "product_choice_required": false,
+      "mechanical_status": "current rank_condition ranks a bar field; it does not calculate v3 relative-strength returns or exit rank"
+    },
+    {
+      "id": "liquidity_exact_binding",
+      "classification": "frozen_exact_artifact_reusable_but_executor_gap",
+      "load_bearing": true,
+      "payload_evidence": "20 completed common days before execution, execution day excluded, daily.amount thousand-yuan x1000, threshold 50M yuan, no partial mean/extension, suspension evidence bound.",
+      "artifact_evidence": "Coverage 1e79d26460c0c109 and suspension evidence 4871f6ba56b40e93 are independently verified and exact-bound to v3.",
+      "source_paths": ["data/strategy.db", "data/pit/v3_historical_coverage_packages/1e79d26460c0c109/manifest.json", "data/pit/v3_historical_suspension_evidence/4871f6ba56b40e93/manifest.json", "backend/services/formal_pit_partition_adapter.py"],
+      "product_choice_required": false,
+      "mechanical_status": "current adapter derive_liquidity is documented as not bound to an approved template and no v3 executor consumes the qualified artifact"
+    },
+    {
+      "id": "weekly_rebalance_day_and_mapping",
+      "classification": "unresolved_product_choice",
+      "load_bearing": true,
+      "payload_evidence": "Only rebalance.frequency=weekly and execution_day=next_executable_after_as_of are frozen.",
+      "current_evidence": "No weekday/first-rebalance convention/as_of-to-execution mapping is present; generic event loop evaluates every trading date.",
+      "source_paths": ["data/strategy.db", "backend/services/strategy_template_library.py", "contracts/stable.py", "strategy_core/backtest_engine.py"],
+      "product_choice_required": true,
+      "mechanical_status": "cannot infer a unique schedule without choosing a trading semantic"
+    },
+    {
+      "id": "max5_equal_weight_lot_cash_policy",
+      "classification": "partially_frozen_unresolved",
+      "load_bearing": true,
+      "payload_evidence": "max_positions=5; template narrative says equal weight; lot size 100 exists in generic position sizing.",
+      "current_evidence": "Generic event engine hardcodes PositionSizer(position_ratio=0.2) from available cash; v3 payload does not freeze residual-cash or price-at-sizing semantics.",
+      "source_paths": ["data/strategy.db", "backend/services/strategy_template_library.py", "strategy_core/position_sizer.py", "strategy_core/orders.py", "strategy_core/portfolio.py"],
+      "product_choice_required": true,
+      "mechanical_status": "existing primitive is not an exact v3 binding"
+    },
+    {
+      "id": "same_day_entry_exit_priority",
+      "classification": "existing_b4_contract_reusable",
+      "load_bearing": true,
+      "payload_evidence": "No v3-specific conflict rule.",
+      "current_evidence": "Existing B4 order contract deterministically states exit wins on same-symbol entry/exit conflict and records the conflict event.",
+      "source_paths": ["strategy_core/orders.py", "backend/services/b4_protocol_types.py"],
+      "product_choice_required": false,
+      "mechanical_status": "reusable only as the existing B4 primitive; must be explicitly bound by a v3 executor"
+    },
+    {
+      "id": "holding_days_15",
+      "classification": "frozen_exact_but_executor_gap",
+      "load_bearing": true,
+      "payload_evidence": "exit.max_holding_days=15.",
+      "current_evidence": "Generic exit helper compares calendar-day difference from oldest buy date; v3 payload does not state whether 15 means common trading sessions or calendar days.",
+      "source_paths": ["data/strategy.db", "strategy_core/signals.py", "backend/services/strategy_template_library.py"],
+      "product_choice_required": true,
+      "mechanical_status": "the existing helper is not safe to adopt as v3 without resolving the day-count meaning"
+    },
+    {
+      "id": "stop_loss_8_percent_basis",
+      "classification": "unresolved_product_choice",
+      "load_bearing": true,
+      "payload_evidence": "exit.stop_loss_pct=8 only.",
+      "current_evidence": "No v3 source freezes raw versus adjusted price, close versus intraday trigger, or reference cost basis; generic helper uses raw close versus position.avg_cost.",
+      "source_paths": ["data/strategy.db", "strategy_core/signals.py", "contracts/stable.py"],
+      "product_choice_required": true,
+      "mechanical_status": "cannot choose a trigger basis without changing the strategy"
+    },
+    {
+      "id": "suspension_limit_delist_handling",
+      "classification": "partially_frozen_executor_gap",
+      "load_bearing": true,
+      "payload_evidence": "Formal PIT source binds suspend_d and stock_basic L/D/P; template excludes limit_up, ST and delisting-risk market conditions.",
+      "current_evidence": "Generic fill handles suspend and limit up/down; adapter has listing/ST readers, but the event loop does not bind v3 PIT membership/adapter interfaces or a v3 delisting transition policy.",
+      "source_paths": ["data/pit/b3_execution_input_packages/05f38a2884dc7e47/manifest.json", "backend/services/formal_pit_partition_adapter.py", "strategy_core/fill_simulator.py", "strategy_core/backtest_engine.py"],
+      "product_choice_required": true,
+      "mechanical_status": "existing fragments do not form a complete exact v3 execution contract"
+    },
+    {
+      "id": "base_fill_cost_slippage",
+      "classification": "unresolved_product_choice",
+      "load_bearing": true,
+      "payload_evidence": "The v3 payload contains no commission, stamp duty, transfer fee, execution-price or slippage values.",
+      "current_evidence": "run_event_backtest hardcodes commission 0.0003/min 5, stamp duty 0.001, transfer 0, slippage 0 and max participation 0.10; StrategyConfig FillModel requires a separate exact configuration.",
+      "source_paths": ["data/strategy.db", "strategy_core/backtest_engine.py", "strategy_core/fill_simulator.py", "strategy_core/transaction_costs.py", "contracts/stable.py"],
+      "product_choice_required": true,
+      "mechanical_status": "generic defaults cannot be silently promoted to v3 approved semantics"
+    },
+    {
+      "id": "market_regime_green_yellow",
+      "classification": "unresolved_product_choice",
+      "load_bearing": true,
+      "payload_evidence": "v3 risk allows green and yellow regimes.",
+      "current_evidence": "backend/config/market_regime_thresholds.yaml has validation_status=candidate, source_manifest_hash=null, validation_report_hash=null, frozen_at=null and approved_by=null.",
+      "source_paths": ["backend/config/market_regime_thresholds.yaml", "backend/services/strategy_template_library.py"],
+      "product_choice_required": true,
+      "mechanical_status": "candidate configuration cannot be used as an approved deterministic classifier"
+    },
+    {
+      "id": "benchmark_control_semantics",
+      "classification": "unresolved_product_choice",
+      "load_bearing": true,
+      "payload_evidence": "Template only identifies benchmark_rule_id=theme_then_industry_then_equal_weight.",
+      "current_evidence": "No formal benchmark/control source is bound to the v3 snapshot; current EventBacktestResult contains no base/stress/control/benchmark outputs, while PrototypeGateV2 later requires them.",
+      "source_paths": ["backend/services/strategy_template_library.py", "backend/services/prototype_gate_v2.py", "backend/services/b4_protocol_types.py"],
+      "product_choice_required": true,
+      "mechanical_status": "cannot invent comparison populations or result semantics in this B4 node"
+    },
+    {
+      "id": "revision_and_result_binding",
+      "classification": "frozen_exact_but_executor_gap",
+      "load_bearing": true,
+      "payload_evidence": "Protocol and draft bind strategy_revision_id=6440ffc03a742f4d4632078481cf3abf171eafb1a24f2bc69bc6f352d1b19ebc.",
+      "current_evidence": "run_event_backtest sets EventBacktestResult.strategy_revision_id from strategy_config.strategy_name and result_id from protocol plus strategy_name, not from the frozen revision ID.",
+      "source_paths": ["data/strategy.db", "strategy_core/backtest_engine.py", "backend/services/b4_protocol_types.py"],
+      "product_choice_required": false,
+      "mechanical_status": "requires executor-level exact binding"
+    },
+    {
+      "id": "pit_calendar_data_source_interface",
+      "classification": "frozen_artifact_reusable_but_adapter_gap",
+      "load_bearing": true,
+      "payload_evidence": "v3 formal snapshot binds calendar, PIT membership, lifecycle, daily, adj_factor and suspend_d source hashes.",
+      "current_evidence": "FormalPITPartitionAdapter.symbols() returns an empty list and lacks get_daily_bars/get_bar/get_status required by TradingCalendar/CursorBoundDataView/run_event_backtest.",
+      "source_paths": ["backend/services/formal_pit_partition_adapter.py", "strategy_core/trading_calendar.py", "strategy_core/cursor_bound_data_view.py", "strategy_core/backtest_engine.py"],
+      "product_choice_required": false,
+      "mechanical_status": "thin adapter work remains, but it cannot resolve the earlier contract choices"
+    },
+    {
+      "id": "is_oos_window",
+      "classification": "frozen_exact_reusable",
+      "load_bearing": true,
+      "payload_evidence": "Protocol binds fixed_ratio_70_30; scope binds IS 176 dates 20250627..20260319 and OOS 76 dates 20260320..20260710.",
+      "current_evidence": "OOSWindowRuleRegistry registers fixed_ratio_70_30 and protocol persistence contains the exact window; no OOS result was read in this audit.",
+      "source_paths": ["data/strategy.db", "data/pit/historical_scope_freezes/acbc49159d989a46/manifest.json", "backend/services/oos_window_rules.py"],
+      "product_choice_required": false,
+      "mechanical_status": "reusable as a read-only window binding"
+    }
+  ],
+  "earliest_unresolved_load_bearing_gap": {
+    "id": "weekly_rebalance_day_and_mapping",
+    "reason": "The ordered audit reaches the weekly schedule before later unresolved sizing, stop-loss, fill, regime and comparison semantics. weekly does not uniquely specify a rebalance date or the as_of/execution mapping.",
+    "independent_decisive_gap": "market_regime_green_yellow is also unresolved because its only candidate classifier is explicitly not approved.",
+    "cannot_mechanically_resolve": true
+  },
+  "stage_b_decision": {
+    "enter_stage_b": false,
+    "reason": "At least one load-bearing transaction semantic is unresolved; implementing an executor now would require guessing weekly schedule, sizing/cash, stop-loss basis, fill costs, regime classification and benchmark/control behavior.",
+    "smallest_product_decision": "Freeze the missing v3 execution semantics explicitly, or authorize a bounded existing approved contract for each item. Separately owner-approve a validated market-regime artifact only after its existing replay/approval process completes. Do not alter the v3 template hash or use the candidate YAML."
+  },
+  "production_effects": {
+    "production_code_modified": false,
+    "database_written": false,
+    "oos_read": false,
+    "oos_reserved": false,
+    "oos_consumed": false,
+    "real_is_run": false,
+    "production_one_shot_run": false,
+    "protocol_task_reservation_ledger_created": false
+  },
+  "db_counts_read_only": {
+    "research_protocol_snapshots": 1,
+    "b6_validation_tasks": 0,
+    "oos_budget_state": 0,
+    "oos_budget_reservations": 0,
+    "oos_evaluation_ledgers": 0
+  },
+  "source_hashes": {
+    "backend/services/strategy_template_library.py": "0e289a007762656f6c8bbba8b3873e7cc7cc14eac759fd95a35b411851d323c0",
+    "backend/services/strategy_config_validator.py": "003769de2b19368460611dfabcef3585d01f0147e04cd6a0a2f467b3dca3de44",
+    "contracts/stable.py": "f0241e13bfc7ea2daea4bbd7a213b609885eb6fecd0ab3b0fdfddd4ec5c8722f",
+    "strategy_core/signals.py": "a9ee26754800760fa10a645f0a67d5815ae49b2ac8e598e527b0118cf8fde29f",
+    "strategy_core/orders.py": "70a3f6ad85e86d4062f9bd842a9961a97023b132c24dd730b438f895175c4aba",
+    "strategy_core/fill_simulator.py": "d59fa4c4a570910a9a32a86c0203d3fe9b5959585435bad1391777633b9f91aa",
+    "strategy_core/portfolio.py": "f5effcb2733cf8b3d6e19c9486bd964ce7706796b1fc6ff4c3053edc805d1aed",
+    "strategy_core/position_sizer.py": "7b26dd51b92b2559146473afa398f633071c33ffb31db4c36eed3611a967a6b8",
+    "strategy_core/transaction_costs.py": "936026bd4334d452204e76b473f03a424937a1866078fa8fb4c9fce1d54552c2",
+    "strategy_core/trading_calendar.py": "28e78902e32997dddb86f17b83c6a3f5ca159c1ae419c7b1d8ea3dd24e501996",
+    "strategy_core/universe_builder.py": "b2dd270c8ec1660d473aeab9a994e883033aab88989a5fbca37783a86e46b654",
+    "strategy_core/cursor_bound_data_view.py": "defab6ae0acf1cfa6b25694c234c5918fb6f8321c8f098a1fa9a7e8d87b03a24",
+    "strategy_core/backtest_engine.py": "3cb626f40477cc91a4b87615e4897366d162518bdbaf59344f01932080587d11",
+    "backend/services/formal_pit_partition_adapter.py": "58c006903d14c45489b993f4fce852dc17b7cade82a8bc65082baa7b78267d56",
+    "backend/services/backtest_engine_qualification.py": "383e46c05c183ba251704d506d5994dec43227c389bca94b6107b103d3d89489",
+    "backend/services/b4_protocol_types.py": "10eb75f2cec6e5df23eab08be656baef0b487a2c5a7f13feecd44aa64862d0c3",
+    "backend/services/b3_protocol_types.py": "8da47b9bd9153bff63ad3f15713cadc8b7a8f0e5a46ed781c5c984d917eb791a",
+    "backend/services/oos_evaluation_controller.py": "8f6912b2a3a1ad4659919adeb393df799e2470c36261eef79fd96f64973febe7",
+    "backend/services/oos_window_rules.py": "eeccd8187f721260d747d81e5c7d381cd4300314f97e949134b12d27045e9f1c",
+    "backend/services/time_consistency_guard.py": "481a95f3a1f9da218ae608252b89a8d7ec2cac229cc6e9472f89589560d1b855",
+    "backend/services/b6_validation_flow.py": "82ee063958fbd0c32a0ec3f91a2198059996a72abb6ab3ff6d591507a3fb17ac",
+    "backend/services/prototype_gate_v2.py": "90b7866c709197ed65ba0d5d9b3a7dd56d67c5801ce6e9d5da1ccc0b8ce2a8b7",
+    "backend/config/market_regime_thresholds.yaml": "47cebae2b540485085941eb57285c78335e782d1aaafb91fec661bd2f164582e",
+    "docs/verification/TASK4_V3_AI_TECHNICAL_REVIEW.md": "9ea7b9f96c326afbbd0de84e5e2183cb7315c29e26d953b4a5c9aa06b7d4ae69",
+    "data/strategy.db": "0f6cb9875f6e722908d53cdb626d30bd96e9fdb65ed95129327470e30eb7a95c"
+  }
+}

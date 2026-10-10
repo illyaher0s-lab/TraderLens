@@ -1,0 +1,151 @@
+{
+  "b3_id": "05f38a2884dc7e47",
+  "b4_artifact": {
+    "artifact_id": "b34022f7435082d2",
+    "canary_blocked_count": 6,
+    "event_result_sha256": "f289bf323b17a44a8a330a1878e8345dac712fe105623dd690471227f09c7a09",
+    "future_violations": 0,
+    "is_range": {
+      "end": "2026-03-19",
+      "start": "2025-06-27"
+    },
+    "manifest_sha256": "796dc5d216a5bdf2853499b80948d1e1eccb23d9bbcf322965374e402c905a38",
+    "max_requested_date": "2026-03-19",
+    "oos_read_count": 0,
+    "path": "D:\\Codex\\TraderLens\\data\\pit\\v3_b4_is_results\\b34022f7435082d2",
+    "protocol_snapshot_id": "8770c56c5a69ef128442c0f593f9e4b081a6b13c69744b27171b27cc8c8b7bbe",
+    "qualification_status": "pass",
+    "strategy_revision_id": "6440ffc03a742f4d4632078481cf3abf171eafb1a24f2bc69bc6f352d1b19ebc",
+    "supplement_id": "f505099849d497e1",
+    "supplement_manifest_sha256": "503724f0ddc2f0d5cc8bb351a1ecd5fed6c0d5c214484ff319eab91113279231"
+  },
+  "b5_bundle": {
+    "authorization_scope": "v3_b5_contract_fixture_only",
+    "bundle_id": "146b93619fea3cab",
+    "is_range": {
+      "end": "2026-03-19",
+      "start": "2025-06-27"
+    },
+    "lineage": {
+      "b4": {
+        "artifact_id": "b34022f7435082d2",
+        "event_sha256": "f289bf323b17a44a8a330a1878e8345dac712fe105623dd690471227f09c7a09",
+        "manifest_sha256": "796dc5d216a5bdf2853499b80948d1e1eccb23d9bbcf322965374e402c905a38"
+      },
+      "calendar": {
+        "date_set_sha256": "62b6880c9acc381d273ceee40c900a486c3f83488600c042c43ce1d8f9cbb194",
+        "id": "shsz_common_trade_calendar_v1",
+        "manifest_sha256": "ae019cf45072d8274f915837a03d1824c02a69159df473512dbce2e925586785"
+      },
+      "execution_supplement": {
+        "id": "f505099849d497e1",
+        "manifest_sha256": "503724f0ddc2f0d5cc8bb351a1ecd5fed6c0d5c214484ff319eab91113279231"
+      },
+      "formal_snapshot": {
+        "id": "v3ds_d73256081de82e8a",
+        "manifest_sha256": "57067e15e6ad1a92b23b42b48173b6cf1af2e7e23f3357320288fb7e109c2680",
+        "semantic_hash": "d73256081de82e8a764ea2394d613af820fd1b82e773c48156ca2463a452c80e"
+      },
+      "gate_criteria_envelope_hash": "94da0dda30af75d663a7d28deb0a15d64a4e068586a1295f3b4f52203a8c4738",
+      "is_range": {
+        "end": "2026-03-19",
+        "start": "2025-06-27"
+      },
+      "membership": {
+        "id": "pims_traderlens_v2_shsz_sw2021_pit_005",
+        "manifest_sha256": "32f58adbca49fb89dfeb54ceeb4ac9b27b6a26c55e0c9cfeae7a8fcaf3683f10",
+        "records_sha256": "2e8c922de9f198ab18a6b38743a01f4343fbf52b876da84026389d3ffd11eec0"
+      },
+      "protocol_snapshot_id": "8770c56c5a69ef128442c0f593f9e4b081a6b13c69744b27171b27cc8c8b7bbe",
+      "scope": {
+        "id": "acbc49159d989a46",
+        "manifest_sha256": "cef48909b7b7bb05bc952a19ff8e50702540b427c58fd21eb1670afcaf675c67"
+      },
+      "source_inventory": {
+        "artifact_id": "2fe8321a5f644b9b",
+        "manifest_sha256": "e23b94ac7294003a9b28db28f270bf2f19eaff40da9a03507adda87aad219a2c"
+      },
+      "strategy_revision_id": "6440ffc03a742f4d4632078481cf3abf171eafb1a24f2bc69bc6f352d1b19ebc",
+      "template": {
+        "data_requirements_hash": "ef2ab5b1dafe4349f305b52733a7dcb018a2961464dfbc6542a10e34805d041d",
+        "template_hash": "f7c0fd8123f62f37118cb947e1735861374435f8707e01b06d788a8ec4df39c1",
+        "template_id": "relative_strength_rotation_shsz_sw2021_v3",
+        "template_version": "v3_shsz_sw2021_pit_12m_liquidity20d"
+      }
+    },
+    "manifest_sha256": "f54690a76f3b6a5a874379be876d05153477277d1f3b7ab97a1d03a9e8f6e7de",
+    "not_authorized_for_b6_oos_gate_promotion_signal": true,
+    "result_count": 4,
+    "source_inventory": {
+      "artifact_id": "2fe8321a5f644b9b",
+      "manifest_sha256": "e23b94ac7294003a9b28db28f270bf2f19eaff40da9a03507adda87aad219a2c"
+    },
+    "status": "verified"
+  },
+  "b6_task_created": true,
+  "b6_task_reused": false,
+  "created_ids": {},
+  "current_d": "2026-07-31",
+  "current_snapshot_hash": "002e0647201696dd868a928ddf7d7ec37e12950e6e5e522e7c9a9ff2eae598e4",
+  "first_missing_prerequisite": null,
+  "gate1_4_validation": {
+    "coverage_id": "1e79d26460c0c109",
+    "coverage_manifest_sha256": "b009ae38cb87cf7c2adbfa0ce6d179d51225b08602ffcca431ed8d1a7135dfd6",
+    "coverage_stats": {
+      "complete_stock_days": 1164707,
+      "data_fault_count": 0,
+      "expected_stock_days": 1304589,
+      "field_missing_counts": {
+        "adj_factor.adj_factor": 973,
+        "daily.close": 117797
+      },
+      "first_data_fault": null,
+      "structural_errors": [],
+      "structural_validation": "passed",
+      "unavailable_stock_days": 139882
+    },
+    "scope_id": "acbc49159d989a46",
+    "scope_manifest_sha256": "cef48909b7b7bb05bc952a19ff8e50702540b427c58fd21eb1670afcaf675c67",
+    "snapshot_id": "v3ds_d73256081de82e8a",
+    "snapshot_manifest_sha256": "57067e15e6ad1a92b23b42b48173b6cf1af2e7e23f3357320288fb7e109c2680",
+    "snapshot_semantic_hash": "d73256081de82e8a764ea2394d613af820fd1b82e773c48156ca2463a452c80e",
+    "status": "valid",
+    "successor_id": "12f1b9aac73dfcd4",
+    "successor_manifest_sha256": "082a45061556505d4e3b2613fb1a87ed878481d0d728f73c80a9564c4ebd9f91"
+  },
+  "gate5_validation": {
+    "envelope_hash": "94da0dda30af75d663a7d28deb0a15d64a4e068586a1295f3b4f52203a8c4738",
+    "gate": {
+      "criteria_content_hash": "ab9c2320d54d17420e045a981085b44fd0c05fcdc572380debc64ba72bc3d21c",
+      "snapshot_id": "prototype_gate_v2_gate_v2_2bd8670c2e0fe084"
+    },
+    "kill": {
+      "criteria_content_hash": "7339c8849ecf5cd813995b1eeb18060102bc5fde1608481fb81d93818abb34f7",
+      "snapshot_id": "prototype_gate_v2_kill_v2_ea47b0c73ed2476e"
+    },
+    "status": "valid"
+  },
+  "lifecycle_id": "49b09326f35936c6",
+  "liquidity_id": "7c05ece4d3f01086",
+  "membership_id": "pims_traderlens_v2_shsz_sw2021_pit_005",
+  "oos_authorized": false,
+  "oos_consumed": false,
+  "provenance_validation": {
+    "detail": null,
+    "is_valid": true,
+    "reason_code": null
+  },
+  "reason": "queued:b6_validation_task",
+  "reused_ids": {
+    "lifecycle": "4dda8627a0274b7813b2b49e4c854bac929ae9b9cd1cab5c6c434a7d68235714",
+    "protocol": "8770c56c5a69ef128442c0f593f9e4b081a6b13c69744b27171b27cc8c8b7bbe",
+    "strategy_revision": "6440ffc03a742f4d4632078481cf3abf171eafb1a24f2bc69bc6f352d1b19ebc",
+    "template": "relative_strength_rotation_shsz_sw2021_v3",
+    "universe": "7ac88fad6010b88407be5f4ae18d8a013dbb59996815546e76068132da6b7c53"
+  },
+  "status": "queued",
+  "task_contract_version": "v2",
+  "task_id": "50154863a8e04066c66ef533d8fae9b097ae287f24ce3758ff9e876196d6ffb3",
+  "task_key": "2e61682988c3787ced5e1814018b059827b791cfa980e49bc5c2ceba8fea9a25",
+  "task_status": "queued"
+}

@@ -24,6 +24,7 @@ from backend.services.research_validation import ResearchValidator
 from backend.app.tushare.config import TushareConfig
 from contracts.research import TickerVerificationRecord
 from tests.test_research_validation import FakeTushareClient
+from tests.approval_context_fixtures import attach_continued_approval
 import hashlib
 
 
@@ -57,6 +58,12 @@ class TestAVerticalFlow(unittest.TestCase):
         validator._tushare_client = FakeTushareClient(config)
         self.app = create_research_app(self.db, validator=validator)
         self.client = TestClient(self.app)
+        self.approval_cards = {}
+
+    def _approval_for(self, theme_id: str) -> str:
+        if theme_id not in self.approval_cards:
+            self.approval_cards[theme_id] = attach_continued_approval(self.db, theme_id)
+        return self.approval_cards[theme_id]
 
     # ------------------------------------------------------------------
     # Helper: add a verified candidate with full setup
@@ -163,6 +170,7 @@ class TestAVerticalFlow(unittest.TestCase):
         confirm_response = self.client.post(
             f"/api/research/candidates/{candidate_id}/confirm",
             json={
+                "approval_card_id": self._approval_for(theme_id),
                 "confirmation_reason": "产业链核心环节，证据充分",
                 "evidence_level": "medium",
                 "confirmed_by": "user_vflow",
@@ -251,6 +259,7 @@ class TestAVerticalFlow(unittest.TestCase):
         self.client.post(
             f"/api/research/candidates/{candidate_id}/confirm",
             json={
+                "approval_card_id": self._approval_for(theme_id),
                 "confirmation_reason": "test", "evidence_level": "medium",
                 "confirmed_by": "user", "pool_snapshot_date": date.today().isoformat(),
                 "thesis_snapshot": "test", "invalidation_rules": [],
@@ -310,6 +319,7 @@ class TestAVerticalFlow(unittest.TestCase):
         r = self.client.post(
             f"/api/research/candidates/{candidate_id}/confirm",
             json={
+                "approval_card_id": self._approval_for(theme_id),
                 "confirmation_reason": "test", "evidence_level": "medium",
                 "confirmed_by": "user", "pool_snapshot_date": date.today().isoformat(),
                 "thesis_snapshot": "test", "invalidation_rules": [],
@@ -380,6 +390,7 @@ class TestAVerticalFlow(unittest.TestCase):
         r = self.client.post(
             f"/api/research/candidates/{candidate_id}/confirm",
             json={
+                "approval_card_id": self._approval_for(theme_id),
                 "confirmation_reason": "test", "evidence_level": "medium",
                 "confirmed_by": "user", "pool_snapshot_date": date.today().isoformat(),
                 "thesis_snapshot": "test", "invalidation_rules": [],
@@ -415,6 +426,7 @@ class TestAVerticalFlow(unittest.TestCase):
         r = self.client.post(
             f"/api/research/candidates/{candidate_id}/confirm",
             json={
+                "approval_card_id": self._approval_for(theme_id),
                 "confirmation_reason": "test", "evidence_level": "medium",
                 "confirmed_by": "user", "pool_snapshot_date": date.today().isoformat(),
                 "thesis_snapshot": "test", "invalidation_rules": [],
@@ -442,6 +454,7 @@ class TestAVerticalFlow(unittest.TestCase):
         self.client.post(
             f"/api/research/candidates/{candidate_id}/confirm",
             json={
+                "approval_card_id": self._approval_for(theme_id),
                 "confirmation_reason": "长期基本面优良", "evidence_level": "strong",
                 "confirmed_by": "user_vflow", "pool_snapshot_date": "2026-06-24",
                 "thesis_snapshot": "高端白酒龙头，品牌壁垒深厚",
@@ -505,6 +518,7 @@ class TestAVerticalFlow(unittest.TestCase):
         self.client.post(
             f"/api/research/candidates/{candidate_id}/confirm",
             json={
+                "approval_card_id": self._approval_for(theme_id),
                 "confirmation_reason": "updated evidence", "evidence_level": "medium",
                 "confirmed_by": "user", "pool_snapshot_date": date.today().isoformat(),
                 "thesis_snapshot": "test", "invalidation_rules": [],

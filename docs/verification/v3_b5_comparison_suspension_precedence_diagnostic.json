@@ -1,0 +1,161 @@
+{
+  "schema": "v3_b5_comparison_suspension_precedence_diagnostic.v1",
+  "status": "diagnostic_only",
+  "conclusion": "adapter_precedence_bug",
+  "conclusion_basis": "300478.SZ has suspend_type=R and a finite daily row on 2025-07-02. FormalPITPartitionAdapter maps any suspend_d row, including R, to is_suspended=True; v3_b5_comparison then raises the daily-mark conflict. The evidence supports an R precedence/semantic bug, not a raw daily conflict with a true S/P suspension.",
+  "scope": {
+    "is_start": "2025-06-27",
+    "is_end": "2026-03-19",
+    "common_open_count": 176,
+    "oos_start": "2026-03-20",
+    "oos_read": false,
+    "real_slice_run": false,
+    "publisher_run": false,
+    "verifier_run": false
+  },
+  "db_preflight": {
+    "path": "data/strategy.db",
+    "read_mode": "sqlite URI mode=ro",
+    "counts": {
+      "research_protocol_snapshots": 1,
+      "b6_validation_tasks": 0,
+      "oos_budget_reservations": 0,
+      "oos_budget_state": 0,
+      "oos_evaluation_ledgers": 0,
+      "immutable_backtest_reports": 0,
+      "prototype_gate_results_v2": 0
+    },
+    "matches_handoff_baseline": true,
+    "oos_unread_unreserved_unconsumed": true
+  },
+  "target": {
+    "symbol": "300478.SZ",
+    "date": "2025-07-02",
+    "raw_files": {
+      "daily": {
+        "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/daily/trade_date=20250702/part.parquet",
+        "sha256": "933f54ce2f19fd64196551f56c02fc59adf9a0e200f9661e3258c7d73234bf00"
+      },
+      "suspend_d": {
+        "repo_relative_path": "data/pit/tushare/.staging/08857219e6fd61e9/worker_0/formal/suspend_d/trade_date=20250702/part.parquet",
+        "sha256": "afefde05bc829e1bffe77c0a273295a895b1c64f34242c9c1da7d2bae3040a1d"
+      }
+    },
+    "raw_daily": {
+      "ts_code": "300478.SZ",
+      "trade_date": "20250702",
+      "open": 16.18,
+      "high": 16.18,
+      "low": 14.6,
+      "close": 14.98,
+      "pre_close": 13.48,
+      "change": 1.5,
+      "pct_chg": 11.1276,
+      "vol": 312795.53,
+      "amount": 480321.833
+    },
+    "raw_suspend_d": {
+      "ts_code": "300478.SZ",
+      "trade_date": "20250702",
+      "suspend_type": "R",
+      "suspend_timing": null
+    },
+    "adjacent_context": [
+      {"date": "2025-06-27", "daily_present": true, "open": 13.44, "close": 13.48, "pre_close": 13.42, "suspend_d": []},
+      {"date": "2025-06-30", "daily_present": false, "open": null, "close": null, "pre_close": null, "suspend_d": [{"suspend_type": "S", "suspend_timing": null}]},
+      {"date": "2025-07-01", "daily_present": false, "open": null, "close": null, "pre_close": null, "suspend_d": [{"suspend_type": "S", "suspend_timing": null}]},
+      {"date": "2025-07-02", "daily_present": true, "open": 16.18, "close": 14.98, "pre_close": 13.48, "suspend_d": [{"suspend_type": "R", "suspend_timing": null}]},
+      {"date": "2025-07-03", "daily_present": true, "open": 15.1, "close": 15.92, "pre_close": 14.98, "suspend_d": []},
+      {"date": "2025-07-04", "daily_present": true, "open": 15.26, "close": 14.88, "pre_close": 15.92, "suspend_d": []},
+      {"date": "2025-07-07", "daily_present": true, "open": 14.91, "close": 15.1, "pre_close": 14.88, "suspend_d": []}
+    ],
+    "lifecycle": {
+      "stock_basic": {"ts_code": "300478.SZ", "list_date": "20150610", "delist_date": null, "list_status": "L", "exchange": "SZSE"},
+      "membership_active": {"effective_from": "2021-07-30", "effective_to": null, "snapshot_id": "pims_traderlens_v2_shsz_sw2021_pit_005", "source": "SW2021_801030.SI_is_new_Y"},
+      "membership_records_sha256": "2e8c922de9f198ab18a6b38743a01f4343fbf52b876da84026389d3ffd11eec0"
+    },
+    "adapter_result": {
+      "get_status": {"is_suspended": true, "suspend_reason": "R", "is_st": false, "is_limit_up": true, "is_limit_down": false},
+      "get_bar": {"open": 16.18, "high": 16.18, "low": 14.6, "close": 14.98, "amount": 480321.833, "adj_factor": 1.929},
+      "comparison_mark_probe": {"error_type": "ComparisonError", "error": "formal suspension conflicts with daily mark: 300478.SZ/2025-07-02"}
+    }
+  },
+  "full_is_scan": {
+    "range": {"start": "2025-06-27", "end": "2026-03-19", "common_execution_dates": 176},
+    "all_suspend_rows_by_type": {"R": 339, "S": 2050},
+    "daily_present_suspend_rows_total": 348,
+    "daily_present_suspend_rows_by_type": {"R": 326, "S": 22},
+    "daily_absent_suspend_rows_by_type": {"R": 13, "S": 2028},
+    "daily_present_composition_pct": {"R": 93.6782, "S": 6.3218},
+    "daily_present_ratio_within_type_pct": {"R": 96.1652, "S": 1.0732},
+    "unique_symbols_by_type": {"R": 287, "S": 318},
+    "unique_dates_by_type": {"R": 143, "S": 176},
+    "samples": {
+      "R": [
+        {"trade_date": "20250627", "ts_code": "300959.SZ", "suspend_type": "R", "daily_open": 47.34, "daily_close": 47.6},
+        {"trade_date": "20250630", "ts_code": "300208.SZ", "suspend_type": "R", "daily_open": 0.24, "daily_close": 0.26},
+        {"trade_date": "20250630", "ts_code": "600190.SH", "suspend_type": "R", "daily_open": 0.46, "daily_close": 0.39}
+      ],
+      "S": [
+        {"trade_date": "20250716", "ts_code": "600930.SH", "suspend_type": "S", "suspend_timing": "09:35-09:45,09:47-09:57", "daily_open": 5.5, "daily_close": 7.18},
+        {"trade_date": "20250730", "ts_code": "001221.SZ", "suspend_type": "S", "suspend_timing": "13:05-13:15,13:17-13:27", "daily_open": 47.01, "daily_close": 80.0}
+      ]
+    },
+    "p_type_observed": false,
+    "r_concentration": "R is 326/348 (93.6782%) of daily-present+suspend rows and 326/339 (96.1652%) of all R rows have daily. This supports R as recovery/resume evidence, not a general suspension state."
+  },
+  "precedence_semantics": {
+    "adapter": {
+      "backend/services/formal_pit_partition_adapter.py:151-153": "get_status delegates to get_daily_status",
+      "backend/services/formal_pit_partition_adapter.py:420-424": "loads suspend_d, stock_st, stk_limit and daily",
+      "backend/services/formal_pit_partition_adapter.py:427": "is_suspended = symbol in suspend_data; suspend_type is not inspected",
+      "backend/services/formal_pit_partition_adapter.py:450-453": "suspend_reason copies the raw suspend_type",
+      "backend/services/formal_pit_partition_adapter.py:461-470": "emits is_suspended and suspend_reason"
+    },
+    "comparison": {
+      "backend/services/v3_b5_comparison.py:397-409": "members_for treats any status.is_suspended as excluded",
+      "backend/services/v3_b5_comparison.py:426-450": "execution raises when a returned bar coexists with any status.is_suspended",
+      "backend/services/v3_b5_comparison.py:452-477": "mark raises the daily conflict when a returned bar coexists with any status.is_suspended"
+    },
+    "tests_and_contract": {
+      "tests/test_task3b_formal_partition_adapter.py:59-68": "existing test explicitly asserts an R row yields is_suspended=True",
+      "tests/test_v3_formal_pit_execution_adapter.py:157-166": "S/no-daily is treated as suspended and has no bar",
+      "tests/test_v3_b5_comparisons.py:297-306": "daily plus formal suspension remains fail-loud",
+      "spec": "docs/superpowers/specs/2026-08-10-v3-b5-minimal-validation-design.md:196-225",
+      "plan": "docs/superpowers/plans/2026-08-10-v3-b5-minimal-validation-plan.md:223-263"
+    }
+  },
+  "s_independent_conflict_status": {
+    "current_contract": "The 22 S+daily rows remain fail-loud under the frozen rule that daily plus exact S/P evidence is a source conflict.",
+    "diagnostic_status": "unresolved_follow_up",
+    "why_not_classified_here": "This step established the R adapter precedence bug and did not inspect the 22 S rows beyond aggregate counts and samples. It does not safely distinguish valid intraday S records from a true source conflict.",
+    "blocking_effect": "Yes, they continue to block the current comparison path until a separate narrow S+daily diagnostic or an authorized contract decision resolves them."
+  },
+  "source_hashes": {
+    "backend/services/formal_pit_partition_adapter.py": "f849a87a11bffd184ef7f6f22b9a31811eb35fcfeb50fcc0f59d971424e28387",
+    "backend/services/v3_b5_comparison.py": "365a5d993ef9dbfd4e3472579ab8aa84fe140545bca61ed8227db7744074a68d",
+    "tests/test_v3_b5_comparisons.py": "f8d028db1d5a0de42d10d041b587de010de7c171b2ba112ac4a67164a8969032",
+    "tests/test_v3_formal_pit_execution_adapter.py": "accd44c8dacda176f1cc5d3334645783a35b4423b7892eda1b7915f49dca9d7d",
+    "tests/test_task3b_formal_partition_adapter.py": "320a45f0052d743a466a352e3cbba4b697b0522cdb24b5b1738674c2193e007d",
+    "docs/superpowers/specs/2026-08-10-v3-b5-minimal-validation-design.md": "8011298fd3fdab26b2caa47ad2a1ae4a9bea9fbfb9c06f3e3498fe87ba759909",
+    "docs/superpowers/plans/2026-08-10-v3-b5-minimal-validation-plan.md": "6a83cdee822bdf60a04887a966e32169f0abdc8d361c98141531966f8e5bf798",
+    "docs/verification/v3_b5_comparison_coverage_daily_semantics_diagnostic.json": "e6437e544d145cdd866683933a421fdf20f4139bd54c30e33df7dc19f2ae9424",
+    "docs/verification/v3_b5_comparison_missing_mark_diagnostic.json": "ab0e788b69c245d0a405d4f63bd900eb98902a33f170ae060540fbe98325098f",
+    "docs/verification/v3_b5_comparison_rebalance_diagnostic.json": "b535b786dd4eaa7ac367595db4cea8aa8f388f77524dc3dfe109c4f0837f7665"
+  },
+  "preservation": {
+    "target_diagnostic_preexisted": false,
+    "tmp_coverage_scan_result": {"path": "_tmp_coverage_scan_result.json", "exists": true, "sha256": "4982345cf0303e19ebb8a4badcdfa0ae55287257206b334e7c61facde7bc5a9e"},
+    "production_spec_plan_tests_modified": false,
+    "oos_artifacts_written": false
+  },
+  "verification_commands": [
+    {"command": "fresh strategy.db read-only COUNT query", "exit_code": 0, "result": "(1,0,0,0,0,0,0), matching handoff; no OOS sample read"},
+    {"command": "read-only target/full-IS Parquet scan", "exit_code": 0, "result": "176 IS dates; daily-present+suspend=348; R=326; S=22"},
+    {"command": "actual adapter/comparison boundary probe for 300478.SZ/2025-07-02", "exit_code": 0, "result": "status=True/R; bar open=16.18 close=14.98; ComparisonError= formal suspension conflicts with daily mark"},
+    {"command": "python -m unittest tests.test_v3_b5_comparisons -v", "exit_code": 0, "result": "Ran 19 tests in 0.001s; OK"},
+    {"command": "python -m pytest tests/test_v3_formal_pit_execution_adapter.py::test_formal_suspension_without_daily_returns_status_but_never_a_bar -q", "exit_code": 0, "result": "1 passed in 7.20s"},
+    {"command": "python -m unittest tests.test_task3b_formal_partition_adapter.TestFormalPITPartitionAdapter.test_004_suspended_stock_returns_true -v", "exit_code": 0, "result": "Ran 1 test; OK; existing R->is_suspended=True assertion"}
+  ],
+  "recommendation": "Task5 remains blocked/watch. The evidence supports entering only a narrow correction-design review for R precedence; do not implement it in this step. Treat the 22 S+daily rows as unresolved follow-up that still blocks the current path. No real slice, preflight, publisher, verifier, Task6 or OOS action was run."
+}

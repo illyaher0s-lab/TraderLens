@@ -1,0 +1,517 @@
+{
+  "schema_version": "tushare_bounded_fault_probe.v1",
+  "symbols": [
+    "000524.SZ",
+    "000972.SZ",
+    "001331.SZ",
+    "002175.SZ",
+    "002289.SZ",
+    "002731.SZ",
+    "300332.SZ",
+    "600228.SH",
+    "603001.SH",
+    "603137.SH",
+    "603721.SH",
+    "603789.SH",
+    "688121.SH",
+    "688146.SH",
+    "688260.SH",
+    "688689.SH",
+    "920305.BJ"
+  ],
+  "date_range": {
+    "start": "20260623",
+    "end": "20260626"
+  },
+  "max_inflight_requests": 1,
+  "results": [
+    {
+      "api": "suspend_d",
+      "request": {
+        "ts_code": "000524.SZ,000972.SZ,001331.SZ,002175.SZ,002289.SZ,002731.SZ,300332.SZ,600228.SH,603001.SH,603137.SH,603721.SH,603789.SH,688121.SH,688146.SH,688260.SH,688689.SH,920305.BJ",
+        "start_date": "20260623",
+        "end_date": "20260626",
+        "fields": "ts_code,trade_date,suspend_type,suspend_reason,resume_date"
+      },
+      "row_count": 51,
+      "response_sha256": "5e0d09063d40d37c4e6447fb1d1865b30647b541a97f93090b720298bc099a38",
+      "rows": [
+        {
+          "ts_code": "000524.SZ",
+          "trade_date": "20260626",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "000972.SZ",
+          "trade_date": "20260626",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "001331.SZ",
+          "trade_date": "20260626",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "002175.SZ",
+          "trade_date": "20260626",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "002289.SZ",
+          "trade_date": "20260626",
+          "suspend_type": "R",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "002731.SZ",
+          "trade_date": "20260626",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "300332.SZ",
+          "trade_date": "20260626",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "603001.SH",
+          "trade_date": "20260626",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "603137.SH",
+          "trade_date": "20260626",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "603789.SH",
+          "trade_date": "20260626",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "688121.SH",
+          "trade_date": "20260626",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "688146.SH",
+          "trade_date": "20260626",
+          "suspend_type": "R",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "688260.SH",
+          "trade_date": "20260626",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "688689.SH",
+          "trade_date": "20260626",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "920305.BJ",
+          "trade_date": "20260626",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "000524.SZ",
+          "trade_date": "20260625",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "001331.SZ",
+          "trade_date": "20260625",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "002175.SZ",
+          "trade_date": "20260625",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "002289.SZ",
+          "trade_date": "20260625",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "002731.SZ",
+          "trade_date": "20260625",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "600228.SH",
+          "trade_date": "20260625",
+          "suspend_type": "R",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "603001.SH",
+          "trade_date": "20260625",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "603137.SH",
+          "trade_date": "20260625",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "603721.SH",
+          "trade_date": "20260625",
+          "suspend_type": "R",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "603789.SH",
+          "trade_date": "20260625",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "688121.SH",
+          "trade_date": "20260625",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "688146.SH",
+          "trade_date": "20260625",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "688689.SH",
+          "trade_date": "20260625",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "920305.BJ",
+          "trade_date": "20260625",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "000524.SZ",
+          "trade_date": "20260624",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "001331.SZ",
+          "trade_date": "20260624",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "002175.SZ",
+          "trade_date": "20260624",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "002731.SZ",
+          "trade_date": "20260624",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "600228.SH",
+          "trade_date": "20260624",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "603137.SH",
+          "trade_date": "20260624",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "603721.SH",
+          "trade_date": "20260624",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "603789.SH",
+          "trade_date": "20260624",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "688121.SH",
+          "trade_date": "20260624",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "688146.SH",
+          "trade_date": "20260624",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "688689.SH",
+          "trade_date": "20260624",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "920305.BJ",
+          "trade_date": "20260624",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "001331.SZ",
+          "trade_date": "20260623",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "002175.SZ",
+          "trade_date": "20260623",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "002731.SZ",
+          "trade_date": "20260623",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "600228.SH",
+          "trade_date": "20260623",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "603137.SH",
+          "trade_date": "20260623",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "603721.SH",
+          "trade_date": "20260623",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "688121.SH",
+          "trade_date": "20260623",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "688146.SH",
+          "trade_date": "20260623",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "688689.SH",
+          "trade_date": "20260623",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        },
+        {
+          "ts_code": "920305.BJ",
+          "trade_date": "20260623",
+          "suspend_type": "S",
+          "suspend_reason": null,
+          "resume_date": null
+        }
+      ]
+    },
+    {
+      "api": "daily",
+      "request": {
+        "ts_code": "000524.SZ,000972.SZ,001331.SZ,002175.SZ,002289.SZ,002731.SZ,300332.SZ,600228.SH,603001.SH,603137.SH,603721.SH,603789.SH,688121.SH,688146.SH,688260.SH,688689.SH,920305.BJ",
+        "start_date": "20260623",
+        "end_date": "20260626",
+        "fields": "ts_code,trade_date,amount"
+      },
+      "row_count": 21,
+      "response_sha256": "c6f5c034d1d4ef92e6abdd4ce789602f8bd5df8c0f37484312bcc2656022a20b",
+      "rows": [
+        {
+          "ts_code": "002289.SZ",
+          "trade_date": "20260626",
+          "amount": 467980.37825
+        },
+        {
+          "ts_code": "600228.SH",
+          "trade_date": "20260626",
+          "amount": 6413.954
+        },
+        {
+          "ts_code": "603721.SH",
+          "trade_date": "20260626",
+          "amount": 118422.199
+        },
+        {
+          "ts_code": "688146.SH",
+          "trade_date": "20260626",
+          "amount": 7283403.467
+        },
+        {
+          "ts_code": "000972.SZ",
+          "trade_date": "20260625",
+          "amount": 23083.293
+        },
+        {
+          "ts_code": "300332.SZ",
+          "trade_date": "20260625",
+          "amount": 115043.50102
+        },
+        {
+          "ts_code": "600228.SH",
+          "trade_date": "20260625",
+          "amount": 22951.476
+        },
+        {
+          "ts_code": "603721.SH",
+          "trade_date": "20260625",
+          "amount": 236287.573
+        },
+        {
+          "ts_code": "688260.SH",
+          "trade_date": "20260625",
+          "amount": 967180.746
+        },
+        {
+          "ts_code": "000972.SZ",
+          "trade_date": "20260624",
+          "amount": 12581.1174
+        },
+        {
+          "ts_code": "002289.SZ",
+          "trade_date": "20260624",
+          "amount": 82782.749
+        },
+        {
+          "ts_code": "300332.SZ",
+          "trade_date": "20260624",
+          "amount": 97858.801
+        },
+        {
+          "ts_code": "603001.SH",
+          "trade_date": "20260624",
+          "amount": 447416.221
+        },
+        {
+          "ts_code": "688260.SH",
+          "trade_date": "20260624",
+          "amount": 698313.944
+        },
+        {
+          "ts_code": "000524.SZ",
+          "trade_date": "20260623",
+          "amount": 66854.17044
+        },
+        {
+          "ts_code": "000972.SZ",
+          "trade_date": "20260623",
+          "amount": 13734.57
+        },
+        {
+          "ts_code": "002289.SZ",
+          "trade_date": "20260623",
+          "amount": 138218.44296
+        },
+        {
+          "ts_code": "300332.SZ",
+          "trade_date": "20260623",
+          "amount": 113860.04025
+        },
+        {
+          "ts_code": "603001.SH",
+          "trade_date": "20260623",
+          "amount": 353803.958
+        },
+        {
+          "ts_code": "603789.SH",
+          "trade_date": "20260623",
+          "amount": 30692.271
+        },
+        {
+          "ts_code": "688260.SH",
+          "trade_date": "20260623",
+          "amount": 450848.127
+        }
+      ]
+    }
+  ]
+}

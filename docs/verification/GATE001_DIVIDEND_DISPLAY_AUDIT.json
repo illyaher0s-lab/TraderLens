@@ -1,0 +1,607 @@
+{
+  "schema": "gate001-dividend-display-audit.v1",
+  "report_status": "independent_review_pass_limited_scope",
+  "report_date": "2026-10-06",
+  "formal_parent_trial_id": "gate001-b840116400c94e38b1b65ada162f65dd",
+  "technical_capture_trial_id": "gate001-techprimary-45281f4864e040b9",
+  "source_capture_status_preserved": "mismatch_stop",
+  "source_capture_comparison_errors_preserved": [
+    "captured_signal_link_2",
+    "captured_signal_link_4",
+    "captured_signal_link_6",
+    "complete_seven_leg_capture",
+    "reference_trade_missing_7"
+  ],
+  "research_verdict": "insufficient_evidence",
+  "research_window": {
+    "start": "2010-01-12",
+    "end": "2020-12-31"
+  },
+  "claim_boundary": {
+    "current_market_assessment": false,
+    "actual_investment_return": false,
+    "qualified_strategy": false,
+    "alpha_claim": false,
+    "engine_or_reference_backtest_rerun": false,
+    "api_calls_or_downloads": false,
+    "holdout_queries_in_this_task": false
+  },
+  "source_hashes": {
+    "capture_sha256": "097BDD0BEAD496C3FEFBC38B2E5DE2C4285B3397F85E03F8DBCC4545254B7AFF",
+    "sidecar_sha256_actual_bytes": "304CDA0B663D0C59AFE213FEC9EE11124393796C9313DC2BBFD50858A76C62D3",
+    "formal_json_sha256": "20336F824F5FEDEE2401D565BD3E385CB04B298AD172AA4E7026034D929480C9",
+    "formal_markdown_sha256": "206487ABE39A4B891130A516073A5A67388A3C1B6A95084C625274D8CEBC72A1",
+    "saved_capture_audit_json_sha256": "BD1C2218C67FA6E60803F3797163B8A7BFFF3E172B6D41356A78F5A712795F11",
+    "saved_capture_audit_markdown_sha256": "3B4A74FB6EF3B4E1B7A7C6E07A6D75433966F7E832B9203014BB7D332C50CBF0",
+    "protocol_sha256": "6F030764118AF63B2F2034123F0FC673F450F778A0E4D9546A64B471DA625850",
+    "dividend_manifest_sha256": "AFC16B529242C160E311FC23C002B1EA4B4DBA22D9493AF6458AE2ECDF8CEE68",
+    "dividend_adapter_sha256": "9832350431E3C7F4C9EEADF3BAB0A650DE6903192EE11C26726DDB150A6BBA3F",
+    "dividend_ledger_sha256": "B59F8FAA30AA9CFB9AF6FDE97BF95458A63660479D8969426EDF5F0E95444771",
+    "trial_ledger_before_report_correction_sha256": "88AC326A9F6F809CAE18A05064895534749B1357324DE832690AC3669F6901F9",
+    "dividend_raw_files": [
+      {
+        "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20090318.json",
+        "sha256": "AFBB778763F76923ED0482E24263710E549ABF5311A645B13368F5437B23509B"
+      },
+      {
+        "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20091016.json",
+        "sha256": "B195B1A1205457A80BB22CDFA148E03E3E2D75CA4C9DCDCB31B9C9B4708253DF"
+      },
+      {
+        "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20100709.json",
+        "sha256": "69F6B0F8DDF61892EE499BC031D538C4E6A08BA9F82D3D915B1060D8AB3C5486"
+      },
+      {
+        "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20101018.json",
+        "sha256": "A3DABBABBAC0CE9F4B1BC3B7059CF6B78858537ADEF164866D2C04F431962F45"
+      },
+      {
+        "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20111018.json",
+        "sha256": "575E5B3E8BF602E20855B9BA2AF2A6DA17F1B940A7109AEE06792D887AE8D81D"
+      },
+      {
+        "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20121212.json",
+        "sha256": "EEF9D48B8FF57FC8F681DF454C643B9535CF37A6072C54AF6D713E46E2F21052"
+      },
+      {
+        "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20140115.json",
+        "sha256": "93D8A9BCD4B9758F467B6327C7D15D3E4962F83A04CBA429B832EDCD6CCBB036"
+      },
+      {
+        "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20150114.json",
+        "sha256": "ACB5FAFFCAD3312CDD9B42E32B62519B109108E587303F33E8E9ED5C29CCC5E4"
+      },
+      {
+        "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20160114.json",
+        "sha256": "91E209BBDAC692214547B6E1BFE8A9EE6B93E71E67ACB22A4E5E18E9346E6525"
+      },
+      {
+        "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20170117.json",
+        "sha256": "8FF38CAAA7BE8C6C2976806F6E693A0388DB742709B0F704C9EB3503045A2F99"
+      },
+      {
+        "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20180117.json",
+        "sha256": "5203AA28AF9F5122C0982BC27F3B5F83DC5B8F4DF6BDF7F51BB2497775B177B7"
+      },
+      {
+        "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20190110.json",
+        "sha256": "6162909425A0068A5C603D30026004532680C83D8983560D20D6C93C8D2F7DE6"
+      },
+      {
+        "path": "data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20200113.json",
+        "sha256": "CC99AB71785C08CDB2A75DFB155A15562FF0019FAEF8CFD7C73ED769F8B9492A"
+      }
+    ]
+  },
+  "dividend_normalization": {
+    "snapshot_id": "fund_div_announcements_20261005T004106Z",
+    "ann_date_window": [
+      "2009-01-01",
+      "2020-12-31"
+    ],
+    "raw_target_rows": 20,
+    "normalized_events": 13,
+    "duplicate_raw_rows_removed": 7,
+    "source_reference_count_after_normalization": 20,
+    "div_cash_unit": "CNY per fund unit",
+    "official_spotcheck_dates": [
+      "2019-01-10",
+      "2020-01-13"
+    ],
+    "evidence_gap": "The raw snapshot is marked raw_unverified; official announcement checks cover only 2019-01-10 and 2020-01-13. They do not establish full-history completeness or independently verify every historical event.",
+    "event_rows": [
+      {
+        "ann_date": "2009-03-18",
+        "record_date": "2009-03-23",
+        "ex_date": "2009-03-24",
+        "pay_date": "2009-03-30",
+        "div_cash_cny_per_unit": "0.024",
+        "source_ref_count": 2,
+        "duplicate_raw_rows": 1,
+        "source_refs": [
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20090318.json|raw_sha256=afbb778763f76923ed0482e24263710e549abf5311a645b13368f5437b23509b|row=0",
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20090318.json|raw_sha256=afbb778763f76923ed0482e24263710e549abf5311a645b13368f5437b23509b|row=1"
+        ],
+        "ownership": "not_eligible",
+        "cycle_id": null,
+        "quantity_at_record": 0,
+        "entitlement_cny": "0.00",
+        "settlement_state": "no_position_at_record_date"
+      },
+      {
+        "ann_date": "2009-10-16",
+        "record_date": "2009-10-21",
+        "ex_date": "2009-10-22",
+        "pay_date": "2009-10-28",
+        "div_cash_cny_per_unit": "0.023",
+        "source_ref_count": 2,
+        "duplicate_raw_rows": 1,
+        "source_refs": [
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20091016.json|raw_sha256=b195b1a1205457a80bb22cdfa148e03e3e2d75ca4c9dcdcb31b9c9b4708253df|row=0",
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20091016.json|raw_sha256=b195b1a1205457a80bb22cdfa148e03e3e2d75ca4c9dcdcb31b9c9b4708253df|row=1"
+        ],
+        "ownership": "not_eligible",
+        "cycle_id": null,
+        "quantity_at_record": 0,
+        "entitlement_cny": "0.00",
+        "settlement_state": "no_position_at_record_date"
+      },
+      {
+        "ann_date": "2010-07-09",
+        "record_date": "2010-07-14",
+        "ex_date": "2010-07-15",
+        "pay_date": "2010-07-21",
+        "div_cash_cny_per_unit": "0.02",
+        "source_ref_count": 2,
+        "duplicate_raw_rows": 1,
+        "source_refs": [
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20100709.json|raw_sha256=69f6b0f8ddf61892ee499bc031d538c4e6a08ba9f82d3d915b1060d8ab3c5486|row=0",
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20100709.json|raw_sha256=69f6b0f8ddf61892ee499bc031d538c4e6a08ba9f82d3d915b1060d8ab3c5486|row=1"
+        ],
+        "ownership": "eligible",
+        "cycle_id": "cycle-1",
+        "quantity_at_record": 40700,
+        "entitlement_cny": "814.00",
+        "settlement_state": "paid_to_simulated_cash_by_cutoff"
+      },
+      {
+        "ann_date": "2010-10-18",
+        "record_date": "2010-10-21",
+        "ex_date": "2010-10-22",
+        "pay_date": "2010-10-28",
+        "div_cash_cny_per_unit": "0.021",
+        "source_ref_count": 2,
+        "duplicate_raw_rows": 1,
+        "source_refs": [
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20101018.json|raw_sha256=a3dabbabbac0ce9f4b1bc3b7059cf6b78858537adef164866d2c04f431962f45|row=0",
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20101018.json|raw_sha256=a3dabbabbac0ce9f4b1bc3b7059cf6b78858537adef164866d2c04f431962f45|row=1"
+        ],
+        "ownership": "eligible",
+        "cycle_id": "cycle-1",
+        "quantity_at_record": 40700,
+        "entitlement_cny": "854.70",
+        "settlement_state": "paid_to_simulated_cash_by_cutoff"
+      },
+      {
+        "ann_date": "2011-10-18",
+        "record_date": "2011-10-21",
+        "ex_date": "2011-10-24",
+        "pay_date": "2011-10-28",
+        "div_cash_cny_per_unit": "0.035",
+        "source_ref_count": 1,
+        "duplicate_raw_rows": 0,
+        "source_refs": [
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20111018.json|raw_sha256=575e5b3e8bf602e20855b9ba2af2a6da17f1b940a7109aee06792d887ae8d81d|row=0"
+        ],
+        "ownership": "eligible",
+        "cycle_id": "cycle-1",
+        "quantity_at_record": 40700,
+        "entitlement_cny": "1424.50",
+        "settlement_state": "paid_to_simulated_cash_by_cutoff"
+      },
+      {
+        "ann_date": "2012-12-12",
+        "record_date": "2012-12-17",
+        "ex_date": "2012-12-18",
+        "pay_date": "2012-12-24",
+        "div_cash_cny_per_unit": "0.041",
+        "source_ref_count": 1,
+        "duplicate_raw_rows": 0,
+        "source_refs": [
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20121212.json|raw_sha256=eef9d48b8ff57fc8f681df454c643b9535cf37a6072c54af6d713e46e2f21052|row=0"
+        ],
+        "ownership": "eligible",
+        "cycle_id": "cycle-1",
+        "quantity_at_record": 40700,
+        "entitlement_cny": "1668.70",
+        "settlement_state": "paid_to_simulated_cash_by_cutoff"
+      },
+      {
+        "ann_date": "2014-01-15",
+        "record_date": "2014-01-20",
+        "ex_date": "2014-01-21",
+        "pay_date": "2014-01-27",
+        "div_cash_cny_per_unit": "0.059",
+        "source_ref_count": 2,
+        "duplicate_raw_rows": 1,
+        "source_refs": [
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20140115.json|raw_sha256=93d8a9bcd4b9758f467b6327c7d15d3e4962f83a04cba429b832edcd6ccbb036|row=0",
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20140115.json|raw_sha256=93d8a9bcd4b9758f467b6327c7d15d3e4962f83a04cba429b832edcd6ccbb036|row=1"
+        ],
+        "ownership": "eligible",
+        "cycle_id": "cycle-1",
+        "quantity_at_record": 40700,
+        "entitlement_cny": "2401.30",
+        "settlement_state": "paid_to_simulated_cash_by_cutoff"
+      },
+      {
+        "ann_date": "2015-01-14",
+        "record_date": "2015-01-19",
+        "ex_date": "2015-01-20",
+        "pay_date": "2015-01-23",
+        "div_cash_cny_per_unit": "0.08",
+        "source_ref_count": 1,
+        "duplicate_raw_rows": 0,
+        "source_refs": [
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20150114.json|raw_sha256=acb5faffcad3312cdd9b42e32b62519b109108e587303f33e8e9ed5c29ccc5e4|row=0"
+        ],
+        "ownership": "not_eligible",
+        "cycle_id": null,
+        "quantity_at_record": 0,
+        "entitlement_cny": "0.00",
+        "settlement_state": "no_position_at_record_date"
+      },
+      {
+        "ann_date": "2016-01-14",
+        "record_date": "2016-01-19",
+        "ex_date": "2016-01-20",
+        "pay_date": "2016-01-25",
+        "div_cash_cny_per_unit": "0.05",
+        "source_ref_count": 1,
+        "duplicate_raw_rows": 0,
+        "source_refs": [
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20160114.json|raw_sha256=91e209bbdac692214547b6e1bfe8a9ee6b93e71e67acb22a4e5e18e9346e6525|row=0"
+        ],
+        "ownership": "eligible",
+        "cycle_id": "cycle-3",
+        "quantity_at_record": 46500,
+        "entitlement_cny": "2325.00",
+        "settlement_state": "paid_to_simulated_cash_by_cutoff"
+      },
+      {
+        "ann_date": "2017-01-17",
+        "record_date": "2017-01-20",
+        "ex_date": "2017-01-23",
+        "pay_date": "2017-01-26",
+        "div_cash_cny_per_unit": "0.091",
+        "source_ref_count": 1,
+        "duplicate_raw_rows": 0,
+        "source_refs": [
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20170117.json|raw_sha256=8ff38caaa7be8c6c2976806f6e693a0388db742709b0f704c9eb3503045a2f99|row=0"
+        ],
+        "ownership": "eligible",
+        "cycle_id": "cycle-3",
+        "quantity_at_record": 46500,
+        "entitlement_cny": "4231.50",
+        "settlement_state": "paid_to_simulated_cash_by_cutoff"
+      },
+      {
+        "ann_date": "2018-01-17",
+        "record_date": "2018-01-22",
+        "ex_date": "2018-01-23",
+        "pay_date": "2018-01-26",
+        "div_cash_cny_per_unit": "0.109",
+        "source_ref_count": 1,
+        "duplicate_raw_rows": 0,
+        "source_refs": [
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20180117.json|raw_sha256=5203aa28af9f5122c0982bc27f3b5f83dc5b8f4df6bdf7f51bb2497775b177b7|row=0"
+        ],
+        "ownership": "not_eligible",
+        "cycle_id": null,
+        "quantity_at_record": 0,
+        "entitlement_cny": "0.00",
+        "settlement_state": "no_position_at_record_date"
+      },
+      {
+        "ann_date": "2019-01-10",
+        "record_date": "2019-01-15",
+        "ex_date": "2019-01-16",
+        "pay_date": "2019-01-21",
+        "div_cash_cny_per_unit": "0.098",
+        "source_ref_count": 2,
+        "duplicate_raw_rows": 1,
+        "source_refs": [
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20190110.json|raw_sha256=6162909425a0068a5c603d30026004532680c83d8983560d20d6c93c8d2f7de6|row=0",
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20190110.json|raw_sha256=6162909425a0068a5c603d30026004532680c83d8983560d20d6c93c8d2f7de6|row=1"
+        ],
+        "ownership": "eligible",
+        "cycle_id": "cycle-4",
+        "quantity_at_record": 52000,
+        "entitlement_cny": "5096.00",
+        "settlement_state": "paid_to_simulated_cash_by_cutoff"
+      },
+      {
+        "ann_date": "2020-01-13",
+        "record_date": "2020-01-16",
+        "ex_date": "2020-01-17",
+        "pay_date": "2020-01-22",
+        "div_cash_cny_per_unit": "0.144",
+        "source_ref_count": 2,
+        "duplicate_raw_rows": 1,
+        "source_refs": [
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20200113.json|raw_sha256=cc99ab71785c08cdb2a75dfb155a15562ff0019faef8cfd7c73ed769f8b9492a|row=0",
+          "fund_div_announcements_20261005T004106Z|manifest_sha256=afc16b529242c160e311fc23c002b1ea4b4dba22d9493af6458ae2ecdf8cee68|raw=data/alpha_gate_001/fund_div_announcements_20261005T004106Z/raw/ann_date_20200113.json|raw_sha256=cc99ab71785c08cdb2a75dfb155a15562ff0019faef8cfd7c73ed769f8b9492a|row=1"
+        ],
+        "ownership": "eligible",
+        "cycle_id": "cycle-4",
+        "quantity_at_record": 52000,
+        "entitlement_cny": "7488.00",
+        "settlement_state": "paid_to_simulated_cash_by_cutoff"
+      }
+    ]
+  },
+  "cycle_reconciliation": {
+    "closed_cycles": 3,
+    "closed_cycle_minimum": 8,
+    "terminal_open_cycles": 1,
+    "cycle_rows": [
+      {
+        "cycle_id": "cycle-1",
+        "buy_date": "2010-04-20",
+        "sell_date": "2015-01-06",
+        "quantity": 40700,
+        "buy_net_cash_flow_cny": "-99948.48",
+        "sell_net_cash_flow_cny": "110996.29",
+        "terminal_market_value_cny": null,
+        "eligible_dividends_cny": "7163.20",
+        "dividend_event_count": 5,
+        "dividends_paid_to_simulated_cash_cny": "7163.20",
+        "confirmed_receivable_at_cutoff_cny": "0.00",
+        "confirmed_right_pending_ex_date_cny": "0.00",
+        "reference_pnl_cny": "18211.01",
+        "equation": "-99948.48 + 110996.29 + 7163.20 = 18211.01",
+        "equation_verified": true
+      },
+      {
+        "cycle_id": "cycle-2",
+        "buy_date": "2015-08-25",
+        "sell_date": "2015-09-10",
+        "quantity": 48900,
+        "buy_net_cash_flow_cny": "-117982.18",
+        "sell_net_cash_flow_cny": "130328.29",
+        "terminal_market_value_cny": null,
+        "eligible_dividends_cny": "0.00",
+        "dividend_event_count": 0,
+        "dividends_paid_to_simulated_cash_cny": "0.00",
+        "confirmed_receivable_at_cutoff_cny": "0.00",
+        "confirmed_right_pending_ex_date_cny": "0.00",
+        "reference_pnl_cny": "12346.11",
+        "equation": "-117982.18 + 130328.29 + 0.00 = 12346.11",
+        "equation_verified": true
+      },
+      {
+        "cycle_id": "cycle-3",
+        "buy_date": "2015-11-30",
+        "sell_date": "2017-10-20",
+        "quantity": 46500,
+        "buy_net_cash_flow_cny": "-130332.09",
+        "sell_net_cash_flow_cny": "143130.55",
+        "terminal_market_value_cny": null,
+        "eligible_dividends_cny": "6556.50",
+        "dividend_event_count": 2,
+        "dividends_paid_to_simulated_cash_cny": "6556.50",
+        "confirmed_receivable_at_cutoff_cny": "0.00",
+        "confirmed_right_pending_ex_date_cny": "0.00",
+        "reference_pnl_cny": "19354.96",
+        "equation": "-130332.09 + 143130.55 + 6556.50 = 19354.96",
+        "equation_verified": true
+      },
+      {
+        "cycle_id": "cycle-4",
+        "buy_date": "2018-03-29",
+        "sell_date": null,
+        "quantity": 52000,
+        "buy_net_cash_flow_cny": "-149804.93",
+        "sell_net_cash_flow_cny": null,
+        "terminal_market_value_cny": "142428.00",
+        "eligible_dividends_cny": "12584.00",
+        "dividend_event_count": 2,
+        "dividends_paid_to_simulated_cash_cny": "12584.00",
+        "confirmed_receivable_at_cutoff_cny": "0.00",
+        "confirmed_right_pending_ex_date_cny": "0.00",
+        "reference_pnl_cny": "5207.07",
+        "equation": "-149804.93 + 142428.00 + 12584.00 = 5207.07",
+        "equation_verified": true
+      }
+    ],
+    "eligible_dividend_total_cny": "26303.70",
+    "paid_to_simulated_cash_by_cutoff_cny": "26303.70",
+    "confirmed_receivable_at_cutoff_cny": "0.00",
+    "confirmed_right_pending_ex_date_cny": "0.00",
+    "outside_frozen_source_window_future_rights": "not quantified or included"
+  },
+  "trade_legs": {
+    "count": 7,
+    "dividends_in_trade_rows": false,
+    "runtime_exit_signal_objects_captured": false,
+    "rows": [
+      {
+        "trade_date": "2010-04-20",
+        "direction": "buy",
+        "signal_date": "2010-04-19",
+        "intended_date": "2010-04-20",
+        "signal_source": "captured_signal",
+        "runtime_signal_captured": true,
+        "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2010-04-19:entry",
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2010-04-19:entry:2010-04-20",
+        "quantity": 40700,
+        "fill_price_cny": "2.455",
+        "gross_amount_cny": "99918.50",
+        "commission_cny": "29.98",
+        "stamp_duty_cny": "0.00",
+        "transfer_fee_cny": "0.00",
+        "total_fee_cny": "29.98",
+        "net_cash_flow_cny": "-99948.48"
+      },
+      {
+        "trade_date": "2015-01-06",
+        "direction": "sell",
+        "signal_date": "2015-01-05",
+        "intended_date": "2015-01-06",
+        "signal_source": "derived_from_persisted_order",
+        "runtime_signal_captured": false,
+        "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2015-01-05:exit",
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2015-01-05:exit:2015-01-06",
+        "quantity": 40700,
+        "fill_price_cny": "2.728",
+        "gross_amount_cny": "111029.60",
+        "commission_cny": "33.31",
+        "stamp_duty_cny": "0.00",
+        "transfer_fee_cny": "0.00",
+        "total_fee_cny": "33.31",
+        "net_cash_flow_cny": "110996.29"
+      },
+      {
+        "trade_date": "2015-08-25",
+        "direction": "buy",
+        "signal_date": "2015-08-24",
+        "intended_date": "2015-08-25",
+        "signal_source": "captured_signal",
+        "runtime_signal_captured": true,
+        "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2015-08-24:entry",
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2015-08-24:entry:2015-08-25",
+        "quantity": 48900,
+        "fill_price_cny": "2.412",
+        "gross_amount_cny": "117946.80",
+        "commission_cny": "35.38",
+        "stamp_duty_cny": "0.00",
+        "transfer_fee_cny": "0.00",
+        "total_fee_cny": "35.38",
+        "net_cash_flow_cny": "-117982.18"
+      },
+      {
+        "trade_date": "2015-09-10",
+        "direction": "sell",
+        "signal_date": "2015-09-09",
+        "intended_date": "2015-09-10",
+        "signal_source": "derived_from_persisted_order",
+        "runtime_signal_captured": false,
+        "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2015-09-09:exit",
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2015-09-09:exit:2015-09-10",
+        "quantity": 48900,
+        "fill_price_cny": "2.666",
+        "gross_amount_cny": "130367.40",
+        "commission_cny": "39.11",
+        "stamp_duty_cny": "0.00",
+        "transfer_fee_cny": "0.00",
+        "total_fee_cny": "39.11",
+        "net_cash_flow_cny": "130328.29"
+      },
+      {
+        "trade_date": "2015-11-30",
+        "direction": "buy",
+        "signal_date": "2015-11-27",
+        "intended_date": "2015-11-30",
+        "signal_source": "captured_signal",
+        "runtime_signal_captured": true,
+        "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2015-11-27:entry",
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2015-11-27:entry:2015-11-30",
+        "quantity": 46500,
+        "fill_price_cny": "2.802",
+        "gross_amount_cny": "130293.00",
+        "commission_cny": "39.09",
+        "stamp_duty_cny": "0.00",
+        "transfer_fee_cny": "0.00",
+        "total_fee_cny": "39.09",
+        "net_cash_flow_cny": "-130332.09"
+      },
+      {
+        "trade_date": "2017-10-20",
+        "direction": "sell",
+        "signal_date": "2017-10-19",
+        "intended_date": "2017-10-20",
+        "signal_source": "derived_from_persisted_order",
+        "runtime_signal_captured": false,
+        "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2017-10-19:exit",
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2017-10-19:exit:2017-10-20",
+        "quantity": 46500,
+        "fill_price_cny": "3.079",
+        "gross_amount_cny": "143173.50",
+        "commission_cny": "42.95",
+        "stamp_duty_cny": "0.00",
+        "transfer_fee_cny": "0.00",
+        "total_fee_cny": "42.95",
+        "net_cash_flow_cny": "143130.55"
+      },
+      {
+        "trade_date": "2018-03-29",
+        "direction": "buy",
+        "signal_date": "2018-03-28",
+        "intended_date": "2018-03-29",
+        "signal_source": "captured_signal",
+        "runtime_signal_captured": true,
+        "signal_id": "Dividend_MA250_TP10_V1:V1:510880.SH:2018-03-28:entry",
+        "order_id": "order:Dividend_MA250_TP10_V1:V1:510880.SH:2018-03-28:entry:2018-03-29",
+        "quantity": 52000,
+        "fill_price_cny": "2.88",
+        "gross_amount_cny": "149760.00",
+        "commission_cny": "44.93",
+        "stamp_duty_cny": "0.00",
+        "transfer_fee_cny": "0.00",
+        "total_fee_cny": "44.93",
+        "net_cash_flow_cny": "-149804.93"
+      }
+    ]
+  },
+  "terminal_account": {
+    "initial_capital_cny": "100000.00",
+    "terminal_cash_cny": "12691.15",
+    "terminal_market_value_cny": "142428.00",
+    "terminal_receivable_cny": "0.00",
+    "terminal_nav_cny": "155119.15",
+    "reference_open_cycle_pnl_cny": "5207.07",
+    "closed_cycle_pnl_total_cny": "49912.08",
+    "cash_interest_income_cny": "0.00",
+    "account_components_reconcile": true,
+    "initial_capital_plus_cycles_reconciles": true
+  },
+  "formal_metrics": {
+    "completed_round_trips": 3,
+    "minimum_completed_round_trips": 8,
+    "distinct_entry_years": [
+      2010,
+      2015,
+      2018
+    ],
+    "entry_year_count": 3,
+    "minimum_entry_years": 5,
+    "cagr_act_365": 0.04081168900348375,
+    "mdd_loss_fraction": 0.32584838194832905,
+    "calmar": 0.1252474809279716,
+    "sharpe": 0.33232026326714653
+  },
+  "limitations_and_disclosures": {
+    "execution_proxy": "T+1 next-open execution with daily-bar inputs, configured slippage and rule-based limit/suspension handling; this is not observed queue-level execution.",
+    "dividend_source_status": "raw_unverified; the frozen source adapter reports only the two stated official spot-check dates and does not establish full-history completeness.",
+    "holdout_exposure": "此前的独立验收者在研究规则冻结后阅览过 2021–2025 年分红金额及 NAV 增长的搜索结果片段；未打开 PDF、未调用 API、未下载文件。本次任务没有再次查询这些内容，也不把这些片段作为本报告的数字来源。因此不能声称所有审阅者均未见过该后续时期信息；任何后续时期的独立 Holdout 主张均需单独说明这次暴露。",
+    "performance_interpretation": "All performance figures describe only the frozen 2010–2020 historical research window and the saved simulated account; they are not current market conditions or actual investment returns.",
+    "review_status": "PASS by the assigned independent reviewer; scope limited to historical display and offline economic reconciliation. No research verdict, numeric result, or strategy qualification/alpha conclusion was reviewed or changed."
+  },
+  "trial_counts_at_generation": {
+    "new_research": 1,
+    "technical_reruns": 4,
+    "synthetic_validations": 3
+  },
+  "independent_review": {
+    "status": "PASS",
+    "scope": "historical display and offline economic reconciliation only",
+    "review_thread_id": "01a10653-d927-7212-81a2-e190c094196c",
+    "review_turn_id": "01a1106f-3e6e-7f91-af43-aa2d1844227f",
+    "reviewed_draft_sha256": {
+      "docs/verification/GATE001_FINAL_RESEARCH_REPORT.md": "CCD851ED811FF26B27A3AD2FF5AA73D3637702FDC44413140E4880FAD28016D9",
+      "docs/verification/GATE001_DIVIDEND_DISPLAY_AUDIT.json": "25C2B6AF5672D46D453BA555795C6D71A34CEBA2656DAB2E36A8E6AABDAE18A6"
+    },
+    "research_verdict_unchanged": "insufficient_evidence",
+    "qualification_or_alpha_review": false
+  }
+}
