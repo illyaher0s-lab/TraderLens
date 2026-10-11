@@ -46,6 +46,7 @@
 23. **研究的 AI 综合"模型有回答但校验失败"**  
     来源：代码抢救第 5 步（2026-10-11）  
     当前状态：和第 4 项的 SSL 中断是两回事。510880 已复现，原始回复保存在 `D:\TraderLens_rescue\ai_parse_failure_510880.txt`。模型回复是完整 JSON，失败在来源绑定校验：`candidate_verdicts["510880.SH"].counter_evidence[0].source_record_id` 引用了跟踪指数来源 `index_dailybasic:000015.SH:0`；该来源存在，但 `serenity_synthesizer.py` 的 `validate_reference` 要求来源编号中段等于 ETF 代码，因此判为无效。512010 页面走查同样出现"AI总结暂不可用"。
+    **状态**：根因已由 d886cc1 修复，待随卡 013 上线后由 Illya 验收。
 
 24. **持仓页在深色模式下标题和分页按钮看不清**  
     来源：代码抢救第 5 步（2026-10-11）  
@@ -54,6 +55,18 @@
 25. **前端 5 处写死 8010**  
     来源：代码抢救第 5 步（2026-10-11）  
     当前状态：`frontend/app/research/page.tsx:19`、`frontend/app/research/[research_id]/page.tsx:25`、`frontend/app/strategy-templates/page.tsx:27`、`frontend/app/strategy-templates/[template_id]/page.tsx:41` 写死 `http://localhost:8010`；`frontend/lib/research-api-client.ts:78` 读的是 `NEXT_PUBLIC_API_URL`，与其他处的 `NEXT_PUBLIC_API_BASE_URL` 不一致。
+
+26. **serenity 旧测试 38 个既有失败**  
+    来源：卡 014（2026-10-11）  
+    当前状态：属技术债。`test_serenity_audit_accuracy`(10)、`test_serenity_candidate_pool_raw`(8)、`test_serenity_hard_filter_flow`(7)、`test_serenity_planner`(6)、`test_serenity_production_entry`(1)、`test_serenity_two_phase_e2e`(3)、`test_two_phase_red_team_e2e`(3)；原因是测试里的模拟模型 `create_message` 不接受 `stage` 参数，卡 014 修复前后失败清单相同。
+
+27. **index_dailybasic 返回空结果时，该来源仍出现在来源列表并被 AI 当作反证引用**  
+    来源：卡 014（2026-10-11）  
+    当前状态：510880 研究中 `endpoint_statuses.index_dailybasic=empty_no_rows`，但 `index_dailybasic:000015.SH:0` 仍在来源列表，AI 以"跟踪指数估值接口未返回数据"引用为反证。数据缺口不应当作反证，留给卡 013 一并检查。
+
+28. **AI 判断会覆盖 ETF 的确定性结论**  
+    来源：卡 014（2026-10-11）  
+    当前状态：卡 014 生效后 510880 连查三次得到"值得研究/观察/值得研究"，替换了确定性"中性"结论。由卡 013 解决。
 
 ## 等条件满足再验收的
 
