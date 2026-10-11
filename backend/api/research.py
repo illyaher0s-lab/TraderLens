@@ -2902,7 +2902,11 @@ def create_research_app(
                 if simulated_execution_rule_verified is not True:
                     raise HTTPException(
                         status_code=400,
-                        detail=simulated_execution_rule_warning or "模拟卖出的 T+1 交易日规则无法核实，未保存记录。",
+                        detail=(
+                            simulated_execution_rule_warning.rstrip("。") + "，未保存记录。"
+                            if simulated_execution_rule_warning
+                            else "模拟卖出的 T+1 交易日规则无法核实，未保存记录。"
+                        ),
                     )
 
         log_id = f"log_{uuid.uuid4().hex[:12]}"

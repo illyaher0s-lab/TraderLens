@@ -367,6 +367,14 @@ def test_single_security_verified_etf_uses_bundle_and_observable_invalidation(mo
 
 
 def test_single_security_etf_dividend_reason_uses_verified_payout_baseline(monkeypatch):
+    get_etf_research_bundle = DataToolsService.get_etf_research_bundle
+    fixed_now = datetime(2026, 10, 9, 15, 30, tzinfo=ZoneInfo("Asia/Shanghai"))
+
+    def get_bundle_at_fixed_time(service, symbol, **kwargs):
+        kwargs.setdefault("now", fixed_now)
+        return get_etf_research_bundle(service, symbol, **kwargs)
+
+    monkeypatch.setattr(DataToolsService, "get_etf_research_bundle", get_bundle_at_fixed_time)
     tushare = ETFBundleClient()
     llm = ResearchLLM(reason="近一年实际现金分红仍需要继续跟踪。")
 
@@ -464,6 +472,14 @@ def test_single_security_stock_keeps_stock_identity_and_quote_path(monkeypatch):
 
 
 def test_single_security_etf_does_not_fill_missing_dividend_baseline(monkeypatch):
+    get_etf_research_bundle = DataToolsService.get_etf_research_bundle
+    fixed_now = datetime(2026, 10, 9, 15, 30, tzinfo=ZoneInfo("Asia/Shanghai"))
+
+    def get_bundle_at_fixed_time(service, symbol, **kwargs):
+        kwargs.setdefault("now", fixed_now)
+        return get_etf_research_bundle(service, symbol, **kwargs)
+
+    monkeypatch.setattr(DataToolsService, "get_etf_research_bundle", get_bundle_at_fixed_time)
     class DividendMissingClient(ETFBundleClient):
         def query(self, api, **kwargs):
             if api == "fund_div":

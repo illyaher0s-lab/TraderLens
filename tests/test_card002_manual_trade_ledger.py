@@ -878,13 +878,19 @@ def test_manual_buy_is_idempotent_and_uses_canonical_unlinked_ledger(trade_app):
 
     reopened_db = LiveTradeDB(ledger_path)
     positions = reopened_db.list_open_positions()
-    assert len(positions) == 2
+    assert len(positions) == 1
+    assert positions[0].quantity == 200
+    assert positions[0].entry_price == pytest.approx(10.0)
     assert positions[0].execution_card_id is None
     assert positions[0].signal_id is None
     assert positions[0].action_plan_id is None
     assert positions[0].capital_context_id is None
     with reopened_db._get_conn() as conn:
         assert conn.execute("SELECT COUNT(*) FROM execution_observation_logs").fetchone()[0] == 2
+        operation_ids = [
+            item[0] for item in conn.execute("SELECT operation_id FROM execution_observation_logs").fetchall()
+        ]
+        assert len(set(operation_ids)) == 2
         row = conn.execute(
             "SELECT operation_id, confirmed_fees, record_source, execution_date FROM execution_observation_logs"
             " WHERE operation_id = ?",
@@ -896,7 +902,7 @@ def test_manual_buy_is_idempotent_and_uses_canonical_unlinked_ledger(trade_app):
     assert row["execution_date"] == request["execution_date"]
     observation_payload = client.get("/api/observations?status=open").json()
     observations = observation_payload["positions"]
-    assert len(observations) == 2
+    assert len(observations) == 1
     assert all(item["record_source"] == "autonomous_manual" for item in observations)
     assert all(item["plan_linked"] is False for item in observations)
     assert observation_payload["execution_logs"][0]["execution_date"] == request["execution_date"]
@@ -1113,7 +1119,11 @@ def test_security_identity_lookup_distinguishes_fund_from_stock(trade_app):
     stock = client.get("/api/agent/workbench/security-identity/600000")
 
     assert fund.status_code == 200
-    assert fund.json() == {
+    fund_payload = fund.json()
+    assert fund_payload.get("retrieved_at")
+    datetime.fromisoformat(fund_payload["retrieved_at"])
+    fund_payload.pop("retrieved_at")
+    assert fund_payload == {
         "status": "verified",
         "symbol": "510880.SH",
         "name": "上证红利ETF",
