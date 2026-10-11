@@ -29,7 +29,7 @@ export function formatDividendYield(value: DisplayValue): string {
 
 export function formatHistoricalPercentile(value: DisplayValue): string {
   const number = finiteNumber(value);
-  return number === null || number < 0 || number > 100 ? "未获取" : `${fixed(number, 2)}%`;
+  return number === null || number < 0 || number > 100 ? "未获取" : `${fixed(number, 0)}%`;
 }
 
 export function formatDrawdown(value: DisplayValue): string {
@@ -44,12 +44,12 @@ export function formatMeanAmount(value: DisplayValue): string {
 
 export function formatAssetNetValue(value: DisplayValue): string {
   const number = finiteNumber(value);
-  return number === null || number < 0 ? "未获取" : `${fixed(number / 100_000_000, 2)}亿元`;
+  return number === null || number < 0 ? "未获取" : `${fixed(number / 100_000_000, 1)}亿元`;
 }
 
 export function formatFundShares(value: DisplayValue): string {
   const number = finiteNumber(value);
-  return number === null || number < 0 ? "未获取" : `${fixed(number / 10_000, 2)}亿份`;
+  return number === null || number < 0 ? "未获取" : `${fixed(number / 10_000, 1)}亿份`;
 }
 
 export function formatAnnualFeeSummary(
@@ -59,7 +59,7 @@ export function formatAnnualFeeSummary(
   const management = finiteNumber(managementFee);
   const custody = finiteNumber(custodyFee);
   if (management === null || custody === null || management < 0 || custody < 0) return null;
-  return `管理费${fixed(management, 2)}% + 托管费${fixed(custody, 2)}% = 合计${fixed(management + custody, 2)}%/年`;
+  return `管理费${fixed(management, 1)}% + 托管费${fixed(custody, 1)}% = 合计${fixed(management + custody, 1)}%/年`;
 }
 
 export function formatFactValue(label: string, value: DisplayValue, unit = ""): string {
@@ -72,14 +72,8 @@ export function formatFactValue(label: string, value: DisplayValue, unit = ""): 
 
   const number = finiteNumber(value);
   if (number === null) return unavailableOrText(value);
-  if (label === "管理费率" || label === "托管费率") return `${fixed(number, 2)}%/年`;
+  if (label === "管理费率" || label === "托管费率") return `${fixed(number, 1)}%/年`;
   if (label === "近一年报告收盘价变化") return `${fixed(number, 2)}%`;
-  const formatted = fixed(number, 2);
+  const formatted = fixed(number, label === "最近收盘价" || label === "近12个月已实施现金分红" ? 3 : 2);
   return unit ? `${formatted} ${unit}` : formatted;
-}
-
-export function isSingleSecurityResultForCode(code: string, symbol: unknown): boolean {
-  if (!/^\d{6}$/.test(code) || typeof symbol !== "string") return false;
-  const match = /^(\d{6})\.(SH|SZ|BJ)$/.exec(symbol);
-  return Boolean(match && match[1] === code);
 }

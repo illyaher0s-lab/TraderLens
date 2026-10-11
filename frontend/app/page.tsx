@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { ensurePositionMarketCheck } from "@/lib/position-market-monitor";
 import TopNav from "@/components/TopNav";
 import {
@@ -11,7 +11,6 @@ import {
   formatFactValue,
   formatHistoricalPercentile,
   formatMeanAmount,
-  isSingleSecurityResultForCode,
 } from "@/lib/single-security-format";
 
 type NumericFact = {
@@ -37,7 +36,7 @@ type KeyMetric = {
 };
 
 interface SingleSecurityResearch {
-  status: "research_completed" | "research_unavailable" | "valuation_unavailable" | "valuation_not_supported";
+  status: "research_completed" | "research_unavailable";
   symbol: string;
   name: string;
   security_type: "stock" | "fund";
@@ -47,10 +46,6 @@ interface SingleSecurityResearch {
   not_applicable?: string[];
   numeric_facts: NumericFact[];
   evidence_gaps: string[];
-  etf_research?: {
-    category?: string;
-    valuation_conclusion?: { basis?: string | null; message?: string; label?: string | null } | null;
-  } | null;
 }
 
 export default function HomePage() {
@@ -59,8 +54,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tip, setTip] = useState<string | null>(null);
-  const inputCodeRef = useRef("");
-  const requestVersionRef = useRef(0);
 
   useEffect(() => {
     ensurePositionMarketCheck().then((response) => {
@@ -79,16 +72,12 @@ export default function HomePage() {
   const valuationFact = findFact("估值参考");
   const drawdownFact = facts.find((fact) => fact.label.includes("回撤"));
   const averageAmountFact = findFact("近20个SSE交易日平均成交额");
-  const indexPePercentileFact = findFact("跟踪指数PE十年分位");
-  const indexPbPercentileFact = findFact("跟踪指数PB十年分位");
-  const indexValuationFact = findFact("估值参考");
-  const etfCategory = result?.etf_research?.category;
   const managementFeeFact = findFact("管理费率");
   const custodyFeeFact = findFact("托管费率");
   const isFund = result?.security_type === "fund";
   const keyMetrics: KeyMetric[] = !result
     ? []
-    : isFund && etfCategory === "dividend"
+    : isFund
       ? [
           {
             id: "dividend-yield-history",
@@ -116,75 +105,19 @@ export default function HomePage() {
             basis: [averageAmountFact?.window ?? "完整的SSE日历20日成交额未获取。"],
           },
         ]
-      : isFund && etfCategory === "broad"
-        ? [
-            {
-              id: "index-pe-percentile",
-              label: "跟踪指数PE十年分位",
-              value: formatHistoricalPercentile(indexPePercentileFact?.value),
-              source: indexPePercentileFact,
-              basis: [indexPePercentileFact?.window ?? "PE完整历史覆盖未获取。"],
-            },
-            {
-              id: "index-pb-percentile",
-              label: "跟踪指数PB十年分位",
-              value: formatHistoricalPercentile(indexPbPercentileFact?.value),
-              source: indexPbPercentileFact,
-              basis: [indexPbPercentileFact?.window ?? "PB完整历史覆盖未获取。"],
-            },
-            {
-              id: "index-valuation",
-              label: "估值结论",
-              value: indexValuationFact
-                ? formatFactValue("估值参考", indexValuationFact.value)
-                : result.etf_research?.valuation_conclusion?.label
-                  ?? result.etf_research?.valuation_conclusion?.message
-                  ?? "未形成估值结论",
-              source: indexValuationFact ?? indexPePercentileFact ?? indexPbPercentileFact,
-              basis: [indexValuationFact?.window ?? result.etf_research?.valuation_conclusion?.message ?? "估值规则或覆盖情况未获取。"],
-            },
-          ]
-        : isFund
-          ? [
-              {
-                id: "fund-close",
-                label: "最近收盘价",
-                value: formatFactValue("最近收盘价", findFact("最近收盘价")?.value, "元/份"),
-                source: findFact("最近收盘价"),
-                basis: [findFact("最近收盘价")?.window ?? "最近报告收盘价未获取。"],
-              },
-              {
-                id: "fund-return",
-                label: "近一年报告收盘价变化",
-                value: formatFactValue("近一年报告收盘价变化", findFact("近一年报告收盘价变化")?.value),
-                source: findFact("近一年报告收盘价变化"),
-                basis: [findFact("近一年报告收盘价变化")?.window ?? "一年价格变化未获取。"],
-              },
-              {
-                id: "fund-activity",
-                label: averageAmountFact?.label ?? drawdownFact?.label ?? "近20个SSE交易日平均成交额",
-                value: averageAmountFact
-                  ? formatMeanAmount(averageAmountFact.value)
-                  : drawdownFact ? formatDrawdown(drawdownFact.value) : "未获取",
-                source: averageAmountFact ?? drawdownFact,
-                basis: [averageAmountFact?.window ?? drawdownFact?.window ?? "成交额和回撤资料未获取。"],
-              },
-            ]
-          : facts.slice(0, 3).map((fact, index) => ({
-              id: `stock-${fact.endpoint}-${index}`,
-              label: fact.label,
-              value: formatFactValue(fact.label, fact.value, fact.unit),
-              source: fact,
-              basis: fact.window ? [fact.window] : [],
-            }));
+      : facts.slice(0, 3).map((fact, index) => ({
+          id: `stock-${fact.endpoint}-${index}`,
+          label: fact.label,
+          value: formatFactValue(fact.label, fact.value, fact.unit),
+          source: fact,
+          basis: fact.window ? [fact.window] : [],
+        }));
 
   const keyFactLabels = new Set([
     "近12个月现金分红收益率",
     "ETF自身现金分红收益率历史分位",
     "估值参考",
     "近20个SSE交易日平均成交额",
-    "跟踪指数PE十年分位",
-    "跟踪指数PB十年分位",
   ]);
   const fundDetailFacts = facts.filter((fact) =>
     !keyFactLabels.has(fact.label)
@@ -206,8 +139,6 @@ export default function HomePage() {
 
   async function researchSecurity(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const submittedCode = code;
-    const requestVersion = ++requestVersionRef.current;
     setLoading(true);
     setError(null);
     setResult(null);
@@ -222,18 +153,11 @@ export default function HomePage() {
       if (!response.ok) {
         throw new Error(payload.detail || "研究暂不可用，请稍后重试。");
       }
-      if (!isSingleSecurityResultForCode(submittedCode, payload.symbol)) {
-        throw new Error("返回证券身份与本次输入不一致，结果未展示。");
-      }
-      if (requestVersionRef.current === requestVersion && inputCodeRef.current === submittedCode) {
-        setResult(payload as SingleSecurityResearch);
-      }
+      setResult(payload as SingleSecurityResearch);
     } catch (requestError) {
-      if (requestVersionRef.current === requestVersion && inputCodeRef.current === submittedCode) {
-        setError(requestError instanceof Error ? requestError.message : "研究暂不可用，请稍后重试。");
-      }
+      setError(requestError instanceof Error ? requestError.message : "研究暂不可用，请稍后重试。");
     } finally {
-      if (requestVersionRef.current === requestVersion) setLoading(false);
+      setLoading(false);
     }
   }
 
@@ -256,15 +180,7 @@ export default function HomePage() {
               maxLength={6}
               pattern="[0-9]{6}"
               value={code}
-              onChange={(event) => {
-                const nextCode = event.target.value.replace(/\D/g, "").slice(0, 6);
-                inputCodeRef.current = nextCode;
-                requestVersionRef.current += 1;
-                setCode(nextCode);
-                setResult(null);
-                setError(null);
-                setLoading(false);
-              }}
+              onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
               placeholder="例如 510880"
               className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500"
             />
@@ -313,16 +229,11 @@ export default function HomePage() {
                           ? `${metric.source.source} · ${metric.source.endpoint}${metric.source.field ? `.${metric.source.field}` : ""} · ${metric.source.symbol} · 来源日期 ${metric.source.date} · 获取时间 ${new Date(metric.source.retrieved_at).toLocaleString("zh-CN")}`
                           : "来源日期未获取"}
                       </p>
-                      <details className="mt-1">
-                        <summary className="cursor-pointer text-xs text-slate-500 hover:text-slate-700">
-                          统计口径（{metric.basis.length}项）
-                        </summary>
-                        {metric.basis.map((basis, index) => (
-                          <p key={`${metric.id}-basis-${index}`} className="mt-1 text-xs text-slate-600">
-                            {basis}
-                          </p>
-                        ))}
-                      </details>
+                      {metric.basis.map((basis, index) => (
+                        <p key={`${metric.id}-basis-${index}`} className="mt-1 text-xs text-slate-600">
+                          统计口径：{basis}
+                        </p>
+                      ))}
                       {metric.source?.verification_source_url && (
                         <a
                           href={metric.source.verification_source_url}
