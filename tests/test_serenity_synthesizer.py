@@ -12,6 +12,7 @@ Tests for Serenity Research Synthesizer (LLM 2/2).
 
 import unittest
 import json
+from pathlib import Path
 from datetime import datetime, date
 from backend.services.serenity_synthesizer import ResearchSynthesizer, ResearchSynthesis
 from backend.services.serenity_agent import SerenityRunContext, SerenityAgentAudit, VerifiedResearchCandidate
@@ -613,6 +614,119 @@ class TestResearchSynthesizer(unittest.TestCase):
         # 验证 context 中的 company_name 没有被 LLM 改变
         candidate = context.verified_candidates_by_symbol["300750.SZ"]
         self.assertEqual(candidate.company_name, "宁德时代")  # 原始名称保持不变
+
+
+class TestETFTrackedIndexReferenceBinding(unittest.TestCase):
+    """卡 014：ETF 研究只放行确定性核验的跟踪指数估值来源。"""
+
+    FIXTURE = (
+        Path(__file__).parent / "fixtures" / "card014" / "synthesizer_reply_510880_20261011.txt"
+    )
+    SYMBOL = "510880.SH"
+    BASE_SOURCE_IDS = (
+        "security_identity:510880.SH:0",
+        "etf_basic:510880.SH:0",
+        "trade_cal:510880.SH:0",
+        "fund_basic:510880.SH:0",
+        "fund_nav:510880.SH:0",
+        "fund_share:510880.SH:0",
+        "fund_daily:510880.SH:0",
+        "fund_div:510880.SH:0",
+        "index_dailybasic:000015.SH:0",
+        "fund_price:510880.SH:0",
+    )
+
+    def _reply_text(self, counter_source_id=None):
+        text = self.FIXTURE.read_text(encoding="utf-8")
+        if counter_source_id is None:
+            return text
+        body = json.loads(text.strip()[len("```json"):-len("```")])
+        body["candidate_verdicts"][self.SYMBOL]["counter_evidence"][0]["source_record_id"] = counter_source_id
+        return json.dumps(body, ensure_ascii=False)
+
+    def _context(self, tracked_index_code, extra_sources=(), weak_source_ids=()):
+        now = datetime(2026, 10, 11, 19, 0)
+        source_ids = list(self.BASE_SOURCE_IDS) + list(extra_sources)
+        sources_by_id = {
+            source_id: ResearchSource(
+                source_record_id=source_id,
+                source_quality="weak" if source_id in weak_source_ids else "first_hand",
+                title=source_id.split(":", 1)[0],
+                summary=f"{source_id} 测试摘要",
+                retrieved_at=now,
+            )
+            for source_id in source_ids
+        }
+        candidate = VerifiedResearchCandidate(
+            symbol=self.SYMBOL,
+            company_name="华泰柏瑞上证红利ETF",
+            verification_id="security_identity:510880.SH:0",
+            exchange="SSE",
+            listing_status="verified",
+            confidence="high",
+            supporting_source_ids=source_ids,
+            tracked_index_code=tracked_index_code,
+        )
+        return SerenityRunContext(
+            sources_by_id=sources_by_id,
+            verified_candidates_by_symbol={self.SYMBOL: candidate},
+        )
+
+    def _synthesize(self, context, reply_text):
+        theme = ThemeInput(
+            theme_id="card014-tracked-index-binding",
+            theme_name="510880.SH 场内基金研究",
+            background="卡 014 回放测试",
+            source_type="manual_theme",
+            created_at=datetime(2026, 10, 11, 19, 0),
+            updated_at=datetime(2026, 10, 11, 19, 0),
+        )
+        return ResearchSynthesizer(MockLLMClient(reply_text)).synthesize(
+            theme, context, SerenityAgentAudit(),
+        )
+
+    def test_recorded_510880_reply_forms_verdict_with_tracked_index_counter_evidence(self):
+        synthesis = self._synthesize(self._context("000015.SH"), self._reply_text())
+
+        decision = synthesis.candidate_verdicts[self.SYMBOL]
+        self.assertEqual(decision["verdict"], "research_watch")
+        self.assertEqual(
+            decision["counter_evidence"][0]["source_record_id"],
+            "index_dailybasic:000015.SH:0",
+        )
+
+    def test_tracked_index_reference_is_rejected_without_deterministic_index_code(self):
+        with self.assertRaisesRegex(ValueError, "source reference is invalid"):
+            self._synthesize(self._context(None), self._reply_text())
+
+    def test_other_index_valuation_source_is_rejected(self):
+        context = self._context("000015.SH", extra_sources=["index_dailybasic:000300.SH:0"])
+        with self.assertRaisesRegex(ValueError, "source reference is invalid"):
+            self._synthesize(context, self._reply_text("index_dailybasic:000300.SH:0"))
+
+    def test_other_symbol_source_is_rejected(self):
+        context = self._context("000015.SH", extra_sources=["fund_daily:510300.SH:0"])
+        with self.assertRaisesRegex(ValueError, "source reference is invalid"):
+            self._synthesize(context, self._reply_text("fund_daily:510300.SH:0"))
+
+    def test_non_index_endpoint_with_tracked_index_code_is_rejected(self):
+        context = self._context("000015.SH", extra_sources=["fund_daily:000015.SH:0"])
+        with self.assertRaisesRegex(ValueError, "source reference is invalid"):
+            self._synthesize(context, self._reply_text("fund_daily:000015.SH:0"))
+
+    def test_missing_source_id_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, "non-existent source_id"):
+            self._synthesize(
+                self._context("000015.SH"),
+                self._reply_text("index_dailybasic:000015.SH:9"),
+            )
+
+    def test_weak_tracked_index_source_cannot_be_counter_evidence(self):
+        context = self._context(
+            "000015.SH", weak_source_ids=["index_dailybasic:000015.SH:0"],
+        )
+        with self.assertRaisesRegex(ValueError, "counter evidence source is weak"):
+            self._synthesize(context, self._reply_text())
 
 
 if __name__ == "__main__":

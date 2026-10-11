@@ -2413,6 +2413,19 @@ def create_research_app(
                 supporting_source_ids=source_ids,
                 data_gaps=list(fund_gaps),
                 unresolved_gaps=list(fund_gaps),
+                tracked_index_code=(
+                    underlying_index["value"]
+                    if is_verified_etf
+                    and isinstance(
+                        underlying_index := (etf_bundle.get("metrics") or {}).get("underlying_index"),
+                        dict,
+                    )
+                    and underlying_index.get("endpoint") == "etf_basic"
+                    and underlying_index.get("field") == "index_code"
+                    and isinstance(underlying_index.get("value"), str)
+                    and re.fullmatch(r"\d{6}\.(SH|SZ)", underlying_index["value"])
+                    else None
+                ),
             )
             context = SerenityRunContext(
                 sources_by_id=sources_by_id,

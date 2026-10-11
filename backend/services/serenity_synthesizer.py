@@ -532,16 +532,24 @@ RULES:
             if candidate is None:
                 raise ValueError("Synthesizer verdict references an unverified symbol")
 
+            tracked_index_code = candidate.tracked_index_code
+            tracked_index_prefix = (
+                f"index_dailybasic:{tracked_index_code}:" if tracked_index_code else None
+            )
+
             def validate_reference(source_id):
                 if not isinstance(source_id, str):
                     raise ValueError("Synthesizer verdict source reference must be a string")
                 parts = source_id.split(":")
-                if (
-                    len(parts) != 3
-                    or parts[1] != symbol
-                    or not parts[2].isdigit()
-                    or source_id not in context.sources_by_id
-                ):
+                well_formed = len(parts) == 3 and parts[2].isdigit()
+                # Same-symbol sources, or the ETF's deterministically verified tracked-index valuation source.
+                same_symbol = well_formed and parts[1] == symbol
+                tracked_index = (
+                    well_formed
+                    and tracked_index_prefix is not None
+                    and source_id.startswith(tracked_index_prefix)
+                )
+                if not (same_symbol or tracked_index) or source_id not in context.sources_by_id:
                     raise ValueError("Synthesizer verdict source reference is invalid")
 
             for source_id in decision.supporting_source_ids:

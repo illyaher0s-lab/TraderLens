@@ -54,6 +54,9 @@ class VerifiedResearchCandidate:
     - data_gaps: 数据缺口（不是反证，只是缺数据）
     
     red_team_findings/unresolved_gaps 仅向后兼容，不作为新的事实来源。
+
+    tracked_index_code: ETF 已核验身份资料（etf_basic.index_code）登记的跟踪指数代码，
+    只由确定性流程填充，LLM 不能覆盖；非 ETF 或未核验时为 None。
     """
     symbol: str
     company_name: str  # 来自 verification record
@@ -66,6 +69,7 @@ class VerifiedResearchCandidate:
     counter_evidence: list[CounterEvidence] = field(default_factory=list)  # 结构化反证
     falsification_questions: list[str] = field(default_factory=list)  # 待验证问题（来自 LLM）
     data_gaps: list[str] = field(default_factory=list)  # 数据缺口
+    tracked_index_code: str | None = None  # 确定性填充的 ETF 跟踪指数代码，LLM 不能覆盖
     
     # 向后兼容字段（不作为新的事实来源）
     red_team_findings: list[str] = field(default_factory=list)

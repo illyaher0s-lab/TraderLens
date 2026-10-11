@@ -1,0 +1,88 @@
+```json
+{
+  "demand_driver": "红利策略投资需求，关注高股息资产配置与现金流稳定性",
+  "value_chain_layers": [
+    {
+      "layer": "基础资产层",
+      "description": "上证红利指数成分股（高股息A股），红利分配为核心价值来源",
+      "supporting_source_ids": ["etf_basic:510880.SH:0", "fund_basic:510880.SH:0"]
+    },
+    {
+      "layer": "产品封装层",
+      "description": "华泰柏瑞上证红利ETF跟踪上证红利指数，提供场内交易便利性与费率优势",
+      "supporting_source_ids": ["etf_basic:510880.SH:0", "fund_basic:510880.SH:0"]
+    }
+  ],
+  "suspected_bottleneck_layers": [
+    {
+      "layer": "成分透明度与跟踪质量",
+      "reason": "当前成分明细、行业权重及实际跟踪差异未获取，无法评估指数代表性与复制效率",
+      "supporting_source_ids": ["etf_basic:510880.SH:0"]
+    },
+    {
+      "layer": "估值判断依据",
+      "reason": "跟踪指数估值数据缺失，只能以ETF自身历史分红收益率作替代参考",
+      "supporting_source_ids": ["index_dailybasic:000015.SH:0", "fund_div:510880.SH:0"]
+    }
+  ],
+  "hypothesis_draft": [
+    {
+      "hypothesis": "510880.SH作为跟踪上证红利指数的主流ETF，在红利策略配置中具备费率与流动性优势",
+      "rationale": "管理费0.50%/年、托管费0.10%/年处于行业标准水平；近20日日均成交额约4.5亿元显示充足流动性",
+      "confidence": "medium",
+      "supporting_source_ids": ["fund_basic:510880.SH:0", "fund_daily:510880.SH:0"]
+    },
+    {
+      "hypothesis": "ETF近一年已实施现金分红，分红收益率相对自身历史处于可观察位置",
+      "rationale": "滚动365天现金分红0.143元/份，基于2026-10-09收盘价计算的收益率为4.17%",
+      "confidence": "medium",
+      "supporting_source_ids": ["fund_div:510880.SH:0", "fund_daily:510880.SH:0"]
+    }
+  ],
+  "candidate_rationales": {
+    "510880.SH": {
+      "rationale": "跟踪上证红利指数的主流场内工具，费率结构透明且流动性充足，已实施现金分红",
+      "supporting_source_ids": ["etf_basic:510880.SH:0", "fund_basic:510880.SH:0", "fund_daily:510880.SH:0", "fund_div:510880.SH:0"],
+      "falsification_questions": [
+        "510880.SH的实际跟踪误差是否在可接受范围内？",
+        "510880.SH当前持仓行业集中度是否存在结构性风险？",
+        "上证红利指数000015.SH当前估值分位数处于历史何种水平？"
+      ],
+      "counter_evidence": [
+        {
+          "description": "跟踪指数估值数据完全缺失，无法评估当前配置时点的估值合理性",
+          "source_record_id": "index_dailybasic:000015.SH:0"
+        }
+      ]
+    }
+  },
+  "candidate_verdicts": {
+    "510880.SH": {
+      "verdict": "research_watch",
+      "reason": "红利指数跟踪工具且费率透明并已实施现金分红，但指数估值与持仓结构均未能核验",
+      "supporting_source_ids": ["etf_basic:510880.SH:0", "fund_basic:510880.SH:0", "fund_div:510880.SH:0", "fund_daily:510880.SH:0"],
+      "counter_evidence": [
+        {
+          "description": "跟踪指数估值数据缺失",
+          "source_record_id": "index_dailybasic:000015.SH:0"
+        }
+      ],
+      "invalidation_conditions": [
+        "实际跟踪误差持续超出同类产品平均水平",
+        "成交额连续萎缩低于日均1亿元影响交易执行",
+        "管理费率上调超过行业基准"
+      ],
+      "evidence_gaps": [
+        "基金当前成分明细与行业权重未获取",
+        "基金实际跟踪差异未获取",
+        "跟踪指数PE/PB与指数股息率无可用覆盖"
+      ]
+    }
+  },
+  "evidence_gaps": [
+    "基金当前成分明细与行业权重未获取",
+    "基金实际跟踪差异未获取",
+    "跟踪指数000015.SH的PE/PB当前值及十年估值分位数均未能核验"
+  ]
+}
+```
