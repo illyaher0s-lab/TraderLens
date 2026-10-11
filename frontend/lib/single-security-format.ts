@@ -83,3 +83,62 @@ export function isSingleSecurityResultForCode(code: string, symbol: unknown): bo
   const match = /^(\d{6})\.(SH|SZ|BJ)$/.exec(symbol);
   return Boolean(match && match[1] === code);
 }
+
+type PercentileMetric = {
+  value?: DisplayValue;
+  as_of?: string | null;
+  window?: string | null;
+  source?: string | null;
+} | null | undefined;
+
+export type EtfResearchForDisplay = {
+  valuation_conclusion?: {
+    status?: string | null;
+    basis?: string | null;
+    message?: string | null;
+  } | null;
+  metrics?: {
+    underlying_index?: { value?: string | null } | null;
+    underlying_pe_percentile_10y?: PercentileMetric;
+    underlying_pb_percentile_10y?: PercentileMetric;
+  } | null;
+} | null | undefined;
+
+export type EtfValuationKeyMetric = {
+  kind: "index_pe_pb" | "gap";
+  label: string;
+  value: string;
+  detail: string;
+  basis: string[];
+};
+
+// First key-metric group for ETFs whose deterministic conclusion is not the 510880 own-yield substitute.
+export function etfValuationKeyMetric(etf: EtfResearchForDisplay): EtfValuationKeyMetric | null {
+  const conclusion = etf?.valuation_conclusion;
+  if (!conclusion) return null;
+  if (conclusion.status === "data_gap" || conclusion.status === "not_supported") {
+    return {
+      kind: "gap",
+      label: "估值判断",
+      value: unavailableOrText(conclusion.message ?? undefined),
+      detail: "确定性估值规则；未使用替代数据",
+      basis: [],
+    };
+  }
+  if (conclusion.basis !== "index_pe_pb") return null;
+  const pe = etf?.metrics?.underlying_pe_percentile_10y;
+  const pb = etf?.metrics?.underlying_pb_percentile_10y;
+  const indexCode = unavailableOrText(etf?.metrics?.underlying_index?.value ?? undefined);
+  const asOf = unavailableOrText(pe?.as_of ?? pb?.as_of ?? undefined);
+  const source = unavailableOrText(pe?.source ?? pb?.source ?? undefined);
+  return {
+    kind: "index_pe_pb",
+    label: "跟踪指数PE / PB十年分位",
+    value: `PE ${formatHistoricalPercentile(pe?.value)} · PB ${formatHistoricalPercentile(pb?.value)}`,
+    detail: `${source} · index_dailybasic · 指数 ${indexCode} · 数据日期 ${asOf}`,
+    basis: [
+      pe?.window ? `PE：${pe.window}` : "PE十年覆盖口径未获取。",
+      pb?.window ? `PB：${pb.window}` : "PB十年覆盖口径未获取。",
+    ],
+  };
+}

@@ -11,7 +11,9 @@ import {
   formatFactValue,
   formatHistoricalPercentile,
   formatMeanAmount,
+  etfValuationKeyMetric,
   isSingleSecurityResultForCode,
+  type EtfResearchForDisplay,
 } from "@/lib/single-security-format";
 
 type NumericFact = {
@@ -33,6 +35,7 @@ type KeyMetric = {
   label: string;
   value: string;
   source?: NumericFact;
+  detail?: string;
   basis: string[];
 };
 
@@ -48,6 +51,7 @@ interface SingleSecurityResearch {
   numeric_facts: NumericFact[];
   evidence_gaps: string[];
   research_diagnostic?: { failure_reason?: string | null } | null;
+  etf_research?: EtfResearchForDisplay;
 }
 
 export default function HomePage() {
@@ -79,11 +83,20 @@ export default function HomePage() {
   const managementFeeFact = findFact("管理费率");
   const custodyFeeFact = findFact("托管费率");
   const isFund = result?.security_type === "fund";
+  const etfValuationMetric = etfValuationKeyMetric(result?.etf_research);
   const keyMetrics: KeyMetric[] = !result
     ? []
     : isFund
       ? [
-          {
+          etfValuationMetric
+            ? {
+                id: `etf-valuation-${etfValuationMetric.kind}`,
+                label: etfValuationMetric.label,
+                value: etfValuationMetric.value,
+                detail: etfValuationMetric.detail,
+                basis: etfValuationMetric.basis,
+              }
+            : {
             id: "dividend-yield-history",
             label: "ETF自身现金分红收益率 / 历史分位",
             value: `${formatDividendYield(dividendYieldFact?.value)} · 历史分位 ${formatHistoricalPercentile(percentileFact?.value)} · ${formatFactValue("估值参考", valuationFact?.value)}`,
@@ -253,7 +266,7 @@ export default function HomePage() {
                       <p className="mt-1 text-xs text-slate-600">
                         {metric.source
                           ? `${metric.source.source} · ${metric.source.endpoint}${metric.source.field ? `.${metric.source.field}` : ""} · ${metric.source.symbol} · 来源日期 ${metric.source.date} · 获取时间 ${new Date(metric.source.retrieved_at).toLocaleString("zh-CN")}`
-                          : "来源日期未获取"}
+                          : metric.detail ?? "来源日期未获取"}
                       </p>
                       {metric.basis.map((basis, index) => (
                         <p key={`${metric.id}-basis-${index}`} className="mt-1 text-xs text-slate-600">

@@ -40,3 +40,21 @@ assert.equal(formatterModule.exports.formatFactValue("近12个月已实施现金
 assert.equal(isSingleSecurityResultForCode("518880", "518880.SH"), true);
 assert.equal(isSingleSecurityResultForCode("18880", "518880.SH"), false);
 assert.equal(isSingleSecurityResultForCode("510300", "518880.SH"), false);
+
+const { etfValuationKeyMetric } = formatterModule.exports;
+const broadMetric = etfValuationKeyMetric({
+  valuation_conclusion: { status: "conclusive", basis: "index_pe_pb", message: "跟踪指数PE与PB十年分位均处于中间档（20%–80%），中性。" },
+  metrics: {
+    underlying_index: { value: "000300.SH" },
+    underlying_pe_percentile_10y: { value: 69.43986820428336, as_of: "2026-10-09", source: "Tushare-compatible", window: "完整SSE交易日 2016-10-11至2026-10-09；2428个预期交易日样本" },
+    underlying_pb_percentile_10y: { value: 34.390444810543656, as_of: "2026-10-09", source: "Tushare-compatible", window: "完整SSE交易日 2016-10-11至2026-10-09；2428个预期交易日样本" },
+  },
+});
+assert.equal(broadMetric.kind, "index_pe_pb");
+assert.equal(broadMetric.value, "PE 69.44% · PB 34.39%");
+assert.equal(broadMetric.detail, "Tushare-compatible · index_dailybasic · 指数 000300.SH · 数据日期 2026-10-09");
+assert.equal(etfValuationKeyMetric({ valuation_conclusion: { status: "conclusive", basis: "own_dividend_yield" } }), null);
+const gapMetric = etfValuationKeyMetric({ valuation_conclusion: { status: "data_gap", basis: null, message: "跟踪指数的估值数据未覆盖，暂不提供估值判断" } });
+assert.equal(gapMetric.kind, "gap");
+assert.equal(gapMetric.value, "跟踪指数的估值数据未覆盖，暂不提供估值判断");
+assert.equal(etfValuationKeyMetric(null), null);
