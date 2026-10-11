@@ -25,7 +25,7 @@
 
 18. **research.py 直接打开正式账本，路径不能改道**  
     来源：代码抢救第 2 步（2026-10-11）  
-    当前状态：`backend/api/research.py` 两处 `LiveTradeDB(get_live_trade_db_path())` 固定指向 `data/live_trade.db`，没有环境变量可改道。重启应用前必须修。
+    当前状态：`backend/api/research.py` 两处 `LiveTradeDB(get_live_trade_db_path())` 固定指向 `data/live_trade.db`，没有环境变量可改道。重启应用前必须修。在修好之前，测试一律在仓库外的副本里运行。
 
 19. **Hermes 有权改仓库**  
     来源：代码抢救第 2 步（2026-10-11）  
@@ -34,6 +34,18 @@
 20. **卡 013 需要以半成品备份为参考重做**  
     来源：代码抢救第 3 步（2026-10-11）  
     当前状态：未验收的半成品已撤回到 10-09 基线；半成品备份在 `D:\TraderLens_rescue\main-current-20261011`。
+
+21. **复盘的人话说明在缺失字段为空时仍输出"缺失字段：。"**  
+    来源：代码抢救第 4 步（2026-10-11）  
+    当前状态：510880 那条复盘 `missing_fields` 为空，`plain_narrative`（`narrative_source: template_text`）仍写"P&L 数据不完整，缺失字段：。"。持仓页目前展示的是 AI 建议，没有展示这句。
+
+22. **52 条测试遗留持仓还在持仓数据里**  
+    来源：代码抢救第 4 步（2026-10-11）  
+    当前状态：类型未知、来源为策略计划；其中 13 条未平仓，数量 1、价格 0.01。对应成交已作废，但持仓没有"作废"状态，以后统计时可能被误算。持仓页"当前持仓"目前会把它们过滤掉。
+
+23. **研究的 AI 综合"模型有回答但校验失败"**  
+    来源：代码抢救第 5 步（2026-10-11）  
+    当前状态：和第 4 项的 SSL 中断是两回事。510880 已复现，原始回复保存在 `D:\TraderLens_rescue\ai_parse_failure_510880.txt`。模型回复是完整 JSON，失败在来源绑定校验：`candidate_verdicts["510880.SH"].counter_evidence[0].source_record_id` 引用了跟踪指数来源 `index_dailybasic:000015.SH:0`；该来源存在，但 `serenity_synthesizer.py` 的 `validate_reference` 要求来源编号中段等于 ETF 代码，因此判为无效。512010 页面走查同样出现"AI总结暂不可用"。
 
 ## 等条件满足再验收的
 
