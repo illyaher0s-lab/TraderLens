@@ -72,7 +72,22 @@ class ThemeInput(BaseModel):
     notes: str = ""
     status: ThemeStatus = "draft"
     board_version: int = 0
+    # V2 (2026-07-10): user-proposed industry-chain hypothesis, saved VERBATIM
+    # as a PENDING hypothesis only. Never treated as a dataset, source, or
+    # verified chain edge; never enters backtest universe / template selection /
+    # Gate / Promotion / trading decision. Stored as raw JSON.
+    user_industry_chain_hypothesis: dict | None = None
+    # V2 (2026-07-10): research synthesis result (facts/counter-evidence/gaps)
+    # persisted on the ResearchCase after a real Serenity+Tushare run. Read-only
+    # source for the approval card; never treated as a verified chain edge.
     research_output: dict | None = None
+    # V2 (2026-07-10): explicit user-decision trust boundary. A confirmed pool
+    # is created ONLY on a real, explicit 'continue' (a human click). Default/
+    # LLM-text/stub/data-error/LLM-error never count as approval.
+    approval_decision: str | None = None
+    confirmed_by: str | None = None
+    confirmed_at: datetime | None = None
+    decision_loop_id: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -392,6 +407,7 @@ class ConfirmedCandidate(BaseModel):
     confirmed_at: datetime
     pool_snapshot_date: date
     forward_only: Literal[True] = True
+    approval_card_id: str | None = None  # Task 2: B6 provenance binding
 
 
 class EvidenceSnapshot(BaseModel):

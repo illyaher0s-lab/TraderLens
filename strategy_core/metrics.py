@@ -1,7 +1,49 @@
 from __future__ import annotations
 
+import math
+from datetime import date
+
 from contracts.stable import BacktestMetrics, DailyPortfolioValue, Trade
 from strategy_core.lot_matching import LotMatcher
+
+
+def calculate_cagr(
+    initial_value: float,
+    final_value: float,
+    start_date: date,
+    end_date: date,
+) -> float:
+    """Calculate ACT/365 CAGR as a decimal fraction from dated wealth values."""
+    if isinstance(initial_value, (str, bytes, bool)) or isinstance(final_value, (str, bytes, bool)):
+        raise ValueError("initial_value and final_value must be finite real numbers")
+    try:
+        initial = float(initial_value)
+        final = float(final_value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError("initial_value and final_value must be finite real numbers") from exc
+
+    if not math.isfinite(initial) or initial <= 0:
+        raise ValueError("initial_value must be finite and greater than zero")
+    if not math.isfinite(final) or final < 0:
+        raise ValueError("final_value must be finite and nonnegative")
+
+    try:
+        elapsed_days = (end_date - start_date).days
+    except (AttributeError, TypeError) as exc:
+        raise ValueError("start_date and end_date must be compatible dates") from exc
+    if elapsed_days <= 0:
+        raise ValueError("elapsed calendar days must be greater than zero")
+
+    if final == 0:
+        return -1.0
+
+    try:
+        cagr = math.pow(final / initial, 365.0 / elapsed_days) - 1.0
+    except OverflowError as exc:
+        raise ValueError("CAGR is outside the finite numeric range") from exc
+    if not math.isfinite(cagr):
+        raise ValueError("CAGR is outside the finite numeric range")
+    return cagr
 
 
 def calculate_metrics(

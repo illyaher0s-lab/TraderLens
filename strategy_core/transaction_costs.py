@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+from decimal import Decimal, ROUND_FLOOR, ROUND_HALF_UP
+
+
+CENT = Decimal("0.01")
+
+
+def _to_cents(amount: Decimal) -> Decimal:
+    return amount.quantize(CENT, rounding=ROUND_HALF_UP)
+
 
 def calculate_transaction_costs(
     direction: str,
@@ -9,6 +18,8 @@ def calculate_transaction_costs(
     min_commission: float = 5.0,
     stamp_duty_rate: float = 0.001,
     transfer_fee_rate: float = 0.0,
+    *,
+    round_to_cents: bool = False,
 ) -> tuple[float, float, float, float, float, float]:
     """
     Calculate transaction costs for A-share trading.
@@ -21,6 +32,7 @@ def calculate_transaction_costs(
     - min_commission: minimum commission per trade (default 5.0 RMB)
     - stamp_duty_rate: stamp duty rate for sell only (default 0.001, 千一)
     - transfer_fee_rate: transfer fee rate (default 0.0, not implemented in MVP)
+    - round_to_cents: opt in to Decimal HALF_UP cent settlement; the default preserves legacy precision
     
     Returns:
     - (gross_amount, commission, stamp_duty, transfer_fee, total_fee, net_cash_flow)
@@ -38,6 +50,38 @@ def calculate_transaction_costs(
     >>> calculate_transaction_costs("sell", 1000, 12.0)
     (12000.0, 5.0, 12.0, 0.0, 17.0, 11983.0)
     """
+    if round_to_cents:
+        gross_raw = Decimal(quantity) * Decimal(str(price))
+        gross_amount = _to_cents(gross_raw)
+        commission_rate_decimal = Decimal(str(commission_rate))
+        min_commission_decimal = Decimal(str(min_commission))
+        commission = _to_cents(max(gross_raw * commission_rate_decimal, min_commission_decimal))
+        stamp_duty = (
+            _to_cents(gross_raw * Decimal(str(stamp_duty_rate)))
+            if direction == "sell"
+            else Decimal("0.00")
+        )
+        transfer_fee_rate_decimal = Decimal(str(transfer_fee_rate))
+        transfer_fee = (
+            _to_cents(gross_raw * transfer_fee_rate_decimal)
+            if transfer_fee_rate_decimal > 0
+            else Decimal("0.00")
+        )
+        total_fee = commission + stamp_duty + transfer_fee
+        if direction == "buy":
+            net_cash_flow = -(gross_amount + total_fee)
+        else:
+            net_cash_flow = gross_amount - total_fee
+
+        return (
+            float(gross_amount),
+            float(commission),
+            float(stamp_duty),
+            float(transfer_fee),
+            float(total_fee),
+            float(net_cash_flow),
+        )
+
     gross_amount = quantity * price
     
     # Commission (both directions, with minimum threshold)
@@ -66,6 +110,8 @@ def calculate_total_cash_required(
     price: float,
     commission_rate: float = 0.0003,
     min_commission: float = 5.0,
+    *,
+    round_to_cents: bool = False,
 ) -> float:
     """
     Calculate total cash required for a buy order including commission.
@@ -75,10 +121,24 @@ def calculate_total_cash_required(
     - price: execution price per share
     - commission_rate: commission rate
     - min_commission: minimum commission
+    - round_to_cents: opt in to HALF_UP cent settlement for the buy debit
     
     Returns:
     - total_cash_required: gross_amount + commission
     """
+    if round_to_cents:
+        *_, net_cash_flow = calculate_transaction_costs(
+            "buy",
+            quantity,
+            price,
+            commission_rate,
+            min_commission,
+            stamp_duty_rate=0.0,
+            transfer_fee_rate=0.0,
+            round_to_cents=True,
+        )
+        return -net_cash_flow
+
     gross_amount = quantity * price
     commission = max(gross_amount * commission_rate, min_commission)
     return gross_amount + commission
@@ -90,6 +150,8 @@ def calculate_affordable_quantity(
     commission_rate: float = 0.0003,
     min_commission: float = 5.0,
     lot_size: int = 100,
+    *,
+    round_to_cents: bool = False,
 ) -> int:
     """
     Calculate affordable quantity given available cash and transaction costs.
@@ -100,15 +162,45 @@ def calculate_affordable_quantity(
     - commission_rate: commission rate
     - min_commission: minimum commission
     - lot_size: lot size (default 100 for A-shares)
+    - round_to_cents: opt in to HALF_UP cent settlement for affordability checks
     
     Returns:
     - affordable_quantity: rounded down to lot_size multiples
     
-    Algorithm:
-    1. Check if cash can afford minimum commission
-    2. Estimate max quantity assuming commission = amount * rate
-    3. Verify actual commission and adjust if needed
+    With cent settlement enabled, affordability is found by binary searching whole lots
+    against the same cent-rounded buy debit used by calculate_total_cash_required.
+    The default retains the legacy estimate and adjustment algorithm.
     """
+    if round_to_cents:
+        available_cash_decimal = Decimal(str(available_cash))
+        min_commission_decimal = Decimal(str(min_commission))
+        if available_cash_decimal <= min_commission_decimal:
+            return 0
+
+        price_decimal = Decimal(str(price))
+        lot_size_decimal = Decimal(lot_size)
+        high = int(
+            (available_cash_decimal / (price_decimal * lot_size_decimal)).to_integral_value(
+                rounding=ROUND_FLOOR
+            )
+        ) + 1
+        low = 0
+        while low < high:
+            middle = (low + high + 1) // 2
+            quantity = middle * lot_size
+            required = Decimal(str(calculate_total_cash_required(
+                quantity,
+                price,
+                commission_rate,
+                min_commission,
+                round_to_cents=True,
+            )))
+            if required <= available_cash_decimal:
+                low = middle
+            else:
+                high = middle - 1
+        return low * lot_size
+
     # Cannot afford minimum commission
     if available_cash <= min_commission:
         return 0

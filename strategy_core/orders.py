@@ -15,6 +15,9 @@ def generate_orders(
     sizer: PositionSizer,
     available_capital: float,
     current_positions: dict[str, Position],
+    *,
+    cash_target_buy: bool = False,
+    next_day_exit_intent_mode: bool = False,
 ) -> OrderGenerationResult:
     """
     Convert signals into order intents with T+1 pre-check.
@@ -69,7 +72,12 @@ def generate_orders(
                 elif signal.signal_type == "exit":
                     # Process exit normally
                     _process_exit_signal(
-                        signal, intended_execution_date, current_positions, valid_orders, events
+                        signal,
+                        intended_execution_date,
+                        current_positions,
+                        valid_orders,
+                        events,
+                        next_day_exit_intent_mode=next_day_exit_intent_mode,
                     )
             continue
 
@@ -79,7 +87,12 @@ def generate_orders(
                 continue
             elif signal.signal_type == "exit":
                 _process_exit_signal(
-                    signal, intended_execution_date, current_positions, valid_orders, events
+                    signal,
+                    intended_execution_date,
+                    current_positions,
+                    valid_orders,
+                    events,
+                    next_day_exit_intent_mode=next_day_exit_intent_mode,
                 )
             elif signal.signal_type == "entry":
                 _process_entry_signal(
@@ -90,6 +103,7 @@ def generate_orders(
                     available_capital,
                     valid_orders,
                     events,
+                    cash_target_buy,
                 )
 
     return OrderGenerationResult(valid_orders=valid_orders, events=events)
@@ -101,6 +115,8 @@ def _process_exit_signal(
     current_positions: dict[str, Position],
     valid_orders: list[Order],
     events: list[OrderGenerationEvent],
+    *,
+    next_day_exit_intent_mode: bool = False,
 ) -> None:
     """Process exit signal with T+1 pre-check."""
     if signal.symbol not in current_positions:
@@ -120,9 +136,16 @@ def _process_exit_signal(
 
     position = current_positions[signal.symbol]
     requested_quantity = position.quantity
+    sellable_quantity = position.sellable_quantity
+    if next_day_exit_intent_mode:
+        sellable_quantity += sum(
+            lot.quantity
+            for lot in position.frozen_lots
+            if lot.unlock_date <= intended_execution_date
+        )
 
     # T+1 pre-check
-    if position.sellable_quantity == 0:
+    if sellable_quantity == 0:
         # Fully frozen, no order generated
         events.append(OrderGenerationEvent(
             event_type="t1_frozen",
@@ -137,7 +160,7 @@ def _process_exit_signal(
         ))
         return
 
-    if position.sellable_quantity < position.quantity:
+    if sellable_quantity < position.quantity:
         # Partially frozen, generate order for sellable_quantity
         events.append(OrderGenerationEvent(
             event_type="partial_exit_due_to_t1_freeze",
@@ -146,16 +169,16 @@ def _process_exit_signal(
             intended_execution_date=intended_execution_date,
             reason=(
                 f"partial_exit: requested {requested_quantity}, "
-                f"only {position.sellable_quantity} sellable "
-                f"(frozen {position.quantity - position.sellable_quantity})"
+                f"only {sellable_quantity} sellable "
+                f"(frozen {position.quantity - sellable_quantity})"
             ),
             requested_quantity=requested_quantity,
-            generated_quantity=position.sellable_quantity,
-            sellable_quantity=position.sellable_quantity,
+            generated_quantity=sellable_quantity,
+            sellable_quantity=sellable_quantity,
             total_quantity=position.quantity,
         ))
 
-    # Generate order for sellable_quantity (full or partial)
+    # Generate order for the quantity available on the intended execution date.
     valid_orders.append(Order(
         order_id=f"order:{signal.signal_id}:{intended_execution_date}",
         signal_id=signal.signal_id,
@@ -163,7 +186,7 @@ def _process_exit_signal(
         intended_execution_date=intended_execution_date,
         symbol=signal.symbol,
         direction="sell",
-        quantity=position.sellable_quantity,
+        quantity=sellable_quantity,
         reason=";".join(signal.triggered_rules),
         strategy_version=signal.strategy_version,
         audit_id=f"order:{signal.audit_id}:{intended_execution_date}",
@@ -178,8 +201,27 @@ def _process_entry_signal(
     available_capital: float,
     valid_orders: list[Order],
     events: list[OrderGenerationEvent],
+    cash_target_buy: bool = False,
 ) -> None:
     """Process entry signal: calculate quantity via sizer."""
+    if cash_target_buy:
+        valid_orders.append(Order(
+            order_id=f"order:{signal.signal_id}:{intended_execution_date}",
+            signal_id=signal.signal_id,
+            signal_date=signal.signal_date,
+            intended_execution_date=intended_execution_date,
+            symbol=signal.symbol,
+            direction="buy",
+            quantity=100,
+            reason=(
+                "cash-target buy; quantity is a placeholder until fill; "
+                + ";".join(signal.triggered_rules)
+            ),
+            strategy_version=signal.strategy_version,
+            audit_id=f"order:{signal.audit_id}:{intended_execution_date}",
+        ))
+        return
+
     price = price_provider.get_price(signal.symbol, signal.signal_date)
     quantity = sizer.calculate_quantity(price, available_capital)
 

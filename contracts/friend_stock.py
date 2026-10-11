@@ -77,14 +77,20 @@ class ConfirmedCandidatePool(BaseModel, frozen=True, extra="forbid"):
     counter_evidence_ids: list[str]
     source_provenance: dict  # 来源出处链
     approval_card_id: str
-    approval_decision: str  # continue
+    approval_decision: str  # continue (pool only created on explicit user 'continue')
     snapshot_hash: str  # over 冻结字段
     created_at: datetime
+    # V2 (2026-07-10): approval trust boundary — persisted verbatim, never inferred.
+    confirmed_by: str = "user"  # 审批人（人类点击）；必须由请求显式传入，禁止默认/LLM 文本/stub
+    decision_loop_id: Optional[str] = None  # 决策循环 ID（LLM 调用预算归属）
+    confirmed_at: datetime  # 审批时点，冻结
+    user_industry_chain_hypothesis: Optional[dict] = None  # 用户产业链假设（待验证），原样冻结，非 dataset/已验证链
+    forward_only: Literal[True] = True  # 前向唯一；非买入信号、非历史回测 universe
 
     @field_validator("approval_decision")
     @classmethod
     def decision_must_be_continue(cls, v: str) -> str:
-        """Pool only created for 'continue' decision."""
+        """Pool only created for an explicit 'continue' decision."""
         if v != "continue":
             raise ValueError("ConfirmedCandidatePool only for 'continue' decision")
         return v

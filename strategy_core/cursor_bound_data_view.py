@@ -100,6 +100,23 @@ class CursorBoundDataView:
                     )
                 return bar
         return None
+
+    def get_bar_dates_until(self, symbol: str, as_of_date: date) -> list[date]:
+        """Return visible bar dates; callers must fetch every bar through get_bar()."""
+        allowed, violation = self._cursor.request_read(
+            symbol=symbol,
+            requested_date=as_of_date,
+            data_type="bar_dates",
+            source="cursor_bound_data_view",
+        )
+        if not allowed:
+            raise FutureDataAccessError(violation)
+
+        return sorted(
+            bar.date
+            for bar in self._raw.get_daily_bars(symbol)
+            if bar.date <= as_of_date
+        )
     
     def get_daily_bar(self, symbol: str, trade_date: date) -> DailyBar:
         """Compatibility adapter for get_bar (used by fill_simulator)."""

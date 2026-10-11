@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal, InvalidOperation, ROUND_CEILING, ROUND_DOWN, ROUND_FLOOR, ROUND_HALF_UP
 
 from contracts.stable import Order
 from backend.app.golden_cases import GoldenCaseDataSource
@@ -15,6 +16,69 @@ from strategy_core.transaction_costs import (
 # This is the minimum penalty applied to delisted/long-suspended positions
 # Runtime cannot lower this value
 DELISTING_PENALTY_PCT = 0.05
+CURRENCY_CENT = Decimal("0.01")
+PRICE_TICK = Decimal("0.001")
+
+
+def _apply_cash_flow(
+    portfolio: PortfolioState,
+    net_cash_flow: float,
+    *,
+    round_to_cents: bool,
+) -> None:
+    if round_to_cents:
+        cash = Decimal(str(portfolio.cash)) + Decimal(str(net_cash_flow))
+        portfolio.cash = float(cash.quantize(CURRENCY_CENT, rounding=ROUND_HALF_UP))
+    else:
+        portfolio.cash += net_cash_flow
+
+
+def _gate_execution_price(
+    order: Order,
+    execution_date: date,
+    data_source,
+    open_price: object,
+    slippage_rate: float,
+) -> tuple[Decimal, Decimal, Decimal]:
+    get_limits = getattr(data_source, "get_daily_price_limits", None)
+    if not callable(get_limits):
+        raise ValueError(
+            "execution price mode requires daily price limits from the data source"
+        )
+    try:
+        limits = get_limits(order.symbol, execution_date)
+    except KeyError:
+        raise ValueError(
+            f"execution price mode has no daily price limits for {order.symbol} on {execution_date}"
+        ) from None
+    if not isinstance(limits, (tuple, list)) or len(limits) != 2:
+        raise ValueError("execution price mode daily price limits must be (lower, upper)")
+
+    try:
+        lower_limit = Decimal(str(limits[0]))
+        upper_limit = Decimal(str(limits[1]))
+        base_price = Decimal(str(open_price))
+        rate = Decimal(str(slippage_rate))
+    except (InvalidOperation, TypeError, ValueError):
+        raise ValueError("execution price mode received invalid price, band, or slippage") from None
+    if any(not value.is_finite() or value <= 0 for value in (lower_limit, upper_limit, base_price)):
+        raise ValueError("execution price mode prices and bands must be finite and positive")
+    if lower_limit > upper_limit:
+        raise ValueError("execution price mode lower price limit exceeds upper price limit")
+    if any(value % PRICE_TICK != 0 for value in (lower_limit, upper_limit, base_price)):
+        raise ValueError("execution price mode prices and bands must use the 0.001 tick")
+    if not rate.is_finite() or rate < 0 or rate >= 1:
+        raise ValueError("execution price mode slippage must be finite and in [0, 1)")
+
+    if order.direction == "buy":
+        adjusted = base_price * (Decimal("1") + rate)
+        execution_price = adjusted.quantize(PRICE_TICK, rounding=ROUND_CEILING)
+    else:
+        adjusted = base_price * (Decimal("1") - rate)
+        execution_price = adjusted.quantize(PRICE_TICK, rounding=ROUND_FLOOR)
+    if not execution_price.is_finite() or execution_price <= 0:
+        raise ValueError("execution price mode produced a nonpositive execution price")
+    return execution_price, lower_limit, upper_limit
 
 
 def simulate_fill(
@@ -29,6 +93,11 @@ def simulate_fill(
     slippage_rate: float = 0.0,  # Task 6: slippage rate
     max_participation_rate: float = 0.10,  # Task 6: liquidity constraint (10%)
     calendar=None,  # TradingCalendar, required for T+1 freeze tracking
+    *,
+    cash_target_buy: bool = False,
+    opening_capacity_mode: bool = False,
+    round_to_cents: bool = False,
+    execution_price_mode: bool = False,
 ) -> Order:
     """
     Simulate order fill on execution date with A-share constraints, transaction costs, and T+1 freeze logic.
@@ -46,7 +115,10 @@ def simulate_fill(
     - Transfer fee: optional (default 0)
     
     Capital verification uses actual execution_date open price plus transaction costs.
+    With opening_capacity_mode enabled, the participation cap uses only the
+    previous trading session's known volume and rounds down to 100-share lots.
     Quantity may be reduced if capital is insufficient; order rejected if cannot afford one lot.
+    With round_to_cents enabled, cost calculations and cash mutations use cent-settled amounts.
     
     Rejection reasons:
     - no data available
@@ -56,9 +128,14 @@ def simulate_fill(
     - no_position (sell)
     - insufficient_position (sell)
     """
+    previous_session_volume = None
+    if opening_capacity_mode:
+        previous_session_volume = _previous_session_volume(
+            order.symbol, execution_date, data_source, calendar
+        )
+
     try:
         status = data_source.get_daily_status(order.symbol, execution_date)
-        bar = data_source.get_daily_bar(order.symbol, execution_date)
     except KeyError:
         return order.model_copy(update={
             "status": "rejected",
@@ -71,26 +148,96 @@ def simulate_fill(
             "status": "rejected",
             "rejection_reason": "suspended",
         })
+    try:
+        bar = data_source.get_daily_bar(order.symbol, execution_date)
+    except KeyError:
+        return order.model_copy(update={
+            "status": "rejected",
+            "rejection_reason": f"no data available for {order.symbol} on {execution_date}",
+        })
+    capacity_volume = previous_session_volume if opening_capacity_mode else bar.volume
+    max_allowed_quantity = _max_participation_quantity(
+        capacity_volume,
+        max_participation_rate,
+        strict=opening_capacity_mode,
+    )
+    capacity_rejection_reason = (
+        "liquidity_shortfall_zero_previous_session_capacity"
+        if opening_capacity_mode and max_allowed_quantity == 0
+        else "liquidity_shortfall"
+    )
     # Delegate to direction-specific fill logic
     if order.direction == "buy":
         return _simulate_buy_fill(
             order, execution_date, bar, status, portfolio,
             commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate,
-            slippage_rate, max_participation_rate, calendar
+            slippage_rate, max_allowed_quantity, capacity_rejection_reason,
+            calendar, cash_target_buy, round_to_cents, execution_price_mode,
+            data_source,
         )
     elif order.direction == "sell":
         return _simulate_sell_fill(
             order, execution_date, bar, status, portfolio,
             commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate,
-            slippage_rate, max_participation_rate
+            slippage_rate, max_allowed_quantity, capacity_rejection_reason,
+            round_to_cents, execution_price_mode, data_source,
         )
     else:
         raise ValueError(f"unknown direction: {order.direction}")
 
 
+def _previous_session_volume(symbol, execution_date, data_source, calendar) -> int:
+    if calendar is None:
+        raise ValueError("Trading calendar is required for opening capacity")
+    try:
+        previous_date = calendar.previous_trading_day(execution_date)
+    except ValueError as exc:
+        raise ValueError(
+            f"opening capacity cannot determine previous trading session for {execution_date}: {exc}"
+        ) from exc
+    try:
+        previous_bar = data_source.get_daily_bar(symbol, previous_date)
+    except KeyError as exc:
+        raise ValueError(
+            f"opening capacity previous session bar is missing for {symbol} on {previous_date}"
+        ) from exc
+
+    if getattr(previous_bar, "date", None) != previous_date:
+        raise ValueError(
+            f"opening capacity previous session bar date mismatch for {symbol} on {previous_date}"
+        )
+    if getattr(previous_bar, "symbol", None) != symbol:
+        raise ValueError(
+            f"opening capacity previous session bar symbol mismatch for {symbol} on {previous_date}"
+        )
+    volume = getattr(previous_bar, "volume", None)
+    if isinstance(volume, bool) or not isinstance(volume, int) or volume < 0:
+        raise ValueError(
+            f"opening capacity previous session volume is invalid for {symbol} on {previous_date}"
+        )
+    return volume
+
+
+def _max_participation_quantity(volume, participation_rate, *, strict=False) -> int:
+    if strict:
+        try:
+            rate = Decimal(str(participation_rate))
+        except (InvalidOperation, ValueError, TypeError):
+            raise ValueError("opening capacity participation rate is invalid") from None
+        if not rate.is_finite() or rate < 0 or rate > 1:
+            raise ValueError("opening capacity participation rate must be between 0 and 1")
+        capacity_lots = (Decimal(volume) * rate / Decimal("100")).to_integral_value(
+            rounding=ROUND_DOWN
+        )
+        return int(capacity_lots) * 100
+    return int(volume * participation_rate / 100) * 100
+
+
 def _simulate_buy_fill(order, execution_date, bar, status, portfolio,
                        commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate,
-                       slippage_rate, max_participation_rate, calendar):
+                       slippage_rate, max_allowed_quantity, capacity_rejection_reason,
+                       calendar, cash_target_buy=False, round_to_cents=False,
+                       execution_price_mode=False, data_source=None):
     """Simulate buy order fill with transaction costs, T+1 freeze, slippage, and liquidity."""
     # Limit up check
     if status.is_limit_up:
@@ -100,11 +247,10 @@ def _simulate_buy_fill(order, execution_date, bar, status, portfolio,
         })
     
     # Liquidity check
-    max_allowed_quantity = int(bar.volume * max_participation_rate / 100) * 100
-    if order.quantity > max_allowed_quantity:
+    if not cash_target_buy and order.quantity > max_allowed_quantity:
         return order.model_copy(update={
             "status": "rejected",
-            "rejection_reason": "liquidity_shortfall",
+            "rejection_reason": capacity_rejection_reason,
         })
 
     if calendar is None:
@@ -119,21 +265,57 @@ def _simulate_buy_fill(order, execution_date, bar, status, portfolio,
     
     # Base execution price + slippage (buy pays more)
     base_price = bar.open
-    execution_price = base_price * (1 + slippage_rate)
+    if execution_price_mode:
+        execution_price_decimal, _lower_limit, upper_limit = _gate_execution_price(
+            order, execution_date, data_source, base_price, slippage_rate
+        )
+        if execution_price_decimal > upper_limit:
+            return order.model_copy(update={
+                "status": "rejected",
+                "rejection_reason": "execution_price_outside_price_limit",
+            })
+        execution_price = float(execution_price_decimal)
+    else:
+        execution_price = base_price * (1 + slippage_rate)
+
+    if cash_target_buy:
+        actual_quantity = _max_cash_target_quantity(
+            portfolio.cash,
+            execution_price,
+            commission_rate,
+            min_commission,
+            stamp_duty_rate,
+            transfer_fee_rate,
+            round_to_cents=round_to_cents,
+        )
+        if actual_quantity == 0:
+            return order.model_copy(update={
+                "status": "rejected",
+                "rejection_reason": "insufficient_capital",
+            })
+        if actual_quantity > max_allowed_quantity:
+            return order.model_copy(update={
+                "status": "rejected",
+                "rejection_reason": capacity_rejection_reason,
+            })
+    else:
+        actual_quantity = order.quantity
     
-    # Calculate costs for planned quantity
+    # Calculate costs for the planned quantity or the execution-time cash target.
     gross, commission, stamp_duty, transfer_fee, total_fee, net_cash_flow = calculate_transaction_costs(
-        "buy", order.quantity, execution_price,
-        commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate
+        "buy", actual_quantity, execution_price,
+        commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate,
+        round_to_cents=round_to_cents,
     )
     total_cash_required = -net_cash_flow  # net_cash_flow is negative for buy
     
     # Capital check with costs
-    if total_cash_required > portfolio.cash:
+    if total_cash_required > portfolio.cash and not cash_target_buy:
         # Calculate affordable quantity considering costs
         affordable_quantity = calculate_affordable_quantity(
             portfolio.cash, execution_price,
-            commission_rate, min_commission, lot_size=100
+            commission_rate, min_commission, lot_size=100,
+            round_to_cents=round_to_cents,
         )
         
         if affordable_quantity == 0:
@@ -146,11 +328,15 @@ def _simulate_buy_fill(order, execution_date, bar, status, portfolio,
         actual_quantity = affordable_quantity
         gross, commission, stamp_duty, transfer_fee, total_fee, net_cash_flow = calculate_transaction_costs(
             "buy", actual_quantity, execution_price,
-            commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate
+            commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate,
+            round_to_cents=round_to_cents,
         )
         total_cash_required = -net_cash_flow  # Update total_cash_required with new quantity
-    else:
-        actual_quantity = order.quantity
+    elif total_cash_required > portfolio.cash:
+        return order.model_copy(update={
+            "status": "rejected",
+            "rejection_reason": "insufficient_capital_after_recalc",
+        })
     
     # Final sanity check: ensure we have enough cash
     if total_cash_required > portfolio.cash:
@@ -161,7 +347,7 @@ def _simulate_buy_fill(order, execution_date, bar, status, portfolio,
         })
     
     # Update portfolio
-    portfolio.cash -= total_cash_required
+    _apply_cash_flow(portfolio, net_cash_flow, round_to_cents=round_to_cents)
     
     # Validate portfolio invariants after cash deduction
     portfolio.validate_invariants()
@@ -197,9 +383,53 @@ def _simulate_buy_fill(order, execution_date, bar, status, portfolio,
     })
 
 
+def _max_cash_target_quantity(
+    available_cash,
+    execution_price,
+    commission_rate,
+    min_commission,
+    stamp_duty_rate,
+    transfer_fee_rate,
+    lot_size=100,
+    *,
+    round_to_cents=False,
+):
+    """Return the greatest whole-lot buy quantity covered by cash and all fees."""
+    if available_cash <= 0 or execution_price <= 0:
+        return 0
+
+    high = int(available_cash / (execution_price * lot_size)) + 1
+    low = 0
+    while low < high:
+        middle = (low + high + 1) // 2
+        quantity = middle * lot_size
+        *_, net_cash_flow = calculate_transaction_costs(
+            "buy",
+            quantity,
+            execution_price,
+            commission_rate,
+            min_commission,
+            stamp_duty_rate,
+            transfer_fee_rate,
+            round_to_cents=round_to_cents,
+        )
+        affordable = (
+            Decimal(str(-net_cash_flow)) <= Decimal(str(available_cash))
+            if round_to_cents
+            else -net_cash_flow <= available_cash
+        )
+        if affordable:
+            low = middle
+        else:
+            high = middle - 1
+    return low * lot_size
+
+
 def _simulate_sell_fill(order, execution_date, bar, status, portfolio,
                         commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate,
-                        slippage_rate, max_participation_rate):
+                        slippage_rate, max_allowed_quantity, capacity_rejection_reason,
+                        round_to_cents=False, execution_price_mode=False,
+                        data_source=None):
     """Simulate sell order fill with transaction costs, slippage, and liquidity."""
     # Limit down check
     if status.is_limit_down:
@@ -209,11 +439,10 @@ def _simulate_sell_fill(order, execution_date, bar, status, portfolio,
         })
     
     # Liquidity check
-    max_allowed_quantity = int(bar.volume * max_participation_rate / 100) * 100
     if order.quantity > max_allowed_quantity:
         return order.model_copy(update={
             "status": "rejected",
-            "rejection_reason": "liquidity_shortfall",
+            "rejection_reason": capacity_rejection_reason,
         })
     
     # Position check
@@ -234,16 +463,28 @@ def _simulate_sell_fill(order, execution_date, bar, status, portfolio,
     
     # Base execution price - slippage (sell gets less)
     base_price = bar.open
-    execution_price = base_price * (1 - slippage_rate)
+    if execution_price_mode:
+        execution_price_decimal, lower_limit, _upper_limit = _gate_execution_price(
+            order, execution_date, data_source, base_price, slippage_rate
+        )
+        if execution_price_decimal < lower_limit:
+            return order.model_copy(update={
+                "status": "rejected",
+                "rejection_reason": "execution_price_outside_price_limit",
+            })
+        execution_price = float(execution_price_decimal)
+    else:
+        execution_price = base_price * (1 - slippage_rate)
     
     # Calculate costs
     gross, commission, stamp_duty, transfer_fee, total_fee, net_cash_flow = calculate_transaction_costs(
         "sell", order.quantity, execution_price,
-        commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate
+        commission_rate, min_commission, stamp_duty_rate, transfer_fee_rate,
+        round_to_cents=round_to_cents,
     )
     
     # Add net proceeds to cash
-    portfolio.cash += net_cash_flow  # net_cash_flow is positive for sell
+    _apply_cash_flow(portfolio, net_cash_flow, round_to_cents=round_to_cents)
     
     # Reduce position (uses sellable_quantity)
     portfolio.reduce_position(order.symbol, order.quantity)

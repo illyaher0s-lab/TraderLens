@@ -1,10 +1,15 @@
 from __future__ import annotations
 
 from datetime import date
+from decimal import Decimal, InvalidOperation
 import re
 from typing import Protocol
 
 from contracts.stable import DailyBar, Signal, StrategyConfig
+
+
+ADJUSTED_MA250_WINDOW = 250
+ADJUSTMENT_ANCHOR_DATE = date(2009, 1, 5)
 
 
 class BarDataSource(Protocol):
@@ -65,6 +70,15 @@ def generate_signals(
             if rule_type == "rank_condition":
                 # Rank condition uses pre-computed ranks
                 matched = _evaluate_rank_condition(rule, symbol, rank_results)
+            elif rule_type == "adjusted_ma_cross_down":
+                if has_cursor_bound:
+                    matched = _evaluate_adjusted_ma_cross_down_cursor_bound(
+                        rule, data_source, symbol, trade_date
+                    )
+                else:
+                    matched = _evaluate_adjusted_ma_cross_down(
+                        rule, data_source.get_daily_bars(symbol), trade_date
+                    )
             elif has_cursor_bound:
                 # Use cursor-bound path (reads data day-by-day with validation)
                 if rule_type == "breakthrough":
@@ -140,6 +154,8 @@ def generate_exit_signals(
                 matched = _evaluate_holding_days_exit(rule, position, trade_date)
             elif rule_type == "stop_loss_pct":
                 matched = _evaluate_stop_loss_pct_exit(rule, bars, trade_date, position)
+            elif rule_type == "take_profit_pct":
+                matched = _evaluate_take_profit_pct_exit(rule, bars, trade_date, position)
             else:
                 raise NotImplementedError(f"exit rule is not implemented: {rule.get('type')}")
             
@@ -249,6 +265,132 @@ def _evaluate_ma_condition(rule: dict, bars: list[DailyBar], trade_date: date) -
     return current.close > moving_average
 
 
+def _validate_adjusted_ma_cross_down_rule(rule: dict) -> None:
+    if rule.get("type") != "adjusted_ma_cross_down":
+        raise ValueError("adjusted MA cross-down evaluator received another rule type")
+    if set(rule) - {"type", "ma_period"}:
+        raise ValueError("adjusted_ma_cross_down only supports type and ma_period")
+    period = rule.get("ma_period")
+    if isinstance(period, bool) or not isinstance(period, int) or period != ADJUSTED_MA250_WINDOW:
+        raise ValueError("adjusted_ma_cross_down ma_period is fixed at 250")
+
+
+def _evaluate_adjusted_ma_cross_down(
+    rule: dict,
+    bars: list[DailyBar],
+    trade_date: date,
+) -> bool:
+    _validate_adjusted_ma_cross_down_rule(rule)
+    history = sorted(
+        (bar for bar in bars if bar.date <= trade_date),
+        key=lambda bar: bar.date,
+    )
+    if len(history) < ADJUSTED_MA250_WINDOW + 1 or history[-1].date != trade_date:
+        return False
+
+    anchor_bar = next(
+        (bar for bar in history if bar.date == ADJUSTMENT_ANCHOR_DATE),
+        None,
+    )
+    if anchor_bar is None:
+        raise ValueError(
+            "adjusted_ma_cross_down requires the 2009-01-05 adjustment anchor"
+        )
+    return _evaluate_adjusted_ma_cross_down_window(
+        history[-(ADJUSTED_MA250_WINDOW + 1):],
+        trade_date,
+        anchor_bar,
+    )
+
+
+def _evaluate_adjusted_ma_cross_down_cursor_bound(
+    rule: dict,
+    data_source,
+    symbol: str,
+    trade_date: date,
+) -> bool:
+    _validate_adjusted_ma_cross_down_rule(rule)
+    get_dates = getattr(data_source, "get_bar_dates_until", None)
+    if not callable(get_dates):
+        raise NotImplementedError(
+            "adjusted_ma_cross_down requires cursor trading-date lookup"
+        )
+
+    history_dates = get_dates(symbol, trade_date)
+    if any(day > trade_date for day in history_dates):
+        raise ValueError("cursor trading-date lookup returned a future date")
+    history_dates = sorted(history_dates)
+    if len(history_dates) < ADJUSTED_MA250_WINDOW + 1 or history_dates[-1] != trade_date:
+        return False
+
+    window_dates = history_dates[-(ADJUSTED_MA250_WINDOW + 1):]
+    if len(set(window_dates)) != len(window_dates):
+        raise ValueError("adjusted_ma_cross_down requires unique trading dates")
+
+    window_bars = []
+    for day in window_dates:
+        bar = data_source.get_bar(symbol, day)
+        if bar is None:
+            raise ValueError(
+                f"cursor trading-date lookup has no bar for {symbol} on {day}"
+            )
+        window_bars.append(bar)
+
+    anchor_bar = next(
+        (bar for bar in window_bars if bar.date == ADJUSTMENT_ANCHOR_DATE),
+        None,
+    )
+    if anchor_bar is None:
+        anchor_bar = data_source.get_bar(symbol, ADJUSTMENT_ANCHOR_DATE)
+    if anchor_bar is None:
+        raise ValueError(
+            "adjusted_ma_cross_down requires the 2009-01-05 adjustment anchor"
+        )
+    return _evaluate_adjusted_ma_cross_down_window(window_bars, trade_date, anchor_bar)
+
+
+def _evaluate_adjusted_ma_cross_down_window(
+    window_bars: list[DailyBar],
+    trade_date: date,
+    anchor_bar: DailyBar,
+) -> bool:
+    expected_count = ADJUSTED_MA250_WINDOW + 1
+    if len(window_bars) != expected_count or window_bars[-1].date != trade_date:
+        return False
+    if len({bar.date for bar in window_bars}) != expected_count:
+        raise ValueError("adjusted_ma_cross_down requires unique trading dates")
+    if anchor_bar.date != ADJUSTMENT_ANCHOR_DATE:
+        raise ValueError("adjusted_ma_cross_down received the wrong adjustment anchor date")
+
+    try:
+        anchor_factor = Decimal(str(anchor_bar.adj_factor))
+    except (InvalidOperation, TypeError, ValueError):
+        raise ValueError("adjusted_ma_cross_down adjustment anchor factor is invalid") from None
+    if not anchor_factor.is_finite() or anchor_factor <= 0:
+        raise ValueError("adjusted_ma_cross_down adjustment anchor factor is invalid")
+
+    adjusted_closes = []
+    for bar in window_bars:
+        try:
+            close = Decimal(str(bar.close))
+            factor = Decimal(str(bar.adj_factor))
+        except (InvalidOperation, TypeError, ValueError):
+            raise ValueError(
+                f"adjusted_ma_cross_down close or factor is invalid for {bar.symbol} on {bar.date}"
+            ) from None
+        if not close.is_finite() or close <= 0 or not factor.is_finite() or factor <= 0:
+            raise ValueError(
+                f"adjusted_ma_cross_down close or factor is invalid for {bar.symbol} on {bar.date}"
+            )
+        adjusted_closes.append(close * factor / anchor_factor)
+
+    previous_close = adjusted_closes[-2]
+    current_close = adjusted_closes[-1]
+    previous_ma = sum(adjusted_closes[:-1], Decimal("0")) / Decimal(ADJUSTED_MA250_WINDOW)
+    current_ma = sum(adjusted_closes[1:], Decimal("0")) / Decimal(ADJUSTED_MA250_WINDOW)
+    return previous_close > previous_ma and current_close < current_ma
+
+
 def _rule_label(rule: dict) -> str:
     if rule.get("type") == "volume_surge":
         return (
@@ -257,6 +399,8 @@ def _rule_label(rule: dict) -> str:
         )
     if rule.get("type") == "ma_condition":
         return f"ma_condition:{rule.get('field')}{rule.get('operator')}ma_{rule.get('ma_period')}"
+    if rule.get("type") == "adjusted_ma_cross_down":
+        return "adjusted_ma_cross_down:close<ma_250"
     if rule.get("type") == "rank_condition":
         return f"rank_condition:{rule.get('field')}:rank<={rule.get('top_n')}"
     return f"breakthrough:{rule.get('field')}{rule.get('operator')}{rule.get('benchmark')}"
@@ -276,6 +420,8 @@ def _rule_label_exit(rule: dict, position: any) -> str:
     elif rule_type == "stop_loss_pct":
         threshold = rule.get("threshold")
         return f"stop_loss:{threshold*100:.1f}%"
+    elif rule_type == "take_profit_pct":
+        return "take_profit:10.0%"
     
     return f"{rule_type}:triggered"
 
@@ -413,6 +559,45 @@ def _evaluate_stop_loss_pct_exit(rule: dict, bars: list[DailyBar], trade_date: d
     return_pct = (current.close - position.avg_cost) / position.avg_cost
     
     return return_pct <= threshold
+
+
+def _evaluate_take_profit_pct_exit(
+    rule: dict,
+    bars: list[DailyBar],
+    trade_date: date,
+    position: any,
+) -> bool:
+    """Trigger at a 10% gain from actual average fill price using today's close."""
+    if set(rule) != {"type", "threshold"}:
+        raise ValueError("take_profit_pct only supports type and threshold")
+    try:
+        threshold = Decimal(str(rule.get("threshold")))
+    except (InvalidOperation, TypeError, ValueError):
+        raise ValueError("take_profit_pct threshold is fixed at 10%") from None
+    if not threshold.is_finite() or threshold != Decimal("0.10"):
+        raise ValueError("take_profit_pct threshold is fixed at 10%")
+
+    current = next((bar for bar in bars if bar.date == trade_date), None)
+    if current is None:
+        return False
+    if not hasattr(position, "quantity") or position.quantity <= 0:
+        return False
+    if not hasattr(position, "avg_cost"):
+        return False
+    try:
+        close = Decimal(str(current.close))
+        average_fill_price = Decimal(str(position.avg_cost))
+    except (InvalidOperation, TypeError, ValueError):
+        raise ValueError("take_profit_pct requires a valid current close and average fill price") from None
+    if (
+        not close.is_finite()
+        or close <= 0
+        or not average_fill_price.is_finite()
+        or average_fill_price <= 0
+    ):
+        raise ValueError("take_profit_pct requires a positive current close and average fill price")
+
+    return close >= average_fill_price * (Decimal("1") + threshold)
 
 
 # Cursor-bound evaluation functions (B4 Task 7)

@@ -5,11 +5,11 @@ Defines recommendation levels, statuses, and execution card structure.
 No LLM, no Tushare, no random, no broker connections, no auto-execution.
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
-from typing import Optional
+from typing import Literal, Optional
 
-from pydantic import BaseModel, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from contracts.market_data_fault import MarketDataFaultState
 
@@ -29,6 +29,14 @@ class PositionLifecycleState(str, Enum):
 
     open = "open"
     closed = "closed"
+
+
+class TradeType(str, Enum):
+    """Explicit transaction scope; legacy rows remain unknown until confirmed."""
+
+    actual = "actual"
+    simulated = "simulated"
+    unknown = "unknown"
 
 
 class DailySignalType(str, Enum):
@@ -64,6 +72,7 @@ class PnlSource(str, Enum):
 
     user_reported = "user_reported"
     calculated_from_confirmed_details = "calculated_from_confirmed_details"
+    calculated_with_fee_estimate = "calculated_with_fee_estimate"
     incomplete = "incomplete"
     # NOTE: broker_verified intentionally NOT included (red line 1)
 
@@ -289,13 +298,13 @@ class ExecutionObservationLog(BaseModel, frozen=True, extra="forbid"):
     """
 
     log_id: str
-    draft_id: str
+    draft_id: Optional[str] = None
     # Evidence chain (same as draft)
-    execution_card_id: str
-    signal_id: str
-    action_plan_id: str
-    capital_context_id: str
-    market_snapshot_id: str
+    execution_card_id: Optional[str] = None
+    signal_id: Optional[str] = None
+    action_plan_id: Optional[str] = None
+    capital_context_id: Optional[str] = None
+    market_snapshot_id: Optional[str] = None
     # Confirmed fields
     confirmed_action: str  # buy / sell / none
     confirmed_execution_status: str  # executed_full / executed_partial / skipped / forgot / abandoned
@@ -306,6 +315,51 @@ class ExecutionObservationLog(BaseModel, frozen=True, extra="forbid"):
     confirmed_by_user: bool
     broker_verified: bool
     confirmed_at: datetime
+    execution_date: Optional[date] = None
+    confirmed_fees: Optional[float] = None
+    confirmed_trade_amount: Optional[str] = None
+    symbol: Optional[str] = None
+    name: Optional[str] = None
+    security_type: str = "unknown"
+    quantity_unit: str = "unknown"
+    trade_source: Optional[str] = None
+    sell_reason: Optional[str] = None
+    exit_plan_target_price: Optional[float] = None
+    exit_plan_stop_price: Optional[float] = None
+    exit_plan_conditions: Optional[str] = None
+    exit_plan_entered_at: Optional[datetime] = None
+    exit_plan_is_retrospective: Optional[bool] = None
+    trade_type: TradeType = TradeType.unknown
+    record_source: str = "strategy_plan"
+    operation_id: Optional[str] = None
+    operation_fingerprint: Optional[str] = None
+    operation_response: Optional[str] = None
+    voided_at: Optional[datetime] = None
+    void_reason: Optional[str] = None
+
+    @model_validator(mode="after")
+    def validate_record_provenance(self):
+        evidence_ids = (
+            self.draft_id,
+            self.execution_card_id,
+            self.signal_id,
+            self.action_plan_id,
+            self.capital_context_id,
+            self.market_snapshot_id,
+        )
+        if self.record_source == "autonomous_manual":
+            if any(value is not None for value in evidence_ids):
+                raise ValueError("autonomous manual records cannot claim plan evidence")
+            if not self.operation_id or not self.operation_fingerprint:
+                raise ValueError("autonomous manual records require an idempotency key")
+        elif self.record_source == "strategy_plan":
+            if any(not value or not value.strip() for value in evidence_ids):
+                raise ValueError("strategy plan records require complete evidence IDs")
+        else:
+            raise ValueError("unknown record_source")
+        if self.confirmed_fees is not None and self.confirmed_fees < 0:
+            raise ValueError("confirmed_fees cannot be negative")
+        return self
 
     @field_validator("broker_verified")
     @classmethod
@@ -334,10 +388,10 @@ class ObservationPosition(BaseModel, frozen=True, extra="forbid"):
     position_id: str
     # Evidence chain (5 IDs + source_log_id pointing to confirmed log)
     source_log_id: str  # Must point to ExecutionObservationLog
-    execution_card_id: str
-    signal_id: str
-    action_plan_id: str
-    capital_context_id: str
+    execution_card_id: Optional[str] = None
+    signal_id: Optional[str] = None
+    action_plan_id: Optional[str] = None
+    capital_context_id: Optional[str] = None
     # Position details
     symbol: str
     name: str
@@ -352,14 +406,34 @@ class ObservationPosition(BaseModel, frozen=True, extra="forbid"):
     lifecycle_state: PositionLifecycleState
     opened_at: datetime
     closed_at: Optional[datetime]
+    trade_type: TradeType = TradeType.unknown
+    record_source: str = "strategy_plan"
 
-    @field_validator("source_log_id", "execution_card_id", "signal_id", "action_plan_id", "capital_context_id")
+    @field_validator("source_log_id")
     @classmethod
     def evidence_chain_must_be_non_empty(cls, v: str, info) -> str:
         """Evidence chain fields must all be non-empty."""
         if not v or not v.strip():
             raise ValueError(f"{info.field_name} must be non-empty (evidence chain required)")
         return v
+
+    @model_validator(mode="after")
+    def validate_record_provenance(self):
+        plan_ids = (
+            self.execution_card_id,
+            self.signal_id,
+            self.action_plan_id,
+            self.capital_context_id,
+        )
+        if self.record_source == "autonomous_manual":
+            if any(value is not None for value in plan_ids):
+                raise ValueError("autonomous manual positions cannot claim plan evidence")
+        elif self.record_source == "strategy_plan":
+            if any(not value or not value.strip() for value in plan_ids):
+                raise ValueError("strategy plan positions require complete evidence IDs")
+        else:
+            raise ValueError("unknown record_source")
+        return self
 
     @field_validator("entry_price")
     @classmethod
@@ -419,6 +493,18 @@ class DailyObservationSignal(BaseModel, frozen=True, extra="forbid"):
         return v
 
 
+class FeeCalculation(BaseModel, frozen=True, extra="forbid"):
+    """Distinguish user-confirmed fees from a simulated fee projection."""
+
+    source: Literal["user_confirmed", "simulated_estimate", "mixed", "unknown"] = "unknown"
+    amount: Optional[float] = None
+    commission: Optional[float] = None
+    stamp_duty: Optional[float] = None
+    estimated_amount: Optional[float] = None
+    confirmed_amount: Optional[float] = None
+    note: Optional[str] = None
+
+
 class PnlRecord(BaseModel, frozen=True, extra="forbid"):
     """
     P&L record (Task 10).
@@ -427,19 +513,23 @@ class PnlRecord(BaseModel, frozen=True, extra="forbid"):
     """
 
     pnl_record_id: str
-    position_id: str
+    position_id: Optional[str]
     # From confirmed logs (None if missing)
     buy_price: Optional[float]
     sell_price: Optional[float]
     quantity: Optional[int]
     fees: Optional[float]
+    gross_pnl_amount: Optional[float] = None
+    gross_pnl_pct: Optional[float] = None
     # Calculated P&L (None if incomplete)
     pnl_amount: Optional[float]
     pnl_pct: Optional[float]
+    trade_type: TradeType = TradeType.unknown
     # Source and completeness
     pnl_source: PnlSource
     missing_fields: list[str]
     computed_at: datetime
+    fee_calculation: FeeCalculation = Field(default_factory=FeeCalculation)
 
 
 class PlanAdherenceResult(BaseModel, frozen=True, extra="forbid"):
@@ -465,18 +555,27 @@ class DisciplineReview(BaseModel, frozen=True, extra="forbid"):
     """
 
     review_id: str
-    position_id: str
+    position_id: Optional[str]
     # Evidence chain (延续证据链)
-    execution_card_id: str
-    signal_id: str
+    execution_card_id: Optional[str]
+    signal_id: Optional[str]
     daily_signal_ids: list[str]
-    buy_log_id: str
+    buy_log_id: Optional[str]
+    buy_log_ids: list[str] = Field(default_factory=list)
     sell_log_id: str
     # Input completeness
     input_completeness: dict  # {"execution_card": "present", "sell_log": "missing", ...}
     # P&L and adherence
     pnl_record: PnlRecord
     plan_adherence: PlanAdherenceResult
+    trade_type: TradeType = TradeType.unknown
+    execution_rule_status: str = "unverified"
+    holding_days: Optional[int] = None
+    dividend_status: str = "unverified"
+    plan_comparison: dict = Field(default_factory=dict)
+    deterministic_summary: str = ""
+    ai_review_text: Optional[str] = None
+    ai_review_status: Literal["not_requested", "available", "unavailable"] = "not_requested"
     # LLM narrative (optional)
     plain_narrative: Optional[str]
     narrative_source: ExplanationSource
