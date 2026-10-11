@@ -47,6 +47,14 @@
     来源：代码抢救第 5 步（2026-10-11）  
     当前状态：和第 4 项的 SSL 中断是两回事。510880 已复现，原始回复保存在 `D:\TraderLens_rescue\ai_parse_failure_510880.txt`。模型回复是完整 JSON，失败在来源绑定校验：`candidate_verdicts["510880.SH"].counter_evidence[0].source_record_id` 引用了跟踪指数来源 `index_dailybasic:000015.SH:0`；该来源存在，但 `serenity_synthesizer.py` 的 `validate_reference` 要求来源编号中段等于 ETF 代码，因此判为无效。512010 页面走查同样出现"AI总结暂不可用"。
 
+24. **持仓页在深色模式下标题和分页按钮看不清**  
+    来源：代码抢救第 5 步（2026-10-11）  
+    当前状态："我的持仓""当前持仓""成交记录"标题和"有效记录"分页按钮是深色字压深色背景。归入卡 013 重做范围。
+
+25. **前端 5 处写死 8010**  
+    来源：代码抢救第 5 步（2026-10-11）  
+    当前状态：`frontend/app/research/page.tsx:19`、`frontend/app/research/[research_id]/page.tsx:25`、`frontend/app/strategy-templates/page.tsx:27`、`frontend/app/strategy-templates/[template_id]/page.tsx:41` 写死 `http://localhost:8010`；`frontend/lib/research-api-client.ts:78` 读的是 `NEXT_PUBLIC_API_URL`，与其他处的 `NEXT_PUBLIC_API_BASE_URL` 不一致。
+
 ## 等条件满足再验收的
 
 6. **实际持仓的本人验收**  
