@@ -310,7 +310,7 @@ def test_single_security_verified_etf_uses_bundle_and_observable_invalidation(mo
     result = response.json()
     assert result["security_type"] == "fund"
     assert result["status"] == "research_completed"
-    assert result["verdict"] == "值得研究"
+    assert result["verdict"] == "相对历史偏便宜（仅510880自身现金分红收益率历史分位参考）"
     assert "区间报告收盘价变化" in result["rationale"]
     assert "近期成交额" in result["rationale"]
     assert "已实施现金派息" in result["rationale"]
@@ -352,11 +352,10 @@ def test_single_security_verified_etf_uses_bundle_and_observable_invalidation(mo
     assert {"资产净值", "基金份额规模", "管理费率", "托管费率", "估值参考"}.issubset(fact_labels)
     assert next(fact for fact in result["numeric_facts"] if fact["label"] == "管理费率")["unit"] == "%/年"
     assert all(fact["window"] and fact["field"] for fact in result["numeric_facts"])
-    assert result["investment_assumption"]["kind"] == "average_amount_20d_baseline"
-    assert result["investment_assumption"]["baseline_value"] == pytest.approx(
-        result["numeric_facts"][1]["value"]
-    )
-    assert "滚动20个SSE交易日" in result["invalidation_condition"]
+    assert result["investment_assumption"]["kind"] == "trailing_cash_dividend_baseline"
+    assert result["investment_assumption"]["baseline_value"] == pytest.approx(0.143)
+    assert "0.143元/份" in result["invalidation_condition"]
+    assert "滚动20个SSE交易日" not in result["invalidation_condition"]
     prompt = llm.calls[0]["messages"][0]["content"]
     assert "etf_basic:510880.SH:0" in prompt
     assert "fund_share:510880.SH:0" in prompt
@@ -513,9 +512,10 @@ def test_single_security_etf_does_not_fill_missing_dividend_baseline(monkeypatch
         "/api/research/single-security", json={"code": "510880"},
     ).json()
 
-    assert result["investment_assumption"] is None
-    assert "现金分红总额未能核验" in result["invalidation_condition"]
-    assert "无法给出可靠的数值撤回条件" in result["invalidation_condition"]
+    assert result["verdict"] == "跟踪指数的估值数据未覆盖，暂不提供估值判断"
+    assert result["llm_call_count"] == 0
+    assert result["investment_assumption"]["kind"] == "average_amount_20d_baseline"
+    assert "滚动20个SSE交易日" in result["invalidation_condition"]
     assert "0.143" not in result["invalidation_condition"]
     assert any("fund_div" in gap and "权限不足" in gap for gap in result["evidence_gaps"])
 
@@ -700,7 +700,7 @@ class ETFBundleClient:
                 "custod_name": "招商银行", "list_status": "L",
             }],
             "fund_basic": [{
-                "ts_code": "510880.SH", "name": "上证红利ETF",
+                "ts_code": "510880.SH", "name": "上证红利ETF", "fund_type": "股票型",
                 "found_date": "20061117", "m_fee": 0.5,
                 "c_fee": 0.1, "benchmark": "上证红利指数",
             }],
@@ -1069,7 +1069,8 @@ def test_etf_bundle_keeps_no_data_permission_unsupported_timeout_and_provider_er
     assert bundle["endpoint_statuses"]["fund_share"] == "empty_no_rows"
     assert bundle["endpoint_statuses"]["fund_daily"] == "unsupported_endpoint"
     assert bundle["endpoint_statuses"]["fund_div"] == "timeout"
-    assert bundle["endpoint_statuses"]["index_dailybasic"] == "provider_error"
+    assert bundle["endpoint_statuses"]["index_dailybasic"] == "not_applicable"
+    assert not any(api == "index_dailybasic" for api, _ in client.calls)
     assert "积分不足" not in json.dumps(bundle, ensure_ascii=False)
     assert "temporary connection reset" not in json.dumps(bundle, ensure_ascii=False)
 
@@ -1164,3 +1165,184 @@ def test_single_security_ai_failure_keeps_deterministic_etf_facts_and_call_id(mo
     assert facts["基金份额规模"]["value"] == 123.45
     assert all(fact["date"] and fact["source"] and fact["field"] for fact in facts.values())
     assert any("基金当前成分明细与行业权重未获取" in gap for gap in result["evidence_gaps"])
+
+
+def _card013_etf_bundle(symbol, category, valuation_conclusion):
+    return {
+        "symbol": symbol,
+        "is_etf": True,
+        "category": category,
+        "as_of": "2026-10-09",
+        "retrieved_at": "2026-10-09T19:00:00+08:00",
+        "metrics": {
+            "latest_price": {
+                "value": 3.431, "unit": "元/份", "source": "Tushare-compatible",
+                "endpoint": "fund_daily", "field": "close", "as_of": "2026-10-09",
+                "window": "最近报告收盘价",
+            },
+        },
+        "sources": [
+            {
+                "source_record_id": f"etf_basic:{symbol}:0",
+                "endpoint": "etf_basic",
+                "title": "测试ETF身份和基准",
+                "as_of": "2026-10-09",
+                "summary": "经核验的场内ETF身份和跟踪指数映射。",
+                "gaps": [],
+            },
+            {
+                "source_record_id": f"fund_daily:{symbol}:0",
+                "endpoint": "fund_daily",
+                "title": "测试ETF收盘行情",
+                "as_of": "2026-10-09",
+                "summary": "有日期的测试收盘行情。",
+                "gaps": [],
+            },
+        ],
+        "gaps": [],
+        "endpoint_statuses": {},
+        "investment_assumption": None,
+        "valuation_conclusion": valuation_conclusion,
+    }
+
+
+def _card013_research(monkeypatch, code, bundle, llm):
+    canonical_symbol = f"{code}.SH"
+
+    class IdentityClient:
+        def __init__(self):
+            self.calls = []
+
+        def query(self, api, **kwargs):
+            self.calls.append((api, kwargs))
+            if api == "fund_basic":
+                return pd.DataFrame([{
+                    "ts_code": canonical_symbol, "name": "测试ETF", "market": "E",
+                }])
+            return pd.DataFrame()
+
+    client = IdentityClient()
+
+    class Validator:
+        tushare_client = client
+
+    monkeypatch.setattr(
+        DataToolsService,
+        "get_etf_research_bundle",
+        lambda service, symbol, **kwargs: bundle,
+    )
+    runner = SerenityAgentRunner(
+        llm_client=llm, validator=Validator(), mode="real", execution_mode="two_phase",
+    )
+    app = create_research_app(
+        db=ResearchDB(db_path=":memory:"), conversation_mode="real",
+        serenity_execution_mode="two_phase", validator=Validator(),
+        serenity_runner=runner, allow_test_serenity_runner=True,
+    )
+    response = TestClient(app).post("/api/research/single-security", json={"code": code})
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
+@pytest.mark.parametrize(
+    ("conclusion", "model_verdict", "expected_verdict"),
+    [
+        (
+            {
+                "status": "conclusive", "verdict": "research_positive", "label": "相对历史偏便宜",
+                "basis": "own_dividend_yield",
+                "message": "ETF自身已派付现金分红收益率历史分位相对历史偏便宜；仅与本ETF自身历史比较，不等同于指数估值。",
+            },
+            "research_reject",
+            "相对历史偏便宜（仅510880自身现金分红收益率历史分位参考）",
+        ),
+        (
+            {
+                "status": "conclusive", "verdict": "research_reject", "label": "相对偏贵",
+                "basis": "index_pe_pb",
+                "message": "跟踪指数PE与PB十年分位均处于高位（≥80%），相对偏贵。",
+            },
+            "research_positive",
+            "相对偏贵（跟踪指数PE/PB十年分位）",
+        ),
+    ],
+)
+def test_deterministic_core_verdict_overrides_model_verdict(
+    monkeypatch, conclusion, model_verdict, expected_verdict,
+):
+    llm = ResearchLLM(verdict=model_verdict, reason="基金持仓和跟踪资料未获取，暂无法形成可靠判断。")
+    result = _card013_research(
+        monkeypatch, "510880", _card013_etf_bundle("510880.SH", "dividend", conclusion), llm,
+    )
+
+    assert result["verdict"] == expected_verdict
+    assert result["status"] == "research_completed"
+    assert len(llm.calls) == 1
+    assert result["research_diagnostic"]["candidate_verdict"] == model_verdict
+    closing_from_model = {
+        "research_positive": "不构成买入或执行许可",
+        "research_reject": "现有证据不支持继续研究",
+    }[model_verdict]
+    assert closing_from_model not in result["rationale"]
+
+
+@pytest.mark.parametrize(
+    ("code", "category", "status", "message"),
+    [
+        ("512010", "industry", "data_gap", "跟踪指数的估值数据未覆盖，暂不提供估值判断"),
+        ("518880", "other", "not_supported", "该类型暂不提供估值判断"),
+        ("510300", "unclassified", "not_supported", "该类型暂不提供估值判断"),
+    ],
+)
+def test_data_gap_and_unsupported_etf_conclusions_are_fixed_and_skip_model(
+    monkeypatch, code, category, status, message,
+):
+    llm = ResearchLLM(verdict="research_positive", reason="近一年收盘价与成交额支持继续研究。")
+    conclusion = {
+        "status": status, "verdict": "research_unavailable", "label": None,
+        "basis": None, "message": message,
+    }
+    result = _card013_research(
+        monkeypatch, code, _card013_etf_bundle(f"{code}.SH", category, conclusion), llm,
+    )
+
+    assert result["verdict"] == message
+    assert result["status"] == "research_completed"
+    assert result["llm_call_count"] == 0
+    assert llm.calls == []
+    assert result["research_diagnostic"]["calls"] == []
+    assert result["research_diagnostic"]["failure_reason"] == "not_called_by_rule"
+    assert result["research_diagnostic"]["candidate_verdict"] is None
+    assert "值得研究" not in json.dumps(result["narrative_sentences"], ensure_ascii=False)
+
+
+def test_commodity_etf_with_non_index_benchmark_is_classified_other_without_index_request():
+    class CommodityClient(ETFBundleClient):
+        def query(self, api, **kwargs):
+            self.calls.append((api, kwargs))
+            if api == "etf_basic":
+                return pd.DataFrame([{
+                    "ts_code": "518880.SH", "index_code": "AU9999.SGE",
+                    "index_name": "黄金9999", "setup_date": "20130718", "list_status": "L",
+                }])
+            if api == "fund_basic":
+                return pd.DataFrame([{
+                    "ts_code": "518880.SH", "name": "黄金ETF", "fund_type": "商品型",
+                    "benchmark": "国内黄金现货价格收益率(Au99.99合约)×100%",
+                }])
+            return pd.DataFrame()
+
+    client = CommodityClient()
+    bundle = DataToolsService(tushare_client=client).get_etf_research_bundle(
+        "518880.SH", as_of=date(2026, 10, 8), calendar_rows=client.calendar,
+    )
+
+    assert bundle["is_etf"] is True
+    assert bundle["category"] == "other"
+    assert bundle["valuation_conclusion"]["status"] == "not_supported"
+    assert bundle["valuation_conclusion"]["message"] == "该类型暂不提供估值判断"
+    assert bundle["endpoint_statuses"]["index_dailybasic"] == "not_applicable"
+    assert not any(api == "index_dailybasic" for api, _ in client.calls)
+    assert not any(
+        source["source_record_id"].startswith("index_dailybasic:") for source in bundle["sources"]
+    )

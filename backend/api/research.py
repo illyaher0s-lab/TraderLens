@@ -2259,6 +2259,16 @@ def create_research_app(
             if security_type == "fund" else None
         )
         is_verified_etf = bool(etf_bundle and etf_bundle.get("is_etf"))
+        # Card 013: an ETF conclusion comes only from the frozen deterministic valuation rule.
+        valuation_conclusion = etf_bundle.get("valuation_conclusion") if is_verified_etf else None
+        if is_verified_etf and not isinstance(valuation_conclusion, dict):
+            valuation_conclusion = {
+                "status": "data_gap", "verdict": "research_unavailable", "label": None,
+                "basis": None, "message": "跟踪指数的估值数据未覆盖，暂不提供估值判断",
+            }
+        model_skipped_by_rule = bool(valuation_conclusion) and valuation_conclusion.get("status") in {
+            "data_gap", "not_supported",
+        }
         quote_result = None if is_verified_etf else data_tools.get_security_quote_snapshot(
             symbol, security_type,
         )
@@ -2450,17 +2460,18 @@ def create_research_app(
             )
             audit = SerenityAgentAudit()
             audit.mode = "real"
-            try:
-                synthesis = ResearchSynthesizer(serenity_runner.llm_client).synthesize(
-                    theme, context, audit,
-                )
-                model_decision = synthesis.candidate_verdicts.get(symbol)
-                if not isinstance(model_decision, dict):
-                    raise ValueError("missing_candidate_verdict")
-                model_gaps = list(model_decision.get("evidence_gaps") or [])
-            except Exception:
-                model_decision = None
-                model_gaps.append("研究层综合未能完成，未形成积极判断。")
+            if not model_skipped_by_rule:
+                try:
+                    synthesis = ResearchSynthesizer(serenity_runner.llm_client).synthesize(
+                        theme, context, audit,
+                    )
+                    model_decision = synthesis.candidate_verdicts.get(symbol)
+                    if not isinstance(model_decision, dict):
+                        raise ValueError("missing_candidate_verdict")
+                    model_gaps = list(model_decision.get("evidence_gaps") or [])
+                except Exception:
+                    model_decision = None
+                    model_gaps.append("研究层综合未能完成，未形成积极判断。")
             llm_call_count = len(audit.call_diagnostics)
             model_call_diagnostics = [
                 dict(item) for item in audit.call_diagnostics if isinstance(item, dict)
@@ -2521,15 +2532,16 @@ def create_research_app(
         raw_verdict = model_decision.get("verdict") if isinstance(model_decision, dict) else None
         verdict = verdict_labels.get(raw_verdict, "等待更多证据")
         candidate_verdict_parsed = isinstance(raw_verdict, str) and raw_verdict in verdict_labels
-        deterministic_etf_valuation = (
-            etf_bundle["metrics"].get("trailing_dividend_yield_valuation")
-            if is_verified_etf else None
-        )
-        if not candidate_verdict_parsed and isinstance(deterministic_etf_valuation, dict):
-            verdict = (
-                f"{deterministic_etf_valuation['value']}"
-                "（仅510880自身现金分红收益率历史分位参考）"
-            )
+        if is_verified_etf:
+            # The model's verdict stays in diagnostics only; it never becomes or changes the page conclusion.
+            if valuation_conclusion.get("status") == "conclusive":
+                basis_note = {
+                    "own_dividend_yield": "仅510880自身现金分红收益率历史分位参考",
+                    "index_pe_pb": "跟踪指数PE/PB十年分位",
+                }.get(valuation_conclusion.get("basis"), "确定性估值规则")
+                verdict = f"{valuation_conclusion['label']}（{basis_note}）"
+            else:
+                verdict = valuation_conclusion["message"]
         safe_diagnostic_keys = {
             "call_id", "stage", "provider", "model", "status", "exception_class", "http_status",
             "provider_error_code", "timeout", "response_received", "parse_reached",
@@ -2542,7 +2554,9 @@ def create_research_app(
             for item in model_call_diagnostics
         ]
         last_call = model_call_diagnostics[-1] if model_call_diagnostics else {}
-        if not model_call_diagnostics:
+        if model_skipped_by_rule:
+            model_failure_reason = "not_called_by_rule"
+        elif not model_call_diagnostics:
             model_failure_reason = "model_call_not_recorded"
         elif last_call.get("status") != "success":
             model_failure_reason = (
@@ -2570,7 +2584,7 @@ def create_research_app(
         if safe_model_rationale:
             rationale = safe_model_rationale
         elif is_verified_etf:
-            rationale = _deterministic_etf_rationale(etf_bundle, raw_verdict)
+            rationale = _deterministic_etf_rationale(etf_bundle, valuation_conclusion["verdict"])
             rationale_source = "deterministic_etf_summary"
         elif security_type == "fund":
             rationale = "本次仅核验基金身份和有日期的行情，基金专属材料仍有缺口，先等待补充证据。"
@@ -2615,8 +2629,7 @@ def create_research_app(
         ), None)
         investment_assumption = None
         if is_verified_etf:
-            model_reason = str(model_decision.get("reason") or "") if isinstance(model_decision, dict) else ""
-            dividend_reason = any(token in model_reason for token in ("分红", "派息", "股息", "现金分配"))
+            dividend_reason = valuation_conclusion.get("basis") == "own_dividend_yield"
             if dividend_reason:
                 dividend_baseline = etf_bundle.get("investment_assumption")
                 if dividend_baseline:
@@ -2704,7 +2717,11 @@ def create_research_app(
                     "该结论只比较本ETF可得历史，不等同于指数估值，也不代表未来分红或回报。"
                 )
         return {
-            "status": "research_completed" if candidate_verdict_parsed else "research_unavailable",
+            "status": (
+                "research_completed"
+                if candidate_verdict_parsed or model_skipped_by_rule
+                else "research_unavailable"
+            ),
             "symbol": symbol,
             "name": name,
             "security_type": security_type,

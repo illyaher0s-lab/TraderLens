@@ -6,3 +6,13 @@ html,
 body {
   min-height: 100%;
 }
+
+/* Pages are designed with dark text on light surfaces; keep that contrast when the OS uses dark mode. */
+html {
+  color-scheme: light;
+}
+
+body {
+  background-color: #ffffff;
+  color: #171717;
+}

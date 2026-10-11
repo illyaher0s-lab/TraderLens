@@ -50,6 +50,106 @@ def _is_510880_dividend_valuation(symbol: str, index_code: str) -> bool:
     return symbol == "510880.SH" and index_code == "000015.SH"
 
 
+def _classify_etf_category(fund_type: object, benchmark: object) -> str:
+    """Classify only from the exact fund_basic type and full benchmark; never from the ETF name."""
+    kind = fund_type.strip() if isinstance(fund_type, str) else ""
+    basis = benchmark.strip() if isinstance(benchmark, str) else ""
+    if not kind or not basis:
+        return "unclassified"
+    if kind != "股票型":
+        return "other"
+    if "红利" in basis or "股息" in basis:
+        return "dividend"
+    if "医药" in basis or "证券公司" in basis:
+        return "industry"
+    if "沪深300指数" in basis:
+        return "broad"
+    return "unclassified"
+
+
+_ETF_PERCENTILE_BAND_NAMES = {
+    "low": "低位（≤20%）",
+    "middle": "中间档（20%–80%）",
+    "high": "高位（≥80%）",
+}
+
+
+def _etf_valuation_conclusion(
+    category: str,
+    *,
+    pe_percentile: float | None = None,
+    pb_percentile: float | None = None,
+    dividend_yield_percentile: float | None = None,
+) -> dict:
+    """Frozen card-013 ETF valuation rule; the only source of an ETF research conclusion."""
+    def valid(value: float | None) -> bool:
+        return (
+            isinstance(value, (int, float))
+            and math.isfinite(value)
+            and 0.0 <= value <= 100.0
+        )
+
+    def band(value: float) -> str:
+        if value <= 20.0:
+            return "low"
+        if value >= 80.0:
+            return "high"
+        return "middle"
+
+    def result(status, verdict, label, basis, message):
+        return {
+            "status": status,
+            "verdict": verdict,
+            "label": label,
+            "basis": basis,
+            "message": message,
+        }
+
+    if category not in {"broad", "dividend", "industry"}:
+        return result("not_supported", "research_unavailable", None, None, "该类型暂不提供估值判断")
+
+    if valid(pe_percentile) and valid(pb_percentile):
+        pe_band, pb_band = band(pe_percentile), band(pb_percentile)
+        if pe_band != pb_band:
+            return result(
+                "conclusive", "research_watch", "观察", "index_pe_pb",
+                f"跟踪指数PE十年分位处于{_ETF_PERCENTILE_BAND_NAMES[pe_band]}，"
+                f"PB十年分位处于{_ETF_PERCENTILE_BAND_NAMES[pb_band]}，两者分档冲突，观察。",
+            )
+        if pe_band == "low":
+            return result(
+                "conclusive", "research_positive", "相对偏便宜", "index_pe_pb",
+                "跟踪指数PE与PB十年分位均处于低位（≤20%），相对偏便宜。",
+            )
+        if pe_band == "high":
+            return result(
+                "conclusive", "research_reject", "相对偏贵", "index_pe_pb",
+                "跟踪指数PE与PB十年分位均处于高位（≥80%），相对偏贵。",
+            )
+        return result(
+            "conclusive", "research_watch", "中性", "index_pe_pb",
+            "跟踪指数PE与PB十年分位均处于中间档（20%–80%），中性。",
+        )
+
+    if category == "dividend" and valid(dividend_yield_percentile):
+        label = _trailing_yield_valuation_label(dividend_yield_percentile)
+        if dividend_yield_percentile >= 80.0:
+            verdict = "research_positive"
+        elif dividend_yield_percentile <= 20.0:
+            verdict = "research_reject"
+        else:
+            verdict = "research_watch"
+        return result(
+            "conclusive", verdict, label, "own_dividend_yield",
+            f"ETF自身已派付现金分红收益率历史分位{label}；仅与本ETF自身历史比较，不等同于指数估值。",
+        )
+
+    return result(
+        "data_gap", "research_unavailable", None, None,
+        "跟踪指数的估值数据未覆盖，暂不提供估值判断",
+    )
+
+
 def _etf_gap_categories(text: object) -> set[str]:
     """Map the small set of ETF evidence gaps to stable categories for deduplication."""
     if not isinstance(text, str):
@@ -352,6 +452,10 @@ class DataToolsService:
             "sources": sources,
             "gaps": gaps,
             "investment_assumption": None,
+            "category": "unclassified",
+            "fund_type": None,
+            "benchmark": None,
+            "valuation_conclusion": None,
         }
 
         if self._tushare is None:
@@ -405,7 +509,7 @@ class DataToolsService:
             row for row in etf_rows
             if row.get("list_status") in {None, "L"}
             and isinstance(row.get("index_code"), str)
-            and re.fullmatch(r"\d{6}\.(?:SH|SZ)", row["index_code"])
+            and row["index_code"].strip()
         ]
         if len(exact_etfs) != 1:
             if etf_rows:
@@ -413,7 +517,9 @@ class DataToolsService:
             return bundle
 
         etf = exact_etfs[0]
-        index_code = etf["index_code"]
+        index_code = etf["index_code"].strip()
+        # Commodity and other ETFs may track non-index benchmarks; only exact index codes get index valuation.
+        index_mapping_valid = bool(re.fullmatch(r"\d{6}\.(?:SH|SZ)", index_code))
         setup_date = self._parse_trade_date(etf.get("setup_date"))
         listing_date = self._parse_trade_date(etf.get("list_date")) or setup_date
         dividend_valuation_eligible = _is_510880_dividend_valuation(symbol, index_code)
@@ -575,6 +681,21 @@ class DataToolsService:
             ts_code=symbol,
             market="E",
         )
+        classified_fund = fund_rows[0] if len(fund_rows) == 1 else {}
+        fund_type = (
+            classified_fund.get("fund_type").strip()
+            if isinstance(classified_fund.get("fund_type"), str) else None
+        ) or None
+        benchmark = (
+            classified_fund.get("benchmark").strip()
+            if isinstance(classified_fund.get("benchmark"), str) else None
+        ) or None
+        category = _classify_etf_category(fund_type, benchmark)
+        bundle.update({"category": category, "fund_type": fund_type, "benchmark": benchmark})
+        if not fund_rows:
+            gaps.append("fund_basic未返回该代码的类型和业绩比较基准，ETF分类无法核验。")
+        elif category == "unclassified":
+            gaps.append("fund_basic类型或完整业绩比较基准未匹配固定ETF分类，不按名称猜测分类。")
         if fund_rows:
             fund = fund_rows[0]
             found_date = self._parse_trade_date(fund.get("found_date"))
@@ -1233,14 +1354,19 @@ class DataToolsService:
                 "gaps": [],
             })
 
-        index_rows = fetch(
-            "index_dailybasic",
-            "ts_code,trade_date,pe,pe_ttm,pb",
-            index_code,
-            ts_code=index_code,
-            start_date=start_10y.strftime("%Y%m%d"),
-            end_date=as_of_date.strftime("%Y%m%d"),
-        )
+        index_valuation_applicable = index_mapping_valid and category in {"broad", "dividend", "industry"}
+        if index_valuation_applicable:
+            index_rows = fetch(
+                "index_dailybasic",
+                "ts_code,trade_date,pe,pe_ttm,pb",
+                index_code,
+                ts_code=index_code,
+                start_date=start_10y.strftime("%Y%m%d"),
+                end_date=as_of_date.strftime("%Y%m%d"),
+            )
+        else:
+            statuses["index_dailybasic"] = "not_applicable"
+            index_rows = []
         if statuses.get("index_dailybasic") == "empty_no_rows":
             empty_gap = self._bundle_gap("index_dailybasic", "empty_no_rows")
             gaps[:] = [gap for gap in gaps if gap != empty_gap]
@@ -1349,7 +1475,7 @@ class DataToolsService:
                 ),
                 "gaps": [index_valuation_gap],
             })
-        elif statuses.get("index_dailybasic"):
+        elif index_valuation_applicable and statuses.get("index_dailybasic"):
             sources.append({
                 "source_record_id": f"index_dailybasic:{index_code}:0",
                 "endpoint": "index_dailybasic",
@@ -1364,7 +1490,8 @@ class DataToolsService:
                     if "index_dailybasic" in gap or ("指数" in gap and "估值" in gap)
                 ],
             })
-        gaps.append("Tushare index_dailybasic没有股息率字段；底层指数股息率不可由本接口核验。")
+        if index_valuation_applicable:
+            gaps.append("Tushare index_dailybasic没有股息率字段；底层指数股息率不可由本接口核验。")
 
         if dividend_valuation_eligible:
             yield_percentile = metrics["trailing_dividend_yield_percentile_10y"]
@@ -1413,6 +1540,19 @@ class DataToolsService:
                 ),
                 "gaps": [],
             })
+        pe_percentile = metrics["underlying_pe_percentile_10y"]
+        pb_percentile = metrics["underlying_pb_percentile_10y"]
+        # The own-yield substitute exists only for 510880 with index PE/PB missing (card 012 boundary).
+        own_yield_valuation = metrics.get("trailing_dividend_yield_valuation")
+        bundle["valuation_conclusion"] = _etf_valuation_conclusion(
+            category,
+            pe_percentile=pe_percentile.get("value") if isinstance(pe_percentile, dict) else None,
+            pb_percentile=pb_percentile.get("value") if isinstance(pb_percentile, dict) else None,
+            dividend_yield_percentile=(
+                own_yield_valuation.get("percentile")
+                if isinstance(own_yield_valuation, dict) else None
+            ),
+        )
         bundle["gaps"] = list(dict.fromkeys(gaps))
         return bundle
 

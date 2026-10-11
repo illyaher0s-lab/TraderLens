@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { ensurePositionMarketCheck } from "@/lib/position-market-monitor";
 import TopNav from "@/components/TopNav";
 import {
@@ -11,6 +11,7 @@ import {
   formatFactValue,
   formatHistoricalPercentile,
   formatMeanAmount,
+  isSingleSecurityResultForCode,
 } from "@/lib/single-security-format";
 
 type NumericFact = {
@@ -46,6 +47,7 @@ interface SingleSecurityResearch {
   not_applicable?: string[];
   numeric_facts: NumericFact[];
   evidence_gaps: string[];
+  research_diagnostic?: { failure_reason?: string | null } | null;
 }
 
 export default function HomePage() {
@@ -54,6 +56,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tip, setTip] = useState<string | null>(null);
+  const inputCodeRef = useRef("");
+  const requestVersionRef = useRef(0);
 
   useEffect(() => {
     ensurePositionMarketCheck().then((response) => {
@@ -139,6 +143,8 @@ export default function HomePage() {
 
   async function researchSecurity(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const submittedCode = code;
+    const requestVersion = ++requestVersionRef.current;
     setLoading(true);
     setError(null);
     setResult(null);
@@ -147,17 +153,24 @@ export default function HomePage() {
       const response = await fetch(`${apiBase}/api/research/single-security`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code: submittedCode }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new Error(payload.detail || "研究暂不可用，请稍后重试。");
       }
-      setResult(payload as SingleSecurityResearch);
+      if (!isSingleSecurityResultForCode(submittedCode, payload.symbol)) {
+        throw new Error("返回证券身份与本次输入不一致，结果未展示。");
+      }
+      if (requestVersionRef.current === requestVersion && inputCodeRef.current === submittedCode) {
+        setResult(payload as SingleSecurityResearch);
+      }
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "研究暂不可用，请稍后重试。");
+      if (requestVersionRef.current === requestVersion && inputCodeRef.current === submittedCode) {
+        setError(requestError instanceof Error ? requestError.message : "研究暂不可用，请稍后重试。");
+      }
     } finally {
-      setLoading(false);
+      if (requestVersionRef.current === requestVersion) setLoading(false);
     }
   }
 
@@ -166,7 +179,7 @@ export default function HomePage() {
       <TopNav tip={tip} />
       <main className="mx-auto flex min-h-screen max-w-6xl flex-col gap-6 px-6 py-8">
 
-      <section className="max-w-3xl rounded-lg border border-slate-200 bg-white p-5">
+      <section id="research" className="max-w-3xl scroll-mt-6 rounded-lg border border-slate-200 bg-white p-5">
         <h2 className="text-lg font-semibold text-slate-900">研究一只股票或 ETF</h2>
         <p className="mt-1 text-sm text-slate-600">输入六位代码，查看带来源和日期的研究结果。</p>
         <form className="mt-4 flex flex-wrap items-end gap-3" onSubmit={researchSecurity}>
@@ -180,7 +193,15 @@ export default function HomePage() {
               maxLength={6}
               pattern="[0-9]{6}"
               value={code}
-              onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))}
+              onChange={(event) => {
+                const nextCode = event.target.value.replace(/\D/g, "").slice(0, 6);
+                inputCodeRef.current = nextCode;
+                requestVersionRef.current += 1;
+                setCode(nextCode);
+                setResult(null);
+                setError(null);
+                setLoading(false);
+              }}
               placeholder="例如 510880"
               className="rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-slate-500"
             />
@@ -201,6 +222,11 @@ export default function HomePage() {
             {result.status === "research_unavailable" && (
               <p role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-800">
                 AI总结暂不可用。以下确定性计算与已核验资料仍照常展示；未形成AI综合研究判断。
+              </p>
+            )}
+            {result.research_diagnostic?.failure_reason === "not_called_by_rule" && (
+              <p role="note" className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+                该类型按规则不调用AI
               </p>
             )}
             <div>

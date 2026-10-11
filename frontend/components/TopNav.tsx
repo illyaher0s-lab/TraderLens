@@ -9,13 +9,16 @@ export default function TopNav({ tip }: { tip?: string | null }) {
             TraderLens
           </Link>
           <Link href="/" className="text-sm text-slate-600 hover:text-slate-900">
-            首页
+            今天
           </Link>
           <Link href="/trades/record" className="text-sm text-slate-600 hover:text-slate-900">
             记录成交
           </Link>
           <Link href="/observations" className="text-sm text-slate-600 hover:text-slate-900">
             我的持仓
+          </Link>
+          <Link href="/#research" className="text-sm text-slate-600 hover:text-slate-900">
+            研究
           </Link>
         </div>
         {tip && (
