@@ -1,93 +1,40 @@
 # TraderLens
 
-A-share research, candidate selection, strategy validation, and action-planning workspace.
+面向 Illya 的单人 A 股投资研究与交易记录 Web 应用，当前产品主线以 ETF 为主。券商交易由 Illya 自行执行；TraderLens 不连接券商下单接口。
 
-## Current Reality
+## 当前产品入口
 
-**Product Entry Point**: `/themes` (Research Module)
+以下是当前代码中的页面入口。路由存在不等于该功能已通过 Illya 本人验收。
 
-**Latest verification milestone**: B4 Event-Driven Backtest Verification is complete. See [docs/verification/B4_VERIFICATION.md](docs/verification/B4_VERIFICATION.md).
+| 用途 | 页面 |
+|---|---|
+| 今天与单标的研究 | `/`，研究区位于 `/#research`，可输入股票或 ETF 六位代码并查看带来源和日期的结果 |
+| 记录成交 | `/trades/record` |
+| 我的持仓 | `/observations` |
+| 研究记录 | `/research` 与研究详情页 |
+| 策略验证 | `/strategy-validations`；入口/引擎仍需按主线计划核验 |
 
-B4 is an offline backtest correctness layer. It does not prove profitability, does not run B5 OOS, does not pass Gate, does not promote to `prototype_passed`, and does not make the system live-trading ready.
+`/themes` 旧主题研究路由仍在代码中，但不是当前导航或主线入口。`/workbench` AI 对话路由保留，暂未放入导航，等待双入口验收。
 
-The full product chain is:
+## 当前交付状态
 
-```text
-Theme input (manual / market scan)
-  -> Serenity industry-chain bottleneck analysis
-  -> data validation + hard filters
-  -> Evidence Agent evidence and falsification
-  -> human confirmation
-  -> confirmed_candidate_pool (forward-only)
-  -> Hypothesis Builder (future)
-  -> strategy_core
-  -> prototype backtest
-  -> Signal Board / Action Plan
-```
+- 主线计划登记为阶段 6｜卡 013，累计 **13/20**。卡 013 已有实现提交，但 Illya 本人验收仍待完成。
+- 卡 014 有单独提交；是否另占 20 卡预算待 Illya 确认，不按卡号推算。
+- BACKLOG #18 的正式账本路径仍待只读核实。本 README 不代表应用、实时行情或模型调用已在当前环境通过运行验收；核实前不应据此推断可安全连接正式账本。
+- B4 是历史回测正确性验证记录，不代表当前应用验收、策略通过或盈利证明。
 
-## Current Product Mainline
+## 产品边界
 
-**当前整体产品路线**按单标的研究、实际成交记录、持仓复盘、策略验证、有限发现和整体验收分阶段推进，见 [TraderLens_MAINLINE_PLAN.md](TraderLens_MAINLINE_PLAN.md)。Replay-001 已归入[历史计划归档](docs/archive/2026-10-07/TraderLens_PRODUCT_MAINLINE_PLAN.md)。用户确认的未来策略目标仍保存在归档版“未来策略目标与 Discovery 预算”一节，未来 Discovery 前须重审并冻结。
+- AI 辅助研究与解释；行情、财务、仓位、交易成本、收益和策略资格以可追溯数据及确定性规则为准。
+- 计划、模拟成交与实际成交必须区分；未知费用、数据缺口和证据不足必须明示。
+- 系统不自动下单，不承诺收益；没有已验证策略时，不应把研究结论包装成买卖许可。
 
-Gate001 remains a historical research record with saved verdict `insufficient_evidence`. The final report review covered historical display and offline economic reconciliation; a separate independent supplemental audit passed the main scenario's seven trade legs and account reconciliation. The original capture status remains preserved, and three exit signal contexts are derived from persisted orders. See [Gate001 protocol and closeout](TraderLens_MAINLINE_ALPHA_PLAN.md), [final research report](docs/verification/GATE001_FINAL_RESEARCH_REPORT.md), [supplemental saved-capture audit](docs/verification/GATE001_SAVED_CAPTURE_AUDIT.json), and [trial/exposure ledger](docs/verification/GATE001_TRIALS.jsonl).
+## 项目文档
 
-**Implemented**:
-- ✅ Research Module (Theme input → Serenity → Evidence → Confirmation)
-- ✅ Signal Board (Strategy signals → Human review)
-- ✅ Data Layer (Frozen snapshots + Tushare integration)
-- ✅ Strategy Core (Signal generation, no auto-execution)
-
-**What the Research Module does**:
-- Create research themes
-- Add manual stocks or run Serenity to find candidates
-- Run hard filters (ST, suspended, low liquidity)
-- Run Evidence light-check (support/falsify/conflict evidence)
-- Confirm candidates into forward-only pool
-- Conversation interface with pending action workflow
-- Board as single source of truth (AI proposes, human applies)
-
-**What it cannot do**:
-- Trading decisions or buy/sell recommendations
-- Strategy ranking
-- Automatic broker execution
-- Agent-driven state mutation
-
-## Important Documents
-
-**Core documents (read first)**:
-1. [TraderLens_Northstar.md](TraderLens_Northstar.md) - Long-term direction and boundaries
-2. [TraderLens_MAINLINE_PLAN.md](TraderLens_MAINLINE_PLAN.md) - Current overall route
-3. [AGENTS.md](AGENTS.md) - Project execution rules
-4. [docs/verification/B4_VERIFICATION.md](docs/verification/B4_VERIFICATION.md) - Historical B4 verification, guarantees, boundaries, and test record
-5. [docs/phases/HANDOFF_B4.md](docs/phases/HANDOFF_B4.md) - Historical B4 handoff context
-6. [status.md](status.md) - 2026-06-27 B4 historical baseline; not current application acceptance
-
-**Phase documentation**:
-- [docs/phases/](docs/phases/) - Historical phase plans and reports
-
-**Design documents**:
-- [docs/design/MVP-V1-Design.md](docs/design/MVP-V1-Design.md)
-- [docs/design/QUICK-REFERENCE.md](docs/design/QUICK-REFERENCE.md)
-- [docs/design/Part2-Evidence-Agent.md](docs/design/Part2-Evidence-Agent.md)
-- [docs/design/Part2-3-Hypothesis-Builder.md](docs/design/Part2-3-Hypothesis-Builder.md)
-- [docs/design/Part4-Data-Web.md](docs/design/Part4-Data-Web.md)
-- [docs/design/Part5-Milestones.md](docs/design/Part5-Milestones.md)
-- [docs/contracts/](docs/contracts/) - API contracts
-
-## Development Commands
-
-```powershell
-# Frontend type check
-node_modules\.bin\tsc.cmd -p frontend --noEmit
-
-# Python tests
-.venv\Scripts\python.exe -m pytest tests/ -x --tb=short -q
-```
-
-## Constraints
-
-- Do not turn research output into buy/sell recommendations.
-- Do not let LLMs generate trading signals, calculate PnL, or decide execution.
-- Evidence can affect candidate pools, not entry/exit signal rules.
-- `strategy_core` remains the deterministic execution layer.
-- Signal Board is not the product entry point; it is the downstream action-plan surface.
+- [Northstar：产品目标与边界](TraderLens_Northstar.md)
+- [产品总主线计划与当前进度](TraderLens_MAINLINE_PLAN.md)
+- [BACKLOG：待验收项与阻塞](docs/BACKLOG.md)
+- [项目执行规则](AGENTS.md)
+- [文档索引与历史验证记录](docs/INDEX.md)
+- [Gate001 历史研究报告](docs/verification/GATE001_FINAL_RESEARCH_REPORT.md)
+- [B4 历史验证记录](docs/verification/B4_VERIFICATION.md)

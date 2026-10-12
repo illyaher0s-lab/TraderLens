@@ -2,9 +2,9 @@
 
 This index intentionally excludes Signal Board process docs and milestone closeout notes.
 
-## Latest Verification
+## Historical Verification (not current product acceptance)
 
-- `verification/B4_VERIFICATION.md` - B4 event-driven backtest verification. B4 is correctness/future-data protection only; it is not profitability proof, B5 OOS, Gate pass, promotion, Signal Board output, or live trading readiness.
+- `verification/B4_VERIFICATION.md` - Historical B4 event-driven backtest verification. B4 is correctness/future-data protection only; it is not profitability proof, B5 OOS, Gate pass, promotion, current app acceptance, or live trading readiness.
 - `../status.md` - 2026-06-27 B4 historical baseline; does not represent current application acceptance.
 - `verification/B3_VERIFICATION.md` - B3 point-in-time data protocol verification.
 - `verification/B2_VERIFICATION.md` - B2 hypothesis builder verification.
@@ -12,12 +12,11 @@ This index intentionally excludes Signal Board process docs and milestone closeo
 ## Current Product Mainline and Gate001 History
 
 - `../TraderLens_MAINLINE_PLAN.md` - current overall six-stage product route.
+- `BACKLOG.md` - current pending work and verification boundaries.
 - `archive/2026-10-07/TraderLens_PRODUCT_MAINLINE_PLAN.md` - archived Replay-001 topic; confirmed future strategy targets remain in its future-goals section.
-- `../TraderLens_MAINLINE_ALPHA_PLAN.md` - archived Gate001 V1 protocol and evidence-status closeout; frozen rules remain unchanged.
-- `verification/GATE001_FINAL_RESEARCH_REPORT.md` - saved `insufficient_evidence` result; independent acceptance is limited to historical display and offline economic reconciliation.
+- `verification/GATE001_FINAL_RESEARCH_REPORT.md` - historical saved `insufficient_evidence` result; independent acceptance is limited to historical display and offline economic reconciliation, not current strategy or product acceptance.
 - `verification/GATE001_SAVED_CAPTURE_AUDIT.json` - independently accepted supplemental audit for the primary scenario's seven trade legs and account reconciliation; three exit contexts are derived from persisted orders, and the original capture history remains intact.
 - `verification/GATE001_TRIALS.jsonl` - Gate001 attempt ledger and recorded Holdout-exposure event; that event does not change research counters.
-- `../data/alpha_gate_001/GATE001_PROTOCOL_V1_20261005_a94b1e3f6d6a46af87894e0269777a32.json` - frozen Gate001 protocol source.
 
 ## Read First
 
@@ -34,34 +33,17 @@ Historical phase plans, reports, and handoffs:
 - `phases/A_MODULE_PLAN.md` - A Module (Selection Research) plan
 - `phases/WORK_REPORT_2026-06-25.md` - Work report
 
-## Research Module (NEW - 2026-06-23)
+## Current Web Routes in Source
 
-**Product Entry Point**: `/themes`
+These paths describe routes present in the current source tree; route presence alone does not establish runtime readiness or owner acceptance.
 
-The research module is the upstream candidate-selection workflow:
-
-- Theme creation and management
-- Manual stock input or Serenity candidate generation
-- Hard filters (ST, suspended, liquidity)
-- Evidence light-check (support/falsify/conflict)
-- Human confirmation into forward-only pool
-- Conversation interface with pending action workflow
-- Board-version optimistic concurrency control
-
-**Key Principle**: AI proposes, human applies. Board is the only source of truth.
-
-**Components**:
-- `contracts/research.py` - Data models
-- `backend/db/research.py` - SQLite persistence
-- `backend/services/research_action_reducer.py` - State machine
-- `backend/services/research_conversation.py` - Conversation service
-- `backend/services/serenity_stub.py` - Serenity runner (stub)
-- `backend/services/evidence_light.py` - Evidence runner (light-check)
-- `backend/api/research.py` - API routes
-- `frontend/app/themes/` - Frontend pages
-- `frontend/lib/research-api-client.ts` - API client
-
-**Tests**: 59 tests in `tests/test_research*.py`
+- `/` and `/#research` - today page and single-stock/ETF research (`../frontend/app/page.tsx`).
+- `/trades/record` - record-trade page (`../frontend/app/trades/record/page.tsx`).
+- `/observations` - holdings and observations page (`../frontend/app/observations/page.tsx`).
+- `/research` and `/research/[research_id]` - research list and detail routes.
+- `/strategy-validations` - strategy validation route; current entry/engine still requires verification under the mainline.
+- `/themes` remains as an older theme route; it is not the current navigation entry.
+- `/workbench` remains in source but is hidden from navigation pending Agent dual-entry acceptance.
 
 ## Core Product Design
 
