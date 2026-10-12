@@ -42,6 +42,10 @@ Thumbs.db
 *.tsbuildinfo
 nul
 
+# Local-only agent artifacts
+/.workbuddy/
+/SUPERVISOR_HANDOFF.md
+
 # Test temporary directories
 .pytest-temp*/
 *tmp/
