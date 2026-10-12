@@ -49,3 +49,7 @@ nul
 # Test temporary directories
 .pytest-temp*/
 *tmp/
+
+# Historical verification artifacts
+/screenshots/
+/coverage_run.log

@@ -1,5 +1,7 @@
 # P2-1 Git Diff 证据
 
+> 历史附件说明（2026-10-12）：本报告引用的 P1-3 截图及 JSON 附件已从当前分支清理；报告结果与结论未变。原始附件可从[清理前提交](https://github.com/illyaher0s-lab/TraderLens/tree/c53182ef7c19f5644e78704e495f59fba9b92d03/screenshots)恢复。
+
 ## 变更统计
 
 ```bash

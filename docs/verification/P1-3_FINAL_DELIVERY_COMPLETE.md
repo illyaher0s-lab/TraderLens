@@ -1,5 +1,7 @@
 # P1-3 Workbench 状态诚实化 - 最终交付（补充修复）
 
+> 历史附件说明（2026-10-12）：本报告引用的 P1-3 截图及 JSON 附件已从当前分支清理；报告结果与结论未变。原始附件可从[清理前提交](https://github.com/illyaher0s-lab/TraderLens/tree/c53182ef7c19f5644e78704e495f59fba9b92d03/screenshots)恢复。
+
 ## 任务目标
 
 修复 P1-3 Test 3 blocker：第三轮"帮我看看"必须承接上一轮已验证股票，路由到 friend_stock，而不是 unknown/stopped。
