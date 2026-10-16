@@ -306,13 +306,18 @@ def _provider_code_from_chain(exc) -> str | None:
     return None
 
 
-def _reserve_decision_loop_call(decision_loop_id: str) -> bool:
+def _reserve_decision_loop_call(
+    decision_loop_id: str,
+    reserved_attempts: int = 0,
+) -> str | None:
     with _DECISION_LOOP_CALLS_LOCK:
         used = _DECISION_LOOP_CALLS.get(decision_loop_id, 0)
         if used >= _CALL_LIMIT_PER_LOOP:
-            return False
+            return "decision_loop_budget_exhausted"
+        if used >= _CALL_LIMIT_PER_LOOP - reserved_attempts:
+            return "decision_loop_budget_reserved"
         _DECISION_LOOP_CALLS[decision_loop_id] = used + 1
-        return True
+        return None
 
 
 class LLMCallResult(dict):
@@ -378,6 +383,7 @@ class LLMClient:
         source_count: int | None = None,
         timeout: float | None = None,
         tool_choice: dict[str, Any] | None = None,
+        reserved_attempts: int = 0,
     ) -> dict[str, Any]:
         """
         Create a message with the LLM.
@@ -393,19 +399,17 @@ class LLMClient:
             stage: V2 stage label for latency telemetry.
             timeout: Optional per-request timeout override; None uses the
                 timeout configured when the client was created.
+            reserved_attempts: Loop slots to keep available for a later call.
 
         Returns:
             Response dict with content, tool_use, and usage
 
         Raises:
-            ValueError: If API call fails, budget exhausted (4th call in a
-                loop), or concurrency exhausted (more than 2 simultaneous).
+            ValueError: If the API call fails, a loop attempt is rejected by
+            its budget, or concurrency is exhausted (more than 2 simultaneous).
         """
-        # Each provider attempt, including a timeout retry, consumes a loop slot.
-        if decision_loop_id is not None:
-            with _DECISION_LOOP_CALLS_LOCK:
-                if _DECISION_LOOP_CALLS.get(decision_loop_id, 0) >= _CALL_LIMIT_PER_LOOP:
-                    raise ValueError("llm_budget_exhausted")
+        if type(reserved_attempts) is not int or not 0 <= reserved_attempts <= _CALL_LIMIT_PER_LOOP:
+            raise ValueError("reserved_attempts_invalid")
 
         # --- V2 process-wide concurrency guard: at most 2 simultaneous ---
         acquired = _PROCESS_SEMAPHORE.acquire(timeout=0)
@@ -454,11 +458,32 @@ class LLMClient:
             response = None
             last_exception = None
             for attempt_number in range(1, _MAX_TIMEOUT_RETRIES + 2):
-                if decision_loop_id is not None and not _reserve_decision_loop_call(decision_loop_id):
-                    diagnostic["retry_stop_reason"] = "decision_loop_budget_exhausted"
+                reservation_failure = (
+                    _reserve_decision_loop_call(decision_loop_id, reserved_attempts)
+                    if decision_loop_id is not None else None
+                )
+                if reservation_failure is not None:
+                    diagnostic["retry_stop_reason"] = reservation_failure
+                    diagnostic["failure_stage"] = (
+                        "timeout_retry_budget" if last_exception is not None else "decision_loop_budget"
+                    )
+                    diagnostic["failure_type"] = reservation_failure
                     if last_exception is not None:
+                        _log_failure_event(
+                            diagnostic,
+                            event="llm_attempt_failed",
+                            attempt=attempt_number - 1,
+                            status="timeout",
+                            retrying=False,
+                        )
+                        failure_events_logged += 1
                         raise last_exception
-                    raise ValueError("llm_budget_exhausted")
+                    error_reason = (
+                        "llm_budget_reserved"
+                        if reservation_failure == "decision_loop_budget_reserved"
+                        else "llm_budget_exhausted"
+                    )
+                    raise ValueError(error_reason)
 
                 attempt_started = time.perf_counter()
                 diagnostic["attempt_count"] += 1
@@ -520,12 +545,18 @@ class LLMClient:
                         raise
                     if decision_loop_id is not None:
                         with _DECISION_LOOP_CALLS_LOCK:
-                            has_loop_budget = (
-                                _DECISION_LOOP_CALLS.get(decision_loop_id, 0)
-                                < _CALL_LIMIT_PER_LOOP
+                            used = _DECISION_LOOP_CALLS.get(decision_loop_id, 0)
+                            retry_stop_reason = (
+                                "decision_loop_budget_exhausted"
+                                if used >= _CALL_LIMIT_PER_LOOP
+                                else "decision_loop_budget_reserved"
+                                if used >= _CALL_LIMIT_PER_LOOP - reserved_attempts
+                                else None
                             )
-                        if not has_loop_budget:
-                            diagnostic["retry_stop_reason"] = "decision_loop_budget_exhausted"
+                        if retry_stop_reason is not None:
+                            diagnostic["retry_stop_reason"] = retry_stop_reason
+                            diagnostic["failure_stage"] = "timeout_retry_budget"
+                            diagnostic["failure_type"] = retry_stop_reason
                             _log_failure_event(
                                 diagnostic,
                                 event="llm_attempt_failed",

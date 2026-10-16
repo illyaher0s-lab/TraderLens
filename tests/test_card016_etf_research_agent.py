@@ -581,3 +581,306 @@ def test_v22_finish_rejects_evidence_without_a_source_id():
     assert diagnostic["failure_type"] == "ValidationError"
     assert "layers[0].supporting_evidence[0].source_ids" in diagnostic["schema_error_paths"]
     assert result["tool_trace"][0]["status"] == "invalid_result"
+
+
+def _offline_sdk_tool_response(name, tool_input, call_number):
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        id=f"offline-message-{call_number}",
+        model="offline-test-model",
+        role="assistant",
+        stop_reason="tool_use",
+        content=[SimpleNamespace(
+            type="tool_use",
+            id=f"offline-tool-{call_number}",
+            name=name,
+            input=tool_input,
+        )],
+        usage=SimpleNamespace(input_tokens=1, output_tokens=1),
+    )
+
+
+def _offline_sdk_llm_client(monkeypatch, responder):
+    from types import SimpleNamespace
+    from backend.services.llm_client import LLMClient
+
+    class OfflineMessages:
+        def __init__(self):
+            self.calls = []
+
+        def create(self, **kwargs):
+            self.calls.append(kwargs)
+            result = responder(kwargs, len(self.calls))
+            if isinstance(result, BaseException):
+                raise result
+            return result
+
+    messages = OfflineMessages()
+    provider = SimpleNamespace(messages=messages)
+    monkeypatch.setattr("backend.services.llm_client.Anthropic", lambda **_kwargs: provider)
+    monkeypatch.setattr("backend.services.llm_client.time.sleep", lambda _seconds: None)
+    client = LLMClient(
+        api_key="offline-test-key",
+        base_url="https://offline.invalid",
+        model="offline-test-model",
+    )
+    return client, messages
+
+
+def test_v22_actual_llm_client_preserves_finish_attempt_after_nonfinal_timeout(monkeypatch):
+    import json
+    from anthropic import APITimeoutError
+    from httpx import Request
+    from backend.services.llm_client import _CALL_LIMIT_PER_LOOP, _DECISION_LOOP_CALLS
+
+    start, end = _recent_news_window()
+    read_input = {
+        "hypothesis": "核对底层资产与产品资料是否支持当前研究假设。",
+        "evidence_need": "读取已核验指数及 ETF 证据。",
+        "scopes": ["underlying_assets", "etf_product"],
+    }
+    search_input = {
+        "hypothesis": "核对已有研究假设是否有近期变化。",
+        "evidence_need": "补充近期新闻 feed 线索。",
+        "start_date": start,
+        "end_date": end,
+    }
+    final = _final_response("fund_basic:510880.SH:0")
+    timeout = APITimeoutError(request=Request(
+        "POST", "https://offline.invalid/v1/messages?access_token=offline-secret-sentinel",
+    ))
+
+    def respond(kwargs, call_number):
+        if call_number == 1:
+            return _offline_sdk_tool_response("read_etf_evidence", read_input, call_number)
+        if call_number == 2:
+            return timeout
+        if [tool["name"] for tool in kwargs["tools"]] == ["finish_research"]:
+            return _offline_sdk_tool_response("finish_research", final, call_number)
+        return _offline_sdk_tool_response("search_news", search_input, call_number)
+
+    llm, sdk = _offline_sdk_llm_client(monkeypatch, respond)
+    news = NewsClient([])
+    audit = SerenityAgentAudit()
+    prior_loops = set(_DECISION_LOOP_CALLS)
+
+    result = _run_v22(llm, DataToolsService(tushare_client=news), audit)
+
+    new_loops = set(_DECISION_LOOP_CALLS) - prior_loops
+    assert len(new_loops) == 1
+    loop_id = new_loops.pop()
+    assert _CALL_LIMIT_PER_LOOP == 3
+    assert _DECISION_LOOP_CALLS[loop_id] == 3
+    assert len(sdk.calls) == 3
+    assert result["status"] == "success"
+    assert [entry["tool"] for entry in result["tool_trace"]] == [
+        "read_etf_evidence", "finish_research",
+    ]
+    assert result["tool_trace"][-1]["status"] == "submitted"
+    assert news.calls == []
+    timeout_diagnostic = audit.call_diagnostics[1]
+    assert timeout_diagnostic["attempt_count"] == 1
+    assert timeout_diagnostic["retry_count"] == 0
+    assert timeout_diagnostic["retry_stop_reason"] == "decision_loop_budget_reserved"
+    assert timeout_diagnostic["failure_stage"] == "timeout_retry_budget"
+    assert timeout_diagnostic["failure_type"] == "decision_loop_budget_reserved"
+    assert sum(call["attempt_count"] for call in audit.call_diagnostics) == 3
+    assert "offline-secret-sentinel" not in json.dumps(audit.call_diagnostics)
+
+
+def test_v22_first_turn_timeout_retry_success_reserves_final_attempt(monkeypatch):
+    from anthropic import APITimeoutError
+    from httpx import Request
+    from backend.services.llm_client import _CALL_LIMIT_PER_LOOP, _DECISION_LOOP_CALLS
+
+    read_input = {
+        "hypothesis": "核对底层资产与产品资料是否支持当前研究假设。",
+        "evidence_need": "读取已核验指数及 ETF 证据。",
+        "scopes": ["underlying_assets", "etf_product"],
+    }
+    final = _final_response("fund_basic:510880.SH:0")
+    timeout = APITimeoutError(request=Request("POST", "https://offline.invalid/v1/messages"))
+
+    def respond(kwargs, call_number):
+        if call_number == 1:
+            return timeout
+        if call_number == 2:
+            return _offline_sdk_tool_response("read_etf_evidence", read_input, call_number)
+        if [tool["name"] for tool in kwargs["tools"]] == ["finish_research"]:
+            return _offline_sdk_tool_response("finish_research", final, call_number)
+        start, end = _recent_news_window()
+        return _offline_sdk_tool_response("search_news", {
+            "hypothesis": "核对近期变化。",
+            "evidence_need": "查询近期新闻 feed。",
+            "start_date": start,
+            "end_date": end,
+        }, call_number)
+
+    llm, sdk = _offline_sdk_llm_client(monkeypatch, respond)
+    news = NewsClient([])
+    audit = SerenityAgentAudit()
+    prior_loops = set(_DECISION_LOOP_CALLS)
+
+    result = _run_v22(llm, DataToolsService(tushare_client=news), audit)
+
+    new_loops = set(_DECISION_LOOP_CALLS) - prior_loops
+    assert len(new_loops) == 1
+    assert _DECISION_LOOP_CALLS[new_loops.pop()] == _CALL_LIMIT_PER_LOOP == 3
+    assert len(sdk.calls) == 3
+    assert result["status"] == "success"
+    assert [entry["tool"] for entry in result["tool_trace"]] == [
+        "read_etf_evidence", "finish_research",
+    ]
+    assert news.calls == []
+    assert audit.call_diagnostics[0]["attempt_count"] == 2
+    assert audit.call_diagnostics[0]["retry_count"] == 1
+    reserved = audit.call_diagnostics[1]
+    assert reserved["attempt_count"] == 0
+    assert reserved["retry_stop_reason"] == "decision_loop_budget_reserved"
+    assert [tool["name"] for tool in sdk.calls[-1]["tools"]] == ["finish_research"]
+    assert sum(call["attempt_count"] for call in audit.call_diagnostics) == 3
+
+
+def test_v22_actual_llm_client_completes_read_news_finish_with_three_attempts(monkeypatch):
+    from backend.services.llm_client import _CALL_LIMIT_PER_LOOP, _DECISION_LOOP_CALLS
+
+    start, end = _recent_news_window()
+    published_at = (datetime.fromisoformat(start) + timedelta(minutes=1)).strftime("%Y-%m-%d %H:%M:%S")
+    read_input = {
+        "hypothesis": "核对底层资产与产品资料是否支持当前研究假设。",
+        "evidence_need": "读取已核验指数及 ETF 证据。",
+        "scopes": ["underlying_assets", "etf_product"],
+    }
+    news_input = {
+        "hypothesis": "核对已有研究假设是否有近期变化。",
+        "evidence_need": "补充近期新闻 feed 线索。",
+        "start_date": start,
+        "end_date": end,
+    }
+    final = _final_response("tushare_news:feed:2:0")
+    responses = [
+        ("read_etf_evidence", read_input),
+        ("search_news", news_input),
+        ("finish_research", final),
+    ]
+
+    def respond(_kwargs, call_number):
+        name, tool_input = responses[call_number - 1]
+        return _offline_sdk_tool_response(name, tool_input, call_number)
+
+    llm, sdk = _offline_sdk_llm_client(monkeypatch, respond)
+    news = NewsClient([{"title": "新闻标题", "content": "新闻正文", "datetime": published_at}])
+    audit = SerenityAgentAudit()
+    prior_loops = set(_DECISION_LOOP_CALLS)
+
+    result = _run_v22(llm, DataToolsService(tushare_client=news), audit)
+
+    new_loops = set(_DECISION_LOOP_CALLS) - prior_loops
+    assert len(new_loops) == 1
+    assert _DECISION_LOOP_CALLS[new_loops.pop()] == _CALL_LIMIT_PER_LOOP == 3
+    assert len(sdk.calls) == 3
+    assert [entry["tool"] for entry in result["tool_trace"]] == [
+        "read_etf_evidence", "search_news", "finish_research",
+    ]
+    assert result["status"] == "success", {
+        "failure_reason": result.get("failure_reason"),
+        "tool_trace": result.get("tool_trace"),
+        "diagnostic": audit.call_diagnostics[-1] if audit.call_diagnostics else None,
+    }
+    assert result["tool_trace"][-1]["status"] == "submitted"
+    assert len(news.calls) == 1
+    assert [tool["name"] for tool in sdk.calls[-1]["tools"]] == ["finish_research"]
+
+
+def test_v22_final_finish_timeout_at_attempt_limit_returns_existing_trace(monkeypatch):
+    from anthropic import APITimeoutError
+    from httpx import Request
+    from backend.services.llm_client import _CALL_LIMIT_PER_LOOP, _DECISION_LOOP_CALLS
+
+    start, end = _recent_news_window()
+    published_at = (datetime.fromisoformat(start) + timedelta(minutes=1)).strftime("%Y-%m-%d %H:%M:%S")
+    read_input = {
+        "hypothesis": "核对底层资产与产品资料是否支持当前研究假设。",
+        "evidence_need": "读取已核验指数及 ETF 证据。",
+        "scopes": ["underlying_assets", "etf_product"],
+    }
+    news_input = {
+        "hypothesis": "核对已有研究假设是否有近期变化。",
+        "evidence_need": "补充近期新闻 feed 线索。",
+        "start_date": start,
+        "end_date": end,
+    }
+    timeout = APITimeoutError(request=Request("POST", "https://offline.invalid/v1/messages"))
+    responses = [
+        ("read_etf_evidence", read_input),
+        ("search_news", news_input),
+        timeout,
+    ]
+
+    def respond(_kwargs, call_number):
+        response = responses[call_number - 1]
+        if isinstance(response, BaseException):
+            return response
+        name, tool_input = response
+        return _offline_sdk_tool_response(name, tool_input, call_number)
+
+    llm, sdk = _offline_sdk_llm_client(monkeypatch, respond)
+    news = NewsClient([{
+        "title": "新闻标题", "content": "新闻正文", "datetime": published_at,
+    }])
+    audit = SerenityAgentAudit()
+    prior_loops = set(_DECISION_LOOP_CALLS)
+
+    result = _run_v22(llm, DataToolsService(tushare_client=news), audit)
+
+    new_loops = set(_DECISION_LOOP_CALLS) - prior_loops
+    assert len(new_loops) == 1
+    assert _DECISION_LOOP_CALLS[new_loops.pop()] == _CALL_LIMIT_PER_LOOP == 3
+    assert len(sdk.calls) == 3
+    assert result["status"] == "unavailable"
+    assert result["failure_reason"] == "llm_budget_exhausted"
+    assert [entry["tool"] for entry in result["tool_trace"]] == [
+        "read_etf_evidence", "search_news",
+    ]
+    assert all(entry["tool"] != "finish_research" for entry in result["tool_trace"])
+    final_diagnostic = audit.call_diagnostics[-1]
+    assert final_diagnostic["attempt_count"] == 1
+    assert final_diagnostic["retry_count"] == 0
+    assert final_diagnostic["retry_stop_reason"] == "decision_loop_budget_exhausted"
+    assert final_diagnostic["failure_stage"] == "timeout_retry_budget"
+    assert final_diagnostic["timeout"] is True
+    assert sum(call["attempt_count"] for call in audit.call_diagnostics) == 3
+
+
+def test_v22_no_diagnostic_exception_returns_safely_with_existing_trace():
+    class NoDiagnosticLLM:
+        def __init__(self):
+            self.calls = 0
+
+        def create_message(self, **_kwargs):
+            self.calls += 1
+            if self.calls == 1:
+                return _tool_response(("read_etf_evidence", {
+                    "hypothesis": "核对底层资产与产品资料是否支持当前研究假设。",
+                    "evidence_need": "读取已核验指数及 ETF 证据。",
+                    "scopes": ["underlying_assets", "etf_product"],
+                }))
+            raise ValueError("private-provider-error-sentinel")
+
+    import json
+
+    llm = NoDiagnosticLLM()
+    audit = SerenityAgentAudit()
+    result = _run_v22(llm, DataToolsService(), audit)
+
+    diagnostic = audit.call_diagnostics[-1]
+    assert result["status"] == "unavailable"
+    assert result["failure_reason"] == "llm_request_failed"
+    assert [entry["tool"] for entry in result["tool_trace"]] == ["read_etf_evidence"]
+    assert diagnostic["exception_class"] == "ValueError"
+    assert diagnostic["failure_class"] == "client_exception"
+    assert diagnostic["failure_stage"] == "provider_call"
+    assert diagnostic["failure_type"] == "client_exception"
+    assert audit.stage_calls[-1]["status"] == "failure"
+    assert "private-provider-error-sentinel" not in json.dumps(diagnostic)

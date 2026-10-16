@@ -511,6 +511,7 @@ RULES:
         retry_stop_reason = source.get("retry_stop_reason")
         if retry_stop_reason not in {
             "not_timeout", "max_retries_reached", "decision_loop_budget_exhausted",
+            "decision_loop_budget_reserved",
         }:
             retry_stop_reason = None
         source_response_received = source.get("response_received")
@@ -565,6 +566,12 @@ RULES:
                 diagnostic[field] = self._safe_block_counts(value, allowed_keys)
         if failure_class is not None:
             diagnostic["failure_class"] = failure_class
+        failure_stage = source.get("failure_stage")
+        if failure_stage in {"decision_loop_budget", "timeout_retry_budget"}:
+            diagnostic["failure_stage"] = failure_stage
+        failure_type = self._safe_exception_class(source.get("failure_type"))
+        if failure_type is not None:
+            diagnostic["failure_type"] = failure_type
         return diagnostic
 
     @classmethod
@@ -1425,6 +1432,7 @@ RULES:
         self.last_response_metadata = None
         decision_loop_id = f"single-security-v22-{uuid.uuid4().hex}"
         stop_reason = None
+        force_final_turn = False
 
         def response_shell(status: str, failure_reason: str | None = None) -> dict:
             result = {
@@ -1477,7 +1485,7 @@ RULES:
             if len(trace) >= max_tool_calls:
                 stop_reason = "tool_budget_exhausted"
                 return response_shell("unavailable", "tool_budget_exhausted")
-            final_turn = turn == max_model_calls
+            final_turn = force_final_turn or turn == max_model_calls
             tools = [tool_definitions[-1]] if final_turn else tool_definitions
             tool_choice = {"type": "auto", "disable_parallel_tool_use": True}
             allowed_tool_names = {item["name"] for item in tools}
@@ -1509,20 +1517,33 @@ RULES:
                     source_count=source_count,
                     timeout=60.0,
                     tool_choice=tool_choice,
+                    reserved_attempts=0 if final_turn else 1,
                 )
             except Exception as exc:
                 fallback_diagnostic["duration_ms"] = max(0.0, (time.perf_counter() - request_started) * 1000)
                 source_diagnostic = self._diagnostic_from_exception(exc)
+                diagnostic_source = source_diagnostic if isinstance(source_diagnostic, dict) else {}
                 call_diagnostic = self._call_audit_diagnostic(
                     source_diagnostic, pack_meta, fallback_diagnostic,
                     status="failure", response_received=False, parse_reached=False, exception=exc,
+                    failure_class=self._failure_class(exc, source_diagnostic),
                 )
+                if "failure_stage" not in call_diagnostic:
+                    call_diagnostic["failure_stage"] = "provider_call"
+                if "failure_type" not in call_diagnostic:
+                    call_diagnostic["failure_type"] = "client_exception"
                 audit.call_diagnostics.append(call_diagnostic)
                 audit.finish_stage_call(stage_call, "failure", source_diagnostic)
+                if (
+                    not final_turn
+                    and diagnostic_source.get("retry_stop_reason") == "decision_loop_budget_reserved"
+                ):
+                    force_final_turn = True
+                    continue
                 reason = (
                     "llm_budget_exhausted"
-                    if source_diagnostic.get("retry_stop_reason") == "decision_loop_budget_exhausted"
-                    else "llm_timeout" if source_diagnostic.get("timeout") is True
+                    if diagnostic_source.get("retry_stop_reason") == "decision_loop_budget_exhausted"
+                    else "llm_timeout" if diagnostic_source.get("timeout") is True
                     else "llm_request_failed"
                 )
                 return response_shell("unavailable", reason)
