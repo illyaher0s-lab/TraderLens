@@ -1,9 +1,9 @@
-## 最新状态（2026-10-16｜run06 与展示修正）
+## 最新状态（2026-10-16｜run07）
 
-- run06 的唯一真实首页请求返回 HTTP 200、`research_unavailable`、`source_validation_or_model_error`。自动工具选择下观察到两次 `tool_use` 响应；run05 的 HTTP 400 本次未复现。最后诊断为 `ValueError` 且 provider attempt 为 0，具体异常分支未核；最终 `finish_research` 未提交，无 hypothesis、三层报告或研究 sources。
-- A｜未通过；B｜未通过；C｜部分验证。失败安全返回且没有升级交易状态，但没有完整可用的 AI 研究报告；Card016 与 A/B/C 待 Illya 本人验收。唯一技术阻塞为最终结构化 `finish_research` 未提交。
-- 既有 48 项聚焦测试通过，后端编译/导入及隔离生产构建通过；研究页两段原始 JSON 已改为默认关闭的原生折叠，原始字段保留。当前 SSR 展示脚本与 TypeScript 检查退出码均为 0；未重跑模型或首页。
-- Illya 已授权将阶段 014/015/016 当前进度发布到独立开发分支 `codex/etf-research-progress-20261016`；该授权不代表卡通过验收、不允许合并默认分支。以下 run01 内容作为历史记录保留。
+- run07 唯一受保护首页请求返回 HTTP 200、V2.2 `success`。真实轨迹为 `read_etf_evidence`（12 source IDs）→ `search_major_news`（真实请求但 0 行）→ `finish_research`（submitted）；3 次模型调用共 3 provider attempts、0 retry。守卫拦截了非研究 `market-check` API，交易状态保持未评估/无信号。
+- A｜自主工具链与三层结构本轮通过。B｜未通过：季度收益差被误写为跟踪误差、费率比较无同类依据、历史估值说法与缺失分位数冲突。C｜部分验证：结构化 finish 和安全边界现场通过，错误/预算路径未现场触发；证据语义质量仍不合格。
+- Card016 与 A/B/C 保持“待 Illya 验收”。run07 未改产品代码、未再次请求、未追加测试；下一阻塞是输出证据语义/质量问题。
+- Illya 已授权把必要脱敏进度同步到独立开发分支 `codex/etf-research-progress-20261016`；此授权不代表验收通过或允许合并默认分支。
 
 # 阶段 6｜卡 016 真实预检记录
 
@@ -42,3 +42,14 @@
 - **新增回归覆盖：**非最终 timeout 不能花掉 finish 保留槽；首轮 timeout→retry 成功后，剩余一格强制下一轮只调用 finish；已有 read/news/finish 三次 attempts 正常结构化提交；最终 finish 的第 3 次 attempt timeout 后安全返回已有 trace 且无第 4 次 provider 调用；原始异常没有 diagnostic 时仍安全返回并保留 trace。
 - **下一次真实预检准入（本轮未执行）：**run06 已消耗卡片原定的一次真实预检额度；需要 Illya 明确新增真实预检额度。随后按现有准入规则正常重启并由 Illya 确认首页关闭，重新只读核验 launcher state、runner 固定无凭据模板哈希及 3000/8010 进程所有权/创建时间，确认运行实例加载本轮源码；仅在该门槛通过后，使用既有 API 白名单做一次精确 `{code:"510880", research_version:"v2.2"}` 请求并阻断其他 API。以上条件本轮均未执行或声称通过。
 - **验收状态：**Card016 与 A/B/C 继续“待 Illya 验收”。当前唯一下一阻塞是：真实首页可用性尚未核验，且原预检额度已耗尽；必须先由 Illya 明确新增额度再安排真实运行。
+
+
+## 2026-10-16 run07 受保护首页预检
+
+- 重新通过版本准入后，仅执行一次 510880/V2.2 研究 POST：HTTP 200、`success`。请求守卫仅放行该研究请求，并实际拦截 `/api/observations/market-check`。
+- 工具轨迹：`read_etf_evidence`（12 source IDs）→ `search_major_news`（真实请求，0 行/0 正文）→ `finish_research`（submitted）。3 次模型调用均成功；每次 1 provider attempt、0 retry，共 3 attempts；停止原因为 `finish_research`。交易状态仍为“本次未评估交易资格 / 本次未提供交易信号”。脱敏 API 响应于 15:25:57.544+08 保存，早于 15:25:58.450+08 的首页截图。
+- **A｜本轮通过（限自主取证链路）：**假说、只读证据选择、news 请求及三层结构均有现场记录；新闻 feed 为空。
+- **B｜未通过：**界面呈现结论与交易状态，但产品层将季度收益差误称跟踪误差；费率“行业低位/成本优势”缺同类比较依据；指数估值“历史可接受”同时标记其历史 PE/PB 分位缺失。结论的长期持有措辞超出可见证据范围。
+- **C｜部分验证：**主动结构化 finish、工具与 API 守卫及不升级交易状态均实证；错误/预算耗尽路径本次没有现场触发。证据语义问题未通过本轮输出质量核验。
+- 卡 016 与 A/B/C 均保持“待 Illya 验收”；没有代码修改、再次请求或新增测试。唯一未解决项是报告证据语义/质量。
+- 证据：`D:\TraderLens_validation\card016-20261015\verification\home-preflight-run-07\`；版本准入：`D:\TraderLens_validation\card016-20261015\verification\home-preflight-run-07-version-preflight.json`。
