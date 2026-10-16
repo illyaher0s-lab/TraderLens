@@ -49,7 +49,7 @@
 - 重新通过版本准入后，仅执行一次 510880/V2.2 研究 POST：HTTP 200、`success`。请求守卫仅放行该研究请求，并实际拦截 `/api/observations/market-check`。
 - 工具轨迹：`read_etf_evidence`（12 source IDs）→ `search_major_news`（真实请求，0 行/0 正文）→ `finish_research`（submitted）。3 次模型调用均成功；每次 1 provider attempt、0 retry，共 3 attempts；停止原因为 `finish_research`。交易状态仍为“本次未评估交易资格 / 本次未提供交易信号”。脱敏 API 响应于 15:25:57.544+08 保存，早于 15:25:58.450+08 的首页截图。
 - **A｜本轮通过（限自主取证链路）：**假说、只读证据选择、news 请求及三层结构均有现场记录；新闻 feed 为空。
-- **B｜未通过：**界面呈现结论与交易状态，但产品层将季度收益差误称跟踪误差；费率“行业低位/成本优势”缺同类比较依据；指数估值“历史可接受”同时标记其历史 PE/PB 分位缺失。结论的长期持有措辞超出可见证据范围。
+- **B｜未通过：**界面呈现结论与交易状态，但产品层将季度收益差误称跟踪误差；费率“行业低位/成本优势”缺同类比较依据，净资产/份额快照不足以支持“规模稳定”；指数估值“历史可接受”同时标记其历史 PE/PB 分位缺失。
 - **C｜部分验证：**主动结构化 finish、工具与 API 守卫及不升级交易状态均实证；错误/预算耗尽路径本次没有现场触发。证据语义问题未通过本轮输出质量核验。
 - 卡 016 与 A/B/C 均保持“待 Illya 验收”；没有代码修改、再次请求或新增测试。唯一未解决项是报告证据语义/质量。
 - 证据：`D:\TraderLens_validation\card016-20261015\verification\home-preflight-run-07\`；版本准入：`D:\TraderLens_validation\card016-20261015\verification\home-preflight-run-07-version-preflight.json`。
