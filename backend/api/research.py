@@ -125,7 +125,16 @@ class ExecutionFeedbackRequest(BaseModel):
 class SingleSecurityResearchRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    code: str = Field(pattern=r"^\d{6}$")
+    code: str = Field(pattern=r"^(?:\d{6}|510880\.SH)$")
+    research_version: Literal["v2.1", "v2.2"] | None = None
+
+    @model_validator(mode="after")
+    def validate_exchange_suffix_version(self):
+        if self.code == "510880.SH" and self.research_version not in {"v2.1", "v2.2"}:
+            raise ValueError("510880.SH requires an explicit versioned research path")
+        if self.research_version in {"v2.1", "v2.2"} and self.code not in {"510880", "510880.SH"}:
+            raise ValueError(f"{self.research_version.upper()} research only accepts 510880 or 510880.SH")
+        return self
 
 
 class ApplyActionRequest(BaseModel):
@@ -188,39 +197,107 @@ def _safe_research_sentence(text: object, symbol: str) -> str | None:
     return value if value.endswith(("。", "！", "？", ".", "!", "?")) else f"{value}。"
 
 
-def _deterministic_etf_rationale(bundle: dict, verdict: str | None = None) -> str:
-    """Summarize only which ETF data was verified and which decision gaps remain."""
+def _deterministic_etf_rationale(bundle: dict) -> str:
+    """Summarize sourced ETF facts without deriving an investment decision from valuation."""
     metrics = bundle.get("metrics", {}) if isinstance(bundle, dict) else {}
+
+    def has_complete_fact(metric: object) -> bool:
+        return (
+            isinstance(metric, dict)
+            and metric.get("value") is not None
+            and all(metric.get(key) for key in ("unit", "source", "endpoint", "field", "as_of"))
+        )
+
     verified = []
-    if metrics.get("price_change_1y"):
-        verified.append("区间报告收盘价变化")
-    elif metrics.get("latest_price"):
-        verified.append("最近报告收盘价")
+    latest_price = metrics.get("latest_price")
+    price_change = metrics.get("price_change_1y")
+    price_coverage = metrics.get("price_coverage_1y")
+    if has_complete_fact(price_change):
+        if isinstance(latest_price, dict) and latest_price.get("stale") is True:
+            verified.append("已过期的区间报告收盘价变化")
+        elif isinstance(price_coverage, dict) and price_coverage.get("coverage_complete") is True:
+            verified.append("区间报告收盘价变化")
+        else:
+            verified.append("部分观察区间报告收盘价变化")
+    elif has_complete_fact(latest_price):
+        verified.append(
+            "已过期的最近报告收盘价"
+            if isinstance(latest_price, dict) and latest_price.get("stale") is True
+            else "最近报告收盘价"
+        )
     distance = metrics.get("distance_from_1y_high_pct")
-    if isinstance(distance, dict):
+    if has_complete_fact(distance):
         basis = "日内最高价" if distance.get("field") == "high" else "最高收盘价"
         verified.append(f"距区间{basis}的距离")
-    if metrics.get("average_amount_20d"):
+    if has_complete_fact(metrics.get("average_amount_20d")):
         verified.append("近期成交额")
-    if metrics.get("trailing_cash_dividend_per_share"):
+    if has_complete_fact(metrics.get("trailing_cash_dividend_per_share")):
         verified.append("已实施现金派息")
-    if metrics.get("trailing_dividend_yield_valuation"):
-        verified.append("ETF自身分红收益率历史分位估值参考")
-    if not verified:
-        verified.append("可核验行情信息")
+    if has_complete_fact(metrics.get("trailing_dividend_yield_percentile_10y")):
+        verified.append("ETF自身分红收益率历史分位")
 
-    remaining = ["基金持仓与行业权重", "实际跟踪差异"]
+    raw_gaps = bundle.get("gaps", []) if isinstance(bundle, dict) else []
+    raw_gaps = [gap for gap in raw_gaps if isinstance(gap, str)]
+    remaining = []
+    if any("基金当前成分明细与行业权重未获取" in gap for gap in raw_gaps):
+        remaining.append("基金持仓与行业权重")
+    if any("实际跟踪差异" in gap for gap in raw_gaps):
+        remaining.append("实际跟踪差异")
     if metrics.get("underlying_pe") is None and metrics.get("underlying_pb") is None:
-        remaining.append("跟踪指数估值")
-    if verdict == "research_positive":
-        closing = "现有证据支持继续人工研究；这些缺口需要补齐，且该判断不构成买入或执行许可。"
-    elif verdict == "research_reject":
-        closing = "现有证据不支持继续研究；后续新增证据可能改变该判断。"
-    elif verdict == "research_unavailable":
-        closing = "当前无法形成完整判断，需要先补充相关证据。"
-    else:
-        closing = "当前只适合继续观察。"
-    return f"已核验ETF的{'、'.join(verified)}；但{'、'.join(remaining)}仍有缺口，{closing}"
+        if any("index_valuation" in gap or "index_dailybasic" in gap for gap in raw_gaps):
+            remaining.append("跟踪指数估值")
+    verified_text = (
+        f"可追溯数值事实包括{'、'.join(verified)}。"
+        if verified
+        else "本次没有返回具备完整来源、日期、字段与单位的数值事实。"
+    )
+    remaining_text = f"尚未核实：{'、'.join(remaining)}。" if remaining else "其他证据缺口见下方。"
+    return f"{verified_text}{remaining_text}此处只说明估值依据与资料范围，不构成独立投资判断。"
+
+
+def _deterministic_etf_explanation(valuation_conclusion: dict, bundle: dict) -> str:
+    """Render the frozen ETF result in plain language without recalculating it."""
+    status = valuation_conclusion.get("status")
+    basis = valuation_conclusion.get("basis")
+    label = valuation_conclusion.get("label")
+    if status == "data_gap":
+        return (
+            "估值所需数据未完整核实，因此本次不判断便宜或贵；"
+            "具体缺项、来源日期及数据源状态见展开详情。"
+        )
+    if status == "not_supported":
+        category = bundle.get("category") if isinstance(bundle, dict) else None
+        if category == "unclassified":
+            return "基金类别尚未核实，因此本次暂不提供估值判断；分类资料见展开详情。"
+        if category != "other":
+            return "估值类别尚未确认适用现有规则，因此本次暂不提供估值判断；分类资料见展开详情。"
+        return (
+            "现有估值规则不覆盖已核验的基金类别，因此本次不提供估值判断；"
+            "这是方法适用范围限制，不表示估值数据缺失或价格高低。"
+        )
+    if status != "conclusive":
+        return "估值规则状态未能核验，本次不提供估值判断。"
+
+    if basis == "index_pe_pb":
+        if label == "中性":
+            return (
+                "两项估值的历史位置都落在现有规则的中间档，因此本次结果为中性；"
+                "这只说明估值档位，不是买入信号。"
+            )
+        if label == "观察":
+            return "PE与PB的历史估值档位不一致，现有规则给出观察结果；这只说明估值信号分歧，不是买卖信号。"
+        if label == "相对偏便宜":
+            return "跟踪指数PE与PB的历史估值分档均显示相对偏便宜；这只说明历史位置，不是买入信号。"
+        if label == "相对偏贵":
+            return "跟踪指数PE与PB的历史估值分档均显示相对偏贵；这只说明历史位置，不是卖出信号。"
+    if basis == "own_dividend_yield":
+        if label == "中性":
+            return "ETF自身已派付现金分红收益率的历史分位落在现有规则的中间档，因此本次结果为中性；只比较本ETF自身历史，不代表未来分红或回报。"
+        return (
+            f"ETF自身已派付现金分红收益率的历史分位结果为{label or '未分类'}；"
+            "只比较本ETF自身可得历史，不代表未来分红或回报。"
+        )
+    return f"现有估值规则给出的结果为{label or '未分类'}；这只作研究参考，不构成买卖信号。"
 
 
 def _etf_reason_uses_available_data(reason: str, bundle: dict) -> bool:
@@ -2236,7 +2313,8 @@ def create_research_app(
         if conversation_mode != "real":
             raise HTTPException(status_code=503, detail="真实研究服务当前不可用。")
 
-        identity = _resolve_manual_security(request.code)
+        lookup_code = request.code.removesuffix(".SH")
+        identity = _resolve_manual_security(lookup_code)
         if identity.get("status") != "verified":
             raise HTTPException(
                 status_code=503,
@@ -2252,6 +2330,14 @@ def create_research_app(
 
         symbol = identity["symbol"]
         security_type = identity["security_type"]
+        use_v21 = request.research_version == "v2.1"
+        use_v22 = request.research_version == "v2.2"
+        if (use_v21 or use_v22) and (
+            request.code not in {"510880", "510880.SH"}
+            or symbol != "510880.SH"
+            or security_type != "fund"
+        ):
+            raise HTTPException(status_code=422, detail="版本化ETF研究只支持经核验的510880.SH ETF身份。")
         name = identity.get("name") or "名称未获取"
         data_tools = DataToolsService(tushare_client=validator.tushare_client)
         etf_bundle = (
@@ -2380,6 +2466,8 @@ def create_research_app(
                 })
 
         model_decision = None
+        research_v2_1 = None
+        research_v2_2 = None
         model_gaps: list[str] = []
         llm_call_count = 0
         model_call_diagnostics: list[dict] = []
@@ -2460,7 +2548,104 @@ def create_research_app(
             )
             audit = SerenityAgentAudit()
             audit.mode = "real"
-            if not model_skipped_by_rule:
+            if use_v21:
+                from pathlib import Path
+
+                snapshot_path = Path(__file__).resolve().parents[1] / "research_snapshots" / "510880_v21_20261014.json"
+                snapshot = None
+                snapshot_digest = None
+                try:
+                    snapshot_bytes = snapshot_path.read_bytes()
+                    snapshot_digest = hashlib.sha256(snapshot_bytes).hexdigest()
+                    snapshot = json.loads(snapshot_bytes)
+                    runtime_facts = []
+                    metrics = etf_bundle.get("metrics", {}) if isinstance(etf_bundle, dict) else {}
+                    latest_price = metrics.get("latest_price") if isinstance(metrics, dict) else None
+                    daily_source = next((
+                        item for item in (etf_bundle.get("sources", []) if isinstance(etf_bundle, dict) else [])
+                        if isinstance(item, dict)
+                        and item.get("source_record_id") == "fund_daily:510880.SH:0"
+                    ), None)
+                    if (
+                        isinstance(latest_price, dict)
+                        and latest_price.get("endpoint") == "fund_daily"
+                        and latest_price.get("field") == "close"
+                        and latest_price.get("stale") is False
+                        and isinstance(latest_price.get("value"), (int, float))
+                        and not isinstance(latest_price.get("value"), bool)
+                        and isinstance(latest_price.get("as_of"), str)
+                        and isinstance(daily_source, dict)
+                    ):
+                        runtime_facts.append({
+                            "id": "market.latest_price",
+                            "source_id": daily_source["source_record_id"],
+                            "value": latest_price["value"],
+                            "unit": latest_price.get("unit") or "元/份",
+                            "as_of": latest_price["as_of"],
+                            "scope": "current_market",
+                            "stale": False,
+                            "source": daily_source,
+                        })
+                    synthesis = ResearchSynthesizer(serenity_runner.llm_client).synthesize_single_security_v21(
+                        target_symbol=symbol,
+                        snapshot=snapshot,
+                        snapshot_sha256=snapshot_digest,
+                        runtime_facts=runtime_facts,
+                        audit=audit,
+                    )
+                    research_v2_1 = synthesis
+                except Exception:
+                    last = audit.call_diagnostics[-1] if audit.call_diagnostics else {}
+                    llm_status = last.get("status") or "not_called"
+                    research_v2_1 = {
+                        "status": "unavailable",
+                        "failure_reason": "source_validation_or_model_error",
+                        "snapshot": ({
+                            "version": snapshot.get("version"),
+                            "sha256": snapshot_digest,
+                            "as_of": snapshot.get("created_at"),
+                        } if isinstance(snapshot, dict) and snapshot_digest else None),
+                        "llm": {
+                            "status": llm_status,
+                            "call_id": last.get("call_id"),
+                        },
+                    }
+                llm_call_count = len(audit.call_diagnostics)
+                model_call_diagnostics = [
+                    dict(item) for item in audit.call_diagnostics if isinstance(item, dict)
+                ]
+                if research_v2_1.get("status") != "success":
+                    model_gaps.append("V2.1深度研究未能完成，未以估值结论代替研究层输出。")
+            elif use_v22:
+                from pathlib import Path
+
+                snapshot_path = Path(__file__).resolve().parents[1] / "research_snapshots" / "510880_v21_20261014.json"
+                try:
+                    snapshot_bytes = snapshot_path.read_bytes()
+                    snapshot_digest = hashlib.sha256(snapshot_bytes).hexdigest()
+                    verified_snapshot = json.loads(snapshot_bytes)
+                    research_v2_2 = ResearchSynthesizer(serenity_runner.llm_client).synthesize_single_security_v22(
+                        target_symbol=symbol,
+                        etf_bundle=etf_bundle,
+                        verified_snapshot=verified_snapshot,
+                        snapshot_sha256=snapshot_digest,
+                        data_tools=data_tools,
+                        audit=audit,
+                    )
+                except Exception:
+                    last = audit.call_diagnostics[-1] if audit.call_diagnostics else {}
+                    research_v2_2 = {
+                        "status": "unavailable",
+                        "version": "v2.2",
+                        "failure_reason": "source_validation_or_model_error",
+                        "layers": [],
+                        "sources": [],
+                        "tool_trace": [],
+                        "llm": {"status": last.get("status") or "not_called"},
+                    }
+                if research_v2_2.get("status") != "success":
+                    model_gaps.append("V2.2深度研究未能完成，未以估值结论代替研究层输出。")
+            elif not model_skipped_by_rule:
                 try:
                     synthesis = ResearchSynthesizer(serenity_runner.llm_client).synthesize(
                         theme, context, audit,
@@ -2548,13 +2733,16 @@ def create_research_app(
             "failure_class", "source_count", "duration_ms",
             "attempt_count", "retry_count", "retry_stop_reason", "exception_chain",
             "response_error_text", "attempts",
+            "provider_stop_reason", "provider_content_block_counts", "normalized_content_block_counts",
+            "failure_stage", "failure_type", "json_error_position", "schema_error_count",
+            "schema_error_codes", "schema_error_paths", "missing_source_id",
         }
         safe_call_diagnostics = [
             {key: value for key, value in item.items() if key in safe_diagnostic_keys}
             for item in model_call_diagnostics
         ]
         last_call = model_call_diagnostics[-1] if model_call_diagnostics else {}
-        if model_skipped_by_rule:
+        if model_skipped_by_rule and not (use_v21 or use_v22):
             model_failure_reason = "not_called_by_rule"
         elif not model_call_diagnostics:
             model_failure_reason = "model_call_not_recorded"
@@ -2568,6 +2756,16 @@ def create_research_app(
             model_failure_reason = "candidate_verdict_missing"
         else:
             model_failure_reason = None
+        if use_v21:
+            model_failure_reason = (
+                None if research_v2_1 and research_v2_1.get("status") == "success"
+                else "single_security_v21_unavailable"
+            )
+        if use_v22:
+            model_failure_reason = (
+                None if research_v2_2 and research_v2_2.get("status") == "success"
+                else "single_security_v22_unavailable"
+            )
         model_reason = model_decision.get("reason") if isinstance(model_decision, dict) else None
         safe_model_rationale = _safe_research_sentence(
             model_reason,
@@ -2581,11 +2779,25 @@ def create_research_app(
             safe_model_rationale = None
         model_reason_filtered = bool(model_reason) and safe_model_rationale is None
         rationale_source = "llm"
-        if safe_model_rationale:
+        if is_verified_etf:
+            valuation_status = valuation_conclusion.get("status")
+            if valuation_status == "conclusive":
+                rationale = (
+                    f"{_deterministic_etf_explanation(valuation_conclusion, etf_bundle)} "
+                    f"{_deterministic_etf_rationale(etf_bundle)}"
+                )
+                rationale_source = "deterministic_etf_summary"
+            elif valuation_status == "data_gap":
+                rationale = _deterministic_etf_explanation(valuation_conclusion, etf_bundle)
+                rationale_source = "deterministic_etf_data_gap"
+            elif valuation_status == "not_supported":
+                rationale = _deterministic_etf_explanation(valuation_conclusion, etf_bundle)
+                rationale_source = "deterministic_etf_not_supported"
+            else:
+                rationale = _deterministic_etf_explanation(valuation_conclusion, etf_bundle)
+                rationale_source = "deterministic_etf_unverified"
+        elif safe_model_rationale:
             rationale = safe_model_rationale
-        elif is_verified_etf:
-            rationale = _deterministic_etf_rationale(etf_bundle, valuation_conclusion["verdict"])
-            rationale_source = "deterministic_etf_summary"
         elif security_type == "fund":
             rationale = "本次仅核验基金身份和有日期的行情，基金专属材料仍有缺口，先等待补充证据。"
             rationale_source = "safe_fallback"
@@ -2601,7 +2813,9 @@ def create_research_app(
             if (safe := _safe_research_sentence(item.get("description"), symbol))
         ), None)
         if is_verified_etf:
-            risk_parts = ["基金当前成分明细、行业权重和实际跟踪差异未获取。"]
+            risk_parts = [
+                "基金持仓明细、行业权重及实际跟踪差异未核实，无法评估基金实际配置与跟踪风险。"
+            ]
             if (
                 etf_bundle["metrics"].get("underlying_pe") is None
                 and etf_bundle["metrics"].get("underlying_pb") is None
@@ -2716,10 +2930,59 @@ def create_research_app(
                     f"估值参考：510880自身现金分红收益率处于{valuation['value']}；"
                     "该结论只比较本ETF可得历史，不等同于指数估值，也不代表未来分红或回报。"
                 )
+        explanation_items = []
+        if security_type == "fund":
+            valuation_status = (
+                valuation_conclusion.get("status") if is_verified_etf else None
+            )
+            if is_verified_etf and valuation_status in {"data_gap", "not_supported"}:
+                conclusion_evidence_level = "已验证规则"
+            elif is_verified_etf and valuation_status == "conclusive":
+                conclusion_evidence_level = "仅研究参考"
+            else:
+                conclusion_evidence_level = "无依据"
+            reason_evidence_level = (
+                "已验证规则"
+                if is_verified_etf and valuation_status == "conclusive"
+                else "仅研究参考"
+            )
+            has_observation_assumption = isinstance(investment_assumption, dict)
+            explanation_items = [
+                {
+                    "kind": "conclusion",
+                    "label": "结论",
+                    "text": verdict,
+                    "evidence_level": conclusion_evidence_level,
+                },
+                {
+                    "kind": "reason",
+                    "label": "理由",
+                    "text": rationale,
+                    "evidence_level": reason_evidence_level,
+                },
+                {
+                    "kind": "risk",
+                    "label": "风险资料缺口" if is_verified_etf else "风险",
+                    "text": main_risk,
+                    "evidence_level": "仅研究参考" if is_verified_etf else "无依据",
+                },
+                {
+                    "kind": "invalidation_condition",
+                    "label": "观察假设" if has_observation_assumption else "撤回条件",
+                    "text": invalidation,
+                    "evidence_level": "仅研究参考" if has_observation_assumption else "无依据",
+                    "note": (
+                        "分红或流动性变化仅是研究观察假设，不是估值失效条件或交易指令。"
+                        if has_observation_assumption else None
+                    ),
+                },
+            ]
         return {
             "status": (
                 "research_completed"
-                if candidate_verdict_parsed or model_skipped_by_rule
+                if (research_v2_1 and research_v2_1.get("status") == "success")
+                or (research_v2_2 and research_v2_2.get("status") == "success")
+                or (not use_v21 and not use_v22 and (candidate_verdict_parsed or model_skipped_by_rule))
                 else "research_unavailable"
             ),
             "symbol": symbol,
@@ -2738,11 +3001,20 @@ def create_research_app(
             "main_risk": main_risk,
             "invalidation_condition": invalidation,
             "investment_assumption": investment_assumption,
+            "explanation_items": explanation_items,
             "narrative_sentences": narrative_sentences,
             "numeric_facts": facts if is_verified_etf else facts[:3],
             "sources": sources,
             "not_applicable": not_applicable,
             "evidence_gaps": evidence_gaps,
+            "research_v2_1": research_v2_1,
+            **({"research_v2_2": research_v2_2} if use_v22 else {}),
+            **({
+                "transaction_status": {
+                    "eligibility": "本次未评估交易资格",
+                    "signal": "本次未提供交易信号",
+                },
+            } if use_v22 else {}),
             "llm_call_count": llm_call_count,
             "research_diagnostic": {
                 "llm_call_count": llm_call_count,
@@ -2752,6 +3024,8 @@ def create_research_app(
                 "failure_reason": model_failure_reason,
                 "rationale_source": rationale_source,
                 "model_reason_filtered": model_reason_filtered,
+                "research_v2_1_status": research_v2_1.get("status") if research_v2_1 else None,
+                "research_v2_2_status": research_v2_2.get("status") if research_v2_2 else None,
             },
         }
 

@@ -54,3 +54,53 @@ def test_query_omits_fields_when_callers_do_not_request_a_field_list():
     assert captured["api_name"] == "daily"
     assert "fields" not in captured["kwargs"]
     assert captured["kwargs"]["ts_code"] == "600519.SH"
+
+
+def test_query_single_attempt_does_not_retry_permission_failures():
+    calls = []
+
+    class FakePro:
+        _DataApi__http_url = ""
+
+        def query(self, api_name, **kwargs):
+            calls.append((api_name, kwargs))
+            raise RuntimeError("permission denied")
+
+    with patch("backend.app.tushare.tushare_client.ts.pro_api", return_value=FakePro()):
+        client = TushareClient(TushareConfig(
+            token="test-token", retry_attempts=3, retry_delay_seconds=0,
+        ))
+        try:
+            client.query("news", single_attempt=True, src="sina")
+        except ValueError as exc:
+            error = str(exc)
+        else:
+            raise AssertionError("permission failure must still fail loudly")
+
+    assert len(calls) == 1
+    assert calls[0] == ("news", {"src": "sina"})
+    assert "after 1 attempts" in error
+
+
+def test_query_default_still_uses_configured_retries():
+    calls = []
+
+    class FakePro:
+        _DataApi__http_url = ""
+
+        def query(self, api_name, **kwargs):
+            calls.append(api_name)
+            raise RuntimeError("temporary provider error")
+
+    with patch("backend.app.tushare.tushare_client.ts.pro_api", return_value=FakePro()):
+        client = TushareClient(TushareConfig(
+            token="test-token", retry_attempts=2, retry_delay_seconds=0,
+        ))
+        try:
+            client.query("daily", ts_code="600519.SH")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("provider failure must still fail loudly")
+
+    assert calls == ["daily", "daily"]

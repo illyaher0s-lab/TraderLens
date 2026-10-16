@@ -1,11 +1,36 @@
 # TraderLens 待办事项
 
+## 当前主线登记（2026-10-15）
+
+- 阶段 6｜卡 016｜累计 **16/20、剩余 4**。用户链路：Northstar 第 2 节 A（股票/ETF）研究验证。卡 016 冻结范围、A/B/C 和预算见[卡 016 任务计划](superpowers/plans/2026-10-15-card016-v22-etf-research-agent.md)。
+- 卡 015 按 Illya 指令停止于真实新闻接口预检：`major_news` 返回 15 条、`news` 返回 117 条，标题、时间和正文均非空；`news` 返回结果未含逐条来源或 URL。原卡 A 未达到、B/C 未核、未获本人验收，不宣称通过；不继续网页、SSE 或 Tavily 工作。诊断结果：[result.json](<D:/TraderLens_validation/card015-20261015/verification/tushare-news-diagnostic-20261015/result.json>)。
+- 卡 013、014 仍保持终止且本人验收未通过；不重开、不改写历史。卡 015 的方向变更记录见[卡 015 任务计划](superpowers/plans/2026-10-14-card015-v22-on-demand-web-evidence.md)。
+- 2026-10-16 Card016 最新状态：run06 返回 `research_unavailable`，最终 `finish_research` 未提交；A/B 未通过、C 部分验证，精确 ValueError 分支未核，无完整可用 AI 研究报告。48 项聚焦测试及后端编译/导入通过；当前 JSON 展示修正的 SSR/TypeScript 检查通过。唯一技术阻塞仍为 `finish_research` 未提交，卡与 A/B/C 待 Illya 验收。当前进度获授权发布到独立开发分支 `codex/etf-research-progress-20261016`；不表示验收或合并。
+
 ## 主线卡账核对（2026-10-12）
 
 - [TraderLens_MAINLINE_PLAN.md](../TraderLens_MAINLINE_PLAN.md) 当前明确登记阶段 6｜卡 013、累计 13/20；卡 013 本人验收仍待用户（见第 3 项）。这是当前计划登记数，不代表卡 013 已获本人验收。
 - Git 有独立命名为卡 014 的提交 `d886cc1`，但总计划没有说明它是否额外占用预算。归属待 Illya 确认；不因提交或卡号把累计数改为 14/20。
 - 当前唯一阻塞：卡 013 尚无本人验收。卡 014 的预算归属另待 Illya 确认；下一卡编号待确认。卡 013/014 专属验收报告未在 `docs/verification/` 找到；本轮未运行代码、测试或应用，因此不独立宣称运行修复通过。
 - **下一步建议（仅建议，不启动）：**先完成卡 013 运行核验及 Illya 本人验收；通过后再建议进入阶段 4 核验策略验证入口/引擎。卡 014 预算归属/后续编号待确认。
+
+## 卡 014 结案与卡 015 当前状态（2026-10-14）
+
+- 卡 013：Illya 已终止该卡，验收未通过。历史提交和本文件的旧状态保留；`D:\TraderLens_validation\card013-20261012` 中最后验证失败的五文件副本不合并，也不重开卡 013。
+- 卡 014 修正前真实首页结果（历史记录，run03）：Illya 授权阶段 6｜卡 014｜累计 14/20。该次首页 V2.1 请求 HTTP 200，A 技术预检通过；B/C 因收益差被称为跟踪误差、异时点持仓/指数权重被用于复制质量比较，以及其他事实语义/时点越界而未通过。Northstar 第 4 节已取消固定数值上限，旧 C 数值数量失败判定作废。历史核验记录：`D:\TraderLens_validation\card014-20261014\verification-report.md`。
+- 修正前阻塞记录（历史）：当时 validator 只核 fact ID 和层级结构。当前守卫增加了对模型声明 claim_kind 与结构化事实范围、时点和指标类别的必要关系校验；它仍不证明自然语言结论被事实蕴含。当前状态以第 15 行 run04 结果为准。
+- 卡 014 最终结案：聚焦测试 20/20 通过；唯一一次修正后真实预检 A 技术预检通过，B/C 未通过。模型对五年年化收益作“显著低于长期权益类资产合理预期”的高强度判断但未给出预期来源或可解释依据；另有“适中规模”缺比较基础、缺口描述过强等问题。按卡内停止边界正式终止，验收失败，不重开、不追加修正、不提交或推送。完整证据仍在 `D:\TraderLens_validation\card014-20261014`；卡 014 任务计划保留原样。
+- 卡 015：Illya 已批准阶段 6｜卡 015，累计 **15/20、剩余 5**。范围仅为把 V2.2 的“识别关键证据缺口后按需搜索并阅读来源原文”接入现有 510880 首页研究入口。当前完成恢复检查点与只读能力盘点/实施方案；没有产品代码、服务启动、新闻 API 调用或真实首页验证。优先核查 Illya 称已购买的 Tushare 新闻接口，并评估已有 SSE 公告目录及官方 PDF 正文路径；新闻权限、真实正文、原始 URL 和 PDF 可读性均未实测。15000 积分不视为新闻权限。新闻 feed 不自动等于网页搜索或原始来源全文，Tavily 暂缓且不是唯一前提。后续只通过 Illya 正常授权的现有运行路径验证，不构造临时探测接口、不读取凭据、不新建 PDF 解析器或新闻数据库。冻结标准、接口表、成本记录办法和范围见[卡 015 任务计划](superpowers/plans/2026-10-14-card015-v22-on-demand-web-evidence.md)及 `D:\TraderLens_validation\card015-20261014\verification\preflight-and-capability-inventory.md`。卡 015 整体仍待验收。
+
+### 卡 014 明确暂缓（完整保留为后续路线，不并入本卡）
+
+1. 全市场 ETF 机会扫描及自动候选筛选。
+2. V2.1 完整同类 ETF 产品比较。
+3. 自动批量财报、官方公告取数和更广泛 ETF 类型支持。
+4. 研究记录尚缺的持久化及策略连接。
+5. 尚未接通的入场条件、模拟买卖、持仓、退出和复盘环节。
+6. AI 研究质量的历史验证与机会遗漏检验。
+7. 卡 013 遗留的展示和数据缺口语义问题；仍按原条目保留和跟踪，不借卡 014 扩围。
 
 ## 必须做的
 
@@ -136,3 +161,11 @@
 
 17. **统一加入本地工作区杂物目录忽略规则**  
     当前状态：本次不纳入、不删除；候选根目录为 `.codex_snapshots/`、`.hermes/`、`.obsidian/`、`.ponytail_002/`、`.ponytail_003/`、`.ponytail_snapshots/`、`.signal/`、`.task3_b3_package_work/`、`.task3_v3_fk_fix_work/`、`.workspace_archive/`、`_diag_sim_loop_20260916_01/`、`etc/`、`不复权/`。`不复权/` 约 5.1 GB；两个 `.task3_*_work/` 含重解析点，目录统计不完整。
+
+## 阶段 6｜卡 015 本轮停点（2026-10-15）
+
+卡 015 仍待 Illya 验收，A 未达到、B/C 未核。既有 SSE 公告目录查询返回 20 条记录；对选中的官方 SSE PDF URL 本轮实际请求两次（第二次为第一次输出编码错误后的最小纠正），均返回 HTTP 200、无跳转、`text/html`。第二次原始响应已留存；gzip 解压后是脚本 HTML 外壳，疑似访问挑战，未执行或绕过，未取得正文。没有 401/403，不能断言权限拒绝或官方 PDF 本身不可读。此次 LLM 0 次、首页验证 0 次、产品代码和依赖未改；Tushare 初始化缺配置只代表诊断进程，新闻查询 0 次，新闻权限改列并行待办。证据、hash 和停止边界详见卡 015 任务计划的 2026-10-15 诊断记录。卡 014 保持终止、本人验收未通过，历史结果不变；不再请求替代来源、不处理挑战、不启动实现、不提交或推送。
+
+### 卡 015 后续方向（2026-10-15，待 Illya 选择）
+
+恢复原卡的 AI 主动搜索与正文取证目标；本机产品当前没有已接通的网页搜索/正文读取工具，Tushare 新闻 feed 和 SSE 公告元数据不等价，LLM 原生 web 能力未核。唯一建议 Tavily Search + Extract 两个 API 动作，受原卡 3 次搜索、2 条正文、LLM 并发 2 的上限约束。官方核价：Free 每月 1,000 credits、免信用卡；Basic Search 1 credit/次；Basic Extract 1 credit/5 个成功 URL，失败 URL 不计提取费；Pay-as-you-go 为 $0.008/credit。需要独立 Tavily key，由 Illya 在本机自行配置；免费优先，不自动启用按量付费。未获选择/配置前不实现、不发真实模型或搜索请求、不做首页验收。摘要不当正文，Extract 失败/受限时按 C 显示缺口；不绕过本次固定 SSE URL。接口与价格：[Search](https://docs.tavily.com/documentation/api-reference/endpoint/search)、[Extract](https://docs.tavily.com/documentation/api-reference/endpoint/extract)、[credits](https://docs.tavily.com/documentation/api-credits)、[pricing](https://www.tavily.com/pricing)。

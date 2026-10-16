@@ -201,6 +201,119 @@ class DataToolsService:
         self._tushare = tushare_client
         self._sse_transport = sse_transport
 
+    def get_news_feed(
+        self,
+        endpoint: str,
+        *,
+        start_date: str,
+        end_date: str,
+    ) -> DataToolResult:
+        """Read a bounded Tushare news feed; returned text remains untrusted research material."""
+        now = datetime.now(ZoneInfo("Asia/Shanghai"))
+        sources = {"major_news": "新浪财经", "news": "sina"}
+        source = f"tushare_{endpoint}" if endpoint in sources else "unknown"
+        if endpoint not in sources:
+            return DataToolResult(
+                tool_name="get_news_feed", source=source, retrieved_at=now,
+                gaps=["news_endpoint_not_allowed"], errors=["unsupported_endpoint"],
+            )
+        if self._tushare is None:
+            return DataToolResult(
+                tool_name="get_news_feed", source=source, retrieved_at=now,
+                gaps=["tushare_client_not_configured"], errors=["tushare_client_not_configured"],
+            )
+
+        try:
+            start = datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S")
+            end = datetime.strptime(end_date, "%Y-%m-%d %H:%M:%S")
+        except (TypeError, ValueError):
+            return DataToolResult(
+                tool_name="get_news_feed", source=source, retrieved_at=now,
+                gaps=["news_window_invalid"], errors=["news_window_invalid"],
+            )
+        now_local = now.replace(tzinfo=None)
+        if (
+            end <= start
+            or end - start > timedelta(hours=1)
+            or end > now_local
+            or start < now_local - timedelta(days=30)
+        ):
+            return DataToolResult(
+                tool_name="get_news_feed", source=source, retrieved_at=now,
+                gaps=["news_window_out_of_bounds"], errors=["news_window_out_of_bounds"],
+            )
+
+        fields = "title,content,pub_time,src" if endpoint == "major_news" else "datetime,title,content"
+        time_field = "pub_time" if endpoint == "major_news" else "datetime"
+        try:
+            frame = self._tushare.query(
+                endpoint,
+                src=sources[endpoint],
+                start_date=start_date,
+                end_date=end_date,
+                fields=fields,
+                single_attempt=True,
+            )
+        except Exception as exc:
+            status = self._tushare_failure_status(exc)
+            return DataToolResult(
+                tool_name="get_news_feed", source=source, retrieved_at=now,
+                gaps=[f"{endpoint}_request_failed"], errors=[status],
+            )
+
+        if frame is None or getattr(frame, "empty", False) or len(frame) == 0:
+            return DataToolResult(
+                tool_name="get_news_feed", source=source, retrieved_at=now,
+                gaps=["news_feed_empty"], errors=[],
+            )
+
+        columns = set(str(column) for column in frame.columns)
+
+        def text(value) -> str | None:
+            if value is None or (isinstance(value, float) and not math.isfinite(value)):
+                return None
+            result = str(value).strip()
+            return result or None
+
+        url_field = next((name for name in ("url", "URL", "source_url") if name in columns), None)
+        records = []
+        missing_time = 0
+        for row in frame.to_dict(orient="records"):
+            published_at = text(row.get(time_field))
+            try:
+                parsed_time = datetime.fromisoformat(published_at.replace("Z", "+00:00")) if published_at else None
+                if parsed_time is not None and parsed_time.tzinfo is not None:
+                    parsed_time = parsed_time.astimezone(ZoneInfo("Asia/Shanghai")).replace(tzinfo=None)
+            except ValueError:
+                parsed_time = None
+            if parsed_time is None:
+                missing_time += 1
+                continue
+            if parsed_time < start or parsed_time > end:
+                continue
+
+            content = text(row.get("content")) or ""
+            records.append({
+                "title": text(row.get("title")),
+                "published_at": published_at,
+                "source": text(row.get("src")),
+                "requested_source": sources[endpoint],
+                "source_field_present": "src" in columns,
+                "source_url": text(row.get(url_field)) if url_field else None,
+                "url_field_present": url_field is not None,
+                "content_excerpt": content[:1200],
+                "content_truncated": len(content) > 1200,
+            })
+
+        records.sort(key=lambda item: item["published_at"], reverse=True)
+        gaps = ["news_rows_missing_time"] if missing_time else []
+        if not records:
+            gaps.append("news_feed_empty_or_outside_requested_window")
+        return DataToolResult(
+            tool_name="get_news_feed", raw_data=records[:5], source=source,
+            retrieved_at=now, gaps=gaps, errors=[],
+        )
+
     # ------------------------------------------------------------------
     # get_financials
     # ------------------------------------------------------------------

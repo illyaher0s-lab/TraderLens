@@ -75,6 +75,8 @@ class TushareClient:
         self,
         api_name: str,
         fields: str | None = None,
+        *,
+        single_attempt: bool = False,
         **kwargs: Any
     ) -> Any:
         """
@@ -83,6 +85,7 @@ class TushareClient:
         Args:
             api_name: Tushare API name (e.g., "daily", "stock_basic")
             fields: Comma-separated field names (optional)
+            single_attempt: Disable wrapper retries for this bounded query only.
             **kwargs: API-specific parameters
         
         Returns:
@@ -95,10 +98,13 @@ class TushareClient:
             df = client.query("daily", ts_code="600519.SH", start_date="20230101", end_date="20231231")
         """
         self._enforce_rate_limit()
-        
+
+        if type(single_attempt) is not bool:
+            raise ValueError("single_attempt must be a boolean")
+        attempt_limit = 1 if single_attempt else self.config.retry_attempts
         last_error: Exception | None = None
-        
-        for attempt in range(self.config.retry_attempts):
+
+        for attempt in range(attempt_limit):
             try:
                 query_kwargs = dict(kwargs)
                 if fields is not None:
@@ -114,7 +120,7 @@ class TushareClient:
             except Exception as e:
                 last_error = e
                 
-                if attempt < self.config.retry_attempts - 1:
+                if attempt < attempt_limit - 1:
                     # Retry with exponential backoff
                     delay = self.config.retry_delay_seconds * (2 ** attempt)
                     time.sleep(delay)
@@ -122,8 +128,8 @@ class TushareClient:
                     # Last attempt failed
                     break
         
-        # All retries exhausted
+        # All attempts exhausted
         raise ValueError(
-            f"Tushare API call failed after {self.config.retry_attempts} attempts: "
+            f"Tushare API call failed after {attempt_limit} attempts: "
             f"api={api_name}, params={kwargs}, error={last_error}"
         )

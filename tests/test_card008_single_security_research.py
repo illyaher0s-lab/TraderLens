@@ -406,6 +406,13 @@ def test_single_security_etf_dividend_reason_uses_verified_payout_baseline(monke
     assert "分红" in result["invalidation_condition"]
     assert "0.143元/份" in result["invalidation_condition"]
     assert "不代表分红稳定或保证" in result["invalidation_condition"]
+    invalidation_item = next(
+        item for item in result["explanation_items"]
+        if item["kind"] == "invalidation_condition"
+    )
+    assert invalidation_item["text"] == result["invalidation_condition"]
+    assert invalidation_item["evidence_level"] == "仅研究参考"
+    assert "不是估值失效条件或交易指令" in invalidation_item["note"]
 
 
 def test_single_security_stock_keeps_stock_identity_and_quote_path(monkeypatch):
@@ -1244,6 +1251,36 @@ def _card013_research(monkeypatch, code, bundle, llm):
     return response.json()
 
 
+def test_etf_response_preserves_distinct_source_serialization_contracts(monkeypatch):
+    conclusion = {
+        "status": "conclusive",
+        "verdict": "research_watch",
+        "label": "中性",
+        "basis": "index_pe_pb",
+        "message": "跟踪指数PE与PB估值分位处于中间档。",
+    }
+    result = _card013_research(
+        monkeypatch,
+        "510300",
+        _card013_etf_bundle("510300.SH", "broad", conclusion),
+        ResearchLLM(verdict="research_watch", reason="现有资料仍需人工核对。"),
+    )
+
+    serialized_fund_daily = next(
+        source for source in result["sources"]
+        if source["source_record_id"] == "fund_daily:510300.SH:0"
+    )
+    etf_bundle_fund_daily = next(
+        source for source in result["etf_research"]["sources"]
+        if source["source_record_id"] == "fund_daily:510300.SH:0"
+    )
+    assert "published_at" in serialized_fund_daily
+    assert "endpoint" not in serialized_fund_daily
+    assert "as_of" not in serialized_fund_daily
+    assert etf_bundle_fund_daily["endpoint"] == "fund_daily"
+    assert etf_bundle_fund_daily["as_of"] == "2026-10-09"
+
+
 @pytest.mark.parametrize(
     ("conclusion", "model_verdict", "expected_verdict"),
     [
@@ -1270,7 +1307,7 @@ def _card013_research(monkeypatch, code, bundle, llm):
 def test_deterministic_core_verdict_overrides_model_verdict(
     monkeypatch, conclusion, model_verdict, expected_verdict,
 ):
-    llm = ResearchLLM(verdict=model_verdict, reason="基金持仓和跟踪资料未获取，暂无法形成可靠判断。")
+    llm = ResearchLLM(verdict=model_verdict, reason="最近报告收盘价支持继续研究。")
     result = _card013_research(
         monkeypatch, "510880", _card013_etf_bundle("510880.SH", "dividend", conclusion), llm,
     )
@@ -1279,6 +1316,15 @@ def test_deterministic_core_verdict_overrides_model_verdict(
     assert result["status"] == "research_completed"
     assert len(llm.calls) == 1
     assert result["research_diagnostic"]["candidate_verdict"] == model_verdict
+    assert result["rationale"] == result["explanation_items"][1]["text"]
+    assert result["etf_research"]["valuation_conclusion"]["message"] not in result["rationale"]
+    assert "最近报告收盘价支持继续研究" not in result["rationale"]
+    explanation_items = {item["kind"]: item for item in result["explanation_items"]}
+    assert explanation_items["conclusion"]["evidence_level"] == "仅研究参考"
+    assert explanation_items["reason"]["evidence_level"] == "已验证规则"
+    assert explanation_items["risk"]["label"] == "风险资料缺口"
+    assert explanation_items["risk"]["evidence_level"] == "仅研究参考"
+    assert explanation_items["invalidation_condition"]["text"] == result["invalidation_condition"]
     closing_from_model = {
         "research_positive": "不构成买入或执行许可",
         "research_reject": "现有证据不支持继续研究",
@@ -1286,16 +1332,140 @@ def test_deterministic_core_verdict_overrides_model_verdict(
     assert closing_from_model not in result["rationale"]
 
 
+def test_broad_etf_neutral_reason_uses_plain_rule_mapping_without_thresholds(monkeypatch):
+    conclusion = {
+        "status": "conclusive",
+        "verdict": "research_watch",
+        "label": "中性",
+        "basis": "index_pe_pb",
+        "message": "跟踪指数PE与PB十年分位均处于中间档（20%–80%），中性。",
+    }
+    result = _card013_research(
+        monkeypatch,
+        "510300",
+        _card013_etf_bundle("510300.SH", "broad", conclusion),
+        ResearchLLM(verdict="research_positive", reason="最近报告收盘价支持继续研究。"),
+    )
+
+    expected = (
+        "两项估值的历史位置都落在现有规则的中间档，因此本次结果为中性；"
+        "这只说明估值档位，不是买入信号。"
+    )
+    reason_item = next(
+        item for item in result["explanation_items"] if item["kind"] == "reason"
+    )
+    assert reason_item["text"].startswith(expected)
+    assert "20%–80%" not in reason_item["text"]
+    assert "20%–80%" in result["etf_research"]["valuation_conclusion"]["message"]
+    assert "当前只适合继续观察" not in reason_item["text"]
+
+
 @pytest.mark.parametrize(
-    ("code", "category", "status", "message"),
+    ("code", "category", "status", "verdict", "label", "basis", "message"),
     [
-        ("512010", "industry", "data_gap", "跟踪指数的估值数据未覆盖，暂不提供估值判断"),
-        ("518880", "other", "not_supported", "该类型暂不提供估值判断"),
-        ("510300", "unclassified", "not_supported", "该类型暂不提供估值判断"),
+        (
+            "510880", "dividend", "conclusive", "research_positive", "相对历史偏便宜",
+            "own_dividend_yield", "ETF自身现金分红收益率历史分位相对历史偏便宜。",
+        ),
+        (
+            "510300", "broad", "conclusive", "research_watch", "中性",
+            "index_pe_pb", "跟踪指数PE与PB十年分位处于中间档，中性。",
+        ),
+        (
+            "512010", "industry", "data_gap", "research_unavailable", None,
+            None, "跟踪指数的估值数据未覆盖，暂不提供估值判断",
+        ),
+        (
+            "518880", "other", "not_supported", "research_unavailable", None,
+            None, "该类型暂不提供估值判断",
+        ),
+    ],
+)
+def test_etf_valuation_verdict_never_becomes_investment_judgment(
+    monkeypatch, code, category, status, verdict, label, basis, message,
+):
+    conclusion = {
+        "status": status,
+        "verdict": verdict,
+        "label": label,
+        "basis": basis,
+        "message": message,
+    }
+    llm = ResearchLLM(verdict="research_watch", reason="报告资料仍需人工核对。")
+    result = _card013_research(
+        monkeypatch,
+        code,
+        _card013_etf_bundle(f"{code}.SH", category, conclusion),
+        llm,
+    )
+
+    expected_page_verdict = (
+        f"{label}（{'仅510880自身现金分红收益率历史分位参考' if basis == 'own_dividend_yield' else '跟踪指数PE/PB十年分位'}）"
+        if status == "conclusive"
+        else message
+    )
+    assert result["verdict"] == expected_page_verdict
+    assert result["etf_research"]["valuation_conclusion"] == conclusion
+    assert "现有证据支持继续人工研究" not in result["rationale"]
+    assert "现有证据不支持继续研究" not in result["rationale"]
+    assert "当前只适合继续观察" not in result["rationale"]
+    assert "值得买入" not in result["rationale"]
+    if status == "conclusive":
+        assert len(llm.calls) == 1
+        assert result["llm_call_count"] == 1
+    else:
+        assert llm.calls == []
+        assert result["llm_call_count"] == 0
+
+
+def test_etf_summary_keeps_stale_and_incomplete_samples_limited():
+    from backend.api.research import _deterministic_etf_rationale
+
+    base_fact = {
+        "value": 3.4,
+        "unit": "元/份",
+        "source": "Tushare-compatible",
+        "endpoint": "fund_daily",
+        "field": "close",
+        "as_of": "2026-10-09",
+    }
+    stale_text = _deterministic_etf_rationale({
+        "metrics": {"latest_price": {**base_fact, "stale": True}},
+        "gaps": [],
+    })
+    assert "已过期的最近报告收盘价" in stale_text
+    assert "当前价格" not in stale_text
+
+    partial_text = _deterministic_etf_rationale({
+        "metrics": {
+            "price_change_1y": {**base_fact, "unit": "%", "window": "观察区间样本"},
+            "price_coverage_1y": {"coverage_complete": False},
+        },
+        "gaps": ["fund_daily一年历史样本不完整。"],
+    })
+    assert "部分观察区间报告收盘价变化" in partial_text
+    assert "完整一年报告收盘价变化" not in partial_text
+
+
+@pytest.mark.parametrize(
+    ("code", "category", "status", "message", "expected_reason"),
+    [
+        (
+            "512010", "industry", "data_gap", "跟踪指数的估值数据未覆盖，暂不提供估值判断",
+            "估值所需数据未完整核实",
+        ),
+        (
+            "518880", "other", "not_supported", "该类型暂不提供估值判断",
+            "现有估值规则不覆盖已核验的基金类别",
+        ),
+        (
+            "510300", "unclassified", "not_supported", "该类型暂不提供估值判断",
+            "基金类别尚未核实",
+        ),
     ],
 )
 def test_data_gap_and_unsupported_etf_conclusions_are_fixed_and_skip_model(
-    monkeypatch, code, category, status, message,
+    monkeypatch, code, category, status, message, expected_reason,
 ):
     llm = ResearchLLM(verdict="research_positive", reason="近一年收盘价与成交额支持继续研究。")
     conclusion = {
@@ -1314,8 +1484,22 @@ def test_data_gap_and_unsupported_etf_conclusions_are_fixed_and_skip_model(
     assert result["research_diagnostic"]["failure_reason"] == "not_called_by_rule"
     assert result["research_diagnostic"]["candidate_verdict"] is None
     assert "值得研究" not in json.dumps(result["narrative_sentences"], ensure_ascii=False)
-
-
+    if status == "data_gap":
+        assert "不判断便宜或贵" in result["rationale"]
+    else:
+        assert expected_reason in result["rationale"]
+        if category == "unclassified":
+            assert "方法适用范围限制" not in result["rationale"]
+        else:
+            assert "方法适用范围限制" in result["rationale"]
+        assert "PE/PB" not in result["rationale"]
+    explanation_items = {item["kind"]: item for item in result["explanation_items"]}
+    assert explanation_items["conclusion"]["evidence_level"] == "已验证规则"
+    assert explanation_items["reason"]["evidence_level"] == "仅研究参考"
+    assert explanation_items["risk"]["label"] == "风险资料缺口"
+    assert explanation_items["risk"]["evidence_level"] == "仅研究参考"
+    assert explanation_items["invalidation_condition"]["text"] == result["invalidation_condition"]
+    assert explanation_items["invalidation_condition"]["evidence_level"] == "无依据"
 def test_commodity_etf_with_non_index_benchmark_is_classified_other_without_index_request():
     class CommodityClient(ETFBundleClient):
         def query(self, api, **kwargs):

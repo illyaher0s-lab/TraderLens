@@ -1,236 +1,75 @@
-# TraderLens Project Execution Rules
-
-These rules specialize the global Codex engineering rules for TraderLens.
-They do not weaken correctness requirements for trading decisions.
-
-**All actions must align with the North Star document: `TraderLens_Northstar.md`.**
-
-## 1. Product mainline is the top-level priority
-
-TraderLens exists to help a novice A-share user make and review real trading decisions.
-
-Primary user journey:
-
-1. Market regime:
-   Can I open a new position today?
-   -> allow / caution / block
-
-2. Sector focus:
-   If entry is allowed, which few sectors deserve attention?
-
-3. Stock decision:
-   For a discovered or user-supplied stock:
-   -> candidate / wait / watch / reject
-
-4. Trade plan:
-   Using a previously validated strategy:
-   -> entry condition
-   -> position size
-   -> invalidation / stop
-   -> exit condition
-
-5. Manual simulated execution:
-   User records actual simulated buy.
-
-6. Position monitoring:
-   -> hold / risk rising / exit
-
-7. Post-trade review:
-   -> P&L
-   -> strategy attribution
-   -> market/sector contribution
-   -> execution/discipline deviation
-
-Every implementation task MUST state which numbered step it advances.
-
-If a task cannot explain what new user-visible ability it unlocks on this journey,
-do not implement it unless it protects a mandatory correctness boundary.
-
-## 2. Reuse before rebuild
-
-Existing research, Serenity, strategy validation, B6/OOS/Gate, Signal Board,
-Action Plan, CapitalContext, Observation, P&L and Discipline Review components
-must be reused when they are fundamentally sound.
-
-Do not replace an existing module because its architecture or naming is imperfect.
-
-Prefer:
-existing capability -> minimal connection -> end-to-end use
-
-over:
-new abstraction -> new infrastructure -> migration.
-
-## 3. Classify failures before stopping
-
-When any failure appears, classify it first.
-
-### A. Mainline blocker — must stop and fix
-
-Examples:
-
-- fabricated or unverifiable market/company data
-- broken current user workflow
-- incorrect routing/state transition on the current journey
-- look-ahead or data leakage
-- invalid backtest assumptions
-- T+1 / suspension / price-limit / transaction-cost errors
-- incorrect position sizing
-- incorrect entry/exit logic
-- incorrect P&L
-- trade not bound to its actual Action Plan
-- syntax/import/runtime failure in code touched by the current task
-- secrets exposed by the current runtime path
-
-These require focused root-cause repair before proceeding.
-
-### B. Relevant technical debt — record, do not block
-
-Examples:
-
-- unrelated historical test fixture failure
-- obsolete compatibility path
-- unrelated dirty data in an old database
-- architecture inconsistency outside the current journey
-- missing UI polish
-- old module tests not exercised by the authorized path
-
-Record the issue and continue the authorized mainline.
-
-### C. Enhancement — defer
-
-Examples:
-
-- broader observability
-- generalized frameworks
-- additional providers
-- additional financial fields
-- broader market coverage
-- refactoring for elegance
-
-Do not implement during a mainline closure task.
-
-## 4. Trading correctness cannot be relaxed
-
-The MVP may be narrow, but it may not fake correctness.
-
-Never relax:
-
-- real source attribution
-- no fabricated financial/market/news facts
-- no look-ahead
-- no data leakage
-- no survivorship bias where relevant
-- A-share T+1
-- suspension and price-limit behavior
-- transaction costs
-- deterministic P&L
-- deterministic position sizing
-- strategy provenance
-- evidence gaps
-
-Missing information must be explicit.
-
-The system may still form a decision when some non-critical information is missing,
-but must state the missing evidence and reduce evidence strength accordingly.
-
-Do not invent numeric confidence percentages.
-
-Use:
-- high evidence
-- medium evidence
-- low evidence
-- insufficient data
-
-## 5. LLM boundaries
-
-LLMs may:
-
-- understand user intent
-- research and summarize evidence
-- identify supporting and counter evidence
-- form a research-layer verdict
-- explain deterministic trading outputs
-
-LLMs must not:
-
-- invent current facts
-- calculate authoritative numerical outputs
-- create strategy parameters ad hoc
-- decide whether a backtest passed
-- calculate P&L
-- override deterministic gates
-- override position/risk constraints
-
-Routing, parsing, retry policy, state transitions and numerical calculations belong in code.
-
-## 6. Narrow vertical slice first
-
-Before expanding breadth, complete one narrow journey:
-
-user supplies one stock
--> real research
--> research verdict
--> one validated strategy
--> executable Action Plan
--> manual simulated buy
--> position monitoring
--> manual sell
--> P&L and review
-
-Automatic market-wide sector discovery and broad stock screening may come later.
-
-## 7. Change discipline
-
-Before modifying code:
-
-1. establish a recoverable git checkpoint;
-2. inspect target code, direct callers, contracts and relevant tests;
-3. define focused acceptance criteria.
-
-After modifying code:
-
-1. run syntax / compile / import smoke first;
-2. run focused tests for touched behavior;
-3. run the relevant user-path verification.
-
-Do not begin expensive E2E verification while touched files do not compile.
-
-Do not modify unrelated dirty files.
-
-## 8. Task scope
-
-One task should fix one verified mainline blocker.
-
-If a new independent blocker appears:
-
-- if it blocks the current mainline or violates trading correctness -> stop and report it;
-- otherwise record it as technical debt and continue the authorized task.
-
-Do not bundle multiple root causes into one patch.
-
-## 9. Definition of progress
-
-Progress is not:
-
-- more tests
-- more abstractions
-- more reports
-- more services
-- cleaner architecture
-
-unless they directly protect correctness.
-
-Progress is:
-
-the user journey can move one verified step farther using real or explicitly
-identified test inputs.
-
-At the end of every task report:
-
-阶段 <阶段编号>｜卡 <三位卡号>
-BEFORE: <where the user journey stopped>
-AFTER: <where it now stops>
-新增能力: <what the user can now actually do>
-下一阻塞: <one blocker only>
-
-阶段和卡号表示项目工作进度，与用户旅程步骤编号（1-7）不同。用户旅程步骤如需说明，只写在任务卡的范围说明中，不得用作进度标题。
+# TraderLens 执行规则（AGENTS.md）
+
+本文件只写长期不变的执行规则，不记录产品目标、用户链路、阶段、进度、策略参数或组件清单。
+优先级：TraderLens_Northstar.md → 总主线计划 → 当前阶段任务卡 → 本文件。
+若本文件与上位文档冲突，停止并报告，由 Illya 决定，不自行选边。
+
+## 1. 任务准入
+每个任务开工前必须写明：
+1. 对应 Northstar 用户链路的哪一步；
+2. Illya 因此多得到什么可验证的真实能力，或消除了哪个必需阻塞；
+3. 范围、冻结的验收标准、投入上限。
+答不清则不做。未来需求留待未来。
+
+## 2. 范围纪律
+- 一张卡一个能力范围、一套事前冻结的验收标准、一个根因。
+- 验收中新增的要求，先判定是"原范围内的修正"还是"新能力"；新能力不并入当前卡，登记后由 Illya 决定是否另排。
+- "内容/数据不足"与"展示问题"是两类问题，不在同一张卡里混修。
+- 不自动扩范围、扩预算、延期。发现范围膨胀或"修一处坏一处"，主动停止并报告。
+
+## 3. 复用优先
+- 先核验现有能力，能接通就不重建；不因命名或架构不完美替换模块。
+- 页面与 Agent 共用同一业务动作、数据和正式账本，不建并行流程。
+- 顺序：现有能力 → 最小连接 → 端到端可用；而不是 新抽象 → 新基础设施 → 迁移。
+
+## 4. 失败分级（先分类再决定是否停）
+A 主线阻塞：数据伪造或不可核实、当前链路断裂、状态流转错误、前视或数据泄露、回测假设无效、
+  T+1/停牌/涨跌停/交易成本错误、仓位或收益计算错误、成交未绑定其计划、
+  本任务触及代码无法编译或运行、运行路径泄露密钥。
+  → 必须在授权范围内做根因修复；仍不通过则停止，报告已核实的边界。不降标准、不绕过关卡、不把部分完成说成通过。
+B 相关技术债（无关历史测试、界面打磨、旧路径、旧库脏数据）：记录，不阻塞。
+C 增强（新数据源、通用框架、重构、扩大覆盖）：推迟。
+停止规则：同一张卡连续两次本人验收不通过，或同一阻塞跨两张卡未解决，立即停止，不做第三次尝试，由 Illya 决定。
+
+## 5. 交易正确性不得放松
+- 数据必须有真实来源，不编造行情、财务、新闻；无前视、无泄露、无幸存者偏差。
+- 遵守 A 股 T+1、停牌、涨跌停和交易成本；收益与仓位由确定性代码计算。
+- 策略要有来源与版本；规则和判据事前冻结，修改即新版本，保留旧结果。
+- 缺失信息必须明示并降低证据强度；未知费用、分红保持"未知"。
+- 证据强度用 高/中/低/数据不足，不编造置信度百分比。
+- 每条投资判断标注 已验证规则 / 仅研究参考 / 无依据；无验证依据不得包装成买卖建议。
+- 实际成交、计划、模拟严格区分，模拟不得冒称真实收益。
+
+## 6. LLM 边界
+LLM 可以：理解意图、研究与归纳、提出支持与反对证据、给出研究层结论、解释确定性输出。
+LLM 不得：编造当前事实、计算权威数值、临时生成策略参数、判定回测是否通过、计算收益、覆盖确定性关卡或仓位风险约束。
+路由、解析、重试、状态流转和数值计算属于代码。
+
+## 7. 验收与完成
+- 验收看用户能否走完流程并读懂结果；测试通过、内部证据不等于可用。
+- 需要本人验收的，在 Illya 确认前一律标"待验收"，不得自行宣布完成。
+- 进度不是更多测试、报告、抽象或更整洁的架构，而是用户链路用真实或明确标注的测试输入多走一步。
+- 未核验的事标"未核"；假设与结论分开写。
+
+## 8. 变更纪律
+改代码前：建立可恢复的 git 检查点；授权修改账本前先备份正式账本；查看目标代码、直接调用方、契约和相关测试；定好聚焦的验收标准。
+改代码后：先做语法/编译/导入冒烟，再跑聚焦测试，再做相关用户路径验证；代码未编译通过不做昂贵的端到端验证。
+- 不改无关的脏文件；使用隔离测试库；不物理删除用户数据；高风险动作须明确授权。
+- 完成本卡约定的基本检查后，可在独立开发分支提交并推送本卡改动，无须等待 Illya 验收；未经 Illya 验收，不得合并到正式分支或将任务标记完成。任务卡已明确冻结为不提交/不推送的，仍遵守该卡范围，需先由 Illya 调整。
+- 推送前核对暂存区和提交内容，只纳入本卡改动，排除密钥、正式交易账本和无关文件；只暂存明确目标文件，保护已有未提交成果，不用 reset、clean 或覆盖操作清除/替换它们。
+- 工程 Agent 每轮汇报当前分支、HEAD 提交号及未提交文件状态（分别说明 staged、unstaged、untracked）；提交或推送失败须如实报告。
+- 总控负责指挥，指定执行者负责实现与验证，验收权属于用户。
+
+## 9. 安全边界
+- 不下券商单，不连接券商交易接口。
+- 不读取、搜索、复制或传递凭据；不通过文件、环境变量、脚本等任何间接方式绕过凭据限制。
+- 被策略或权限拦截时立即停止并如实上报，不换方式重试。
+
+## 10. 汇报格式
+每个任务结束时：
+阶段 <编号>｜卡 <三位卡号>
+BEFORE: 用户链路原先停在哪
+AFTER: 现在停在哪
+新增能力: 用户现在实际能做什么
+下一阻塞: 仅一个
+阶段和卡号表示项目进度，不等同于用户链路步骤编号；链路步骤只写在任务卡范围说明里。

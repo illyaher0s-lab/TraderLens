@@ -1,0 +1,73 @@
+{
+  "version": "510880-v21-2026-10-14.1",
+  "created_at": "2026-10-14",
+  "target_symbol": "510880.SH",
+  "target_name": "华泰柏瑞上证红利ETF",
+  "benchmark_symbol": "000015.SH",
+  "sources": [
+    {
+      "id": "snapshot:510880.SH:q1-2026",
+      "entity": "510880.SH",
+      "kind": "fund_report",
+      "published_at": "2026-04-22",
+      "as_of": "2026-03-31",
+      "title": "上证红利交易型开放式指数证券投资基金2026年第1季度报告",
+      "url": "https://www.sse.com.cn/disclosure/fund/announcement/c/new/2026-04-22/510880_20260422_OE5A.pdf",
+      "sha256": "a92b147c96f9b961149faea32915eef31b962a4b48fa7eb316ab8f4f4635ef87"
+    },
+    {
+      "id": "snapshot:000015.SH:factsheet-20260930",
+      "entity": "000015.SH",
+      "kind": "index_factsheet",
+      "published_at": "unknown",
+      "publication_date_status": "not_verified",
+      "as_of": "2026-09-30",
+      "title": "上证红利指数事实表",
+      "url": "https://oss-ch.csindex.com.cn/static/html/csindex/public/uploads/indices/detail/files/zh_CN/000015factsheet.pdf",
+      "sha256": "2fdbdc7fdab77ec3d11078da77757aa6f10eac66111f044b39cb6dfb51b0bf3e"
+    },
+    {
+      "id": "snapshot:601919.SH:financials-2026H1",
+      "entity": "601919.SH",
+      "kind": "issuer_financial_report",
+      "published_at": "2026-08-29",
+      "as_of": "2026-06-30",
+      "title": "中远海控2026年半年度报告",
+      "url": "https://static.cninfo.com.cn/finalpage/2026-08-29/1225531118.PDF",
+      "sha256": "0265a4ca61fb24ff15e14b53b258d7febc03bdb7349f379e42e2c28476dd2ff1"
+    }
+  ],
+  "facts": [
+    { "id": "index.pe", "label": "指数滚动市盈率", "value": 8.9, "unit": "倍", "as_of": "2026-09-30", "subject": "000015.SH", "scope": "index_metric", "source_id": "snapshot:000015.SH:factsheet-20260930", "source_pages": ["p.1"] },
+    { "id": "index.pb", "label": "指数市净率", "value": 0.76, "unit": "倍", "as_of": "2026-09-30", "subject": "000015.SH", "scope": "index_metric", "source_id": "snapshot:000015.SH:factsheet-20260930", "source_pages": ["p.1"] },
+    { "id": "index.dividend_yield", "label": "指数股息率", "value": 4.0, "unit": "%指数口径", "as_of": "2026-09-30", "subject": "000015.SH", "scope": "index_metric", "source_id": "snapshot:000015.SH:factsheet-20260930", "source_pages": ["p.1"] },
+    { "id": "index.return_1y", "label": "指数一年收益", "value": 10.81, "unit": "%", "as_of": "2026-09-30", "subject": "000015.SH", "scope": "index_metric", "source_id": "snapshot:000015.SH:factsheet-20260930", "source_pages": ["p.1"] },
+    { "id": "index.return_5y_annualized", "label": "指数五年年化收益", "value": 1.87, "unit": "%年化", "as_of": "2026-09-30", "subject": "000015.SH", "scope": "index_metric", "source_id": "snapshot:000015.SH:factsheet-20260930", "source_pages": ["p.1"] },
+    { "id": "index.volatility_1y_annualized", "label": "指数一年年化波动", "value": 15.87, "unit": "%年化", "as_of": "2026-09-30", "subject": "000015.SH", "scope": "index_metric", "source_id": "snapshot:000015.SH:factsheet-20260930", "source_pages": ["p.1"] },
+    { "id": "index.sector_energy", "label": "指数能源行业权重", "value": 33.7, "unit": "%指数权重", "as_of": "2026-09-30", "subject": "000015.SH", "scope": "index_sector_weight", "source_id": "snapshot:000015.SH:factsheet-20260930", "source_pages": ["p.2"] },
+    { "id": "index.sector_financials", "label": "指数金融行业权重", "value": 31.4, "unit": "%指数权重", "as_of": "2026-09-30", "subject": "000015.SH", "scope": "index_sector_weight", "source_id": "snapshot:000015.SH:factsheet-20260930", "source_pages": ["p.2"] },
+    { "id": "index.cosco_weight", "label": "中远海控指数成份权重", "value": 5.23, "unit": "%指数权重", "as_of": "2026-09-30", "subject": "601919.SH", "scope": "index_constituent_weight", "source_id": "snapshot:000015.SH:factsheet-20260930", "source_pages": ["p.2"] },
+    { "id": "fund.q1.nav_per_share", "label": "基金份额净值", "value": 3.2465, "unit": "元/份", "as_of": "2026-03-31", "subject": "510880.SH", "scope": "fund_product", "source_id": "snapshot:510880.SH:q1-2026", "source_pages": ["p.3"] },
+    { "id": "fund.q1.net_assets", "label": "基金净资产", "value": 17138687924.73, "unit": "元", "as_of": "2026-03-31", "subject": "510880.SH", "scope": "fund_product", "source_id": "snapshot:510880.SH:q1-2026", "source_pages": ["p.3"] },
+    { "id": "fund.q1.return_spread", "label": "基金与基准三个月收益差", "value": 0.12, "unit": "百分点", "as_of": "2026-03-31", "subject": "510880.SH", "scope": "fund_product", "source_id": "snapshot:510880.SH:q1-2026", "source_pages": ["p.4"] },
+    { "id": "fund.q1.cosco_holding", "label": "中远海控基金实际持仓占净资产", "value": 4.86, "unit": "%基金净资产", "as_of": "2026-03-31", "subject": "601919.SH", "scope": "fund_holding", "source_id": "snapshot:510880.SH:q1-2026", "source_pages": ["p.10"] },
+    { "id": "issuer.601919.revenue_yoy", "label": "中远海控营业收入同比", "value": 2.59, "unit": "%", "as_of": "2026-06-30", "subject": "601919.SH", "scope": "issuer_financial", "source_id": "snapshot:601919.SH:financials-2026H1", "source_pages": ["p.6"] },
+    { "id": "issuer.601919.cost_yoy", "label": "中远海控营业成本同比", "value": 6.24, "unit": "%", "as_of": "2026-06-30", "subject": "601919.SH", "scope": "issuer_financial", "source_id": "snapshot:601919.SH:financials-2026H1", "source_pages": ["p.6"] },
+    { "id": "issuer.601919.net_profit_yoy", "label": "中远海控归母净利润同比", "value": -23.48, "unit": "%", "as_of": "2026-06-30", "subject": "601919.SH", "scope": "issuer_financial", "source_id": "snapshot:601919.SH:financials-2026H1", "source_pages": ["p.6"] },
+    { "id": "issuer.601919.non_gaap_profit_yoy", "label": "中远海控扣非归母净利润同比", "value": -23.35, "unit": "%", "as_of": "2026-06-30", "subject": "601919.SH", "scope": "issuer_financial", "source_id": "snapshot:601919.SH:financials-2026H1", "source_pages": ["p.6"] },
+    { "id": "issuer.601919.operating_cash_flow_yoy", "label": "中远海控经营现金流净额同比", "value": -9.49, "unit": "%", "as_of": "2026-06-30", "subject": "601919.SH", "scope": "issuer_financial", "source_id": "snapshot:601919.SH:financials-2026H1", "source_pages": ["p.17"] },
+    { "id": "issuer.601919.interim_dividend_plan", "label": "中远海控中期分红方案每股金额", "value": 0.43, "unit": "元/股，董事会审议方案", "as_of": "2026-06-30", "subject": "601919.SH", "scope": "issuer_financial", "source_id": "snapshot:601919.SH:financials-2026H1", "source_pages": ["p.27", "p.168"] }
+  ],
+  "relationships": [
+    { "kind": "tracks_index", "from": "510880.SH", "to": "000015.SH", "source_id": "snapshot:510880.SH:q1-2026" },
+    { "kind": "index_constituent", "from": "000015.SH", "to": "601919.SH", "as_of": "2026-09-30", "weight_fact_id": "index.cosco_weight" },
+    { "kind": "issuer_report", "from": "601919.SH", "to": "financial_report:2026H1", "as_of": "2026-06-30", "source_id": "snapshot:601919.SH:financials-2026H1" }
+  ],
+  "limitations": [
+    "2026年3月31日基金实际持仓与2026年9月30日指数成份权重属于不同口径和时点，不互相替代。",
+    "指数成份权重不是ETF净资产持仓比例。",
+    "只核验一个指数成份股的2026年半年度业绩，不能外推全体成份股。",
+    "快照没有当前估值、IOPV溢价折价或实时成交资料；当前时机不能据此判断。",
+    "资料不足只能标为缺失，不能作为经济反证。"
+  ]
+}

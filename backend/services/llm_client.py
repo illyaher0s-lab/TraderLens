@@ -34,15 +34,18 @@ _DECISION_LOOP_CALLS_LOCK = threading.Lock()
 _MAX_TIMEOUT_RETRIES = 2
 _TIMEOUT_RETRY_DELAYS = (0.25, 0.5)
 _LOGGER = logging.getLogger(__name__)
+_SAFE_RESPONSE_STOP_REASONS = frozenset({
+    "end_turn", "max_tokens", "stop_sequence", "tool_use", "pause_turn", "refusal",
+})
+_SAFE_RESPONSE_BLOCK_TYPES = frozenset({"text", "tool_use", "thinking", "redacted_thinking"})
 
 
-def _request_input_bytes(messages, system, tools, max_tokens):
+def _request_input_bytes(messages, system, tools, max_tokens, tool_choice=None):
     try:
-        payload = json.dumps(
-            {"messages": messages, "system": system, "tools": tools, "max_tokens": max_tokens},
-            ensure_ascii=False,
-            default=str,
-        ).encode("utf-8")
+        request = {"messages": messages, "system": system, "tools": tools, "max_tokens": max_tokens}
+        if tool_choice is not None:
+            request["tool_choice"] = tool_choice
+        payload = json.dumps(request, ensure_ascii=False, default=str).encode("utf-8")
     except (TypeError, ValueError, OverflowError):
         return 0
     return len(payload)
@@ -374,6 +377,7 @@ class LLMClient:
         stage: str | None = None,
         source_count: int | None = None,
         timeout: float | None = None,
+        tool_choice: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Create a message with the LLM.
@@ -382,6 +386,7 @@ class LLMClient:
             messages: Conversation messages
             system: System prompt
             tools: Tool definitions
+            tool_choice: Optional Anthropic tool selection policy
             max_tokens: Maximum tokens to generate
             decision_loop_id: V2 whole-loop budget key; enforces a hard
                 cap of _CALL_LIMIT_PER_LOOP calls per loop (default 3).
@@ -431,7 +436,7 @@ class LLMClient:
                 "retry_count": 0,
                 "retry_stop_reason": None,
                 "attempts": [],
-                "input_bytes": _request_input_bytes(messages, system, tools, max_tokens),
+                "input_bytes": _request_input_bytes(messages, system, tools, max_tokens, tool_choice),
                 "source_count": source_count if type(source_count) is int and source_count >= 0 else None,
                 "output_parse_reached": False,
             }
@@ -442,6 +447,8 @@ class LLMClient:
                 "tools": tools,
                 "max_tokens": max_tokens,
             }
+            if tool_choice is not None:
+                request_kwargs["tool_choice"] = tool_choice
             if timeout is not None:
                 request_kwargs["timeout"] = timeout
             response = None
@@ -563,6 +570,17 @@ class LLMClient:
                 raise ValueError("llm_budget_exhausted")
 
             diagnostic["duration_ms"] = max(0.0, (time.perf_counter() - request_started) * 1000)
+            response_stop_reason = getattr(response, "stop_reason", None)
+            diagnostic["provider_stop_reason"] = (
+                response_stop_reason
+                if isinstance(response_stop_reason, str) and response_stop_reason in _SAFE_RESPONSE_STOP_REASONS
+                else "other" if isinstance(response_stop_reason, str) else None
+            )
+            provider_block_counts = {
+                "text": 0, "tool_use": 0, "thinking": 0,
+                "redacted_thinking": 0, "other": 0,
+            }
+            normalized_block_counts = {"text": 0, "tool_use": 0, "other": 0}
             # Convert response to dict
             result = {
                 "id": response.id,
@@ -578,18 +596,30 @@ class LLMClient:
 
             # Extract content blocks
             for block in response.content:
-                if block.type == "text":
+                block_type = getattr(block, "type", None)
+                bucket = (
+                    block_type
+                    if isinstance(block_type, str) and block_type in _SAFE_RESPONSE_BLOCK_TYPES
+                    else "other"
+                )
+                provider_block_counts[bucket] += 1
+                if block_type == "text":
                     result["content"].append({
                         "type": "text",
                         "text": block.text,
                     })
-                elif block.type == "tool_use":
+                    normalized_block_counts["text"] += 1
+                elif block_type == "tool_use":
                     result["content"].append({
                         "type": "tool_use",
                         "id": block.id,
                         "name": block.name,
                         "input": block.input,
                     })
+                    normalized_block_counts["tool_use"] += 1
+
+            diagnostic["provider_content_block_counts"] = provider_block_counts
+            diagnostic["normalized_content_block_counts"] = normalized_block_counts
 
             return LLMCallResult(result, diagnostic)
 

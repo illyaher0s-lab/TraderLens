@@ -526,3 +526,64 @@ def test_success_does_not_emit_llm_failure_log(caplog):
     client.create_message(messages=[{"role": "user", "content": "normal request"}])
 
     assert _llm_failure_log_events(caplog) == []
+
+
+def test_response_adapter_records_safe_provider_stop_reason_and_block_counts(monkeypatch):
+    from types import SimpleNamespace
+    import json
+
+    provider_response = SimpleNamespace(
+        id="msg-safe",
+        model="test-model",
+        role="assistant",
+        stop_reason="tool_use",
+        content=[
+            SimpleNamespace(type="text", text="safe"),
+            SimpleNamespace(type="tool_use", id="tool-1", name="search_news", input={}),
+            SimpleNamespace(type="server_tool_use", opaque="private block detail"),
+        ],
+        usage=SimpleNamespace(input_tokens=1, output_tokens=1),
+    )
+    provider = SimpleNamespace(messages=SimpleNamespace(create=lambda **_kwargs: provider_response))
+    monkeypatch.setattr("backend.services.llm_client.Anthropic", lambda **_kwargs: provider)
+    client = LLMClient(api_key="test-key", base_url="https://cc-vibe.com", model="test-model")
+
+    response = client.create_message(messages=[{"role": "user", "content": "safe"}])
+
+    assert response["content"] == [
+        {"type": "text", "text": "safe"},
+        {"type": "tool_use", "id": "tool-1", "name": "search_news", "input": {}},
+    ]
+    assert response.call_diagnostic["provider_stop_reason"] == "tool_use"
+    assert response.call_diagnostic["provider_content_block_counts"] == {
+        "text": 1, "tool_use": 1, "thinking": 0, "redacted_thinking": 0, "other": 1,
+    }
+    serialized = json.dumps(response.call_diagnostic)
+    assert "server_tool_use" not in serialized
+    assert "private block detail" not in serialized
+
+
+def test_create_message_forwards_explicit_tool_choice_and_keeps_default_omitted(monkeypatch):
+    from types import SimpleNamespace
+
+    provider_calls = []
+
+    def create(**kwargs):
+        provider_calls.append(kwargs)
+        return _FakeResponse()
+
+    provider = SimpleNamespace(messages=SimpleNamespace(create=create))
+    monkeypatch.setattr("backend.services.llm_client.Anthropic", lambda **_kwargs: provider)
+    client = LLMClient(api_key="test-key", base_url="https://cc-vibe.com", model="test-model")
+    tools = [{"name": "finish_research", "input_schema": {"type": "object"}}]
+
+    client.create_message(messages=[{"role": "user", "content": "safe"}], tools=tools)
+    choice = {"type": "tool", "name": "finish_research", "disable_parallel_tool_use": True}
+    client.create_message(
+        messages=[{"role": "user", "content": "safe"}],
+        tools=tools,
+        tool_choice=choice,
+    )
+
+    assert "tool_choice" not in provider_calls[0]
+    assert provider_calls[1]["tool_choice"] == choice
