@@ -20,6 +20,9 @@ export default function TopNav({ tip }: { tip?: string | null }) {
           <Link href="/#research" className="text-sm text-slate-600 hover:text-slate-900">
             研究
           </Link>
+          <Link href="/strategy-validations" className="text-sm text-slate-600 hover:text-slate-900">
+            策略验证
+          </Link>
         </div>
         {tip && (
           <div className="text-sm text-slate-600">
