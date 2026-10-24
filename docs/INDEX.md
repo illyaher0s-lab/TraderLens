@@ -13,6 +13,9 @@ This index intentionally excludes Signal Board process docs and milestone closeo
 
 - `../TraderLens_MAINLINE_PLAN.md` - current overall six-stage product route.
 - `BACKLOG.md` - current pending work and verification boundaries.
+- `DEFERRED-BACKLOG.md` is supplemental; `BACKLOG.md` remains the authority for current pending work.
+- `superpowers/plans/2026-10-20-card018-strategy-validation-results.md` - Card 018 frozen scope and owner acceptance status.
+- `verification/2026-10-24-knowledge-closeout.md` - dated evidence boundaries, workspace inventory coverage, and recovery/cleanup preview; current status remains in the mainline plan.
 - `archive/2026-10-07/TraderLens_PRODUCT_MAINLINE_PLAN.md` - archived Replay-001 topic; confirmed future strategy targets remain in its future-goals section.
 - `verification/GATE001_FINAL_RESEARCH_REPORT.md` - historical saved `insufficient_evidence` result; independent acceptance is limited to historical display and offline economic reconciliation, not current strategy or product acceptance.
 - `verification/GATE001_SAVED_CAPTURE_AUDIT.json` - independently accepted supplemental audit for the primary scenario's seven trade legs and account reconciliation; three exit contexts are derived from persisted orders, and the original capture history remains intact.
@@ -41,7 +44,7 @@ These paths describe routes present in the current source tree; route presence a
 - `/trades/record` - record-trade page (`../frontend/app/trades/record/page.tsx`).
 - `/observations` - holdings and observations page (`../frontend/app/observations/page.tsx`).
 - `/research` and `/research/[research_id]` - research list and detail routes.
-- `/strategy-validations` - strategy validation route; current entry/engine still requires verification under the mainline.
+- `/strategy-validations` - Card 018's read-only Card 017 historical-results view was owner-accepted on 2026-10-21 in commit `bf0f6c2062f3ac7187b6aef7fe630c8f419620ad` on an independent branch; it is not merged into the default branch and grants no strategy qualification.
 - `/themes` remains as an older theme route; it is not the current navigation entry.
 - `/workbench` remains in source but is hidden from navigation pending Agent dual-entry acceptance.
 
@@ -69,7 +72,8 @@ These paths describe routes present in the current source tree; route presence a
 
 ## Current Backlog
 
-- `DEFERRED-BACKLOG.md` - deferred items and revisiting criteria
+- `BACKLOG.md` - authoritative current pending work and verification boundaries.
+- `DEFERRED-BACKLOG.md` - supplementary deferred items and revisit criteria; it does not replace the current backlog.
 
 ## Historical Context
 

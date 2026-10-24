@@ -6,6 +6,8 @@
 - [产品总主线计划](TraderLens_MAINLINE_PLAN.md)：当前六阶段整体路线。
 - [项目执行规则](AGENTS.md)
 - [README](README.md)：当前概览与入口。
+- [2026-10-24 知识收尾记录](docs/verification/2026-10-24-knowledge-closeout.md)：本轮证据边界、恢复现场与清场预览；当前卡状态仍以主线计划为准。
+- [卡 018 冻结计划与验收状态](docs/superpowers/plans/2026-10-20-card018-strategy-validation-results.md)：记录 2026-10-21 本人验收；实现提交仍在独立分支。加载器读取的协议 v2 文件仅在本地未跟踪工作副本，另八项结果材料在外部目录；均未纳入发布，独立克隆会因缺料返回 `unavailable`。
 - [Gate001 历史研究报告](docs/verification/GATE001_FINAL_RESEARCH_REPORT.md)：已归档的历史研究结果，不是当前整体路线。
 - [Replay-001 历史专题归档](docs/archive/2026-10-07/TraderLens_PRODUCT_MAINLINE_PLAN.md)：用户确认的未来策略目标仍保存在归档正文中。
 

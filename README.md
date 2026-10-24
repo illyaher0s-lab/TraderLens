@@ -12,20 +12,20 @@
 | 记录成交 | `/trades/record` |
 | 我的持仓 | `/observations` |
 | 研究记录 | `/research` 与研究详情页 |
-| 策略验证 | `/strategy-validations`；入口/引擎仍需按主线计划核验 |
+| 策略验证 | `/strategy-validations`；Card 018 的 Card 017 历史结果只读展示已于 2026-10-21 验收，仍在未合并默认分支的独立分支上；不授予策略资格 |
 
 `/themes` 旧主题研究路由仍在代码中，但不是当前导航或主线入口。`/workbench` AI 对话路由保留，暂未放入导航，等待双入口验收。
 
-## 当前交付状态（截至 2026-10-16）
+## 当前交付状态（截至 2026-10-24）
 
-- 阶段 6｜卡 016，累计 **16/20**、剩余 4。卡 013、014 均已终止且本人验收未通过；卡 015 按 Illya 指令停止于新闻接口预检，A 未达到、B/C 未核。
-- 卡 016 的 48 项聚焦测试通过，后端编译/导入、隔离生产构建通过；run06 唯一真实首页请求返回 `research_unavailable`。两次 `tool_use` 响应已观察到，但最终 `finish_research` 未提交，三层 AI 研究报告未形成。
-- 卡 016：A/B 未通过、C 部分验证；最终失败的精确 ValueError 分支未核。当前没有完整可用的 AI 研究报告，整卡与 A/B/C 均待 Illya 本人验收。JSON 展示修正的 SSR 与 TypeScript 检查通过，不代表研究链路验收通过。
-- 当前唯一技术阻塞：`finish_research` 未提交。Illya 已授权将阶段 014/015/016 当前进度发布到独立开发分支 `codex/etf-research-progress-20261016`；这不代表本人验收通过或允许合并默认分支。
-- BACKLOG #18 的正式账本路径仍待只读核实。本 README 不代表应用、实时行情或模型调用已在当前环境通过运行验收；核实前不应据此推断可安全连接正式账本。
+- 阶段 6 累计 **18/20**、剩余 2 张。卡 016、017 仍待 Illya 本人验收；策略资格未授予。追加至 24 张仅为建议，尚未批准。
+- 卡 016 最新受保护预检为 run07：A（自主取证链路）通过，B（证据语义质量）未通过，C 部分验证；新闻请求返回 0 行、0 正文。报告及 A/B/C 均待本人验收，质量约束登记为 BACKLOG #32 待排期。
+- 卡 017 固定批次的四条路径均独立核账为 `RECONCILED`，仍待本人验收。程序分类为“风险改善伴收益让步”；Arden 建议暂不采用，但这不是 Illya 的正式采用决定，也未授予策略资格。
+- 卡 018 于 2026-10-21 经本人确认“重启刷新后正常，卡 018 验收通过”。验收提交 `bf0f6c2062f3ac7187b6aef7fe630c8f419620ad` 位于独立分支 `codex/card018-strategy-validation-results-20261021`，尚未合并默认分支；其能力仅为只读展示卡 017 历史结果。
+- BACKLOG #4 模型调用稳定性工作暂缓。#18 已于 2026-10-12 完成静态路径核实；未观察应用运行时连接，正式账本未读取或修改。
 - B4 是历史回测正确性验证记录，不代表当前应用验收、策略通过或盈利证明。
 
-当前记录：[总主线计划](TraderLens_MAINLINE_PLAN.md)、[Card016 验证报告](docs/superpowers/plans/2026-10-15-card016-v22-etf-research-agent-verification-report.md)、[V2.2 ETF 研究框架](V2.2研究框架.md)。
+当前记录：[总主线计划](TraderLens_MAINLINE_PLAN.md)、[BACKLOG](docs/BACKLOG.md)、[Card016 run07 验证报告](docs/superpowers/plans/2026-10-15-card016-v22-etf-research-agent-verification-report.md)、Card017 任务计划（仅本地，未纳入本次发布；路径 `docs/superpowers/plans/2026-10-20-card017-510880-month-end-ma250.md`）、[Card018 冻结计划与验收状态](docs/superpowers/plans/2026-10-20-card018-strategy-validation-results.md)、[知识收尾记录](docs/verification/2026-10-24-knowledge-closeout.md)、[V2.2 ETF 研究框架](V2.2研究框架.md)。
 
 ## 产品边界
 

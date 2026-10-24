@@ -23,11 +23,20 @@
 
 阶段 5 未启动时，其 3 张卡转给阶段 6；其他省卡也可转入阶段 6，均不增加总预算。
 
-**当前进度（主线计划登记，2026-10-15）：** 阶段 6｜卡 013 已终止、本人验收未通过；保留既有提交和历史记录，不合并 `D:\TraderLens_validation\card013-20261012` 中最后验证失败的五文件副本。卡 014 已终止、本人验收未通过；保留代码、历史证据和检查点，不重开。卡 015 按 Illya 指令停止在新闻接口预检；`major_news` 返回 15 条、`news` 返回 117 条，标题/时间/正文均非空，但原冻结 A/B/C 未完成、未获本人验收，不宣称通过。阶段 6｜卡 016 已获准并计入预算：累计 16/20、剩余 4；范围和冻结标准见[卡 016 任务计划](docs/superpowers/plans/2026-10-15-card016-v22-etf-research-agent.md)。本人验收仍归 Illya。卡 014、015 历史范围和结果分别见[卡 014 任务计划](docs/superpowers/plans/2026-10-14-card014-v21-etf-research.md)与[卡 015 任务计划](docs/superpowers/plans/2026-10-14-card015-v22-on-demand-web-evidence.md)。
+**当前进度（截至 2026-10-24）：**阶段 6 累计 18/20、剩余 2 张；卡 016、017 仍待 Illya 本人验收，策略资格未授予。追加至 24 张仍仅为建议，尚未批准。
 
-### 阶段 6 当前验证状态（2026-10-16）
+- **卡 016：**最新受保护预检 run07 的 A（自主取证链路）通过、B（证据语义质量）未通过、C 部分验证；真实新闻请求 0 行、0 正文。整卡与 A/B/C 待本人验收；质量约束列入 BACKLOG #32 待排期。[run07 验证报告](docs/superpowers/plans/2026-10-15-card016-v22-etf-research-agent-verification-report.md)
+- **卡 017：**唯一固定 batch 的四条路径均独立核账 `RECONCILED`，仍待本人验收；未授予策略资格。程序分类为“风险改善伴收益让步”；Arden 建议暂不采用，但不是 Illya 的正式采用决定。
+- **卡 018：**Illya 于 2026-10-21 确认“重启刷新后正常，卡 018 验收通过”。实现提交 `bf0f6c2062f3ac7187b6aef7fe630c8f419620ad` 位于 `codex/card018-strategy-validation-results-20261021`，未合并默认分支 `rescue/2026-10-10`。该能力只读展示卡 017 历史结果，不授予策略资格。加载器从仓库固定路径 `docs/superpowers/protocols/2026-10-20-card017-510880-month-end-ma250-v2.md` 读取协议；该文件存在于本机工作副本，但不在卡 018 提交树中。另 8 项结果材料位于外部目录 `D:\TraderLens_validation\card017-20261020`，未包含在提交中；按固定来源契约，独立检出时缺料应返回 `unavailable`。Card017 阶段 C 汇总仅在该外部目录，未纳入本次发布。详见[卡 018 冻结计划与验收状态](docs/superpowers/plans/2026-10-20-card018-strategy-validation-results.md)及[知识收尾记录](docs/verification/2026-10-24-knowledge-closeout.md)。
+- AI 研究调用稳定性（BACKLOG #4）暂缓；Gate001 规则与历史结论不变。
 
-卡 016 run06 唯一真实首页请求返回 `research_unavailable`；自动工具选择下观察到两次 `tool_use` 响应，run05 的 HTTP 400 在本次未复现，但最终 `finish_research` 未提交。最后诊断为零 provider attempt 的 `ValueError`，具体异常分支未核。A/B 未通过，C 部分验证；没有完整可用的 AI 研究报告。48 项聚焦测试、后端编译/导入及隔离生产构建通过；本轮原始 JSON 默认折叠的 SSR 与 TypeScript 检查也通过。唯一技术阻塞仍是最终 `finish_research` 未提交；Card016 与 A/B/C 待 Illya 本人验收。Illya 已授权把当前阶段 014/015/016 进度发布到独立开发分支 `codex/etf-research-progress-20261016`；不合并默认分支，不改变任何卡的验收状态。
+历史卡 013–015 范围和结果分别见[卡 014 任务计划](docs/superpowers/plans/2026-10-14-card014-v21-etf-research.md)与[卡 015 任务计划](docs/superpowers/plans/2026-10-14-card015-v22-on-demand-web-evidence.md)。
+
+### 卡 016 历史验证快照（2026-10-16｜run06，已由 run07 更新）
+
+以下仅保留 run06 当时的记录；它已被 run07 更新，不代表当前研究状态。详见[Card016 run07 验证报告](docs/superpowers/plans/2026-10-15-card016-v22-etf-research-agent-verification-report.md)。
+
+卡 016 run06 唯一真实首页请求返回 `research_unavailable`；自动工具选择下观察到两次 `tool_use` 响应，run05 的 HTTP 400 在本次未复现，但最终 `finish_research` 未提交。最后诊断为零 provider attempt 的 `ValueError`，具体异常分支未核。A/B 未通过，C 部分验证；没有完整可用的 AI 研究报告。48 项聚焦测试、后端编译/导入及隔离生产构建通过；本轮原始 JSON 默认折叠的 SSR 与 TypeScript 检查也通过。唯一技术阻塞仍是最终 `finish_research` 未提交；Card016 与 A/B/C 待 Illya 本人验收。Illya 已授权把当时阶段 014/015/016 进度发布到独立开发分支 `codex/etf-research-progress-20261016`；不合并默认分支，不改变任何卡的验收状态。
 
 ### 卡 013 历史记录（保留；不表示卡 013 验收通过，也不扩大卡 014 范围）
 
@@ -39,3 +48,16 @@
 - 卡 013 新增待办：BACKLOG #29（ETF 分类词表扩展）、#31（未识别基金仍取模型结论）；#27 是否随卡 013 解决待直接核验。
 - 卡 013 已处理、待本人验收：BACKLOG #24、#28、#30。
 - BACKLOG第4项重新打开：模型调用稳定性（程序跳过已解决，SSL连接中断另需VPN测试）
+### 2026-10-20｜阶段 6 卡 017 启动记录（历史）
+
+启动时阶段 6 累计 17/20、剩余 3 张；卡 016 当时仍待验收。下方阶段 C 结果和本页顶部状态已更新此快照。
+
+### 2026-10-20｜阶段 6 卡 017 阶段 C 交付（待本人验收）
+
+卡 017 唯一固定批次 `card017-510880-2018-2020-v1-001` 已运行 1 次，候选/买入持有 × 基础/压力 4 路径独立核账均为 `RECONCILED`；当前待 Illya 本人验收，未标为通过或授予策略资格。验收报告仅在本机外部目录 `D:\TraderLens_validation\card017-20261020\card017-illya-review.md`，未纳入本次发布。
+
+这是截至 2026-10-20 的进度快照：当时累计 17/20，卡 016 仍待本人验收；当前状态见本页顶部。Gate001 规则与历史结论不变。
+
+### 2026-10-20｜阶段 6 卡 018 启动记录（历史，已验收）
+
+此段记录 2026-10-20 的启动范围；其中“待验收/待实施/未提交”只描述当时状态。Illya 已于 2026-10-21 验收通过；当前提交、分支和外部材料边界见本页顶部及[卡 018 冻结计划与验收状态](docs/superpowers/plans/2026-10-20-card018-strategy-validation-results.md)。
