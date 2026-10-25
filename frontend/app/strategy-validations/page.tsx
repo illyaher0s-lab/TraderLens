@@ -110,10 +110,14 @@ export default function StrategyValidationsPage() {
   const [data, setData] = useState<ValidationResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [show510880EntryJudgement, setShow510880EntryJudgement] = useState(false);
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8010";
 
   useEffect(() => {
+    setShow510880EntryJudgement(
+      new URLSearchParams(window.location.search).get("symbol") === "510880.SH",
+    );
     loadValidations();
   }, []);
 
@@ -148,6 +152,7 @@ export default function StrategyValidationsPage() {
       <>
         <TopNav />
         <main style={styles.container}>
+          {show510880EntryJudgement && <EntryJudgement loading />}
           <div style={styles.loadingText}>加载中...</div>
         </main>
       </>
@@ -159,6 +164,7 @@ export default function StrategyValidationsPage() {
       <>
         <TopNav />
         <main style={styles.container}>
+          {show510880EntryJudgement && <EntryJudgement error />}
           <div style={styles.errorText}>加载失败: {error}</div>
         </main>
       </>
@@ -183,6 +189,12 @@ export default function StrategyValidationsPage() {
           </Link>
         </div>
       </header>
+
+      {show510880EntryJudgement && (
+        <EntryJudgement
+          status={data?.validation_status}
+        />
+      )}
 
       <section className="mb-8" aria-label="历史研究结果">
         <h2 className="mb-2 text-xl font-semibold text-slate-900">历史研究结果（与资格验证分开）</h2>
@@ -261,6 +273,45 @@ export default function StrategyValidationsPage() {
       </section>
     </main>
     </>
+  );
+}
+
+function EntryJudgement({
+  loading = false,
+  error = false,
+  status,
+}: {
+  loading?: boolean;
+  error?: boolean;
+  status?: StrategyValidationStatus;
+}) {
+  const reason = loading
+    ? "资格核验尚未完成，验证资料仍在载入。"
+    : error
+      ? "资格资料不可核，验证接口暂不可用。"
+      : status?.status === "watch"
+        ? `现有验证阻断：${status.title}。${status.message}`
+        : status?.status === "unavailable"
+          ? `资格资料不可核。${status.message}`
+          : "资格核验尚未完成，资料不可核。";
+
+  return (
+    <section aria-label="510880入场核验" className="mb-6 rounded-lg border border-amber-300 bg-amber-50 p-5">
+      <h2 className="text-base font-semibold text-amber-950">510880 入场核验</h2>
+      <p className="mt-2 text-sm font-semibold text-amber-950">
+        当前未确认 510880 合格策略。
+      </p>
+      <p className="mt-1 text-sm leading-6 text-amber-900">{reason}</p>
+      <p className="mt-1 text-sm text-amber-900">当前处理：观察／不交易。核验日期未知。</p>
+      <p className="mt-2 text-sm leading-6 text-slate-700">本页未提供正式入场信号，研究结果不能替代资格核验。</p>
+      <p className="mt-2 text-sm leading-6 text-slate-700">
+        自主成交只登记已经发生的实际成交；记录本身不代表策略合格或交易许可。
+      </p>
+      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm">
+        <Link href="/trades/record" className="font-medium text-blue-800 underline">登记自主成交</Link>
+        <Link href="/observations" className="font-medium text-blue-800 underline">查看持仓与复盘</Link>
+      </div>
+    </section>
   );
 }
 

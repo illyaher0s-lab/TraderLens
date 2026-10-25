@@ -692,6 +692,21 @@ export default function HomePage() {
               {!isFund && <h3 className="mt-1 text-xl font-semibold text-slate-900">{result.verdict}</h3>}
             </div>
 
+            {result.symbol === "510880.SH" && (
+              <section aria-label="510880策略资格入口" className="rounded-md border border-amber-200 bg-amber-50 p-4">
+                <h3 className="text-sm font-semibold text-amber-950">510880 策略资格尚未确认</h3>
+                <p className="mt-1 text-sm leading-6 text-amber-900">
+                  研究内容仍待核实：收益差不能当跟踪误差，成本与历史估值判断缺少比较依据；仅研究参考，不能据此入场。
+                </p>
+                <Link
+                  href="/strategy-validations?symbol=510880.SH"
+                  className="mt-2 inline-block text-sm font-medium text-blue-800 underline"
+                >
+                  查看资格核验与交易边界
+                </Link>
+              </section>
+            )}
+
             {result.research_v2_2 && (
               <V22ResearchBlock research={result.research_v2_2} transactionStatus={result.transaction_status} />
             )}

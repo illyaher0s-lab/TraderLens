@@ -23,11 +23,12 @@
 
 阶段 5 未启动时，其 3 张卡转给阶段 6；其他省卡也可转入阶段 6，均不增加总预算。
 
-**当前进度（截至 2026-10-24）：**阶段 6 累计 18/20、剩余 2 张；卡 016、017 仍待 Illya 本人验收，策略资格未授予。追加至 24 张仍仅为建议，尚未批准。
+**当前进度（截至 2026-10-25）：**阶段 6 累计 19/20、剩余 1 张；卡 016、017 仍待 Illya 本人验收，卡 019 已由 Illya 于 2026-10-25 本人验收通过，策略资格未授予。追加至 24 张仍仅为建议，尚未批准。
 
 - **卡 016：**最新受保护预检 run07 的 A（自主取证链路）通过、B（证据语义质量）未通过、C 部分验证；真实新闻请求 0 行、0 正文。整卡与 A/B/C 待本人验收；质量约束列入 BACKLOG #32 待排期。[run07 验证报告](docs/superpowers/plans/2026-10-15-card016-v22-etf-research-agent-verification-report.md)
 - **卡 017：**唯一固定 batch 的四条路径均独立核账 `RECONCILED`，仍待本人验收；未授予策略资格。程序分类为“风险改善伴收益让步”；Arden 建议暂不采用，但不是 Illya 的正式采用决定。
 - **卡 018：**Illya 于 2026-10-21 确认“重启刷新后正常，卡 018 验收通过”。实现提交 `bf0f6c2062f3ac7187b6aef7fe630c8f419620ad` 位于 `codex/card018-strategy-validation-results-20261021`，未合并默认分支 `rescue/2026-10-10`。该能力只读展示卡 017 历史结果，不授予策略资格。加载器从仓库固定路径 `docs/superpowers/protocols/2026-10-20-card017-510880-month-end-ma250-v2.md` 读取协议；该文件存在于本机工作副本，但不在卡 018 提交树中。另 8 项结果材料位于外部目录 `D:\TraderLens_validation\card017-20261020`，未包含在提交中；按固定来源契约，独立检出时缺料应返回 `unavailable`。Card017 阶段 C 汇总仅在该外部目录，未纳入本次发布。详见[卡 018 冻结计划与验收状态](docs/superpowers/plans/2026-10-20-card018-strategy-validation-results.md)及[知识收尾记录](docs/verification/2026-10-24-knowledge-closeout.md)。
+- **卡 019（已验收，2026-10-25）：**Illya 确认“验收完成，没有问题”。交付范围为 510880 研究、验证、观察／不交易与自主成交复盘最小闭环；验收不授予策略资格，不改变卡 016/017/018 状态。[卡 019 冻结计划与证据边界](docs/superpowers/plans/2026-10-25-card019-510880-minimum-investment-loop.md)。
 - AI 研究调用稳定性（BACKLOG #4）暂缓；Gate001 规则与历史结论不变。
 
 历史卡 013–015 范围和结果分别见[卡 014 任务计划](docs/superpowers/plans/2026-10-14-card014-v21-etf-research.md)与[卡 015 任务计划](docs/superpowers/plans/2026-10-14-card015-v22-on-demand-web-evidence.md)。
