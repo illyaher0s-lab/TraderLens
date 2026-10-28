@@ -533,6 +533,18 @@ def create_research_app(
 
     evidence_runner = EvidenceLightRunner()
 
+    # Card020 shares this app's configured real LLM client and ResearchDB.
+    # The historical data loaders remain lazy and are called only by /run.
+    from backend.api.card020 import create_card020_router
+    from backend.services.card020_vol_budget import run_card020_validation
+
+    card020_llm_client = getattr(serenity_runner, "llm_client", None) if conversation_mode == "real" else None
+    app.include_router(create_card020_router(
+        db,
+        llm_client=card020_llm_client,
+        runner=run_card020_validation,
+    ))
+
     @app.post("/api/research/themes")
     def create_theme(request: CreateThemeRequest):
         """Create a new research theme."""
