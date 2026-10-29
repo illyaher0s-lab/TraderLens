@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { ensurePositionMarketCheck } from "@/lib/position-market-monitor";
 import TopNav from "@/components/TopNav";
+import Card021LiveSignalPanel from "@/components/Card021LiveSignalPanel";
 import {
   formatAnnualFeeSummary,
   formatFactValue,
@@ -515,10 +516,16 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tip, setTip] = useState<string | null>(null);
+  const [card021SnapshotId, setCard021SnapshotId] = useState<string | null>(null);
   const inputCodeRef = useRef("");
   const requestVersionRef = useRef(0);
 
   useEffect(() => {
+    const savedSnapshotId = new URLSearchParams(window.location.search).get("card021_snapshot");
+    if (savedSnapshotId) {
+      setCard021SnapshotId(savedSnapshotId);
+      return;
+    }
     ensurePositionMarketCheck().then((response) => {
       const hasPositions = response.items && response.items.length > 0;
       setTip(hasPositions ? "持仓行情已更新" : "今日无需操作");
@@ -590,6 +597,10 @@ export default function HomePage() {
 
   async function researchSecurity(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setCard021SnapshotId(null);
+    const pageUrl = new URL(window.location.href);
+    pageUrl.searchParams.delete("card021_snapshot");
+    window.history.replaceState(window.history.state, "", `${pageUrl.pathname}${pageUrl.search}${pageUrl.hash}`);
     const submittedCode = code;
     const requestVersion = ++requestVersionRef.current;
     setLoading(true);
@@ -668,6 +679,12 @@ export default function HomePage() {
         </form>
 
         {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
+
+        {(card021SnapshotId || result?.symbol === "510880.SH") && (
+          <div className="mt-6">
+            <Card021LiveSignalPanel snapshotId={card021SnapshotId} />
+          </div>
+        )}
 
         {result && (
           <div className="mt-6 space-y-5 border-t border-slate-200 pt-5">

@@ -44,10 +44,10 @@ class VoidExecutionLogRequest(BaseModel):
         return value
 
 
-def get_live_trade_db() -> LiveTradeDB:
+def get_live_trade_db(*, read_only: bool = False) -> LiveTradeDB:
     """Get LiveTradeDB instance with canonical path."""
     from backend.config.runtime_paths import get_live_trade_db_path
-    return LiveTradeDB(get_live_trade_db_path())
+    return LiveTradeDB(get_live_trade_db_path(), read_only=read_only)
 
 
 def get_position_market_monitor():

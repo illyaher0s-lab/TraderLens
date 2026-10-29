@@ -36,23 +36,32 @@ from contracts.market_data_fault import MarketDataFaultState
 class LiveTradeDB:
     """SQLite database for live trade execution observations."""
 
-    def __init__(self, db_path: str | Path):
+    def __init__(self, db_path: str | Path, *, read_only: bool = False):
         self.db_path = Path(db_path)
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._init_schema()
+        self.read_only = read_only
+        if not self.read_only:
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
+            self._init_schema()
 
     @contextmanager
     def _get_conn(self):
         """Context manager for database connections."""
+        connect_path = (
+            f"{self.db_path.resolve().as_uri()}?mode=ro"
+            if self.read_only
+            else self.db_path
+        )
         conn = sqlite3.connect(
-            self.db_path,
+            connect_path,
+            uri=self.read_only,
             check_same_thread=False,
             detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
         )
         conn.row_factory = sqlite3.Row
         try:
             yield conn
-            conn.commit()
+            if not self.read_only:
+                conn.commit()
         except Exception:
             conn.rollback()
             raise

@@ -326,6 +326,7 @@ def create_research_app(
     validator: ResearchValidator | None = None,
     serenity_runner=None,
     market_data_provider=None,
+    card021_account_provider=None,
     allow_test_serenity_runner: bool = False,
     stock_resolver_fixture: dict | None = None,
     stock_resolver_override=None,  # New: for test injection
@@ -536,13 +537,64 @@ def create_research_app(
     # Card020 shares this app's configured real LLM client and ResearchDB.
     # The historical data loaders remain lazy and are called only by /run.
     from backend.api.card020 import create_card020_router
+    from backend.api.card021 import create_card021_router
     from backend.services.card020_vol_budget import run_card020_validation
+    from backend.services.card021_store import Card021SnapshotStore
 
     card020_llm_client = getattr(serenity_runner, "llm_client", None) if conversation_mode == "real" else None
     app.include_router(create_card020_router(
         db,
         llm_client=card020_llm_client,
         runner=run_card020_validation,
+    ))
+    # Card021 reuses this app's lazy Tushare client and never creates another config path.
+    def _card021_actual_account_snapshot(signal_date: date, latest_data_date: date) -> dict:
+        """Read only existing user-confirmed actual manual ETF records on request."""
+        from backend.api.observations import get_live_trade_db
+        from contracts.live_trade import TradeType
+
+        db = get_live_trade_db(read_only=True)
+        query = {
+            "symbol": "510880.SH",
+            "trade_type": TradeType.actual,
+            "record_source": "autonomous_manual",
+            "execution_date": latest_data_date,
+        }
+        logs = db.list_manual_position_logs(**query)
+        if not logs:
+            return {"status": "no_user_confirmed_records"}
+        for log in logs:
+            if (
+                log.confirmed_by_user is not True
+                or log.broker_verified is not False
+                or log.record_source != "autonomous_manual"
+                or log.trade_type != TradeType.actual
+                or log.security_type != "fund"
+                or log.quantity_unit != "fund_share"
+                or log.confirmed_execution_status not in {"executed_full", "executed_partial"}
+            ):
+                return {"status": "provenance_unverified"}
+
+        position_query = {key: value for key, value in query.items() if key != "execution_date"}
+        actual_shares = db.get_position_quantity(**position_query, execution_date=latest_data_date)
+        shares_at_signal = db.get_position_quantity(**position_query, execution_date=signal_date)
+        sellable_shares = db.get_sellable_quantity(**position_query, execution_date=latest_data_date)
+        return {
+            "status": "user_confirmed_position",
+            "record_source": "autonomous_manual",
+            "confirmed_by_user": True,
+            "broker_verified": False,
+            "actual_shares": actual_shares,
+            "sellable_shares": sellable_shares,
+            "shares_at_signal": shares_at_signal,
+            "account_cash_at_signal_cny": None,
+            "dividend_receivable_at_signal_cny": None,
+        }
+
+    app.include_router(create_card021_router(
+        lambda: validator.tushare_client,
+        account_provider=card021_account_provider or _card021_actual_account_snapshot,
+        snapshot_store=Card021SnapshotStore(db.conn),
     ))
 
     @app.post("/api/research/themes")
