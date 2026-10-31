@@ -197,6 +197,12 @@ Do not begin expensive E2E verification while touched files do not compile.
 
 Do not modify unrelated dirty files.
 
+## 7.1 GitHub publication manifest and isolation
+
+- Before each publication, keep a manifest outside the repository recording the repository, verified base commit, dedicated `codex/` branch, exact relative paths, and SHA-256 for every published file. Only listed paths may enter the commit.
+- If the worktree has pre-existing staged or unstaged changes, do not publish a whole mixed file. Start from a clean worktree at the verified base and make only the authorized changes there. Verify the commit’s changed paths match the manifest exactly and recheck hashes; stop if isolation cannot be proven.
+- Publish only to the dedicated `codex/` branch and never auto-merge. Record the base, branch, commit, and manifest verification. On explicit policy or permission denial, stop without switching channels; after a transport error, read remote state before any retry and retry only an idempotent step.
+
 ## 8. Task scope
 
 One task should fix one verified mainline blocker.
