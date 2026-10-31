@@ -197,6 +197,13 @@ Do not begin expensive E2E verification while touched files do not compile.
 
 Do not modify unrelated dirty files.
 
+## 7.1 Delegation and independent review
+
+- The directing agent states the complete objective, scope, acceptance criteria, and effort limit once. The executing agent works autonomously within that authorization and higher-level rules, runs relevant tests, and fixes ordinary failures within scope.
+- The directing agent independently checks the request against the diff, critical implementation, relevant tests, and necessary user path; check for failures hidden by weakened tests or acceptance criteria. This review does not replace Illya’s acceptance.
+- If two rounds of fixes and verification, each based on an explicit hypothesis about the same issue, show no progress, the executing agent escalates for an independent diagnosis by the directing agent. This is distinct from, and does not change, the existing stop condition for two consecutive failed owner acceptances on one card.
+- Handle permission refusals and high-risk changes under the existing authorization and higher-level rules. When collaboration produces no new evidence, redefine the task’s objective or scope.
+
 ## 8. Task scope
 
 One task should fix one verified mainline blocker.
