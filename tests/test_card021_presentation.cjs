@@ -318,6 +318,23 @@ test("after-cutoff missing data says the old target expired and the new signal i
   assert.match(summary.nextStepText, /不沿用旧目标/);
 });
 
+test("source query failure identifies the failed endpoint and sanitized error type", () => {
+  const summary = buildCard021Summary(makeObservation({
+    status: "unavailable",
+    failure_code: "market_source_query_failed",
+    failed_endpoint: "fund_adj",
+    error_type: "ValueError",
+    market_data_freshness: {
+      status: "source_query_failed",
+      last_available_date: null,
+    },
+  }));
+
+  assert.match(summary.marketDataStatusText, /复权因子（fund_adj）/);
+  assert.match(summary.marketDataStatusText, /ValueError/);
+  assert.match(summary.marketDataStatusText, /最近共同数据截至 未获取/);
+});
+
 test("technical evidence stays available in a collapsed native details section", () => {
   const detailsTag = panelSource.match(/<details[^>]*>/)?.[0];
   assert(detailsTag, "technical evidence needs a native details disclosure");

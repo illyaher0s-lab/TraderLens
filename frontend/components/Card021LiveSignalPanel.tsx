@@ -8,6 +8,8 @@ type Card021Observation = {
   status: "available" | "unavailable";
   failure_code?: string;
   failure_message?: string;
+  failed_endpoint?: string;
+  error_type?: string;
   strategy_id: string;
   protocol_revision: number;
   protocol_sha256?: string;
@@ -188,11 +190,18 @@ export function buildCard021Summary(observation: Card021Observation) {
     && observation.target_validity_status === "expired";
   const oldTargetExpiredWaitingForData = observation.target_validity_status === "expired"
     && (waitingForMonthEndData || missingMonthEndData);
-  const missingEndpointLabels = (marketFreshness?.missing_endpoints ?? []).map((endpoint) => ({
+  const marketEndpointLabels: Record<string, string> = {
     fund_daily: "日行情",
     fund_adj: "复权因子",
+    fund_div: "基金分红",
     trade_cal: "交易日历",
-  } as Record<string, string>)[endpoint] ?? endpoint);
+  };
+  const failedEndpointLabel = observation.failed_endpoint
+    ? `${marketEndpointLabels[observation.failed_endpoint] ?? observation.failed_endpoint}（${observation.failed_endpoint}）`
+    : "未知接口";
+  const missingEndpointLabels = (marketFreshness?.missing_endpoints ?? []).map(
+    (endpoint) => marketEndpointLabels[endpoint] ?? endpoint,
+  );
   const marketDataStatusText = marketFreshness?.status === "awaiting_market_close"
     ? `${display(expectedDataDate)} 尚未收盘；行情完整数据截至 ${display(lastAvailableDate)}。月末信号须待实际收盘后再确认。`
     : marketFreshness?.status === "awaiting_data_cutoff"
@@ -204,7 +213,7 @@ export function buildCard021Summary(observation: Card021Observation) {
           : marketFreshness?.status === "required_data_missing"
             ? `计算所需行情不完整；最近共同数据截至 ${display(lastAvailableDate)}${missingEndpointLabels.length ? `，缺少${missingEndpointLabels.join("、")}` : ""}。`
             : marketFreshness?.status === "source_query_failed"
-              ? `行情来源查询失败；最近共同数据截至 ${display(lastAvailableDate)}。`
+              ? `行情来源查询失败：${failedEndpointLabel}；异常类型 ${display(observation.error_type)}；最近共同数据截至 ${display(lastAvailableDate)}。`
               : "行情数据更新时间尚未核实。";
   const accountText = savedMarket
     ? "这条历史行情快照没有保存或读取持仓、可卖份额、现金和分红应收。"
