@@ -461,7 +461,9 @@ export default function ObservationsPage() {
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error("API request failed: " + url + " - HTTP " + response.status);
+        const body = await response.json().catch(() => null);
+        const detail = typeof body?.detail === "string" ? body.detail : `请求失败（HTTP ${response.status}）。`;
+        throw new Error(detail);
       }
 
       const data = await response.json();
@@ -473,10 +475,9 @@ export default function ObservationsPage() {
       setMarketStates(Object.fromEntries(marketCheck.map((item) => [item.position_id, item])));
     } catch (err) {
       console.error("Failed to load observations:", err);
-      setError(
-        err instanceof Error 
-          ? `${err.message}. 请检查后端服务是否在 ${API_BASE_URL} 启动。`
-          : "Unknown error"
+      setError(err instanceof TypeError
+        ? `无法连接后端，请检查后端服务是否在 ${API_BASE_URL} 启动。`
+        : err instanceof Error ? err.message : "加载持仓失败。"
       );
     } finally {
       setLoading(false);
