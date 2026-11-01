@@ -1,8 +1,5 @@
 @echo off
 setlocal
-cd /d "%~dp0"
-powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File "%~dp0scripts\traderlens_local_runtime.ps1" -Action Stop -ProjectRoot "%~dp0."
-set "RESULT=%ERRORLEVEL%"
-echo.
+echo To stop TraderLens, press Ctrl+C in both service windows or close them.
+echo This file only displays instructions; it does not terminate processes.
 pause
-exit /b %RESULT%
