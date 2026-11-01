@@ -7,6 +7,7 @@ Provides list and detail endpoints for observation positions.
 from fastapi import APIRouter, HTTPException
 from typing import Optional
 from datetime import datetime
+import json
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from backend.db.live_trade import LiveTradeDB
@@ -44,8 +45,26 @@ class VoidExecutionLogRequest(BaseModel):
         return value
 
 
-def get_live_trade_db(*, read_only: bool = False) -> LiveTradeDB:
+def get_live_trade_db(*, read_only: bool = False, practice_account_id: str | None = None) -> LiveTradeDB:
     """Get LiveTradeDB instance with canonical path."""
+    if practice_account_id is not None:
+        from pathlib import Path
+        from backend.config.runtime_paths import get_practice_trade_db_path
+        from backend.services.card022_practice_account import Card022PracticeAccountStore, PRACTICE_ACCOUNT_ID
+
+        if practice_account_id != PRACTICE_ACCOUNT_ID:
+            raise HTTPException(status_code=400, detail="未知的模拟账户范围。")
+        practice_path = get_practice_trade_db_path()
+        if not Path(practice_path).exists():
+            raise HTTPException(status_code=409, detail="模拟练习账户尚未初始化。")
+        try:
+            account_status = Card022PracticeAccountStore(practice_path).get_status()
+        except Exception as exc:
+            raise HTTPException(status_code=409, detail="模拟练习账户无法核实，未读取持仓。") from exc
+        if account_status.get("status") != "existing":
+            raise HTTPException(status_code=409, detail="模拟练习账户无法核实，未读取持仓。")
+        return LiveTradeDB(practice_path, read_only=read_only)
+
     from backend.config.runtime_paths import get_live_trade_db_path
     return LiveTradeDB(get_live_trade_db_path(), read_only=read_only)
 
@@ -72,7 +91,7 @@ def check_position_market(request: PositionMarketCheckRequest):
 
 
 @router.get("/api/observations")
-def list_observations(status: Optional[str] = None):
+def list_observations(status: Optional[str] = None, practice_account_id: Optional[str] = None):
     """
     List observation positions.
     
@@ -81,7 +100,7 @@ def list_observations(status: Optional[str] = None):
     
     Returns list of positions with latest daily signal.
     """
-    db = get_live_trade_db()
+    db = get_live_trade_db(read_only=bool(practice_account_id), practice_account_id=practice_account_id)
     
     if status == "open":
         positions = db.list_open_positions()
@@ -145,6 +164,11 @@ def list_observations(status: Optional[str] = None):
     for row in db.list_execution_logs():
         log = db.get_log(row["log_id"])
         fee_calculation = review_service.calculate_order_fee(log) if log else None
+        operation = db.get_manual_operation(row["operation_id"]) if row.get("operation_id") else None
+        try:
+            operation_response = json.loads(operation["operation_response"]) if operation else {}
+        except (TypeError, ValueError):
+            operation_response = {}
         execution_logs.append({
             "log_id": row["log_id"],
             "execution_date": row["execution_date"],
@@ -176,6 +200,9 @@ def list_observations(status: Optional[str] = None):
             "voided": bool(row["voided_at"]),
             "voided_at": row["voided_at"],
             "void_reason": row["void_reason"],
+            "practice_observation_id": operation_response.get("practice_observation_id"),
+            "practice_observation_sha256": operation_response.get("practice_observation_sha256"),
+            "practice_execution_origin": operation_response.get("practice_execution_origin"),
         })
 
     discipline_reviews = []
@@ -226,20 +253,41 @@ def list_observations(status: Optional[str] = None):
             review_payload["same_day_event_order_note"] = None
         discipline_reviews.append(review_payload)
 
-    return {
+    response = {
         "positions": result,
         "execution_logs": execution_logs,
         "discipline_reviews": discipline_reviews,
         "total": len(result),
     }
+    if practice_account_id:
+        from backend.config.runtime_paths import get_practice_trade_db_path
+        from backend.services.card022_practice_account import Card022PracticeAccountStore
+
+        account = Card022PracticeAccountStore(get_practice_trade_db_path()).get_status()
+        response["practice_account"] = {
+            "account_id": account["account_id"],
+            "cash_cents": account["cash_cents"],
+            "cash_cny": format(account["cash_cents"] / 100, ".2f"),
+            "revision": account["revision"],
+            "opened_at": account["opened_at"],
+            "trade_type": "simulated",
+        }
+        response["practice_cash_events"] = Card022PracticeAccountStore(
+            get_practice_trade_db_path(),
+        ).list_cash_events()
+    return response
 
 
 @router.post("/api/observations/execution-logs/{log_id}/void")
-def void_execution_log(log_id: str, request: VoidExecutionLogRequest):
+def void_execution_log(
+    log_id: str,
+    request: VoidExecutionLogRequest,
+    practice_account_id: Optional[str] = None,
+):
     """Append a reasoned void state and rebuild the affected position projection."""
     from zoneinfo import ZoneInfo
 
-    db = get_live_trade_db()
+    db = get_live_trade_db(practice_account_id=practice_account_id)
     try:
         return db.void_execution_log(
             log_id,
@@ -253,11 +301,11 @@ def void_execution_log(log_id: str, request: VoidExecutionLogRequest):
 
 
 @router.get("/api/observations/{position_id}")
-def get_observation_detail(position_id: str):
+def get_observation_detail(position_id: str, practice_account_id: Optional[str] = None):
     """
     Get observation position detail with full signal history.
     """
-    db = get_live_trade_db()
+    db = get_live_trade_db(read_only=bool(practice_account_id), practice_account_id=practice_account_id)
     
     position = db.get_position(position_id)
     if not position:

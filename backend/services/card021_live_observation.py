@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 from datetime import date, datetime, time, timedelta
-from decimal import Decimal, InvalidOperation, ROUND_DOWN
+from decimal import Decimal, InvalidOperation, ROUND_DOWN, ROUND_HALF_UP
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Callable
@@ -24,6 +24,7 @@ from backend.services.card020_vol_budget import (
 SHANGHAI = ZoneInfo("Asia/Shanghai")
 _MARKET_CLOSE_DATA_CUTOFF = time(17, 0)
 _MARKET_OPEN = time(9, 30)
+_MARKET_CLOSE = time(15, 0)
 _CALENDAR_LOOKBACK_DAYS = 180
 _CALENDAR_LOOKAHEAD_DAYS = 62
 _COMMISSION_RATE = Decimal("0.0003")
@@ -82,7 +83,7 @@ _SOURCE_ROW_FIELDS = {
     "fund_daily": ("ts_code", "trade_date", "open", "close", "vol"),
     "fund_adj": ("ts_code", "trade_date", "adj_factor"),
     "fund_div": (
-        "ts_code", "ann_date", "imp_anndate", "ex_date", "pay_date", "div_proc", "div_cash",
+        "ts_code", "ann_date", "imp_anndate", "record_date", "ex_date", "pay_date", "div_proc", "div_cash",
     ),
 }
 
@@ -188,10 +189,24 @@ def snapshot_market_inputs(capture: dict, result: dict) -> dict:
     }
 
 
+def _market_data_freshness() -> dict:
+    return {
+        "status": "unverified",
+        "timezone": "Asia/Shanghai",
+        "cutoff_time_local": _MARKET_CLOSE_DATA_CUTOFF.strftime("%H:%M"),
+        "expected_data_date": None,
+        "last_available_date": None,
+        "missing_endpoints": [],
+    }
+
+
 def _unavailable(code: str, message: str, now: datetime, *, provider_call_attempted: bool,
                  endpoint: str | None = None, error_type: str | None = None,
                  sources: list[dict] | None = None,
-                 completed_endpoints: list[str] | None = None) -> dict:
+                 completed_endpoints: list[str] | None = None,
+                 market_data_freshness: dict | None = None,
+                 target_validity_status: str | None = None,
+                 target_valid_until: str | None = None) -> dict:
     result = {
         "status": "unavailable",
         "failure_code": code,
@@ -210,7 +225,12 @@ def _unavailable(code: str, message: str, now: datetime, *, provider_call_attemp
         "actual_shares": None,
         "actual_delta_shares": None,
         "action_decision": "not_decidable",
+        "market_data_freshness": market_data_freshness or _market_data_freshness(),
     }
+    if target_validity_status:
+        result["target_validity_status"] = target_validity_status
+    if target_valid_until:
+        result["target_valid_until"] = target_valid_until
     if endpoint:
         result["failed_endpoint"] = endpoint
     if error_type:
@@ -426,8 +446,125 @@ def _validate_dividend_coverage(
     }
 
 
+def _practice_dividend_evidence_status(
+    rows: list[dict] | None,
+    *,
+    opened_at: datetime,
+    signal_date: date,
+    latest_data_date: date,
+    open_dates: list[date],
+    daily: dict[date, dict],
+    factors: dict[date, dict],
+    position_provider: Callable[[date], int] | None,
+) -> str:
+    if not rows:
+        return "dividend_source_incomplete"
+
+    sessions = sorted({day for day in open_dates if day <= latest_data_date})
+    opened_date = opened_at.date()
+    first_session = next((
+        day for day in sessions
+        if day > opened_date or (day == opened_date and opened_at.time() <= _MARKET_CLOSE)
+    ), None)
+    if first_session is None or latest_data_date not in sessions:
+        return "dividend_source_coverage_incomplete"
+    start_index = sessions.index(first_session)
+    if start_index == 0:
+        return "dividend_source_coverage_incomplete"
+
+    events_by_ex_date: dict[date, tuple[Decimal, date]] = {}
+    entitlement_events: list[tuple[date, Decimal]] = []
+    for row in rows:
+        if row.get("ts_code") != SYMBOL:
+            return "dividend_source_incomplete"
+        if str(row.get("div_proc") or "").strip() != "实施":
+            continue
+        try:
+            ex_date = _parse_date(row.get("ex_date"))
+        except (TypeError, ValueError):
+            return "dividend_source_incomplete"
+        if ex_date < opened_date:
+            continue
+        try:
+            record_date = _parse_date(row.get("record_date"))
+            cash = _decimal(row.get("div_cash"), "每份现金分红")
+            announcement = _parse_date(row.get("ann_date"))
+            implementation_announcement = _parse_date(row.get("imp_anndate"))
+        except (TypeError, ValueError, _ObservationFailure):
+            return "dividend_source_incomplete"
+        if record_date > latest_data_date:
+            if ex_date <= latest_data_date:
+                return "dividend_source_incomplete"
+            continue
+        if (
+            cash < 0
+            or record_date > ex_date
+            or record_date not in sessions
+            or announcement > latest_data_date
+            or implementation_announcement > latest_data_date
+            or (record_date <= signal_date and (
+                announcement > signal_date or implementation_announcement > signal_date
+            ))
+        ):
+            return "dividend_source_incomplete"
+        if first_session <= ex_date <= latest_data_date:
+            if ex_date in events_by_ex_date:
+                return "dividend_source_incomplete"
+            events_by_ex_date[ex_date] = (cash, record_date)
+        if first_session <= record_date <= latest_data_date:
+            entitlement_events.append((record_date, cash))
+
+    for index in range(start_index, sessions.index(latest_data_date) + 1):
+        day = sessions[index]
+        previous_day = sessions[index - 1]
+        if any(item not in daily or item not in factors for item in (previous_day, day)):
+            return "dividend_source_coverage_incomplete"
+        try:
+            previous_factor = _decimal(factors[previous_day].get("adj_factor"), "前一交易日复权因子")
+            factor = _decimal(factors[day].get("adj_factor"), "当日复权因子")
+            previous_close = _decimal(daily[previous_day].get("close"), "除息日前收盘价")
+        except _ObservationFailure:
+            return "dividend_source_coverage_incomplete"
+        if previous_factor <= 0 or factor <= 0 or previous_close <= 0:
+            return "dividend_source_coverage_incomplete"
+        event = events_by_ex_date.get(day)
+        actual_ratio = factor / previous_factor
+        if event is None:
+            if abs(actual_ratio - Decimal(1)) > Decimal("0.00000001"):
+                return "dividend_source_coverage_incomplete"
+            continue
+        cash, _record_date = event
+        if previous_close <= cash:
+            return "dividend_source_coverage_incomplete"
+        expected_ratio = previous_close / (previous_close - cash)
+        if abs(actual_ratio - expected_ratio) / expected_ratio > Decimal("0.00001"):
+            return "dividend_source_coverage_incomplete"
+
+    for record_date, cash in entitlement_events:
+        if cash == 0:
+            continue
+        if position_provider is None:
+            return "dividend_source_coverage_incomplete"
+        try:
+            shares = position_provider(record_date)
+        except Exception:
+            return "dividend_source_coverage_incomplete"
+        if type(shares) is not int or shares < 0:
+            return "dividend_source_coverage_incomplete"
+        if shares > 0:
+            return "unmodeled_dividend_entitlement"
+    return "verified_zero_cash_entitlement"
+
+
 def _account_snapshot(account_provider, signal_date: date, latest_data_date: date,
-                      raw_signal_close: Decimal, weight: Decimal) -> dict:
+                      raw_signal_close: Decimal, weight: Decimal, *,
+                      current_as_of_date: date | None = None,
+                      current_market_close: Decimal | None = None,
+                      dividend_rows: list[dict] | None = None,
+                      dividend_position_provider: Callable[[date], int] | None = None,
+                      dividend_open_dates: list[date] | None = None,
+                      dividend_daily: dict[date, dict] | None = None,
+                      dividend_factors: dict[date, dict] | None = None) -> dict:
     base = {
         "account_snapshot_status": "not_provided",
         "account_source": None,
@@ -437,6 +574,12 @@ def _account_snapshot(account_provider, signal_date: date, latest_data_date: dat
         "actual_delta_shares": None,
         "account_cash_at_signal_cny": None,
         "dividend_receivable_at_signal_cny": None,
+        "account_nav_at_signal_cny": None,
+        "account_cash_cny": None,
+        "account_revision": None,
+        "account_as_of_date": None,
+        "account_valuation_date": None,
+        "account_mode": None,
     }
     if account_provider is None:
         return base
@@ -448,6 +591,103 @@ def _account_snapshot(account_provider, signal_date: date, latest_data_date: dat
         return {**base, "account_snapshot_status": "invalid"}
 
     status = snapshot.get("status")
+    if status == "simulated_practice_account":
+        if (
+            snapshot.get("record_source") != "autonomous_manual"
+            or snapshot.get("confirmed_by_user") is not True
+            or snapshot.get("broker_verified") is not False
+            or snapshot.get("trade_type") != "simulated"
+        ):
+            return {**base, "account_snapshot_status": "provenance_unverified"}
+        try:
+            account_as_of_date = _parse_date(snapshot.get("account_as_of_date"))
+        except (TypeError, ValueError):
+            return {**base, "account_snapshot_status": "account_state_date_invalid"}
+        if current_as_of_date is not None and account_as_of_date != current_as_of_date:
+            return {**base, "account_snapshot_status": "account_state_date_mismatch"}
+
+        actual_shares = snapshot.get("actual_shares")
+        sellable_shares = snapshot.get("sellable_shares")
+        revision = snapshot.get("account_revision")
+        if (
+            type(actual_shares) is not int or actual_shares < 0
+            or type(sellable_shares) is not int or not 0 <= sellable_shares <= actual_shares
+            or type(revision) is not int or revision < 0
+        ):
+            return {**base, "account_snapshot_status": "quantity_invalid"}
+        result = {
+            **base,
+            "account_snapshot_status": "account_nav_invalid",
+            "account_source": "card022_isolated_simulated_practice_account_unverified_by_broker",
+            "account_mode": "simulated_practice",
+            "account_revision": revision,
+            "account_as_of_date": account_as_of_date.isoformat(),
+            "account_valuation_date": latest_data_date.isoformat(),
+            "actual_shares": actual_shares,
+            "sellable_shares_as_of_latest_market_data": sellable_shares,
+        }
+        if current_market_close is None or snapshot.get("account_cash_cny") is None:
+            return result
+        try:
+            cash = _decimal(snapshot["account_cash_cny"], "模拟账户当前现金")
+            opened_at = datetime.fromisoformat(str(snapshot.get("account_opened_at")))
+        except (TypeError, ValueError, _ObservationFailure):
+            return result
+        if cash < 0 or current_market_close <= 0:
+            return result
+        opened_date = opened_at.date()
+        if opened_date > signal_date or (
+            opened_date == signal_date and opened_at.time() > time(15, 0)
+        ):
+            return {**result, "account_snapshot_status": "account_opened_after_signal_date"}
+        dividend_status = _practice_dividend_evidence_status(
+            dividend_rows,
+            opened_at=opened_at,
+            signal_date=signal_date,
+            latest_data_date=latest_data_date,
+            open_dates=dividend_open_dates or [],
+            daily=dividend_daily or {},
+            factors=dividend_factors or {},
+            position_provider=dividend_position_provider,
+        )
+        if dividend_status != "verified_zero_cash_entitlement":
+            return {
+                **result,
+                "account_snapshot_status": dividend_status,
+                "dividend_receivable_at_signal_cny": None,
+                "account_nav_at_signal_cny": None,
+            }
+
+        shares_at_signal = snapshot.get("shares_at_signal")
+        cash_at_signal = snapshot.get("account_cash_at_signal_cny")
+        receivable_at_signal = Decimal(0)
+        if (
+            type(shares_at_signal) is not int or shares_at_signal < 0
+            or cash_at_signal is None or receivable_at_signal is None
+        ):
+            return {**result, "account_snapshot_status": "signal_date_account_state_unavailable"}
+        try:
+            signal_cash = _decimal(cash_at_signal, "信号日模拟账户现金")
+            receivable = _decimal(receivable_at_signal, "信号日模拟账户分红应收")
+        except _ObservationFailure:
+            return {**result, "account_snapshot_status": "account_nav_invalid"}
+        if signal_cash < 0 or receivable < 0:
+            return {**result, "account_snapshot_status": "account_nav_invalid"}
+        nav = signal_cash + Decimal(shares_at_signal) * raw_signal_close + receivable
+        if not nav.is_finite() or nav < 0:
+            return result
+        target_shares = _target_shares(weight, nav, raw_signal_close)
+        return {
+            **result,
+            "account_snapshot_status": "simulated_practice_account_available",
+            "account_target_shares": target_shares,
+            "actual_delta_shares": target_shares - actual_shares,
+            "account_cash_cny": format(cash, ".2f"),
+            "account_cash_at_signal_cny": format(signal_cash, ".2f"),
+            "dividend_receivable_at_signal_cny": format(receivable, ".2f"),
+            "account_nav_at_signal_cny": format(nav, ".2f"),
+        }
+
     if status != "user_confirmed_position":
         return {**base, "account_snapshot_status": status if isinstance(status, str) else "unverified"}
     if (
@@ -495,7 +735,39 @@ def _account_snapshot(account_provider, signal_date: date, latest_data_date: dat
         "actual_delta_shares": target_shares - actual_shares,
         "account_cash_at_signal_cny": format(cash, ".2f"),
         "dividend_receivable_at_signal_cny": format(receivable, ".2f"),
+        "account_nav_at_signal_cny": format(nav, ".2f"),
     }
+
+
+def _research_action(account: dict, *, target_is_valid: bool, latest_close: Decimal,
+                     next_possible_attempt: date) -> tuple[str, int | None, str]:
+    status = account.get("account_snapshot_status")
+    delta = account.get("actual_delta_shares")
+    if status != "simulated_practice_account_available" or type(delta) is not int:
+        return "not_decidable", None, "模拟账户或当前行情数据不完整，无法给出研究方向。"
+    if not target_is_valid:
+        return "no_action", 0, "当前月末目标已过有效期，不沿用旧目标。"
+    if delta == 0:
+        return "hold", 0, "当前份额已达到冻结规则按模拟账户净值计算的目标份额。"
+    if delta < 0:
+        required_to_sell = -delta
+        sellable = account.get("sellable_shares_as_of_latest_market_data")
+        if type(sellable) is not int or required_to_sell > sellable:
+            return "no_action", 0, "目标差额超过当前可卖份额；先遵守 T+1，不给出超出可卖量的模拟卖出方向。"
+        return "sell", required_to_sell, f"冻结规则目标低于当前模拟持仓；仅研究参考，最早可核对日期为 {next_possible_attempt.isoformat()}。"
+    cash_text = account.get("account_cash_cny")
+    try:
+        cash = Decimal(str(cash_text))
+    except (InvalidOperation, TypeError, ValueError):
+        return "not_decidable", None, "模拟账户现金缺失或无效，无法核验买入可负担性。"
+    purchase_value = Decimal(delta) * latest_close
+    estimated_commission = max(
+        _MIN_COMMISSION,
+        (purchase_value * _COMMISSION_RATE).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP),
+    )
+    if purchase_value + estimated_commission > cash:
+        return "no_action", 0, "当前模拟现金不足以覆盖目标差额和已知的简化佣金估算。"
+    return "buy", delta, f"冻结规则目标高于当前模拟持仓；仅研究参考，最早可核对日期为 {next_possible_attempt.isoformat()}。"
 
 
 class _Card020MarketWindow:
@@ -513,6 +785,7 @@ def get_card021_live_observation(
     client_provider: Callable[[], Any],
     *,
     account_provider: Callable[[date, date], dict] | None = None,
+    dividend_position_provider: Callable[[date], int] | None = None,
     now: datetime | None = None,
 ) -> dict:
     """Query fresh read-only sources and apply Card020's frozen target math."""
@@ -522,6 +795,8 @@ def get_card021_live_observation(
     judgment_at = _retrieved_at(now)
     market_inputs: dict[str, list[dict]] = {}
     source_receipts: list[dict] = []
+    market_data_freshness = _market_data_freshness()
+    expired_target_valid_until: str | None = None
 
     try:
         client = client_provider()
@@ -533,6 +808,7 @@ def get_card021_live_observation(
                 now,
                 provider_call_attempted=False,
                 error_type=type(exc).__name__,
+                market_data_freshness=market_data_freshness,
             ),
             market_inputs,
             source_receipts,
@@ -571,6 +847,28 @@ def get_card021_live_observation(
                 raise _ObservationFailure("sse_calendar_incomplete", "SSE 交易日历缺少最近已完成交易日。")
             latest_complete = previous[-1]
 
+        local_time = now.timetz().replace(tzinfo=None)
+        market_data_freshness["expected_data_date"] = now.date().isoformat() if today_open else latest_complete.isoformat()
+        if today_open and local_time < _MARKET_CLOSE:
+            market_data_freshness["status"] = "awaiting_market_close"
+        elif today_open and local_time < _MARKET_CLOSE_DATA_CUTOFF:
+            market_data_freshness["status"] = "awaiting_data_cutoff"
+        else:
+            market_data_freshness["status"] = "current"
+
+        month_last_open: dict[tuple[int, int], date] = {}
+        for day in open_dates:
+            key = (day.year, day.month)
+            month_last_open[key] = max(day, month_last_open.get(key, day))
+        today_month_last_open = month_last_open.get((now.date().year, now.date().month))
+        if (
+            today_open
+            and today_month_last_open == now.date()
+            and local_time >= _MARKET_CLOSE
+            and any(day < now.date() for day in month_last_open.values())
+        ):
+            expired_target_valid_until = now.date().isoformat()
+
         daily_rows = _client_rows(
             client,
             "fund_daily",
@@ -599,6 +897,32 @@ def get_card021_live_observation(
             market_inputs,
             source_receipts,
         )
+        daily = _symbol_rows(daily_rows, "fund_daily")
+        factors = _symbol_rows(adjustment_rows, "fund_adj")
+        common_dates = {
+            day for day in set(daily).intersection(factors)
+            if day <= latest_complete
+        }
+        if common_dates:
+            market_data_freshness["last_available_date"] = max(common_dates).isoformat()
+        missing_latest_endpoints = []
+        if latest_complete not in daily:
+            missing_latest_endpoints.append("fund_daily")
+        if latest_complete not in factors:
+            missing_latest_endpoints.append("fund_adj")
+        if missing_latest_endpoints:
+            market_data_freshness["missing_endpoints"] = missing_latest_endpoints
+            market_data_freshness["status"] = (
+                "same_day_data_missing"
+                if market_data_freshness["expected_data_date"] == latest_complete.isoformat()
+                and local_time >= _MARKET_CLOSE_DATA_CUTOFF
+                else "required_data_missing"
+            )
+            raise _ObservationFailure(
+                "latest_market_data_missing",
+                "最新已完成交易日的行情或复权因子尚未齐备。",
+            )
+
         dividend_rows = _client_rows(
             client,
             "fund_div",
@@ -610,18 +934,6 @@ def get_card021_live_observation(
             source_receipts,
         )
 
-        daily = _symbol_rows(daily_rows, "fund_daily")
-        factors = _symbol_rows(adjustment_rows, "fund_adj")
-        if latest_complete not in daily or latest_complete not in factors:
-            raise _ObservationFailure(
-                "latest_market_data_missing",
-                "最新已完成交易日的行情或复权因子尚未齐备。",
-            )
-
-        month_last_open: dict[tuple[int, int], date] = {}
-        for day in open_dates:
-            key = (day.year, day.month)
-            month_last_open[key] = max(day, month_last_open.get(key, day))
         completed_month_ends = [
             day for day in month_last_open.values()
             if day <= latest_complete
@@ -637,6 +949,13 @@ def get_card021_live_observation(
         factor_values: dict[date, Decimal] = {}
         for day in window_dates:
             if day not in daily or day not in factors:
+                missing = []
+                if day not in daily:
+                    missing.append("fund_daily")
+                if day not in factors:
+                    missing.append("fund_adj")
+                market_data_freshness["status"] = "required_data_missing"
+                market_data_freshness["missing_endpoints"] = missing
                 raise _ObservationFailure("adjusted_close_window_incomplete", "61 个有效复权收盘价不完整。")
             close = _decimal(daily[day].get("close"), "原始收盘价")
             factor = _decimal(factors[day].get("adj_factor"), "复权因子")
@@ -681,11 +1000,21 @@ def get_card021_live_observation(
             )
         )
         first_attempt_status = "past" if first_attempt_has_passed else "not_started"
-        target_is_valid = next_possible_attempt <= target_valid_until
-        target_validity_status = "active_until_next_month_end" if target_is_valid else "expired"
+        judgment_time = now.timetz().replace(tzinfo=None)
+        target_is_time_valid = (
+            now.date() < target_valid_until
+            or (now.date() == target_valid_until and judgment_time < _MARKET_CLOSE)
+        )
+        execution_opportunity_available = next_possible_attempt <= target_valid_until
+        execution_opportunity_status = (
+            "available_before_expiry" if execution_opportunity_available else "none_before_expiry"
+        )
+        target_validity_status = "active_until_next_month_end" if target_is_time_valid else "expired"
         retry_policy_status = (
             "not_eligible_expired"
-            if not target_is_valid
+            if not target_is_time_valid
+            else "no_remaining_valid_attempt"
+            if not execution_opportunity_available
             else "conditional_unresolved_remainder_not_tracked"
             if first_attempt_status == "past"
             else "first_attempt_not_started"
@@ -718,16 +1047,32 @@ def get_card021_live_observation(
             latest_complete,
             raw_signal_close,
             weight,
+            current_as_of_date=now.date(),
+            current_market_close=_decimal(daily[latest_complete].get("close"), "最新已完成交易日原始收盘价"),
+            dividend_rows=dividend_rows,
+            dividend_position_provider=dividend_position_provider,
+            dividend_open_dates=open_dates,
+            dividend_daily=daily,
+            dividend_factors=factors,
         )
-        if not target_is_valid:
+        if not target_is_time_valid or not execution_opportunity_available:
             account["account_target_shares"] = None
             account["actual_delta_shares"] = None
         execution_gate = (
             "blocked_target_expired"
-            if not target_is_valid
+            if not target_is_time_valid
+            else "blocked_no_valid_execution_attempt"
+            if not execution_opportunity_available
             else "blocked_missing_account_nav_or_cash"
             if account["account_target_shares"] is None
             else "blocked_attempt_date_constraints_not_checked"
+        )
+        latest_close = _decimal(daily[latest_complete].get("close"), "最新已完成交易日原始收盘价")
+        action_decision, suggested_quantity, action_reason = _research_action(
+            account,
+            target_is_valid=target_is_time_valid and execution_opportunity_available,
+            latest_close=latest_close,
+            next_possible_attempt=next_possible_attempt,
         )
 
         result = {
@@ -757,9 +1102,22 @@ def get_card021_live_observation(
             "account_source": account["account_source"],
             "account_cash_at_signal_cny": account["account_cash_at_signal_cny"],
             "dividend_receivable_at_signal_cny": account["dividend_receivable_at_signal_cny"],
+            "account_nav_at_signal_cny": account["account_nav_at_signal_cny"],
+            "account_cash_cny": account["account_cash_cny"],
+            "account_mode": account["account_mode"],
+            "account_revision": account["account_revision"],
+            "account_as_of_date": account["account_as_of_date"],
+            "account_valuation_date": account["account_valuation_date"],
             "execution_gate": execution_gate,
-            "action_decision": "not_decidable",
+            "action_decision": action_decision,
+            "suggested_quantity_shares": suggested_quantity,
+            "suggested_action_date": next_possible_attempt.isoformat() if suggested_quantity else None,
+            "research_action_reason": action_reason,
             "research_rationale": (
+                "模拟账户目标按冻结修订3规则使用信号日现金、份额及已核实分红应收计算；当前现金只用于核验当前买入可负担性。"
+                "这只是用户确认的模拟记录，未核实券商持仓；本页不下单。仅研究参考。"
+                if account["account_mode"] == "simulated_practice"
+                else
                 "已按固定修订3规则计算月末目标；本页只显示既有用户确认成交记录，不能核实券商持仓。"
                 "现金与分红应收未从账户路径取得，无法计算真实账户目标或执行判断；仅研究参考。"
             ),
@@ -768,6 +1126,7 @@ def get_card021_live_observation(
             "next_possible_attempt_date": next_possible_attempt.isoformat(),
             "target_valid_until": target_valid_until.isoformat(),
             "target_validity_status": target_validity_status,
+            "execution_opportunity_status": execution_opportunity_status,
             "retry_policy_status": retry_policy_status,
             "retry_rule": "协议只允许在本月目标有效期内，对尚未完成且合规的剩余差额逐交易日重试；本页不跟踪剩余委托状态。",
             "adjustment_source_status": "61个信号窗口交易日均有复权因子；最新已完成交易日也有因子。",
@@ -778,7 +1137,7 @@ def get_card021_live_observation(
             },
             "market_constraints": {
                 "orders_submitted": False,
-                "account_cash_cny": None,
+                "account_cash_cny": account["account_cash_cny"],
                 "actual_shares": account["actual_shares"],
                 "sellable_shares": account["sellable_shares_as_of_latest_market_data"],
                 "execution_gate": execution_gate,
@@ -806,6 +1165,7 @@ def get_card021_live_observation(
                 "origin_authenticated": False,
                 "dividend_coverage": dividend_summary["coverage"],
             },
+            "market_data_freshness": dict(market_data_freshness),
             "source_origin_authenticated": False,
             "provider_call_attempted": True,
             "provider_responses_received": completed,
@@ -813,8 +1173,9 @@ def get_card021_live_observation(
         }
         return _finish_observation(result, market_inputs, source_receipts, judgment_at)
     except _ObservationFailure as exc:
-        return _finish_observation(
-            _unavailable(
+        if exc.code == "market_source_query_failed":
+            market_data_freshness["status"] = "source_query_failed"
+        unavailable = _unavailable(
                 exc.code,
                 exc.message,
                 now,
@@ -823,22 +1184,31 @@ def get_card021_live_observation(
                 error_type=exc.error_type,
                 sources=_source_summaries(source_receipts),
                 completed_endpoints=completed,
-            ),
+                market_data_freshness=market_data_freshness,
+                target_validity_status="expired" if expired_target_valid_until else None,
+                target_valid_until=expired_target_valid_until,
+            )
+        return _finish_observation(
+            unavailable,
             market_inputs,
             source_receipts,
             judgment_at,
         )
     except Exception as exc:
+        unavailable = _unavailable(
+            "observation_calculation_failed",
+            "行情输入无法安全核验，未生成目标。",
+            now,
+            provider_call_attempted=bool(attempted),
+            error_type=type(exc).__name__,
+            sources=_source_summaries(source_receipts),
+            completed_endpoints=completed,
+            market_data_freshness=market_data_freshness,
+            target_validity_status="expired" if expired_target_valid_until else None,
+            target_valid_until=expired_target_valid_until,
+        )
         return _finish_observation(
-            _unavailable(
-                "observation_calculation_failed",
-                "行情输入无法安全核验，未生成目标。",
-                now,
-                provider_call_attempted=bool(attempted),
-                error_type=type(exc).__name__,
-                sources=_source_summaries(source_receipts),
-                completed_endpoints=completed,
-            ),
+            unavailable,
             market_inputs,
             source_receipts,
             judgment_at,

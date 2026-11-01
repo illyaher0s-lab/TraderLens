@@ -172,7 +172,7 @@ def test_snapshot_persists_reverse_order_tushare_calendar(caplog):
     db.conn.close()
 
 
-def test_expired_month_end_target_does_not_expose_account_share_delta():
+def test_month_end_target_without_future_attempt_does_not_expose_account_share_delta():
     from datetime import date, timedelta
 
     now = datetime(2026, 12, 31, 10, 0, tzinfo=ZoneInfo("Asia/Shanghai"))
@@ -259,9 +259,10 @@ def test_expired_month_end_target_does_not_expose_account_share_delta():
     assert payload["signal_date"] == "2026-11-30"
     assert payload["target_valid_until"] == "2026-12-31"
     assert payload["next_possible_attempt_date"] > payload["target_valid_until"]
-    assert payload["target_validity_status"] == "expired"
-    assert payload["retry_policy_status"] == "not_eligible_expired"
-    assert payload["execution_gate"] == "blocked_target_expired"
+    assert payload["target_validity_status"] == "active_until_next_month_end"
+    assert payload["execution_opportunity_status"] == "none_before_expiry"
+    assert payload["retry_policy_status"] == "no_remaining_valid_attempt"
+    assert payload["execution_gate"] == "blocked_no_valid_execution_attempt"
     assert payload["action_decision"] == "not_decidable"
     assert payload["actual_shares"] == 600
     assert payload["sellable_shares_as_of_latest_market_data"] == 500

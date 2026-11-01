@@ -18,6 +18,7 @@ from backend.db.live_trade import LiveTradeDB
 from backend.db.research import ResearchDB
 from backend.services.card021_store import Card021SnapshotStore
 from backend.services.card020_vol_budget import _target_shares
+from backend.services.card022_practice_account import Card022PracticeAccountStore
 
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
@@ -280,7 +281,7 @@ def test_unverified_account_provenance_does_not_expose_actual_quantity():
 
 
 def test_research_app_reuses_the_validator_market_client():
-    market = FakeMarketClient()
+    market = FakeMarketClient(as_of=datetime.now(SHANGHAI).date())
 
     class Validator:
         @property
@@ -302,7 +303,7 @@ def test_research_app_reuses_the_validator_market_client():
 def test_default_account_provider_reuses_existing_user_confirmed_actual_records(monkeypatch):
     from contracts.live_trade import TradeType
 
-    market = FakeMarketClient()
+    market = FakeMarketClient(as_of=datetime.now(SHANGHAI).date())
     log = SimpleNamespace(
         confirmed_by_user=True,
         broker_verified=False,
@@ -353,7 +354,8 @@ def test_default_account_provider_reuses_existing_user_confirmed_actual_records(
     assert payload["actual_shares"] == 600
     assert payload["sellable_shares_as_of_latest_market_data"] == 500
     assert payload["actual_delta_shares"] is None
-    assert payload["execution_gate"] == "blocked_missing_account_nav_or_cash"
+    assert payload["execution_gate"].startswith("blocked_")
+    assert payload["action_decision"] == "not_decidable"
     assert payload["account_source"] == "user_confirmed_autonomous_manual_records_unverified_by_broker"
     latest_date = date.fromisoformat(payload["latest_market_data_date"])
     signal_date = date.fromisoformat(payload["signal_date"])
@@ -485,6 +487,183 @@ def test_confirmed_isolated_account_snapshot_computes_frozen_share_delta():
     assert payload["actual_delta_shares"] == expected_target - 400
 
 
+def test_current_practice_account_uses_signal_date_nav_and_current_share_delta():
+    from backend.services.card020_vol_budget import _target_shares, _target_weight
+
+    now = datetime(2026, 10, 1, 17, 30, tzinfo=SHANGHAI)
+    market = FakeMarketClient(as_of=now.date())
+    account = {
+        "status": "simulated_practice_account",
+        "record_source": "autonomous_manual",
+        "confirmed_by_user": True,
+        "broker_verified": False,
+        "trade_type": "simulated",
+        "actual_shares": 700,
+        "sellable_shares": 500,
+        "account_cash_cny": "3000.00",
+        "account_as_of_date": "2026-10-01",
+        "account_opened_at": "2026-09-01T09:00:00+08:00",
+        "account_revision": 2,
+        # Current values must never be substituted for the signal-date NAV.
+        "shares_at_signal": 200,
+        "account_cash_at_signal_cny": "4000.00",
+        "dividend_receivable_at_signal_cny": "0.00",
+    }
+    app = FastAPI()
+    app.include_router(create_card021_router(
+        lambda: market,
+        account_provider=lambda _signal_date, _latest_date: account,
+        now_provider=lambda: now,
+    ))
+
+    payload = TestClient(app).get("/api/research/card021/510880/live-observation").json()
+
+    signal_close = next(
+        Decimal(str(row["close"]))
+        for row in market.rows["fund_daily"]
+        if row["trade_date"] == "20260930"
+    )
+    expected_target = _target_shares(
+        _target_weight(Decimal(payload["signal_volatility"])),
+        Decimal("4000.00") + Decimal(200) * signal_close,
+        signal_close,
+    )
+    assert payload["status"] == "available"
+    assert payload["account_data_status"] == "simulated_practice_account_available"
+    assert payload["selected_account_mode"] == "actual"
+    assert payload["account_revision"] == 2
+    assert payload["account_as_of_date"] == "2026-10-01"
+    assert payload["account_cash_cny"] == "3000.00"
+    assert payload["account_cash_at_signal_cny"] == "4000.00"
+    assert payload["account_valuation_date"] == "2026-10-01"
+    assert payload["actual_shares"] == 700
+    assert payload["account_target_shares"] == expected_target
+    assert payload["actual_delta_shares"] == expected_target - 700
+    assert payload["action_decision"] in {"buy", "sell", "hold", "no_action"}
+
+
+def test_current_practice_account_date_mismatch_blocks_account_decision():
+    now = datetime(2026, 10, 30, 17, 30, tzinfo=SHANGHAI)
+    market = FakeMarketClient(as_of=now.date())
+    account = {
+        "status": "simulated_practice_account",
+        "record_source": "autonomous_manual",
+        "confirmed_by_user": True,
+        "broker_verified": False,
+        "trade_type": "simulated",
+        "actual_shares": 400,
+        "sellable_shares": 300,
+        "account_cash_cny": "4000.00",
+        "account_as_of_date": "2026-10-29",
+        "account_opened_at": "2026-10-01T09:00:00+08:00",
+        "account_revision": 1,
+    }
+    app = FastAPI()
+    app.include_router(create_card021_router(
+        lambda: market,
+        account_provider=lambda _signal_date, _latest_date: account,
+        now_provider=lambda: now,
+    ))
+
+    payload = TestClient(app).get("/api/research/card021/510880/live-observation").json()
+
+    assert payload["status"] == "available"
+    assert payload["account_data_status"] == "account_state_date_mismatch"
+    assert payload["actual_shares"] is None
+    assert payload["account_target_shares"] is None
+    assert payload["actual_delta_shares"] is None
+    assert payload["action_decision"] == "not_decidable"
+
+
+def test_practice_account_opened_after_frozen_signal_blocks_account_target():
+    now = datetime(2026, 10, 30, 10, 0, tzinfo=SHANGHAI)
+    market = FakeMarketClient(as_of=now.date())
+    account = {
+        "status": "simulated_practice_account",
+        "record_source": "autonomous_manual",
+        "confirmed_by_user": True,
+        "broker_verified": False,
+        "trade_type": "simulated",
+        "actual_shares": 0,
+        "sellable_shares": 0,
+        "account_cash_cny": "5000.00",
+        "account_as_of_date": "2026-10-30",
+        "account_opened_at": "2026-10-01T09:00:00+08:00",
+        "account_revision": 0,
+        "shares_at_signal": 0,
+        "account_cash_at_signal_cny": "5000.00",
+        "dividend_receivable_at_signal_cny": "0.00",
+    }
+    app = FastAPI()
+    app.include_router(create_card021_router(
+        lambda: market,
+        account_provider=lambda _signal_date, _latest_date: account,
+        now_provider=lambda: now,
+    ))
+
+    payload = TestClient(app).get("/api/research/card021/510880/live-observation").json()
+
+    assert payload["signal_date"] == "2026-09-30"
+    assert payload["account_data_status"] == "account_opened_after_signal_date"
+    assert payload["account_target_shares"] is None
+    assert payload["actual_delta_shares"] is None
+    assert payload["action_decision"] == "not_decidable"
+
+
+def test_simulated_practice_and_actual_observations_use_separate_account_sources(tmp_path):
+    from backend.services.card022_practice_account import Card022PracticeAccountStore
+
+    market = FakeMarketClient(as_of=NOW.date())
+    research_db = ResearchDB(":memory:")
+    snapshot_store = Card021SnapshotStore(research_db.conn)
+    practice_store = Card022PracticeAccountStore(tmp_path / "practice_trade.db")
+    practice_store.initialize(initialized_at=datetime(2026, 9, 1, 9, 0, tzinfo=SHANGHAI))
+    actual_calls = []
+    app = FastAPI()
+    app.include_router(create_card021_router(
+        lambda: market,
+        account_provider=lambda *_dates: actual_calls.append(True) or {"status": "no_user_confirmed_records"},
+        now_provider=lambda: NOW,
+        snapshot_store=snapshot_store,
+        practice_account_store=practice_store,
+    ))
+    client = TestClient(app)
+
+    simulated = client.get(
+        "/api/research/card021/510880/live-observation?account_mode=simulated_practice",
+    ).json()
+    assert simulated["status"] == "available"
+    assert simulated["selected_account_mode"] == "simulated_practice"
+    assert simulated["account_mode"] == "simulated_practice"
+    assert simulated["account_cash_cny"] == "5000.00"
+    assert simulated["actual_shares"] == 0
+    assert simulated["practice_observation_id"].startswith("card022_obs_")
+    assert actual_calls == []
+
+    stored_market = snapshot_store.get_snapshot(simulated["snapshot_id"])
+    assert stored_market["market_result"]["action_decision"] == "not_decidable"
+    assert "account_cash_cny" not in stored_market["market_result"]
+    assert "actual_shares" not in stored_market["market_result"]
+
+    reopened_response = client.get(
+        f"/api/research/card021/510880/practice-observations/{simulated['practice_observation_id']}",
+    )
+    assert reopened_response.status_code == 200, reopened_response.text
+    reopened = reopened_response.json()
+    assert reopened["snapshot_mode"] == "saved_practice_observation"
+    assert reopened["account_revision"] == simulated["account_revision"]
+    assert reopened["account_cash_cny"] == simulated["account_cash_cny"]
+    assert reopened["practice_observation_sha256"] == simulated["practice_observation_sha256"]
+
+    actual = client.get("/api/research/card021/510880/live-observation?account_mode=actual").json()
+    assert actual["selected_account_mode"] == "actual"
+    assert actual["account_mode"] == "actual_records"
+    assert actual["account_data_status"] == "no_user_confirmed_records"
+    assert actual["actual_shares"] is None
+    assert actual["action_decision"] == "not_decidable"
+    assert actual_calls == [True]
+
+
 def test_next_completed_month_end_supersedes_previous_target():
     from datetime import time
 
@@ -502,6 +681,167 @@ def test_next_completed_month_end_supersedes_previous_target():
     assert payload["supersedes_signal_date"] == "2026-09-30"
     assert payload["first_attempt_status"] == "not_started"
     assert payload["target_validity_status"] == "active_until_next_month_end"
+    assert payload["execution_opportunity_status"] == "available_before_expiry"
+
+
+@pytest.mark.parametrize(
+    ("query_time", "expected_status"),
+    [
+        (time(11, 48), "awaiting_market_close"),
+        (time(15, 13), "awaiting_data_cutoff"),
+    ],
+)
+def test_month_end_freshness_explains_intraday_and_after_close_wait(query_time, expected_status):
+    now = datetime.combine(date(2026, 10, 30), query_time, tzinfo=SHANGHAI)
+    market = FakeMarketClient(as_of=now.date())
+    app = FastAPI()
+    app.include_router(create_card021_router(lambda: market, now_provider=lambda: now))
+
+    payload = TestClient(app).get("/api/research/card021/510880/live-observation").json()
+
+    assert payload["status"] == "available"
+    assert payload["signal_date"] == "2026-09-30"
+    expected_validity = "expired" if query_time >= time(15, 0) else "active_until_next_month_end"
+    assert payload["target_validity_status"] == expected_validity
+    assert payload["market_data_freshness"] == {
+        "status": expected_status,
+        "timezone": "Asia/Shanghai",
+        "cutoff_time_local": "17:00",
+        "expected_data_date": "2026-10-30",
+        "last_available_date": "2026-10-29",
+        "missing_endpoints": [],
+    }
+
+
+def test_after_cutoff_missing_month_end_rows_explains_old_target_expiry_and_missing_data():
+    now = datetime(2026, 10, 30, 17, 30, tzinfo=SHANGHAI)
+    market = FakeMarketClient(as_of=now.date())
+    for endpoint in ("fund_daily", "fund_adj"):
+        market.rows[endpoint] = [row for row in market.rows[endpoint] if row["trade_date"] != "20261030"]
+    app = FastAPI()
+    app.include_router(create_card021_router(lambda: market, now_provider=lambda: now))
+
+    payload = TestClient(app).get("/api/research/card021/510880/live-observation").json()
+
+    assert payload["status"] == "unavailable"
+    assert payload["failure_code"] == "latest_market_data_missing"
+    assert payload["target_validity_status"] == "expired"
+    assert payload["target_valid_until"] == "2026-10-30"
+    assert payload["market_data_freshness"] == {
+        "status": "same_day_data_missing",
+        "timezone": "Asia/Shanghai",
+        "cutoff_time_local": "17:00",
+        "expected_data_date": "2026-10-30",
+        "last_available_date": "2026-10-29",
+        "missing_endpoints": ["fund_daily", "fund_adj"],
+    }
+
+
+def test_after_cutoff_month_end_uses_isolated_pre_session_card022_account_and_preserves_freshness(tmp_path):
+    now = datetime(2026, 10, 30, 17, 30, tzinfo=SHANGHAI)
+    market = FakeMarketClient(as_of=now.date())
+    practice_store = Card022PracticeAccountStore(tmp_path / "practice_trade.db")
+    practice_store.initialize(initialized_at=datetime(2026, 10, 30, 8, 45, tzinfo=SHANGHAI))
+    research_db = ResearchDB(":memory:")
+    snapshot_store = Card021SnapshotStore(research_db.conn)
+    app = FastAPI()
+    app.include_router(create_card021_router(
+        lambda: market,
+        now_provider=lambda: now,
+        snapshot_store=snapshot_store,
+        practice_account_store=practice_store,
+    ))
+
+    with TestClient(app) as client:
+        response = client.get(
+            "/api/research/card021/510880/live-observation?account_mode=simulated_practice",
+        )
+        payload = response.json()
+        saved = client.get(
+            f"/api/research/card021/510880/practice-observations/{payload['practice_observation_id']}",
+        ).json()
+
+    assert response.status_code == 200
+    assert payload["status"] == "available"
+    assert payload["signal_date"] == "2026-10-30"
+    assert payload["supersedes_signal_date"] == "2026-09-30"
+    assert payload["account_data_status"] == "simulated_practice_account_available"
+    assert payload["account_as_of_date"] == "2026-10-30"
+    assert payload["account_cash_cny"] == "5000.00"
+    assert payload["account_cash_at_signal_cny"] == "5000.00"
+    assert payload["account_nav_at_signal_cny"] == "5000.00"
+    assert payload["action_decision"] in {"buy", "sell", "hold", "no_action"}
+    assert payload["execution_gate"] == "blocked_attempt_date_constraints_not_checked"
+    assert payload["market_constraints"]["orders_submitted"] is False
+    assert payload["market_data_freshness"] == {
+        "status": "current",
+        "timezone": "Asia/Shanghai",
+        "cutoff_time_local": "17:00",
+        "expected_data_date": "2026-10-30",
+        "last_available_date": "2026-10-30",
+        "missing_endpoints": [],
+    }
+    assert saved["market_data_freshness"] == payload["market_data_freshness"]
+    market_snapshot = snapshot_store.get_snapshot(payload["snapshot_id"])
+    assert "account_nav_at_signal_cny" not in market_snapshot["market_result"]
+    assert practice_store.get_status()["revision"] == 0
+    assert not (tmp_path / "actual_trade.db").exists()
+
+
+@pytest.mark.parametrize(
+    ("query_time", "expected_validity", "expected_opportunity", "expected_attempt", "expected_gate"),
+    [
+        (time(8, 30), "active_until_next_month_end", "available_before_expiry", "2026-10-30", "blocked_missing_account_nav_or_cash"),
+        (time(11, 48), "active_until_next_month_end", "none_before_expiry", "2026-11-02", "blocked_no_valid_execution_attempt"),
+        (time(15, 0), "expired", "none_before_expiry", "2026-11-02", "blocked_target_expired"),
+    ],
+)
+def test_month_end_target_validity_is_separate_from_remaining_open_attempts(
+    query_time, expected_validity, expected_opportunity, expected_attempt, expected_gate,
+):
+    now = datetime.combine(date(2026, 10, 30), query_time, tzinfo=SHANGHAI)
+    market = FakeMarketClient(as_of=now.date())
+    closed_dates = {"20260925", "20261001", "20261002", "20261005", "20261006", "20261007"}
+    for row in market.rows["trade_cal"]:
+        if row["cal_date"] in closed_dates:
+            row["is_open"] = 0
+    account = {
+        "status": "simulated_practice_account",
+        "record_source": "autonomous_manual",
+        "confirmed_by_user": True,
+        "broker_verified": False,
+        "trade_type": "simulated",
+        "actual_shares": 0,
+        "sellable_shares": 0,
+        "account_cash_cny": "5000.00",
+        "account_as_of_date": "2026-10-30",
+        "account_opened_at": "2026-10-30T11:24:19+08:00",
+        "account_revision": 0,
+        "shares_at_signal": 0,
+        "account_cash_at_signal_cny": "5000.00",
+        "dividend_receivable_at_signal_cny": "0.00",
+    }
+    app = FastAPI()
+    app.include_router(create_card021_router(
+        lambda: market,
+        account_provider=lambda _signal_date, _latest_date: account,
+        now_provider=lambda: now,
+    ))
+
+    payload = TestClient(app).get("/api/research/card021/510880/live-observation").json()
+
+    assert payload["signal_date"] == "2026-09-30"
+    assert payload["latest_market_data_date"] == "2026-10-29"
+    assert payload["target_valid_until"] == "2026-10-30"
+    assert payload["target_validity_status"] == expected_validity
+    assert payload["execution_opportunity_status"] == expected_opportunity
+    assert payload["next_possible_attempt_date"] == expected_attempt
+    assert payload["execution_gate"] == expected_gate
+    assert payload["account_data_status"] == "account_opened_after_signal_date"
+    assert payload["account_cash_at_signal_cny"] is None
+    assert payload["action_decision"] == "not_decidable"
+    assert payload["suggested_quantity_shares"] is None
+    assert payload["suggested_action_date"] is None
 
 
 def test_reported_signal_price_and_target_weight_floor_to_800_model_shares():
@@ -577,6 +917,7 @@ def test_market_snapshot_is_append_only_account_free_and_read_without_live_queri
     assert saved_payload["snapshot_historical"] is True
     assert saved_payload["snapshot_id"] == payload["snapshot_id"]
     assert saved_payload["signal_date"] == payload["signal_date"]
+    assert saved_payload["execution_opportunity_status"] == payload["execution_opportunity_status"]
     assert saved_payload["model_reference_shares"] == payload["model_reference_shares"]
     assert saved_payload["account_data_status"] == "not_saved_or_read"
     assert "actual_shares" not in saved_payload
@@ -669,3 +1010,149 @@ def test_saved_market_snapshot_survives_reopening_research_db_without_live_reads
     assert saved.json()["market_input_sha256"] == live["market_input_sha256"]
     assert unexpected_calls == []
     reopened_db.close()
+
+
+def test_market_snapshot_preserves_dividend_record_date_for_account_audit():
+    market = FakeMarketClient(dividend_rows=[{
+        "ts_code": "510880.SH",
+        "ann_date": "20260501",
+        "imp_anndate": "20260501",
+        "record_date": "20260514",
+        "ex_date": "20260515",
+        "pay_date": "20260520",
+        "div_proc": "实施",
+        "div_cash": 0.01,
+    }])
+    db = ResearchDB(":memory:")
+    store = Card021SnapshotStore(db.conn)
+
+    with _router_app(lambda: market, snapshot_store=store) as client:
+        response = client.get("/api/research/card021/510880/live-observation")
+
+    assert response.status_code == 200
+    snapshot = store.get_snapshot(response.json()["snapshot_id"])
+    assert snapshot["market_inputs"]["fund_div"][0]["record_date"] == "20260514"
+    db.close()
+
+
+def _practice_dividend_snapshot(*, held_shares: int = 0, include_record_date: bool = True,
+                                include_ex_date_factor: bool = True,
+                                latest_date: date = date(2026, 10, 20)):
+    from backend.services.card021_live_observation import _account_snapshot, _symbol_rows
+
+    signal_date = date(2026, 10, 10)
+    record_date = date(2026, 10, 14)
+    ex_date = date(2026, 10, 15)
+    opened_at = datetime(2026, 10, 1, 9, 0, tzinfo=SHANGHAI)
+    dividend = {
+        "ts_code": "510880.SH",
+        "ann_date": "20261001",
+        "imp_anndate": "20261001",
+        "ex_date": ex_date.strftime("%Y%m%d"),
+        "pay_date": "20261020",
+        "div_proc": "实施",
+        "div_cash": 0.01,
+    }
+    if include_record_date:
+        dividend["record_date"] = record_date.strftime("%Y%m%d")
+    market = FakeMarketClient(
+        as_of=latest_date,
+        dividend_ex_date=ex_date.strftime("%Y%m%d"),
+        dividend_rows=[dividend],
+    )
+    daily = _symbol_rows(market.rows["fund_daily"], "fund_daily")
+    factors = _symbol_rows(market.rows["fund_adj"], "fund_adj")
+    if not include_ex_date_factor:
+        factors.pop(ex_date, None)
+    open_dates = [
+        date.fromisoformat(
+            row["cal_date"][:4] + "-" + row["cal_date"][4:6] + "-" + row["cal_date"][6:8]
+        )
+        for row in market.rows["trade_cal"] if row["is_open"] == 1
+    ]
+    queried_record_dates = []
+    snapshot = {
+        "status": "simulated_practice_account",
+        "record_source": "autonomous_manual",
+        "confirmed_by_user": True,
+        "broker_verified": False,
+        "trade_type": "simulated",
+        "account_as_of_date": latest_date.isoformat(),
+        "account_opened_at": opened_at.isoformat(),
+        "account_revision": 0,
+        "actual_shares": 0,
+        "sellable_shares": 0,
+        "account_cash_cny": "5000.00",
+        "shares_at_signal": 0,
+        "account_cash_at_signal_cny": "5000.00",
+        "dividend_receivable_at_signal_cny": None,
+    }
+    result = _account_snapshot(
+        lambda *_dates: snapshot,
+        signal_date,
+        latest_date,
+        Decimal("3.40"),
+        Decimal("0.50"),
+        current_as_of_date=latest_date,
+        current_market_close=Decimal("3.40"),
+        dividend_rows=[dividend],
+        dividend_position_provider=lambda day: queried_record_dates.append(day) or held_shares,
+        dividend_open_dates=open_dates,
+        dividend_daily=daily,
+        dividend_factors=factors,
+    )
+    return result, queried_record_dates, record_date
+
+
+def test_practice_account_with_no_record_date_shares_can_compute_target_nav():
+    result, queried_record_dates, record_date = _practice_dividend_snapshot(held_shares=0)
+
+    assert queried_record_dates == [record_date]
+    assert result["account_snapshot_status"] == "simulated_practice_account_available"
+    assert result["dividend_receivable_at_signal_cny"] == "0.00"
+    assert result["account_nav_at_signal_cny"] == "5000.00"
+
+
+def test_practice_account_with_record_date_shares_keeps_dividend_unknown():
+    result, queried_record_dates, record_date = _practice_dividend_snapshot(held_shares=100)
+
+    assert queried_record_dates == [record_date]
+    assert result["account_snapshot_status"] == "unmodeled_dividend_entitlement"
+    assert result["dividend_receivable_at_signal_cny"] is None
+    assert result["account_nav_at_signal_cny"] is None
+
+
+def test_practice_account_keeps_pending_record_date_entitlement_unknown():
+    result, queried_record_dates, record_date = _practice_dividend_snapshot(
+        held_shares=100,
+        latest_date=date(2026, 10, 14),
+    )
+
+    assert queried_record_dates == [record_date]
+    assert result["account_snapshot_status"] == "unmodeled_dividend_entitlement"
+    assert result["dividend_receivable_at_signal_cny"] is None
+    assert result["account_nav_at_signal_cny"] is None
+
+
+def test_practice_account_missing_record_date_keeps_dividend_unknown():
+    result, queried_record_dates, _record_date = _practice_dividend_snapshot(
+        held_shares=0,
+        include_record_date=False,
+    )
+
+    assert queried_record_dates == []
+    assert result["account_snapshot_status"] == "dividend_source_incomplete"
+    assert result["dividend_receivable_at_signal_cny"] is None
+    assert result["account_nav_at_signal_cny"] is None
+
+
+def test_practice_account_missing_factor_coverage_keeps_dividend_unknown():
+    result, queried_record_dates, _record_date = _practice_dividend_snapshot(
+        held_shares=0,
+        include_ex_date_factor=False,
+    )
+
+    assert queried_record_dates == []
+    assert result["account_snapshot_status"] == "dividend_source_coverage_incomplete"
+    assert result["dividend_receivable_at_signal_cny"] is None
+    assert result["account_nav_at_signal_cny"] is None

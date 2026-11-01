@@ -91,6 +91,9 @@ interface ExecutionLog {
   voided: boolean;
   voided_at: string | null;
   void_reason: string | null;
+  practice_observation_id?: string | null;
+  practice_observation_sha256?: string | null;
+  practice_execution_origin?: "strategy_linked" | "autonomous_practice" | null;
 }
 
 interface DisciplineReview {
@@ -162,10 +165,16 @@ function PositionSellForm({
   position,
   onSaved,
   activeSellLogs,
+  practiceAccountId,
+  practiceObservationId,
+  practiceAccountRevision,
 }: {
   position: ObservationPosition;
   onSaved: () => void;
   activeSellLogs: ExecutionLog[];
+  practiceAccountId: "card022-510880" | null;
+  practiceObservationId: string | null;
+  practiceAccountRevision: number | null;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [price, setPrice] = useState("");
@@ -177,6 +186,7 @@ function PositionSellForm({
   const [sellReason, setSellReason] = useState<"target" | "stop" | "changed_judgment" | "fear" | "urgent_cash" | "">("");
   const [reason, setReason] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [strategyLinked, setStrategyLinked] = useState(false);
   const [operationId, setOperationId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -186,7 +196,11 @@ function PositionSellForm({
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     event.stopPropagation();
-    if (!canSell || !sellReason || !confirmed || !price.trim() || !quantity.trim()) return;
+    if (
+      !canSell || !sellReason || !confirmed || !price.trim() || !quantity.trim()
+      || (practiceAccountId && practiceAccountRevision == null)
+      || (practiceAccountId && strategyLinked && !practiceObservationId)
+    ) return;
     setSubmitting(true);
     setMessage(null);
     const currentOperationId = operationId || crypto.randomUUID();
@@ -197,6 +211,12 @@ function PositionSellForm({
         action: "sell",
         position_id: position.position_id,
         trade_type: position.trade_type as "actual" | "simulated",
+        practice_account_id: practiceAccountId ?? undefined,
+        practice_execution_origin: practiceAccountId
+          ? strategyLinked ? "strategy_linked" : "autonomous_practice"
+          : undefined,
+        practice_account_revision: practiceAccountId ? practiceAccountRevision ?? undefined : undefined,
+        practice_observation_id: practiceAccountId && strategyLinked ? practiceObservationId ?? undefined : undefined,
         price: price.trim(),
         quantity: Number(quantity),
         execution_date: executionDate,
@@ -241,13 +261,37 @@ function PositionSellForm({
           )}
         </div>
       )}
+      {practiceAccountId && (
+        <label style={styles.sellConfirm}>
+          <input
+            type="checkbox"
+            checked={strategyLinked}
+            onChange={(event) => { setStrategyLinked(event.target.checked); setOperationId(null); }}
+            disabled={!practiceObservationId}
+          />
+          按 Card021 保存方向关联这笔模拟卖出
+        </label>
+      )}
+      {practiceAccountId && (
+        <p role="note" style={styles.cardMeta}>
+          {strategyLinked
+            ? "策略关联：提交时会核对保存观察的方向、数量、有效日期和账户版本。"
+            : "自主模拟成交：不代表 Card021 策略方向；系统仍核对当前账户版本、T+1、可卖份额和费用。"}
+        </p>
+      )}
       {!expanded ? (
         <button
           type="button"
           aria-label={"卖出 " + position.name + "（" + sixDigitSymbol + "）"}
           onClick={() => setExpanded(true)}
-          disabled={!canSell}
-          style={canSell ? styles.sellButton : { ...styles.sellButton, background: "#f3f4f6", color: "#666666", cursor: "not-allowed" }}
+          disabled={!canSell || Boolean(
+            practiceAccountId && (
+              practiceAccountRevision == null || (strategyLinked && !practiceObservationId)
+            ),
+          )}
+          style={canSell && (!practiceAccountId || (
+            practiceAccountRevision != null && (!strategyLinked || Boolean(practiceObservationId))
+          )) ? styles.sellButton : { ...styles.sellButton, background: "#f3f4f6", color: "#666666", cursor: "not-allowed" }}
         >
           卖出
         </button>
@@ -301,10 +345,12 @@ function VoidExecutionLogControl({
   log,
   apiBaseUrl,
   onSaved,
+  practiceAccountId,
 }: {
   log: ExecutionLog;
   apiBaseUrl: string;
   onSaved: () => void;
+  practiceAccountId: "card022-510880" | null;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [reason, setReason] = useState("");
@@ -317,7 +363,8 @@ function VoidExecutionLogControl({
     setSubmitting(true);
     setMessage(null);
     try {
-      const response = await fetch(`${apiBaseUrl}/api/observations/execution-logs/${encodeURIComponent(log.log_id)}/void`, {
+      const scope = practiceAccountId ? `?practice_account_id=${encodeURIComponent(practiceAccountId)}` : "";
+      const response = await fetch(`${apiBaseUrl}/api/observations/execution-logs/${encodeURIComponent(log.log_id)}/void${scope}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: reason.trim() }),
@@ -361,27 +408,56 @@ export default function ObservationsPage() {
   const [error, setError] = useState<string | null>(null);
   const [executionFilter, setExecutionFilter] = useState<"active" | "voided">("active");
   const [showAllExecutionLogs, setShowAllExecutionLogs] = useState(false);
+  const [practiceAccountId, setPracticeAccountId] = useState<"card022-510880" | null>(null);
+  const [practiceObservationId, setPracticeObservationId] = useState<string | null>(null);
+  const [practiceAccount, setPracticeAccount] = useState<{ cash_cny: string; revision: number } | null>(null);
+  const [practiceCashEvents, setPracticeCashEvents] = useState<Array<{
+    event_type: string;
+    execution_date: string | null;
+    cash_delta_cents: number;
+    cash_after_cents: number;
+    revision: number;
+  }>>([]);
+  const practiceAccountHref = `/observations?practice_account_id=card022-510880${practiceObservationId ? `&card021_observation=${encodeURIComponent(practiceObservationId)}` : ""}`;
 
   useEffect(() => {
-    loadPositions();
+    const params = new URLSearchParams(window.location.search);
+    const requestedAccountValue = params.get("practice_account_id");
+    const requestedAccount = requestedAccountValue === "card022-510880" ? "card022-510880" : null;
+    const requestedObservation = params.get("card021_observation");
+    if ((requestedAccountValue && !requestedAccount) || (requestedObservation && !requestedAccount)) {
+      setError("模拟账户链接无法核实；为避免混读实际记录，未加载持仓。");
+      setLoading(false);
+      return;
+    }
+    setPracticeAccountId(requestedAccount);
+    setPracticeObservationId(requestedObservation);
+    loadPositions(requestedAccount);
   }, []);
 
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8010";
   
-  const loadPositions = async () => {
+  const loadPositions = async (
+    selectedPracticeAccountId: "card022-510880" | null = practiceAccountId,
+  ) => {
     try {
       setLoading(true);
       setError(null);
 
       let marketCheck: PositionMarketState[] = [];
       try {
-        const result = await ensurePositionMarketCheck();
-        marketCheck = result.items || [];
+        if (!selectedPracticeAccountId) {
+          const result = await ensurePositionMarketCheck();
+          marketCheck = result.items || [];
+        }
       } catch (marketError) {
         console.error("Failed to check position market data:", marketError);
       }
       
-      const url = API_BASE_URL + "/api/observations";
+      const query = selectedPracticeAccountId
+        ? `?practice_account_id=${encodeURIComponent(selectedPracticeAccountId)}`
+        : "";
+      const url = API_BASE_URL + "/api/observations" + query;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -392,6 +468,8 @@ export default function ObservationsPage() {
       setPositions(data.positions || []);
       setExecutionLogs(data.execution_logs || []);
       setDisciplineReviews(data.discipline_reviews || []);
+      setPracticeAccount(data.practice_account || null);
+      setPracticeCashEvents(data.practice_cash_events || []);
       setMarketStates(Object.fromEntries(marketCheck.map((item) => [item.position_id, item])));
     } catch (err) {
       console.error("Failed to load observations:", err);
@@ -519,7 +597,52 @@ export default function ObservationsPage() {
     <>
       <TopNav tip={todayPrompt} />
       <main style={styles.container}>
-        <h1 style={styles.title}>我的持仓</h1>
+        <h1 style={styles.title}>{loading ? "正在加载持仓…" : practiceAccountId ? "模拟练习持仓" : "我的持仓"}</h1>
+        <nav aria-label="账户类型" style={styles.tabs}>
+          <a
+            href="/observations"
+            aria-current={!loading && !practiceAccountId ? "page" : undefined}
+            style={{ ...styles.tab, ...(!loading && !practiceAccountId ? styles.tabActive : {}), textDecoration: "none" }}
+          >
+            实际记录
+          </a>
+          <a
+            href={practiceAccountHref}
+            aria-current={!loading && practiceAccountId ? "page" : undefined}
+            style={{ ...styles.tab, ...(!loading && practiceAccountId ? styles.tabActive : {}), textDecoration: "none" }}
+          >
+            模拟练习
+          </a>
+        </nav>
+
+      {!loading && !practiceAccountId && (
+        <section
+          aria-label="实际账户现金占位"
+          role="note"
+          style={{ ...styles.todayPrompt, background: "#fff6d6", border: "1px solid #d6a72c", color: "#5f4700" }}
+        >
+          <strong>可用现金未录入；¥0.00 为显示占位，并非已核实余额</strong>
+        </section>
+      )}
+
+      {practiceAccountId && practiceAccount && (
+        <section aria-label="模拟账户现金与流水" style={styles.todayPrompt}>
+          <strong>独立模拟账户</strong>
+          <span>现金 ¥{practiceAccount.cash_cny} · 账户版本 {practiceAccount.revision} · 不读取或修改实际记录</span>
+          {practiceCashEvents.length > 0 && (
+            <details style={styles.disclosure}>
+              <summary style={styles.disclosureSummary}>现金流水（{practiceCashEvents.length}）</summary>
+              {practiceCashEvents.map((event) => (
+                <p key={event.revision} style={styles.cardMeta}>
+                  {event.event_type === "initialization" ? "账户初始化" : event.event_type === "void" ? "成交作废" : "模拟成交"}
+                  {event.execution_date ? ` · ${event.execution_date}` : ""}
+                  {` · ${event.cash_delta_cents >= 0 ? "+" : "−"}¥${(Math.abs(event.cash_delta_cents) / 100).toFixed(2)} · 余额 ¥${(event.cash_after_cents / 100).toFixed(2)}`}
+                </p>
+              ))}
+            </details>
+          )}
+        </section>
+      )}
 
       <section aria-label="今日提示" style={styles.todayPrompt}>
         <strong>今日提示</strong>
@@ -600,6 +723,9 @@ export default function ObservationsPage() {
                           position={position}
                           onSaved={loadPositions}
                           activeSellLogs={activeSellLogs}
+                          practiceAccountId={practiceAccountId}
+                          practiceObservationId={practiceObservationId}
+                          practiceAccountRevision={practiceAccount?.revision ?? null}
                         />
                       </td>
                     </tr>
@@ -681,6 +807,7 @@ export default function ObservationsPage() {
                 <tr>
                   <th style={styles.tableHead}>日期</th>
                   <th style={styles.tableHead}>名称 / 代码</th>
+                  <th style={styles.tableHead}>账户来源</th>
                   <th style={styles.tableHead}>方向</th>
                   <th style={styles.tableHead}>数量</th>
                   <th style={styles.tableHead}>成交价</th>
@@ -701,6 +828,28 @@ export default function ObservationsPage() {
                     <td style={styles.tableCell}>
                       <strong>{log.name || "历史记录"}</strong>
                       <small style={styles.cellSubtext}>{log.symbol || "代码未记录"}</small>
+                      {log.practice_execution_origin && (
+                        <small style={styles.cellSubtext}>
+                          {log.practice_execution_origin === "autonomous_practice" ? "自主模拟成交" : "Card021关联模拟成交"}
+                        </small>
+                      )}
+                      {log.practice_observation_id && (
+                        <Link
+                          href={`/?card021_account_mode=simulated_practice&card021_observation=${encodeURIComponent(log.practice_observation_id)}`}
+                          style={styles.emptyLink}
+                        >
+                          查看绑定观察 · {log.practice_observation_id.slice(-8)}
+                        </Link>
+                      )}
+                    </td>
+                    <td style={styles.tableCell}>
+                      {practiceAccountId
+                        ? "Card022 新练习账户"
+                        : log.trade_type === "actual"
+                          ? "实际记录"
+                          : log.trade_type === "simulated"
+                            ? "模拟原账本"
+                            : "类型未知"}
                     </td>
                     <td style={styles.tableCell}>
                       {log.confirmed_action === "buy" ? "买入" : log.confirmed_action === "sell" ? "卖出" : "成交"}
@@ -719,7 +868,12 @@ export default function ObservationsPage() {
                     </td>
                     <td style={styles.tableCell}>
                       {log.voided ? "—" : (
-                        <VoidExecutionLogControl log={log} apiBaseUrl={API_BASE_URL} onSaved={loadPositions} />
+                        <VoidExecutionLogControl
+                          log={log}
+                          apiBaseUrl={API_BASE_URL}
+                          onSaved={loadPositions}
+                          practiceAccountId={practiceAccountId}
+                        />
                       )}
                     </td>
                   </tr>
@@ -856,16 +1010,28 @@ export default function ObservationsPage() {
       </details>
 
       {/* Empty State */}
-      {positions.length === 0 && executionLogs.length === 0 && (
+      {!loading && positions.length === 0 && executionLogs.length === 0 && (
         <div style={styles.emptyState}>
-          <p style={styles.emptyTitle}>暂无观察/持仓</p>
-          <p style={styles.emptyText}>
-            去 <Link href="/workbench" style={styles.emptyLink}>Workbench</Link> 输入：
-          </p>
-          <ul style={styles.emptyList}>
-            <li>"朋友推荐了某某股票"</li>
-            <li>"我已经买入 XX 股，成交价 XX 元"</li>
-          </ul>
+          {practiceAccountId ? (
+            <>
+              <p style={styles.emptyTitle}>Card022 模拟账户目前暂无持仓或成交记录</p>
+              <p style={styles.emptyText}>
+                这份 Card022 模拟练习账户目前仅限 510880；其他 ETF 的模拟成交不能登记在此账户。仅在你已完成模拟成交后再登记，系统不会下单。
+              </p>
+              <Link href="/#research" style={styles.emptyLink}>返回研究入口</Link>
+            </>
+          ) : (
+            <>
+              <p style={styles.emptyTitle}>暂无观察/持仓</p>
+              <p style={styles.emptyText}>
+                去 <Link href="/workbench" style={styles.emptyLink}>Workbench</Link> 输入：
+              </p>
+              <ul style={styles.emptyList}>
+                <li>"朋友推荐了某某股票"</li>
+                <li>"我已经买入 XX 股，成交价 XX 元"</li>
+              </ul>
+            </>
+          )}
         </div>
       )}
 

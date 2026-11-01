@@ -18,7 +18,7 @@ _INPUT_FIELDS = {
     "signal_window": ("trade_date", "close", "adj_factor"),
     "anchor_market_rows": ("trade_date", "close", "vol", "adj_factor"),
     "fund_div": (
-        "ts_code", "ann_date", "imp_anndate", "ex_date", "pay_date", "div_proc", "div_cash",
+        "ts_code", "ann_date", "imp_anndate", "record_date", "ex_date", "pay_date", "div_proc", "div_cash",
     ),
 }
 _RESULT_FIELDS = frozenset({
@@ -28,8 +28,10 @@ _RESULT_FIELDS = frozenset({
     "signal_volatility", "target_weight", "target_weight_percentage", "target_price_raw_cny",
     "model_account_cash_cny", "model_reference_shares", "action_decision",
     "earliest_attempt_after_signal_date", "first_attempt_status", "next_possible_attempt_date",
-    "target_valid_until", "target_validity_status", "retry_policy_status", "retry_rule",
+    "target_valid_until", "target_validity_status", "execution_opportunity_status",
+    "retry_policy_status", "retry_rule",
     "adjustment_source_status", "dividend_source", "market_constraints", "source_freshness",
+    "market_data_freshness",
     "source_origin_authenticated", "provider_call_attempted", "provider_responses_received", "sources",
 })
 _DIVIDEND_RESULT_FIELDS = frozenset({
@@ -46,6 +48,10 @@ _MARKET_CONSTRAINT_FIELDS = frozenset({
 })
 _FRESHNESS_FIELDS = frozenset({
     "market_data_as_of", "calendar_coverage_through", "origin_authenticated", "dividend_coverage",
+})
+_MARKET_DATA_FRESHNESS_FIELDS = frozenset({
+    "status", "timezone", "cutoff_time_local", "expected_data_date", "last_available_date",
+    "missing_endpoints",
 })
 _SOURCE_FIELDS = frozenset({
     "source", "endpoint", "request_started_at", "received_at", "retrieved_at", "row_count",
@@ -97,6 +103,10 @@ def _market_result(value: object) -> dict:
         result["market_constraints"] = _pick(value["market_constraints"], _MARKET_CONSTRAINT_FIELDS)
     if isinstance(value.get("source_freshness"), dict):
         result["source_freshness"] = _pick(value["source_freshness"], _FRESHNESS_FIELDS)
+    if isinstance(value.get("market_data_freshness"), dict):
+        result["market_data_freshness"] = _pick(
+            value["market_data_freshness"], _MARKET_DATA_FRESHNESS_FIELDS,
+        )
     if isinstance(value.get("sources"), list):
         result["sources"] = [_pick(source, _SOURCE_FIELDS) for source in value["sources"]]
     return result

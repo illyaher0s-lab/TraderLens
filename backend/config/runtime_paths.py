@@ -17,6 +17,7 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # Database paths
 LIVE_TRADE_DB_PATH = DATA_DIR / "live_trade.db"
+PRACTICE_TRADE_DB_PATH = DATA_DIR / "practice_trade.db"
 RESEARCH_DB_PATH = DATA_DIR / "research.db"
 SIGNAL_BOARD_DB_PATH = DATA_DIR / "signal_board.db"
 TRADERLENS_DB_PATH = DATA_DIR / "traderlens.sqlite3"
@@ -37,6 +38,10 @@ def get_project_root() -> Path:
 def get_live_trade_db_path() -> str:
     """Get canonical LiveTradeDB path."""
     return str(LIVE_TRADE_DB_PATH)
+
+def get_practice_trade_db_path() -> str:
+    """Get isolated Card022 simulated-practice LiveTradeDB path."""
+    return str(PRACTICE_TRADE_DB_PATH)
 
 def get_research_db_path() -> str:
     """Get canonical ResearchDB path."""

@@ -517,11 +517,18 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [tip, setTip] = useState<string | null>(null);
   const [card021SnapshotId, setCard021SnapshotId] = useState<string | null>(null);
+  const [card021PracticeObservationId, setCard021PracticeObservationId] = useState<string | null>(null);
+  const [showCard021Observation, setShowCard021Observation] = useState(false);
   const inputCodeRef = useRef("");
   const requestVersionRef = useRef(0);
 
   useEffect(() => {
     const savedSnapshotId = new URLSearchParams(window.location.search).get("card021_snapshot");
+    const savedPracticeObservationId = new URLSearchParams(window.location.search).get("card021_observation");
+    if (savedPracticeObservationId) {
+      setCard021PracticeObservationId(savedPracticeObservationId);
+      return;
+    }
     if (savedSnapshotId) {
       setCard021SnapshotId(savedSnapshotId);
       return;
@@ -594,6 +601,9 @@ export default function HomePage() {
   const annualFeeSummary = formatAnnualFeeSummary(managementFeeFact?.value, custodyFeeFact?.value);
   const invalidationText = result?.invalidation_condition ??
     result?.explanation_items?.find((item) => item.kind === "invalidation_condition")?.text;
+  const card021PanelVisible = showCard021Observation || Boolean(
+    card021SnapshotId || card021PracticeObservationId || result?.symbol === "510880.SH",
+  );
 
   async function researchSecurity(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -678,11 +688,29 @@ export default function HomePage() {
           </button>
         </form>
 
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            aria-controls="card021-observation"
+            aria-expanded={card021PanelVisible}
+            onClick={() => setShowCard021Observation(true)}
+            className="rounded-md border border-slate-300 px-3 py-2 text-sm font-medium text-slate-800"
+          >
+            {card021PanelVisible ? "510880 策略观察已展开" : "打开 510880 策略观察"}
+          </button>
+          <p className="text-sm text-slate-600">
+            无需先运行证券研究。展开后可选择模拟练习账户，再点击面板内“查询最新观察”。
+          </p>
+        </div>
+
         {error && <p role="alert" className="mt-4 text-sm text-red-700">{error}</p>}
 
-        {(card021SnapshotId || result?.symbol === "510880.SH") && (
-          <div className="mt-6">
-            <Card021LiveSignalPanel snapshotId={card021SnapshotId} />
+        {card021PanelVisible && (
+          <div id="card021-observation" className="mt-6">
+            <Card021LiveSignalPanel
+              snapshotId={card021SnapshotId}
+              practiceObservationId={card021PracticeObservationId}
+            />
           </div>
         )}
 

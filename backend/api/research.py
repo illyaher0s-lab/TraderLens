@@ -25,7 +25,7 @@ Key rules:
 """
 
 from datetime import date, datetime, timedelta
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 import json
 import uuid
 import hashlib
@@ -85,6 +85,10 @@ class ExecutionFeedbackRequest(BaseModel):
     action: Literal["buy", "sell"]
     position_id: str | None = None
     trade_type: Literal["actual", "simulated"]
+    practice_account_id: Literal["card022-510880"] | None = None
+    practice_execution_origin: Literal["strategy_linked", "autonomous_practice"] | None = None
+    practice_account_revision: int | None = Field(default=None, ge=0)
+    practice_observation_id: str | None = Field(default=None, pattern=r"^card022_obs_[a-f0-9]{32}$")
     price: Decimal = Field(gt=0)
     quantity: int = Field(gt=0)
     execution_date: date
@@ -119,6 +123,23 @@ class ExecutionFeedbackRequest(BaseModel):
             self.exit_plan_conditions = self.exit_plan_conditions.strip() or None
         if self.reason is not None:
             self.reason = self.reason.strip() or None
+        if self.practice_account_id is not None and self.trade_type != "simulated":
+            raise ValueError("Card022 模拟练习账户只接受模拟成交记录。")
+        if self.practice_account_id is not None and self.symbol != "510880":
+            raise ValueError("Card022 模拟练习账户只记录 510880。")
+        if self.practice_account_id is not None:
+            if self.practice_execution_origin is None or self.practice_account_revision is None:
+                raise ValueError("Card022 模拟成交必须标明自主或策略关联来源及账户版本。")
+            if self.practice_execution_origin == "strategy_linked" and self.practice_observation_id is None:
+                raise ValueError("策略关联成交必须绑定一条已保存的模拟账户观察。")
+            if self.practice_execution_origin == "autonomous_practice" and self.practice_observation_id is not None:
+                raise ValueError("自主模拟成交不能冒充策略关联观察。")
+        elif any((
+            self.practice_execution_origin is not None,
+            self.practice_account_revision is not None,
+            self.practice_observation_id is not None,
+        )):
+            raise ValueError("Card022 模拟账户字段只能用于 Card022 模拟账户。")
         return self
 
 
@@ -440,10 +461,12 @@ def create_research_app(
             ts_code = _norm_tushare_code(symbol)
             end = as_of.strftime("%Y%m%d")
             start = (as_of - timedelta(days=10)).strftime("%Y%m%d")
-            
+
+
             # ponytail: known benchmarks route to index_daily
             api = "index_daily" if ts_code in ["000300.SH", "000016.SH", "399001.SZ", "399006.SZ"] else "daily"
-            
+
+
             try:
                 df = _tc.query(api, ts_code=ts_code, start_date=start, end_date=end)
             except Exception:
@@ -540,6 +563,8 @@ def create_research_app(
     from backend.api.card021 import create_card021_router
     from backend.services.card020_vol_budget import run_card020_validation
     from backend.services.card021_store import Card021SnapshotStore
+    from backend.config.runtime_paths import get_practice_trade_db_path
+    from backend.services.card022_practice_account import Card022PracticeAccountStore
 
     card020_llm_client = getattr(serenity_runner, "llm_client", None) if conversation_mode == "real" else None
     app.include_router(create_card020_router(
@@ -549,18 +574,18 @@ def create_research_app(
     ))
     # Card021 reuses this app's lazy Tushare client and never creates another config path.
     def _card021_actual_account_snapshot(signal_date: date, latest_data_date: date) -> dict:
-        """Read only existing user-confirmed actual manual ETF records on request."""
+        """Read only actual autonomous ETF records; cash remains unknown."""
         from backend.api.observations import get_live_trade_db
         from contracts.live_trade import TradeType
 
-        db = get_live_trade_db(read_only=True)
+        actual_db = get_live_trade_db(read_only=True)
         query = {
             "symbol": "510880.SH",
             "trade_type": TradeType.actual,
             "record_source": "autonomous_manual",
             "execution_date": latest_data_date,
         }
-        logs = db.list_manual_position_logs(**query)
+        logs = actual_db.list_manual_position_logs(**query)
         if not logs:
             return {"status": "no_user_confirmed_records"}
         for log in logs:
@@ -574,27 +599,25 @@ def create_research_app(
                 or log.confirmed_execution_status not in {"executed_full", "executed_partial"}
             ):
                 return {"status": "provenance_unverified"}
-
         position_query = {key: value for key, value in query.items() if key != "execution_date"}
-        actual_shares = db.get_position_quantity(**position_query, execution_date=latest_data_date)
-        shares_at_signal = db.get_position_quantity(**position_query, execution_date=signal_date)
-        sellable_shares = db.get_sellable_quantity(**position_query, execution_date=latest_data_date)
         return {
             "status": "user_confirmed_position",
             "record_source": "autonomous_manual",
             "confirmed_by_user": True,
             "broker_verified": False,
-            "actual_shares": actual_shares,
-            "sellable_shares": sellable_shares,
-            "shares_at_signal": shares_at_signal,
+            "actual_shares": actual_db.get_position_quantity(**position_query, execution_date=latest_data_date),
+            "shares_at_signal": actual_db.get_position_quantity(**position_query, execution_date=signal_date),
+            "sellable_shares": actual_db.get_sellable_quantity(**position_query, execution_date=latest_data_date),
             "account_cash_at_signal_cny": None,
             "dividend_receivable_at_signal_cny": None,
         }
 
+    practice_account_store = Card022PracticeAccountStore(get_practice_trade_db_path())
     app.include_router(create_card021_router(
         lambda: validator.tushare_client,
         account_provider=card021_account_provider or _card021_actual_account_snapshot,
         snapshot_store=Card021SnapshotStore(db.conn),
+        practice_account_store=practice_account_store,
     ))
 
     @app.post("/api/research/themes")
@@ -1451,7 +1474,8 @@ def create_research_app(
                 status_code=503,
                 detail="research_unavailable: no research synthesis for this case",
             )
-        
+
+
         # 零来源防御：历史 case 也必须有 traceable source
         rationale = research_output.get("candidate_rationales", {}).get(request.ticker, {})
         tushare_ids = [
@@ -3102,17 +3126,23 @@ def create_research_app(
         from datetime import datetime
         from zoneinfo import ZoneInfo
         from fastapi import HTTPException
-        from backend.config.runtime_paths import get_live_trade_db_path
-        from backend.db.live_trade import LiveTradeDB
+        from backend.config.runtime_paths import get_live_trade_db_path, get_practice_trade_db_path
+        from backend.db.live_trade import LiveTradeDB, PracticeAccountStateConflictError
         from backend.services.observation_pool import ObservationPool
         from backend.services.discipline_review import DisciplineReviewService
+        from backend.services.card022_practice_account import (
+            Card022PracticeAccountStore,
+            PracticeAccountConflictError,
+        )
         from contracts.live_trade import ExecutionObservationLog, PositionLifecycleState, TradeType
+        from pathlib import Path
 
         if request.confirmed_already_executed is not True:
             raise HTTPException(status_code=400, detail="只能登记已完成的成交记录，请先确认本次成交。")
         if request.execution_date > datetime.now(ZoneInfo("Asia/Shanghai")).date():
             raise HTTPException(status_code=400, detail="成交日期不能晚于今天。")
 
+        practice_account_id = request.practice_account_id
         symbol = _canonical_manual_symbol(request.symbol)
         action = request.action
         price_decimal = request.price
@@ -3143,25 +3173,107 @@ def create_research_app(
             "exit_plan_stop_price": canonical_decimal(request.exit_plan_stop_price),
             "exit_plan_conditions": request.exit_plan_conditions,
             "confirm_quantity_anomaly": request.confirm_quantity_anomaly,
+            "practice_observation_id": request.practice_observation_id,
         }
         payload_fingerprint = hashlib.sha256(
             json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False).encode("utf-8")
         ).hexdigest()
         fingerprint = hashlib.sha256(
             json.dumps(
-                {"trade_type": request.trade_type, "payload_fingerprint": payload_fingerprint},
+                {
+                    "trade_type": request.trade_type,
+                    "practice_account_id": practice_account_id,
+                    "practice_execution_origin": request.practice_execution_origin,
+                    "practice_account_revision": request.practice_account_revision,
+                    "payload_fingerprint": payload_fingerprint,
+                },
                 sort_keys=True,
                 ensure_ascii=False,
                 separators=(",", ":"),
             ).encode("utf-8")
         ).hexdigest()
 
-        live_db = LiveTradeDB(get_live_trade_db_path())
+        if practice_account_id:
+            if symbol != "510880.SH" or request.trade_type != "simulated":
+                raise HTTPException(status_code=400, detail="Card022 账户只接受 510880 模拟记录。")
+            practice_path = get_practice_trade_db_path()
+            if not Path(practice_path).exists():
+                raise HTTPException(status_code=409, detail="模拟练习账户尚未初始化；未保存成交记录。")
+            try:
+                practice_status = Card022PracticeAccountStore(practice_path).get_status()
+            except PracticeAccountConflictError as exc:
+                raise HTTPException(status_code=409, detail=str(exc)) from exc
+            if practice_status.get("status") != "existing":
+                raise HTTPException(status_code=409, detail="模拟练习账户无法核实；未保存成交记录。")
+            live_db = LiveTradeDB(practice_path)
+        else:
+            live_db = LiveTradeDB(get_live_trade_db_path())
         previous = live_db.get_manual_operation(request.operation_id)
         if previous:
             if previous["operation_fingerprint"] != fingerprint:
                 raise HTTPException(status_code=409, detail="该操作编号已用于不同的成交内容，请刷新后重新提交。")
             return json.loads(previous["operation_response"])
+
+        practice_observation = None
+        expected_practice_revision = request.practice_account_revision if practice_account_id else None
+        if practice_account_id:
+            if quantity % 100 != 0:
+                raise HTTPException(status_code=400, detail="Card022 510880 模拟成交数量必须为100份整数倍。")
+            try:
+                practice_store = Card022PracticeAccountStore(practice_path)
+                practice_status = practice_store.get_status()
+            except PracticeAccountConflictError as exc:
+                raise HTTPException(status_code=409, detail=str(exc)) from exc
+            if practice_status.get("status") != "existing":
+                raise HTTPException(status_code=409, detail="模拟账户无法核实；未保存成交记录。")
+            if practice_status.get("revision") != expected_practice_revision:
+                raise HTTPException(status_code=409, detail="模拟账户已变化或观察版本无法核实；请重新查询。")
+            if action == "buy":
+                try:
+                    from backend.api.observations import get_position_market_monitor
+
+                    calendar_rows = get_position_market_monitor().trade_calendar_rows_between(
+                        request.execution_date,
+                        request.execution_date,
+                    )
+                    is_open_session = any(
+                        datetime.strptime(str(row["cal_date"]), "%Y%m%d").date() == request.execution_date
+                        and str(row.get("is_open", "")).strip() in {"1", "1.0", "True", "true"}
+                        for row in calendar_rows
+                    )
+                except Exception:
+                    is_open_session = False
+                if not is_open_session:
+                    raise HTTPException(status_code=400, detail="SSE 交易日历未核实成交日期；未保存模拟买入。")
+            if request.practice_execution_origin == "strategy_linked":
+                try:
+                    practice_observation = practice_store.get_observation(request.practice_observation_id)
+                except PracticeAccountConflictError as exc:
+                    raise HTTPException(status_code=409, detail=str(exc)) from exc
+                if practice_observation is None:
+                    raise HTTPException(status_code=409, detail="模拟账户观察不存在或无法核实；未保存成交记录。")
+                if (
+                    practice_observation.get("selected_account_mode") != "simulated_practice"
+                    or practice_observation.get("snapshot_mode_at_save") != "live_observation"
+                    or practice_observation.get("account_data_status") != "simulated_practice_account_available"
+                    or practice_observation.get("action_decision") != action
+                    or practice_observation.get("account_revision") != expected_practice_revision
+                ):
+                    raise HTTPException(status_code=409, detail="已保存观察未支持本次模拟成交方向或账户版本；未保存记录。")
+                suggested_quantity = practice_observation.get("suggested_quantity_shares")
+                if (
+                    type(suggested_quantity) is not int
+                    or suggested_quantity <= 0
+                    or quantity > suggested_quantity
+                ):
+                    raise HTTPException(status_code=409, detail="成交数量超过已保存观察支持的数量；未保存记录。")
+                try:
+                    suggested_date = date.fromisoformat(practice_observation["suggested_action_date"])
+                    valid_until = date.fromisoformat(practice_observation["target_valid_until"])
+                except (KeyError, TypeError, ValueError):
+                    raise HTTPException(status_code=409, detail="已保存观察的执行日期范围无法核实；未保存记录。") from None
+                if not suggested_date <= request.execution_date <= valid_until:
+                    raise HTTPException(status_code=409, detail="成交日期不在已保存观察的目标有效期内；未保存记录。")
 
         # Resolve only after the idempotency check: read-side identity can change
         # independently, while a retry must return its original saved response.
@@ -3319,6 +3431,15 @@ def create_research_app(
         )
         review_service = DisciplineReviewService()
         fee_calculation = review_service.calculate_order_fee(log)
+        practice_cash_delta_cents = None
+        if practice_account_id:
+            if identity["security_type"] != "fund" or identity["quantity_unit"] != "fund_share":
+                raise HTTPException(status_code=400, detail="510880 证券身份或基金份额单位未核实；未登记模拟成交。")
+            if fee_calculation.amount is None:
+                raise HTTPException(status_code=400, detail="模拟费用无法确定；未更新模拟账户现金。")
+            gross_cents = int((trade_amount_decimal * Decimal(100)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+            fee_cents = int((Decimal(str(fee_calculation.amount)) * Decimal(100)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+            practice_cash_delta_cents = gross_cents - fee_cents if action == "sell" else -(gross_cents + fee_cents)
 
         position = None
         close_position_id = None
@@ -3334,6 +3455,12 @@ def create_research_app(
                 else "仅登记已完成的成交，不会下单；请自行核对 T+1、停牌及涨跌停异常。"
             )
         ]
+        if practice_account_id:
+            warnings.append(
+                "这是自主模拟成交记录，不代表 Card021 策略方向或实际账户成交。"
+                if request.practice_execution_origin == "autonomous_practice"
+                else "这笔模拟成交绑定了 Card021 保存观察；它仍不代表券商账户成交或策略授权。"
+            )
         if identity["security_type"] == "unknown":
             warnings.append("证券身份或交易单位未能核实；记录保留为未知，不据此推断标的名称或买入手数。")
         if quantity_warning:
@@ -3439,6 +3566,12 @@ def create_research_app(
             "pnl_source": pnl_record.pnl_source.value if pnl_record else None,
             "trade_amount": format(trade_amount_decimal, "f"),
             "execution_date": request.execution_date.isoformat(),
+            "practice_execution_origin": request.practice_execution_origin,
+            "practice_account_revision_before_fill": expected_practice_revision,
+            "practice_observation_id": request.practice_observation_id,
+            "practice_observation_sha256": (
+                practice_observation.get("practice_observation_sha256") if practice_observation else None
+            ),
             "recorded_at": now.isoformat(),
             "security_identity_status": identity["status"],
             "security_type": identity["security_type"],
@@ -3475,6 +3608,9 @@ def create_research_app(
                 close_position_id=close_position_id,
                 remaining_quantity=remaining_quantity,
                 review=review,
+                practice_account_id=practice_account_id,
+                practice_cash_delta_cents=practice_cash_delta_cents,
+                expected_practice_revision=expected_practice_revision,
             )
         except sqlite3.IntegrityError:
             previous = live_db.get_manual_operation(request.operation_id)
@@ -3483,6 +3619,8 @@ def create_research_app(
                     raise HTTPException(status_code=409, detail="该操作编号已用于不同的成交内容，请刷新后重新提交。")
                 return json.loads(previous["operation_response"])
             raise
+        except PracticeAccountStateConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         return response

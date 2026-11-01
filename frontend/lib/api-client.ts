@@ -405,6 +405,10 @@ export interface ExecutionFeedbackRequest {
   action: "buy" | "sell";
   position_id?: string;
   trade_type: "actual" | "simulated";
+  practice_account_id?: "card022-510880";
+  practice_execution_origin?: "strategy_linked" | "autonomous_practice";
+  practice_account_revision?: number;
+  practice_observation_id?: string;
   price: string;
   quantity: number;
   execution_date: string;

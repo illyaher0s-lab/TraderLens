@@ -44,17 +44,29 @@ const formatCents = (cents: bigint): string =>
 interface LiveLoopPanelProps {
   conversationId: string | null;
   onUpdate?: () => void;
+  practiceAccountId?: "card022-510880";
+  practiceExecutionOrigin?: "strategy_linked" | "autonomous_practice";
+  practiceAccountRevision?: number;
+  practiceObservationId?: string;
+  initialSymbol?: string;
+  initialQuantity?: number;
 }
 
 export default function LiveLoopPanel({
   conversationId,
   onUpdate,
+  practiceAccountId,
+  practiceExecutionOrigin,
+  practiceAccountRevision,
+  practiceObservationId,
+  initialSymbol,
+  initialQuantity,
 }: LiveLoopPanelProps) {
-  const [symbol, setSymbol] = useState("");
+  const [symbol, setSymbol] = useState(initialSymbol ?? "");
   const [action] = useState<"buy" | "sell">("buy");
-  const [tradeType, setTradeType] = useState<"actual" | "simulated" | "">("");
+  const [tradeType, setTradeType] = useState<"actual" | "simulated" | "">(practiceAccountId ? "simulated" : "");
   const [price, setPrice] = useState("");
-  const [quantity, setQuantity] = useState("");
+  const [quantity, setQuantity] = useState(initialQuantity ? String(initialQuantity) : "");
   const [executionDate, setExecutionDate] = useState("");
   const [fees, setFees] = useState("");
   const [tradeSource, setTradeSource] = useState<"self_research" | "friend" | "media" | "system_suggestion" | "">("");
@@ -177,6 +189,10 @@ export default function LiveLoopPanel({
         symbol: symbol.trim(),
         action,
         trade_type: tradeType,
+        practice_account_id: practiceAccountId,
+        practice_execution_origin: practiceExecutionOrigin,
+        practice_account_revision: practiceAccountRevision,
+        practice_observation_id: practiceObservationId,
         price: price.trim(),
         quantity: Number(quantity),
         execution_date: executionDate,
@@ -193,8 +209,8 @@ export default function LiveLoopPanel({
       });
 
       setLastResult(result);
-      setSymbol("");
-      setTradeType("");
+      setSymbol(practiceAccountId ? (initialSymbol ?? "510880") : "");
+      setTradeType(practiceAccountId ? "simulated" : "");
       setPrice("");
       setQuantity("");
       setExecutionDate("");
@@ -456,21 +472,27 @@ export default function LiveLoopPanel({
           </div>
         </div>
 
-        <div>
-          <label className="block text-[12px] text-[#808080] mb-1 font-normal">记录类型</label>
-          <select
-            value={tradeType}
-            onChange={(e) => { setTradeType(e.target.value as typeof tradeType); setConfirmedAlreadyExecuted(false); setOperationId(null); }}
-            disabled={isSubmitting}
-            required
-            className="w-full px-3 py-2 text-[14px] rounded-md bg-white"
-            style={{ boxShadow: '0px 0px 0px 1px rgba(0,0,0,0.08)' }}
-          >
-            <option value="">请选择实际或模拟</option>
-            <option value="actual">实际交易</option>
-            <option value="simulated">模拟交易</option>
-          </select>
-        </div>
+        {practiceAccountId ? (
+          <p className="rounded-md bg-amber-50 px-3 py-2 text-[12px] text-amber-900">
+            记录到 Card022 模拟练习账户；不是实际账户，不会下单。
+          </p>
+        ) : (
+          <div>
+            <label className="block text-[12px] text-[#808080] mb-1 font-normal">记录类型</label>
+            <select
+              value={tradeType}
+              onChange={(e) => { setTradeType(e.target.value as typeof tradeType); setConfirmedAlreadyExecuted(false); setOperationId(null); }}
+              disabled={isSubmitting}
+              required
+              className="w-full px-3 py-2 text-[14px] rounded-md bg-white"
+              style={{ boxShadow: '0px 0px 0px 1px rgba(0,0,0,0.08)' }}
+            >
+              <option value="">请选择实际或模拟</option>
+              <option value="actual">实际交易</option>
+              <option value="simulated">模拟交易</option>
+            </select>
+          </div>
+        )}
 
         <div>
           <label className="block text-[12px] text-[#808080] mb-1 font-normal">证券名称（系统核实后自动带出）</label>

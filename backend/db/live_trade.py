@@ -30,6 +30,10 @@ from contracts.live_trade import (
     DailySignalType,
     TradeType,
 )
+
+
+class PracticeAccountStateConflictError(ValueError):
+    """A practice trade was based on an observation that is no longer current."""
 from contracts.market_data_fault import MarketDataFaultState
 
 
@@ -973,6 +977,55 @@ class LiveTradeDB:
                 raise ValueError("该记录已作废；请使用原作废原因重试。")
             self._validate_voided_manual_scope(conn, target)
             self._validate_legacy_void_dependencies(conn, target)
+            practice_cash_reversal = None
+            if (
+                target["symbol"] == "510880.SH"
+                and target["trade_type"] == TradeType.simulated.value
+                and "card022_practice_accounts" in {
+                    row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")
+                }
+            ):
+                original_cash_event = conn.execute(
+                    """
+                    SELECT cash_delta_cents FROM card022_practice_cash_events
+                    WHERE source_log_id = ? AND event_type = 'trade'
+                    """,
+                    (log_id,),
+                ).fetchone()
+                account = conn.execute(
+                    "SELECT cash_cents, revision FROM card022_practice_accounts WHERE account_id = ?",
+                    ("card022-510880",),
+                ).fetchone()
+                if original_cash_event is None or account is None:
+                    raise ValueError("模拟账户现金记录无法核对；未作废成交。")
+                delta = -int(original_cash_event["cash_delta_cents"])
+                cash_after = int(account["cash_cents"]) + delta
+                if cash_after < 0:
+                    raise ValueError("作废该记录会使模拟账户现金为负；请先核对后续模拟成交。")
+                revision = int(account["revision"]) + 1
+                conn.execute(
+                    "UPDATE card022_practice_accounts SET cash_cents = ?, revision = ? WHERE account_id = ?",
+                    (cash_after, revision, "card022-510880"),
+                )
+                conn.execute(
+                    """
+                    INSERT INTO card022_practice_cash_events (
+                        event_id, account_id, event_type, source_log_id, execution_date,
+                        cash_delta_cents, cash_after_cents, revision, created_at
+                    ) VALUES (?, ?, 'void', ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        f"void_{log_id}_{revision}", "card022-510880", log_id,
+                        target["execution_date"], delta, cash_after, revision, now.isoformat(),
+                    ),
+                )
+                practice_cash_reversal = {
+                    "account_id": "card022-510880",
+                    "cash_cents": cash_after,
+                    "cash_cny": format(Decimal(cash_after) / Decimal(100), ".2f"),
+                    "revision": revision,
+                    "trade_type": "simulated",
+                }
             conn.execute(
                 "UPDATE execution_observation_logs SET voided_at = ?, void_reason = ? "
                 "WHERE log_id = ? AND voided_at IS NULL",
@@ -1000,13 +1053,16 @@ class LiveTradeDB:
             else:
                 self._rebuild_legacy_position_for_void(conn, target=target, changed_at=now)
                 remaining = None
-            return {
+            result = {
                 "status": "voided",
                 "log_id": log_id,
                 "voided_at": now.isoformat(),
                 "void_reason": reason,
                 "remaining_quantity": remaining,
             }
+            if practice_cash_reversal is not None:
+                result["practice_account"] = practice_cash_reversal
+            return result
 
     def save_manual_operation(
         self,
@@ -1017,6 +1073,9 @@ class LiveTradeDB:
         close_position_id: Optional[str] = None,
         remaining_quantity: Optional[int] = None,
         review: Optional[DisciplineReview] = None,
+        practice_account_id: Optional[str] = None,
+        practice_cash_delta_cents: Optional[int] = None,
+        expected_practice_revision: Optional[int] = None,
     ) -> None:
         """Atomically persist one confirmed manual event and its direct ledger effects."""
         if log.record_source != "autonomous_manual" or not log.operation_id or not log.operation_fingerprint:
@@ -1029,6 +1088,72 @@ class LiveTradeDB:
             raise ValueError("review trade type must match the execution")
         with self._get_conn() as conn:
             conn.execute("BEGIN IMMEDIATE")
+            if practice_account_id is not None or practice_cash_delta_cents is not None:
+                if (
+                    not practice_account_id
+                    or type(practice_cash_delta_cents) is not int
+                    or type(expected_practice_revision) is not int
+                ):
+                    raise ValueError("practice account cash update requires an account ID and integer-cent delta")
+                account = conn.execute(
+                    "SELECT cash_cents, revision FROM card022_practice_accounts WHERE account_id = ?",
+                    (practice_account_id,),
+                ).fetchone()
+                if account is None:
+                    raise ValueError("模拟练习账户不存在；未保存成交记录。")
+                if int(account["revision"]) != expected_practice_revision:
+                    raise PracticeAccountStateConflictError("模拟账户已变化；请重新查询后再登记成交。")
+                if (
+                    log.symbol != "510880.SH"
+                    or log.trade_type != TradeType.simulated
+                    or log.quantity_unit != "fund_share"
+                    or log.security_type != "fund"
+                    or log.confirmed_quantity is None
+                    or log.confirmed_quantity <= 0
+                    or log.confirmed_quantity % 100 != 0
+                    or log.execution_date is None
+                ):
+                    raise ValueError("Card022 模拟成交必须是已核实的 510880 基金整手记录。")
+                same_day_fill = conn.execute(
+                    """
+                    SELECT 1 FROM execution_observation_logs
+                    WHERE symbol = '510880.SH' AND trade_type = 'simulated'
+                      AND record_source = 'autonomous_manual' AND execution_date = ?
+                      AND voided_at IS NULL
+                    LIMIT 1
+                    """,
+                    (log.execution_date.isoformat(),),
+                ).fetchone()
+                if same_day_fill:
+                    raise PracticeAccountStateConflictError("该模拟账户当天已有有效成交记录；请先核对并刷新观察。")
+                cash_after = int(account["cash_cents"]) + practice_cash_delta_cents
+                if cash_after < 0:
+                    raise ValueError("模拟账户现金不足以覆盖本次成交金额和费用；未保存记录。")
+                revision = int(account["revision"]) + 1
+                conn.execute(
+                    "UPDATE card022_practice_accounts SET cash_cents = ?, revision = ? WHERE account_id = ?",
+                    (cash_after, revision, practice_account_id),
+                )
+                conn.execute(
+                    """
+                    INSERT INTO card022_practice_cash_events (
+                        event_id, account_id, event_type, source_log_id, execution_date,
+                        cash_delta_cents, cash_after_cents, revision, created_at
+                    ) VALUES (?, ?, 'trade', ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        f"cash_{log.log_id}", practice_account_id, log.log_id,
+                        log.execution_date.isoformat() if log.execution_date else None,
+                        practice_cash_delta_cents, cash_after, revision, log.confirmed_at.isoformat(),
+                    ),
+                )
+                response["practice_account"] = {
+                    "account_id": practice_account_id,
+                    "cash_cents": cash_after,
+                    "cash_cny": format(Decimal(cash_after) / Decimal(100), ".2f"),
+                    "revision": revision,
+                    "trade_type": "simulated",
+                }
             if position:
                 open_rows = conn.execute(
                     """
@@ -1283,7 +1408,7 @@ class LiveTradeDB:
                        confirmed_trade_amount, security_type, quantity_unit,
                        trade_source, sell_reason, exit_plan_target_price,
                        exit_plan_stop_price, exit_plan_conditions,
-                       exit_plan_entered_at, exit_plan_is_retrospective, trade_type,
+                       exit_plan_entered_at, exit_plan_is_retrospective, trade_type, operation_id,
                        voided_at, void_reason
                 FROM execution_observation_logs
                 ORDER BY execution_date DESC, confirmed_at DESC, log_id DESC

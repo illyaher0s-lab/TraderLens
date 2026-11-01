@@ -17,6 +17,10 @@ from backend.services.card021_live_observation import (
     snapshot_market_inputs,
 )
 from backend.services.card021_store import Card021SnapshotIntegrityError, Card021SnapshotStore
+from backend.services.card022_practice_account import (
+    Card022PracticeAccountStore,
+    PracticeAccountConflictError,
+)
 
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
@@ -29,6 +33,7 @@ def create_card021_router(
     account_provider: Callable[..., dict] | None = None,
     now_provider: Callable[[], datetime] | None = None,
     snapshot_store: Card021SnapshotStore | None = None,
+    practice_account_store: Card022PracticeAccountStore | None = None,
 ) -> APIRouter:
     router = APIRouter(prefix="/api/research/card021", tags=["Card021"])
 
@@ -49,10 +54,15 @@ def create_card021_router(
             stage = "fingerprint_implementation"
             implementation_sha256 = card021_implementation_fingerprint()
             stage = "record_snapshot"
+            market_result = dict(result)
+            if market_result.get("account_mode") == "simulated_practice":
+                market_result["action_decision"] = "not_decidable"
+                market_result["suggested_quantity_shares"] = None
+                market_result["suggested_action_date"] = None
             snapshot = snapshot_store.record_snapshot(
                 market_inputs=market_inputs,
                 source_receipts=capture.get("source_receipts", []),
-                market_result=result,
+                market_result=market_result,
                 protocol_sha256=protocol_sha256,
                 protocol_verified=protocol_verified,
                 implementation_sha256=implementation_sha256,
@@ -74,7 +84,9 @@ def create_card021_router(
         return result
 
     @router.get("/510880/live-observation")
-    def get_live_observation():
+    def get_live_observation(account_mode: str = "actual"):
+        if account_mode not in {"actual", "simulated_practice"}:
+            raise HTTPException(status_code=400, detail="未知账户类型。")
         now = now_provider() if now_provider is not None else datetime.now(SHANGHAI)
         try:
             _, protocol_sha256 = card020._read_protocol()
@@ -88,6 +100,7 @@ def create_card021_router(
                 "protocol_sha256": card020.PROTOCOL_SHA256,
                 "protocol_verified": False,
                 "symbol": "510880.SH",
+                "selected_account_mode": account_mode,
                 "evidence_level": "数据不足",
                 "provider_call_attempted": False,
                 "provider_responses_received": [],
@@ -107,14 +120,69 @@ def create_card021_router(
                 protocol_sha256=card020.PROTOCOL_SHA256,
                 protocol_verified=False,
             )
+        resolved_account_provider = account_provider if account_mode == "actual" else None
+        dividend_position_provider = None
+        if account_mode == "simulated_practice" and practice_account_store is not None:
+            resolved_account_provider = lambda signal_date, _latest_date: practice_account_store.account_snapshot(
+                as_of_date=now.date(),
+                signal_date=signal_date,
+            )
+            dividend_position_provider = practice_account_store.get_position_quantity_on
         result = get_card021_live_observation(
             market_client_provider,
-            account_provider=account_provider,
+            account_provider=resolved_account_provider,
+            dividend_position_provider=dividend_position_provider,
             now=now,
         )
         result["protocol_sha256"] = protocol_sha256
         result["protocol_verified"] = True
-        return save_snapshot(result, protocol_sha256=protocol_sha256, protocol_verified=True)
+        result["selected_account_mode"] = account_mode
+        if account_mode == "actual":
+            result["account_mode"] = "actual_records"
+        saved_result = save_snapshot(result, protocol_sha256=protocol_sha256, protocol_verified=True)
+        if (
+            account_mode == "simulated_practice"
+            and practice_account_store is not None
+            and type(saved_result.get("account_revision")) is int
+        ):
+            try:
+                metadata = practice_account_store.record_observation(saved_result)
+            except Exception as exc:
+                _LOGGER.error("Card022 practice observation save failed; exception_type=%s", type(exc).__name__)
+                raise HTTPException(status_code=503, detail="无法保存可核对的模拟账户观察，本次结果不展示为可用。") from None
+            if metadata:
+                saved_result.update(metadata)
+        return saved_result
+
+    @router.get("/practice-account")
+    def get_practice_account_status():
+        if practice_account_store is None:
+            raise HTTPException(status_code=503, detail="模拟练习账户暂不可用。")
+        try:
+            return practice_account_store.get_status()
+        except PracticeAccountConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @router.post("/practice-account/initialize")
+    def initialize_practice_account():
+        if practice_account_store is None:
+            raise HTTPException(status_code=503, detail="模拟练习账户暂不可用。")
+        try:
+            return practice_account_store.initialize()
+        except PracticeAccountConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+    @router.get("/510880/practice-observations/{observation_id}")
+    def get_practice_observation(observation_id: str):
+        if practice_account_store is None:
+            raise HTTPException(status_code=503, detail="模拟练习账户暂不可用。")
+        try:
+            result = practice_account_store.get_observation(observation_id)
+        except PracticeAccountConflictError as exc:
+            raise HTTPException(status_code=409, detail=str(exc)) from exc
+        if result is None:
+            raise HTTPException(status_code=404, detail="指定的模拟账户观察不存在。")
+        return result
 
     @router.get("/510880/snapshots/{snapshot_id}")
     def get_saved_market_snapshot(snapshot_id: str):
