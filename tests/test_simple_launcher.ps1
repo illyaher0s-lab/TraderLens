@@ -117,6 +117,7 @@ function Start-Process {
         ArgumentList = $ArgumentList
         WorkingDirectory = $WorkingDirectory
         WindowStyle = $WindowStyle
+        TushareApiUrl = $env:TUSHARE_API_URL
     }
 }
 function Invoke-RestMethod {
@@ -188,8 +189,13 @@ try { Start-TraderLens -ProjectRoot $projectRoot } catch { $blocked = $true }
 if (-not $blocked -or $script:Calls.Count -ne 0) { throw 'A different ObjectNotFound error must stop launch.' }
 
 $script:MockQueryFailure = $null
+$expectedCallerApiUrl = 'https://synthetic.example.invalid/explicit'
+$env:TUSHARE_API_URL = $expectedCallerApiUrl
 Start-TraderLens -ProjectRoot $projectRoot
 if ($script:Calls.Count -ne 3) { throw 'Expected backend window, frontend window, and browser.' }
+if ($env:TUSHARE_API_URL -ne $expectedCallerApiUrl -or @($script:Calls | Where-Object TushareApiUrl -ne $expectedCallerApiUrl).Count -ne 0) {
+    throw 'An explicit Tushare API URL must be preserved for launched processes.'
+}
 if ($script:Calls[0].WindowStyle -ne 'Normal' -or $script:Calls[1].WindowStyle -ne 'Normal') {
     throw 'Server windows must remain visible and interactive.'
 }
@@ -206,5 +212,16 @@ foreach ($call in $script:Calls) {
     if (($call.ArgumentList -join ' ').Contains('CARD022_FAKE_TEST_ONLY')) {
         throw 'Credential values must be inherited through the environment, not exposed in process arguments.'
     }
+}
+$script:Calls = @()
+$env:TUSHARE_API_URL = ''
+Start-TraderLens -ProjectRoot $projectRoot
+$documentedApiUrl = 'https://ts.gyzcloud.top/api'
+if (
+    $env:TUSHARE_API_URL -ne $documentedApiUrl -or
+    $script:Calls.Count -ne 3 -or
+    @($script:Calls | Where-Object TushareApiUrl -ne $documentedApiUrl).Count -ne 0
+) {
+    throw 'The one-click launcher must default to the documented Tushare API URL when none is configured.'
 }
 Write-Output 'Simple launcher checks passed.'

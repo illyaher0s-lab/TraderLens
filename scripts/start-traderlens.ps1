@@ -94,6 +94,9 @@ function Start-TraderLens {
     $env:SERENITY_EXECUTION_MODE = 'two_phase'
     $env:BACKEND_PORT = '8010'
     $env:NEXT_PUBLIC_API_BASE_URL = 'http://localhost:8010'
+    if ([string]::IsNullOrWhiteSpace($env:TUSHARE_API_URL)) {
+        $env:TUSHARE_API_URL = 'https://ts.gyzcloud.top/api'
+    }
 
     $backendCommand = 'title TraderLens Backend & cd /d "{0}" && "{1}" -m uvicorn backend.app.main:app --app-dir "{0}" --host 127.0.0.1 --port 8010' -f $root, $pythonPath
     $frontendCommand = 'title TraderLens Frontend & cd /d "{0}" && call "{1}" run dev -- --hostname 127.0.0.1 --port 3000' -f $root, $npm.Source
