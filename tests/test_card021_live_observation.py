@@ -146,7 +146,11 @@ def test_live_observation_reuses_frozen_card020_math_and_blocks_without_account_
 
 def test_client_initialization_failure_returns_safe_unavailable_result_without_provider_queries():
     def unavailable_client():
-        raise ValueError("sensitive provider configuration detail")
+        error = ValueError("synthetic-only-sensitive-marker")
+        error.safe_error_category = "client_configuration_error"
+        error.safe_cause_type = "ValueError"
+        error.safe_http_status = None
+        raise error
 
     response = _router_app(unavailable_client).get("/api/research/card021/510880/live-observation")
 
@@ -158,7 +162,10 @@ def test_client_initialization_failure_returns_safe_unavailable_result_without_p
     assert payload["protocol_verified"] is True
     assert payload["provider_call_attempted"] is False
     assert payload["provider_responses_received"] == []
-    assert "sensitive provider configuration detail" not in response.text
+    assert payload["failure_category"] == "client_configuration_error"
+    assert payload["cause_type"] == "ValueError"
+    assert payload.get("http_status") is None
+    assert "synthetic-only-sensitive-marker" not in response.text
     assert "token" not in response.text.lower()
 
 
@@ -175,17 +182,24 @@ def test_incomplete_adjustment_window_does_not_emit_a_signal():
     assert payload.get("model_reference_shares") is None
 
 
-def test_market_query_failure_reports_endpoint_and_exception_type_without_raw_error():
+def test_market_query_failure_reports_endpoint_and_safe_error_diagnostics_without_raw_error():
     market = FakeMarketClient()
     original_query = market.query
 
     def fail_adjustments(api_name, fields=None, *, single_attempt=False, **kwargs):
         if api_name == "fund_adj":
-            raise ValueError("Authorization: Bearer sensitive-value")
+            error = ValueError("synthetic-only-sensitive-marker")
+            error.safe_error_category = "network_timeout"
+            error.safe_cause_type = "Timeout"
+            error.safe_http_status = None
+            raise error
         return original_query(api_name, fields, single_attempt=single_attempt, **kwargs)
 
     market.query = fail_adjustments
-    response = _router_app(lambda: market).get("/api/research/card021/510880/live-observation")
+    db = ResearchDB(":memory:")
+    store = Card021SnapshotStore(db.conn)
+    client = _router_app(lambda: market, snapshot_store=store)
+    response = client.get("/api/research/card021/510880/live-observation")
 
     assert response.status_code == 200
     payload = response.json()
@@ -193,8 +207,17 @@ def test_market_query_failure_reports_endpoint_and_exception_type_without_raw_er
     assert payload["failure_code"] == "market_source_query_failed"
     assert payload["failed_endpoint"] == "fund_adj"
     assert payload["error_type"] == "ValueError"
+    assert payload["failure_category"] == "network_timeout"
+    assert payload["cause_type"] == "Timeout"
+    assert payload.get("http_status") is None
     assert payload["provider_responses_received"] == ["trade_cal", "fund_daily"]
-    assert "sensitive-value" not in response.text
+    assert "synthetic-only-sensitive-marker" not in response.text
+
+    saved = client.get(f"/api/research/card021/510880/snapshots/{payload['snapshot_id']}")
+    assert saved.status_code == 200
+    assert saved.json()["failure_category"] == "network_timeout"
+    assert saved.json()["cause_type"] == "Timeout"
+    assert saved.json()["sources"][-1]["failure_category"] == "network_timeout"
 
 
 def test_protocol_hash_mismatch_blocks_all_card021_provider_calls(monkeypatch):

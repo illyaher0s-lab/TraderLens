@@ -22,7 +22,8 @@ _INPUT_FIELDS = {
     ),
 }
 _RESULT_FIELDS = frozenset({
-    "status", "failure_code", "failure_message", "strategy_id", "protocol_revision", "symbol",
+    "status", "failure_code", "failure_message", "failure_category", "cause_type", "http_status",
+    "failed_endpoint", "error_type", "strategy_id", "protocol_revision", "symbol",
     "evidence_level", "signal_date", "supersedes_signal_date", "latest_market_data_date",
     "retrieved_at", "signal_window_start", "signal_window_end", "valid_adjusted_close_count",
     "signal_volatility", "target_weight", "target_weight_percentage", "target_price_raw_cny",
@@ -56,10 +57,12 @@ _MARKET_DATA_FRESHNESS_FIELDS = frozenset({
 _SOURCE_FIELDS = frozenset({
     "source", "endpoint", "request_started_at", "received_at", "retrieved_at", "row_count",
     "provider_origin_authenticated", "response_status", "error_type",
+    "failure_category", "cause_type", "http_status",
 })
 _RECEIPT_FIELDS = frozenset({
     "endpoint", "query_fields", "query_params", "request_started_at", "received_at",
     "row_count", "response_status", "error_type",
+    "failure_category", "cause_type", "http_status",
 })
 
 

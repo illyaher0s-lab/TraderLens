@@ -10,6 +10,9 @@ type Card021Observation = {
   failure_message?: string;
   failed_endpoint?: string;
   error_type?: string;
+  failure_category?: string;
+  cause_type?: string;
+  http_status?: number | null;
   strategy_id: string;
   protocol_revision: number;
   protocol_sha256?: string;
@@ -202,7 +205,31 @@ export function buildCard021Summary(observation: Card021Observation) {
   const missingEndpointLabels = (marketFreshness?.missing_endpoints ?? []).map(
     (endpoint) => marketEndpointLabels[endpoint] ?? endpoint,
   );
-  const marketDataStatusText = marketFreshness?.status === "awaiting_market_close"
+  const failureCategoryLabels: Record<string, string> = {
+    client_configuration_error: "本地客户端配置错误",
+    client_initialization_error: "客户端初始化失败，具体原因未分类",
+    network_tls_error: "TLS 连接错误",
+    network_timeout: "网络超时",
+    network_connection: "网络连接失败",
+    http_response_error: "HTTP 响应错误",
+    provider_api_error: "数据提供方 API 返回错误，具体原因未保存",
+    invalid_provider_response: "数据响应格式异常",
+    unclassified: "原因未分类",
+  };
+  const failureCategoryLabel = observation.failure_category
+    ? failureCategoryLabels[observation.failure_category] ?? "原因未分类"
+    : "原因未分类";
+  const failureCauseText = observation.cause_type
+    ? `底层异常 ${observation.cause_type}`
+    : `异常类型 ${display(observation.error_type)}`;
+  const httpStatusText = observation.http_status == null
+    ? ""
+    : `；HTTP ${display(observation.http_status)}`;
+  const failureDiagnosticText = `${failureCategoryLabel}；${failureCauseText}${httpStatusText}`;
+  const clientInitializationFailed = observation.failure_code === "market_client_unavailable";
+  const marketDataStatusText = clientInitializationFailed
+    ? `行情客户端初始化失败：${failureDiagnosticText}；尚未请求行情。`
+    : marketFreshness?.status === "awaiting_market_close"
     ? `${display(expectedDataDate)} 尚未收盘；行情完整数据截至 ${display(lastAvailableDate)}。月末信号须待实际收盘后再确认。`
     : marketFreshness?.status === "awaiting_data_cutoff"
       ? `${display(expectedDataDate)} 已收盘；当前完整行情截至 ${display(lastAvailableDate)}。服务端可查询时点为 ${display(cutoffTime)}（${display(marketFreshness.timezone)}）。`
@@ -213,7 +240,7 @@ export function buildCard021Summary(observation: Card021Observation) {
           : marketFreshness?.status === "required_data_missing"
             ? `计算所需行情不完整；最近共同数据截至 ${display(lastAvailableDate)}${missingEndpointLabels.length ? `，缺少${missingEndpointLabels.join("、")}` : ""}。`
             : marketFreshness?.status === "source_query_failed"
-              ? `行情来源查询失败：${failedEndpointLabel}；异常类型 ${display(observation.error_type)}；最近共同数据截至 ${display(lastAvailableDate)}。`
+              ? `行情来源查询失败：${failedEndpointLabel}；${failureDiagnosticText}；最近共同数据截至 ${display(lastAvailableDate)}。`
               : "行情数据更新时间尚未核实。";
   const accountText = savedMarket
     ? "这条历史行情快照没有保存或读取持仓、可卖份额、现金和分红应收。"

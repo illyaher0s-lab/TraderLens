@@ -318,12 +318,29 @@ test("after-cutoff missing data says the old target expired and the new signal i
   assert.match(summary.nextStepText, /不沿用旧目标/);
 });
 
+test("client initialization failure shows a safe configuration category", () => {
+  const summary = buildCard021Summary(makeObservation({
+    status: "unavailable",
+    failure_code: "market_client_unavailable",
+    error_type: "ValueError",
+    failure_category: "client_configuration_error",
+    cause_type: "ValueError",
+    market_data_freshness: { status: "unverified" },
+  }));
+
+  assert.match(summary.marketDataStatusText, /客户端配置错误/);
+  assert.match(summary.marketDataStatusText, /ValueError/);
+});
+
 test("source query failure identifies the failed endpoint and sanitized error type", () => {
   const summary = buildCard021Summary(makeObservation({
     status: "unavailable",
     failure_code: "market_source_query_failed",
     failed_endpoint: "fund_adj",
     error_type: "ValueError",
+    failure_category: "network_timeout",
+    cause_type: "Timeout",
+    http_status: null,
     market_data_freshness: {
       status: "source_query_failed",
       last_available_date: null,
@@ -331,7 +348,8 @@ test("source query failure identifies the failed endpoint and sanitized error ty
   }));
 
   assert.match(summary.marketDataStatusText, /复权因子（fund_adj）/);
-  assert.match(summary.marketDataStatusText, /ValueError/);
+  assert.match(summary.marketDataStatusText, /网络超时/);
+  assert.match(summary.marketDataStatusText, /Timeout/);
   assert.match(summary.marketDataStatusText, /最近共同数据截至 未获取/);
 });
 

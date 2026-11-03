@@ -6,13 +6,73 @@ Wrapper for Tushare API with proxy disabling and rate limiting.
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from typing import Any
 
+from requests import exceptions as requests_exc
+
 import tushare as ts
 
 from backend.app.tushare.config import TushareConfig
+
+
+_SAFE_ERROR_CATEGORIES = frozenset({
+    "client_configuration_error",
+    "client_initialization_error",
+    "network_tls_error",
+    "network_timeout",
+    "network_connection",
+    "http_response_error",
+    "provider_api_error",
+    "invalid_provider_response",
+    "unclassified",
+})
+
+
+def _safe_http_status(error: Exception) -> int | None:
+    response = getattr(error, "response", None)
+    status = getattr(response, "status_code", None)
+    return status if type(status) is int and 100 <= status <= 599 else None
+
+
+def _safe_error_category(error: Exception) -> str:
+    attached = getattr(error, "safe_error_category", None)
+    if isinstance(attached, str) and attached in _SAFE_ERROR_CATEGORIES:
+        return attached
+    if isinstance(error, requests_exc.SSLError):
+        return "network_tls_error"
+    if isinstance(error, (requests_exc.Timeout, TimeoutError)):
+        return "network_timeout"
+    if isinstance(error, (requests_exc.ConnectionError, ConnectionError)):
+        return "network_connection"
+    if isinstance(error, requests_exc.HTTPError):
+        return "http_response_error"
+    if isinstance(error, json.JSONDecodeError):
+        return "invalid_provider_response"
+    if type(error) is Exception:
+        return "provider_api_error"
+    return "unclassified"
+
+
+def _safe_cause_type(error: Exception) -> str:
+    cause_type = getattr(error, "safe_cause_type", None)
+    if (
+        isinstance(cause_type, str)
+        and len(cause_type) <= 64
+        and cause_type.isascii()
+        and cause_type.isidentifier()
+    ):
+        return cause_type
+    name = type(error).__name__
+    return name if len(name) <= 64 and name.isascii() and name.isidentifier() else "UnknownError"
+
+
+def _attach_safe_error_diagnostics(error: Exception, category: str) -> None:
+    error.safe_error_category = category
+    error.safe_cause_type = type(error).__name__
+    error.safe_http_status = _safe_http_status(error)
 
 
 class TushareClient:
@@ -41,10 +101,18 @@ class TushareClient:
         # Disable proxy for Tushare API access (VPN compatibility)
         self._disable_proxy()
         
-        # Initialize Tushare pro API
-        token = config.ensure_token()
-        self.pro = ts.pro_api(token, timeout=config.request_timeout_seconds)
-        self.pro._DataApi__http_url = config.api_url
+        # Initialize Tushare pro API.
+        try:
+            token = config.ensure_token()
+        except ValueError as exc:
+            _attach_safe_error_diagnostics(exc, "client_configuration_error")
+            raise
+        try:
+            self.pro = ts.pro_api(token, timeout=config.request_timeout_seconds)
+            self.pro._DataApi__http_url = config.api_url
+        except Exception as exc:
+            _attach_safe_error_diagnostics(exc, "client_initialization_error")
+            raise
         
         # Rate limiting state
         self._last_request_time: float = 0.0
@@ -113,7 +181,9 @@ class TushareClient:
                 
                 # Tushare returns DataFrame, check if empty or error
                 if df is None:
-                    raise ValueError(f"Tushare API returned None for {api_name}")
+                    empty_response = ValueError(f"Tushare API returned None for {api_name}")
+                    _attach_safe_error_diagnostics(empty_response, "invalid_provider_response")
+                    raise empty_response
                 
                 return df
             
@@ -128,8 +198,13 @@ class TushareClient:
                     # Last attempt failed
                     break
         
-        # All attempts exhausted
-        raise ValueError(
-            f"Tushare API call failed after {attempt_limit} attempts: "
-            f"api={api_name}, params={kwargs}, error={last_error}"
+        # Do not embed provider response text or query parameters in the exception.
+        error = ValueError(f"Tushare API call failed after {attempt_limit} attempts: api={api_name}")
+        error.safe_error_category = _safe_error_category(last_error)
+        error.safe_cause_type = _safe_cause_type(last_error)
+        error.safe_http_status = (
+            getattr(last_error, "safe_http_status", None)
+            if type(getattr(last_error, "safe_http_status", None)) is int
+            else _safe_http_status(last_error)
         )
+        raise error from None

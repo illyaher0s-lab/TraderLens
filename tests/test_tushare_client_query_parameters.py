@@ -1,4 +1,9 @@
+import json
+from types import SimpleNamespace
 from unittest.mock import patch
+
+import pytest
+from requests import exceptions as requests_exc
 
 from backend.app.tushare.config import TushareConfig
 from backend.app.tushare.tushare_client import TushareClient
@@ -80,6 +85,54 @@ def test_query_single_attempt_does_not_retry_permission_failures():
     assert len(calls) == 1
     assert calls[0] == ("news", {"src": "sina"})
     assert "after 1 attempts" in error
+
+
+@pytest.mark.parametrize(
+    ("error_factory", "expected_category", "expected_status"),
+    [
+        (lambda: requests_exc.Timeout("synthetic-only"), "network_timeout", None),
+        (lambda: requests_exc.ConnectionError("synthetic-only"), "network_connection", None),
+        (lambda: requests_exc.SSLError("synthetic-only"), "network_tls_error", None),
+        (lambda: _synthetic_http_error(503), "http_response_error", 503),
+        (lambda: Exception("synthetic-only"), "provider_api_error", None),
+        (lambda: json.JSONDecodeError("synthetic-only", "", 0), "invalid_provider_response", None),
+    ],
+)
+def test_query_attaches_only_safe_error_diagnostics(error_factory, expected_category, expected_status):
+    error = error_factory()
+
+    class FakePro:
+        _DataApi__http_url = ""
+
+        def query(self, api_name, **kwargs):
+            raise error
+
+    with patch("backend.app.tushare.tushare_client.ts.pro_api", return_value=FakePro()):
+        with patch.object(TushareClient, "_disable_proxy"):
+            client = TushareClient(TushareConfig(token="test-token", retry_delay_seconds=0))
+            with pytest.raises(ValueError) as caught:
+                client.query("trade_cal", single_attempt=True)
+
+    assert getattr(caught.value, "safe_error_category", None) == expected_category
+    assert getattr(caught.value, "safe_cause_type", None) == type(error).__name__
+    assert getattr(caught.value, "safe_http_status", None) == expected_status
+    assert "synthetic-only" not in str(caught.value)
+
+
+def _synthetic_http_error(status_code):
+    error = requests_exc.HTTPError("synthetic-only")
+    error.response = SimpleNamespace(status_code=status_code)
+    return error
+
+
+def test_missing_token_is_classified_as_client_configuration_failure():
+    with patch.object(TushareClient, "_disable_proxy"):
+        with pytest.raises(ValueError) as caught:
+            TushareClient(TushareConfig(token=None))
+
+    assert getattr(caught.value, "safe_error_category", None) == "client_configuration_error"
+    assert getattr(caught.value, "safe_cause_type", None) == "ValueError"
+    assert getattr(caught.value, "safe_http_status", None) is None
 
 
 def test_query_default_still_uses_configured_retries():

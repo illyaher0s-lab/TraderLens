@@ -32,14 +32,57 @@ _MIN_COMMISSION = Decimal("5.00")
 _COMMISSION_RATIO_LIMIT = Decimal("0.005")
 
 
+_SAFE_ERROR_CATEGORIES = frozenset({
+    "client_configuration_error",
+    "client_initialization_error",
+    "network_tls_error",
+    "network_timeout",
+    "network_connection",
+    "http_response_error",
+    "provider_api_error",
+    "invalid_provider_response",
+    "unclassified",
+})
+
+
+def _safe_failure_diagnostics(exc: Exception, *, default_category: str = "unclassified") -> dict:
+    category = getattr(exc, "safe_error_category", None)
+    if not isinstance(category, str) or category not in _SAFE_ERROR_CATEGORIES:
+        category = default_category if default_category in _SAFE_ERROR_CATEGORIES else "unclassified"
+    cause_type = getattr(exc, "safe_cause_type", None)
+    if not (
+        isinstance(cause_type, str)
+        and len(cause_type) <= 64
+        and cause_type.isascii()
+        and cause_type.isidentifier()
+    ):
+        cause_type = None
+    status = getattr(exc, "safe_http_status", None)
+    if type(status) is not int or not 100 <= status <= 599:
+        status = None
+    error_type = type(exc).__name__
+    if not (len(error_type) <= 64 and error_type.isascii() and error_type.isidentifier()):
+        error_type = "UnknownError"
+    return {
+        "error_type": error_type,
+        "failure_category": category,
+        "cause_type": cause_type,
+        "http_status": status,
+    }
+
+
 class _ObservationFailure(Exception):
     def __init__(self, code: str, message: str, *, endpoint: str | None = None,
-                 error_type: str | None = None):
+                 error_type: str | None = None, failure_category: str | None = None,
+                 cause_type: str | None = None, http_status: int | None = None):
         super().__init__(message)
         self.code = code
         self.message = message
         self.endpoint = endpoint
         self.error_type = error_type
+        self.failure_category = failure_category
+        self.cause_type = cause_type
+        self.http_status = http_status
 
 
 def _records(value: Any) -> list[dict]:
@@ -202,6 +245,8 @@ def _market_data_freshness() -> dict:
 
 def _unavailable(code: str, message: str, now: datetime, *, provider_call_attempted: bool,
                  endpoint: str | None = None, error_type: str | None = None,
+                 failure_category: str | None = None, cause_type: str | None = None,
+                 http_status: int | None = None,
                  sources: list[dict] | None = None,
                  completed_endpoints: list[str] | None = None,
                  market_data_freshness: dict | None = None,
@@ -235,6 +280,12 @@ def _unavailable(code: str, message: str, now: datetime, *, provider_call_attemp
         result["failed_endpoint"] = endpoint
     if error_type:
         result["error_type"] = error_type
+    if failure_category:
+        result["failure_category"] = failure_category
+    if cause_type:
+        result["cause_type"] = cause_type
+    if http_status is not None:
+        result["http_status"] = http_status
     return result
 
 
@@ -256,30 +307,32 @@ def _client_rows(client, endpoint: str, fields: str | None, params: dict,
             **params,
         )
     except Exception as exc:
+        diagnostics = _safe_failure_diagnostics(exc)
         receipt.update({
             "received_at": _timestamp_now(),
             "response_status": "error",
-            "error_type": type(exc).__name__,
+            **diagnostics,
         })
         source_receipts.append(receipt)
         raise _ObservationFailure(
             "market_source_query_failed",
             "行情来源请求失败，未生成目标。",
             endpoint=endpoint,
-            error_type=type(exc).__name__,
+            **diagnostics,
         ) from None
     receipt["received_at"] = _timestamp_now()
     try:
         rows = _records(response)
         market_inputs[endpoint] = [_captured_row(endpoint, row) for row in rows]
     except Exception as exc:
-        receipt.update({"response_status": "invalid_response", "error_type": type(exc).__name__})
+        diagnostics = _safe_failure_diagnostics(exc, default_category="invalid_provider_response")
+        receipt.update({"response_status": "invalid_response", **diagnostics})
         source_receipts.append(receipt)
         raise _ObservationFailure(
             "market_source_query_failed",
             "行情来源请求失败，未生成目标。",
             endpoint=endpoint,
-            error_type=type(exc).__name__,
+            **diagnostics,
         ) from None
     receipt.update({"row_count": len(rows), "response_status": "received"})
     source_receipts.append(receipt)
@@ -298,6 +351,9 @@ def _source_summaries(source_receipts: list[dict]) -> list[dict]:
             **({"row_count": receipt["row_count"]} if "row_count" in receipt else {}),
             "response_status": receipt["response_status"],
             **({"error_type": receipt["error_type"]} if "error_type" in receipt else {}),
+            **({"failure_category": receipt["failure_category"]} if "failure_category" in receipt else {}),
+            **({"cause_type": receipt["cause_type"]} if "cause_type" in receipt else {}),
+            **({"http_status": receipt["http_status"]} if "http_status" in receipt else {}),
             "provider_origin_authenticated": False,
         }
         for receipt in source_receipts
@@ -801,13 +857,16 @@ def get_card021_live_observation(
     try:
         client = client_provider()
     except Exception as exc:
+        diagnostics = _safe_failure_diagnostics(exc, default_category="client_initialization_error")
+        if diagnostics["cause_type"] is None:
+            diagnostics["cause_type"] = diagnostics["error_type"]
         return _finish_observation(
             _unavailable(
                 "market_client_unavailable",
                 "市场数据客户端未完成初始化；尚未请求行情数据。",
                 now,
                 provider_call_attempted=False,
-                error_type=type(exc).__name__,
+                **diagnostics,
                 market_data_freshness=market_data_freshness,
             ),
             market_inputs,
@@ -1182,6 +1241,9 @@ def get_card021_live_observation(
                 provider_call_attempted=bool(attempted),
                 endpoint=exc.endpoint,
                 error_type=exc.error_type,
+                failure_category=exc.failure_category,
+                cause_type=exc.cause_type,
+                http_status=exc.http_status,
                 sources=_source_summaries(source_receipts),
                 completed_endpoints=completed,
                 market_data_freshness=market_data_freshness,
