@@ -332,6 +332,19 @@ test("client initialization failure shows a safe configuration category", () => 
   assert.match(summary.marketDataStatusText, /ValueError/);
 });
 
+test("unproven provider category falls back to an unclassified label", () => {
+  const summary = buildCard021Summary(makeObservation({
+    status: "unavailable",
+    failure_code: "market_source_query_failed",
+    failure_category: "provider_api_error",
+    error_type: "Exception",
+    market_data_freshness: { status: "source_query_failed" },
+  }));
+
+  assert.match(summary.marketDataStatusText, /原因未分类/);
+  assert.doesNotMatch(summary.marketDataStatusText, /数据提供方 API 返回错误/);
+});
+
 test("source query failure identifies the failed endpoint and sanitized error type", () => {
   const summary = buildCard021Summary(makeObservation({
     status: "unavailable",

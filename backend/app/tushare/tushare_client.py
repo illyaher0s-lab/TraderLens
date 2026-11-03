@@ -25,7 +25,6 @@ _SAFE_ERROR_CATEGORIES = frozenset({
     "network_timeout",
     "network_connection",
     "http_response_error",
-    "provider_api_error",
     "invalid_provider_response",
     "unclassified",
 })
@@ -51,8 +50,6 @@ def _safe_error_category(error: Exception) -> str:
         return "http_response_error"
     if isinstance(error, json.JSONDecodeError):
         return "invalid_provider_response"
-    if type(error) is Exception:
-        return "provider_api_error"
     return "unclassified"
 
 

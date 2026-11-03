@@ -39,7 +39,6 @@ _SAFE_ERROR_CATEGORIES = frozenset({
     "network_timeout",
     "network_connection",
     "http_response_error",
-    "provider_api_error",
     "invalid_provider_response",
     "unclassified",
 })

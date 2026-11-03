@@ -212,7 +212,6 @@ export function buildCard021Summary(observation: Card021Observation) {
     network_timeout: "网络超时",
     network_connection: "网络连接失败",
     http_response_error: "HTTP 响应错误",
-    provider_api_error: "数据提供方 API 返回错误，具体原因未保存",
     invalid_provider_response: "数据响应格式异常",
     unclassified: "原因未分类",
   };
