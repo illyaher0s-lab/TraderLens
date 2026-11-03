@@ -465,20 +465,6 @@ class DataToolsService:
 
     @staticmethod
     def _tushare_failure_status(exc: Exception) -> str:
-        # Wrapped Tushare errors carry sanitized categories; do not inspect suppressed provider text.
-        safe_category = getattr(exc, "safe_error_category", None)
-        if isinstance(safe_category, str) and safe_category in {
-            "client_configuration_error",
-            "client_initialization_error",
-            "network_tls_error",
-            "network_timeout",
-            "network_connection",
-            "http_response_error",
-            "invalid_provider_response",
-            "unclassified",
-        }:
-            return "timeout" if safe_category == "network_timeout" else "provider_error"
-
         chain = []
         current: BaseException | None = exc
         seen: set[int] = set()

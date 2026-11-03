@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 import sqlite3
 from types import SimpleNamespace
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI
@@ -14,6 +15,8 @@ from backend.api import card020 as card020_api
 from backend.api import observations as observations_api
 from backend.api.card021 import create_card021_router
 from backend.api.research import create_research_app
+from backend.app.tushare.config import TushareConfig
+from backend.app.tushare.tushare_client import TushareClient
 from backend.db.live_trade import LiveTradeDB
 from backend.db.research import ResearchDB
 from backend.services.card021_store import Card021SnapshotStore
@@ -79,8 +82,8 @@ class FakeMarketClient:
             ],
         }
 
-    def query(self, api_name, fields=None, *, single_attempt=False, **kwargs):
-        self.calls.append((api_name, fields, single_attempt, kwargs))
+    def query(self, api_name, fields=None, *, single_attempt=False, safe_error_diagnostics=False, **kwargs):
+        self.calls.append((api_name, fields, single_attempt, safe_error_diagnostics, kwargs))
         return self.rows[api_name]
 
 
@@ -140,6 +143,7 @@ def test_live_observation_reuses_frozen_card020_math_and_blocks_without_account_
     assert payload["next_possible_attempt_date"] == "2026-10-30"
     assert {call[0] for call in market.calls} == {"trade_cal", "fund_daily", "fund_adj", "fund_div"}
     assert all(call[2] is True for call in market.calls)
+    assert all(call[3] is True for call in market.calls)
     assert payload["provider_responses_received"] == ["trade_cal", "fund_daily", "fund_adj", "fund_div"]
     assert payload["dividend_source"]["coverage"] == "verified_signal_window_factor_changes"
 
@@ -167,6 +171,35 @@ def test_client_initialization_failure_returns_safe_unavailable_result_without_p
     assert payload.get("http_status") is None
     assert "synthetic-only-sensitive-marker" not in response.text
     assert "token" not in response.text.lower()
+
+
+def test_card021_tushare_query_uses_safe_diagnostics_without_raw_provider_message():
+    class FakePro:
+        _DataApi__http_url = ""
+
+        def query(self, api_name, **kwargs):
+            raise Exception("synthetic-only-sensitive-provider-marker")
+
+    config = TushareConfig(token="test-token", retry_attempts=1, retry_delay_seconds=0)
+    with patch("backend.app.tushare.tushare_client.ts.pro_api", return_value=FakePro()):
+        with patch.object(TushareClient, "_disable_proxy"):
+            market = TushareClient(config)
+    research_db = ResearchDB(":memory:")
+    snapshot_store = Card021SnapshotStore(research_db.conn)
+    client = _router_app(lambda: market, snapshot_store=snapshot_store)
+
+    response = client.get("/api/research/card021/510880/live-observation")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["failure_code"] == "market_source_query_failed"
+    assert payload["failure_category"] == "unclassified"
+    assert payload["cause_type"] == "Exception"
+    assert payload["failed_endpoint"] == "trade_cal"
+    assert "synthetic-only-sensitive-provider-marker" not in response.text
+    saved = client.get(f"/api/research/card021/510880/snapshots/{payload['snapshot_id']}")
+    assert saved.status_code == 200
+    assert "synthetic-only-sensitive-provider-marker" not in saved.text
 
 
 def test_incomplete_adjustment_window_does_not_emit_a_signal():

@@ -303,6 +303,7 @@ def _client_rows(client, endpoint: str, fields: str | None, params: dict,
             endpoint,
             fields=fields,
             single_attempt=True,
+            safe_error_diagnostics=True,
             **params,
         )
     except Exception as exc:

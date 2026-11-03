@@ -142,6 +142,7 @@ class TushareClient:
         fields: str | None = None,
         *,
         single_attempt: bool = False,
+        safe_error_diagnostics: bool = False,
         **kwargs: Any
     ) -> Any:
         """
@@ -151,6 +152,7 @@ class TushareClient:
             api_name: Tushare API name (e.g., "daily", "stock_basic")
             fields: Comma-separated field names (optional)
             single_attempt: Disable wrapper retries for this bounded query only.
+            safe_error_diagnostics: Omit query parameters and provider text from final errors.
             **kwargs: API-specific parameters
         
         Returns:
@@ -166,6 +168,8 @@ class TushareClient:
 
         if type(single_attempt) is not bool:
             raise ValueError("single_attempt must be a boolean")
+        if type(safe_error_diagnostics) is not bool:
+            raise ValueError("safe_error_diagnostics must be a boolean")
         attempt_limit = 1 if single_attempt else self.config.retry_attempts
         last_error: Exception | None = None
 
@@ -195,13 +199,18 @@ class TushareClient:
                     # Last attempt failed
                     break
         
-        # Do not embed provider response text or query parameters in the exception.
-        error = ValueError(f"Tushare API call failed after {attempt_limit} attempts: api={api_name}")
-        error.safe_error_category = _safe_error_category(last_error)
-        error.safe_cause_type = _safe_cause_type(last_error)
-        error.safe_http_status = (
-            getattr(last_error, "safe_http_status", None)
-            if type(getattr(last_error, "safe_http_status", None)) is int
-            else _safe_http_status(last_error)
+        if safe_error_diagnostics:
+            # Card021 opts in to sanitized diagnostics at its provider boundary.
+            error = ValueError(f"Tushare API call failed after {attempt_limit} attempts: api={api_name}")
+            error.safe_error_category = _safe_error_category(last_error)
+            error.safe_cause_type = _safe_cause_type(last_error)
+            error.safe_http_status = (
+                getattr(last_error, "safe_http_status", None)
+                if type(getattr(last_error, "safe_http_status", None)) is int
+                else _safe_http_status(last_error)
+            )
+            raise error from None
+        raise ValueError(
+            f"Tushare API call failed after {attempt_limit} attempts: "
+            f"api={api_name}, params={kwargs}, error={last_error}"
         )
-        raise error from None
