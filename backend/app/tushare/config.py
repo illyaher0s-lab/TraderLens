@@ -26,7 +26,7 @@ class TushareConfig:
     
     # API Configuration
     token: str | None = None  # Loaded from env var or passed explicitly
-    api_url: str = "http://8.163.90.143:8686/"  # Custom endpoint
+    api_url: str = "https://ts.gyzcloud.top/api"  # Custom endpoint
     
     # Rate Limiting (conservative defaults)
     requests_per_minute: int = 60  # 1 request per second

@@ -5,7 +5,9 @@ Verify config loading, path resolution, and token handling.
 """
 
 import unittest
+import os
 from pathlib import Path
+from unittest.mock import patch
 
 from backend.app.tushare.config import TushareConfig
 
@@ -19,7 +21,7 @@ class TestTushareConfig(unittest.TestCase):
         
         # Should not raise on creation
         self.assertIsNone(config.token)
-        self.assertEqual(config.api_url, "http://8.163.90.143:8686/")
+        self.assertEqual(config.api_url, "https://ts.gyzcloud.top/api")
         self.assertEqual(config.requests_per_minute, 60)
     
     def test_default_snapshot_root(self):
@@ -70,13 +72,13 @@ class TestTushareConfig(unittest.TestCase):
     
     def test_from_env_without_env_vars(self):
         """from_env creates config even without env vars."""
-        # Note: This test may pick up actual env vars in CI
-        # Just verify it doesn't crash
-        config = TushareConfig.from_env()
+        with patch.dict(os.environ, {}, clear=True):
+            config = TushareConfig.from_env()
         
         # Should create config (token may or may not be present)
         self.assertIsNotNone(config)
-        self.assertEqual(config.api_url, "http://8.163.90.143:8686/")
+        self.assertIsNone(config.token)
+        self.assertEqual(config.api_url, "https://ts.gyzcloud.top/api")
 
 
 if __name__ == "__main__":

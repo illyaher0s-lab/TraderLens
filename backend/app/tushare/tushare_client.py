@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 from typing import Any
 
@@ -28,6 +29,20 @@ _SAFE_ERROR_CATEGORIES = frozenset({
     "invalid_provider_response",
     "unclassified",
 })
+
+_PROVIDER_URL_RE = re.compile(
+    r"(?i)\b(?:https?://)?"
+    r"(?:[a-z0-9-]+(?:\.[a-z0-9-]+)*\.[a-z]{2,}|localhost|(?:\d{1,3}\.){3}\d{1,3})"
+    r"(?::\d+)?(?:/[^\s\"'<>;,)]*)?(?:\?[^\s\"'<>;,)]*)?"
+)
+_CREDENTIAL_FIELD_RE = re.compile(
+    r"(?i)\b((?:authorization|access[-_ ]?token|api[-_ ]?(?:token|key)|token|secret|key)\s*[:=]\s*)"
+    r"(?:bearer\s+)?(?:\"[^\"]*\"|'[^']*'|[^\s,;}\]]+)"
+)
+_OPAQUE_SECRET_RE = re.compile(
+    r"(?i)(?<![a-z0-9])(?=[a-z0-9_-]{24,}(?![a-z0-9]))"
+    r"(?=[a-z0-9_-]*[a-z])(?=[a-z0-9_-]*\d)[a-z0-9_-]{24,}(?![a-z0-9])"
+)
 
 
 def _safe_http_status(error: Exception) -> int | None:
@@ -70,6 +85,46 @@ def _attach_safe_error_diagnostics(error: Exception, category: str) -> None:
     error.safe_error_category = category
     error.safe_cause_type = type(error).__name__
     error.safe_http_status = _safe_http_status(error)
+
+
+def _safe_provider_message(error: Exception | None, token: str | None) -> str | None:
+    if error is None:
+        return None
+    try:
+        message = str(error)
+    except Exception:
+        return None
+    if not message or len(message) > 2048 or any(ord(character) < 32 for character in message):
+        return None
+
+    if message.lstrip().startswith("{"):
+        try:
+            payload = json.loads(message)
+        except (TypeError, ValueError):
+            return None
+        if not isinstance(payload, dict):
+            return None
+        message = next(
+            (payload[key] for key in ("msg", "message", "error_description")
+             if isinstance(payload.get(key), str) and payload[key].strip()),
+            None,
+        )
+        if message is None:
+            return None
+
+    message = _PROVIDER_URL_RE.sub("[URL已隐藏]", message)
+    message = _CREDENTIAL_FIELD_RE.sub(r"\1[凭据已隐藏]", message)
+    if token:
+        message = message.replace(token, "[凭据已隐藏]")
+    if any(character in message for character in "{}<>"):
+        return None
+    if re.search(r"(?i)\b(?:headers?|params?|payload|request\s*(?:body|payload))\s*[:=]", message):
+        return None
+    if _OPAQUE_SECRET_RE.search(message):
+        return None
+
+    message = " ".join(message.split())
+    return message[:240] if message and len(message) <= 240 else None
 
 
 class TushareClient:
@@ -199,9 +254,13 @@ class TushareClient:
                     # Last attempt failed
                     break
         
+        provider_message = _safe_provider_message(last_error, self.config.token)
+        base_message = f"Tushare API call failed after {attempt_limit} attempts: api={api_name}"
+
         if safe_error_diagnostics:
             # Card021 opts in to sanitized diagnostics at its provider boundary.
-            error = ValueError(f"Tushare API call failed after {attempt_limit} attempts: api={api_name}")
+            error = ValueError(base_message)
+            error.safe_provider_message = provider_message
             error.safe_error_category = _safe_error_category(last_error)
             error.safe_cause_type = _safe_cause_type(last_error)
             error.safe_http_status = (
@@ -210,7 +269,11 @@ class TushareClient:
                 else _safe_http_status(last_error)
             )
             raise error from None
-        raise ValueError(
-            f"Tushare API call failed after {attempt_limit} attempts: "
-            f"api={api_name}, params={kwargs}, error={last_error}"
-        )
+        error_message = base_message
+        if provider_message is not None:
+            error_message += f"; provider_message={provider_message}"
+        else:
+            error_message += "; provider details unavailable; failure reason unknown"
+        error = ValueError(error_message)
+        error.safe_provider_message = provider_message
+        raise error from None
